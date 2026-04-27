@@ -73,7 +73,7 @@ function linkify(text) {
     let safeText = escapeHtml(text);
 
     safeText = safeText.replace(
-        /(https?:\\/\\/[^\\s<>"']+)/g,
+        /(https?:\/\/[^\s<>"']+)/g,
         function(url) {
             let cleanUrl = url.replace(/[،,.؛:!?)]$/, "");
             let tail = url.substring(cleanUrl.length);
@@ -82,7 +82,7 @@ function linkify(text) {
         }
     );
 
-    safeText = safeText.replace(/\\n/g, "<br>");
+    safeText = safeText.replace(/\n/g, "<br>");
     return safeText;
 }
 
@@ -203,4 +203,4 @@ def leads_view():
 
 
 if __name__ == "__main__":
-app.run(host="0.0.0.0", port=10000)
+    app.run(host="0.0.0.0", port=10000)
