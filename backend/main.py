@@ -4,6 +4,7 @@ from flask import Flask, request, jsonify, render_template_string
 from brain import think
 from database import init_db, save_message, get_leads
 import uuid
+import os
 
 app = Flask(__name__)
 
@@ -42,23 +43,44 @@ let sessionId = localStorage.getItem("session_id");
 async function sendMsg() {
     const input = document.getElementById("msg");
     const text = input.value.trim();
+
     if (!text) return;
 
     addMsg(text, "user");
     input.value = "";
 
-    const res = await fetch("/chat", {
-        method: "POST",
-        headers: {"Content-Type": "application/json"},
-        body: JSON.stringify({message: text, session_id: sessionId})
-    });
+    try {
+        const res = await fetch("/chat", {
+            method: "POST",
+            headers: {"Content-Type": "application/json"},
+            body: JSON.stringify({
+                message: text,
+                session_id: sessionId
+            })
+        });
 
-    const data = await res.json();
-    sessionId = data.session_id;
-    localStorage.setItem("session_id", sessionId);
+        const data = await res.json();
 
-    addMsg(data.reply, "bot");
+        sessionId = data.session_id;
+        localStorage.setItem("session_id", sessionId);
+
+        addMsg(data.reply, "bot");
+
+    } catch (error) {
+        addMsg("صار خطأ بسيط في الاتصال. جرّب مرة ثانية.", "bot");
+        console.error(error);
+    }
 }
+
+document.addEventListener("DOMContentLoaded", function() {
+    const input = document.getElementById("msg");
+
+    input.addEventListener("keydown", function(event) {
+        if (event.key === "Enter") {
+            sendMsg();
+        }
+    });
+});
 
 function escapeHtml(text) {
     return String(text)
@@ -73,7 +95,7 @@ function linkify(text) {
     let safeText = escapeHtml(text);
 
     safeText = safeText.replace(
-        /(https?:\/\/[^\s<>"']+)/g,
+        /(https?:\\/\\/[^\\s<>"']+)/g,
         function(url) {
             let cleanUrl = url.replace(/[،,.؛:!?)]$/, "");
             let tail = url.substring(cleanUrl.length);
@@ -82,13 +104,14 @@ function linkify(text) {
         }
     );
 
-    safeText = safeText.replace(/\n/g, "<br>");
+    safeText = safeText.split("\\n").join("<br>");
     return safeText;
 }
 
 function addMsg(text, type) {
     const box = document.getElementById("messages");
     const div = document.createElement("div");
+
     div.className = "msg " + type;
 
     if (type === "bot") {
@@ -186,6 +209,7 @@ def chat():
 @app.route("/leads", methods=["GET"])
 def leads_json():
     key = request.args.get("key")
+
     if key != ADMIN_KEY:
         return jsonify({"error": "Unauthorized"}), 401
 
@@ -195,6 +219,7 @@ def leads_json():
 @app.route("/leads-view", methods=["GET"])
 def leads_view():
     key = request.args.get("key")
+
     if key != ADMIN_KEY:
         return "Unauthorized", 401
 
@@ -203,4 +228,5 @@ def leads_view():
 
 
 if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=10000)
+    port = int(os.environ.get("PORT", 10000))
+    app.run(host="0.0.0.0", port=port, debug=False)
