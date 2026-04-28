@@ -103,6 +103,8 @@ CORE_RULES = {
     "never_insult": True,
     "human_style": True
 }
+
+
 # =========================
 # FOUNDER INFO
 # =========================
@@ -123,7 +125,6 @@ FOUNDER_INFO = {
 
 # =========================
 # PAYMENT LINKS
-# ضع روابط Stripe / Ziina هنا لاحقاً
 # =========================
 
 PAYMENT_LINKS = {
@@ -142,6 +143,8 @@ CLOSING_RULES = {
     "whatsapp_only_for_human_handoff": True,
     "do_not_repeat_whatsapp": True,
 }
+
+
 # =========================
 # GOOGLE SHEETS WEBHOOK
 # =========================
