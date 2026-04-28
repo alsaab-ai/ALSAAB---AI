@@ -29,7 +29,7 @@ def start_training(state):
     state["training_step"] = 0
     state["training_data"] = {}
 
-    print("TRAINING STARTED ✅")
+    print("TRAINING STARTED ✅", flush=True)
 
     return "تمام 🔥 خلنا نجهز البوت لمشروعك خطوة خطوة.\n" + FIELDS[0][1]
 
@@ -37,19 +37,25 @@ def start_training(state):
 def handle_training(message, state, session_id=None):
     step = state.get("training_step", 0)
 
-    print(f"TRAINING STEP RECEIVED ✅ step={step}")
+    print(f"TRAINING STEP RECEIVED ✅ step={step}", flush=True)
+    print(f"TRAINING SESSION ✅ session_id={session_id}", flush=True)
 
     if step < len(FIELDS):
         key = FIELDS[step][0]
-        state["training_data"][key] = message.strip()
+        value = message.strip()
+
+        state["training_data"][key] = value
         state["training_step"] = step + 1
 
-        print(f"TRAINING DATA SAVED IN MEMORY ✅ key={key}")
+        print(f"TRAINING DATA SAVED IN MEMORY ✅ key={key}", flush=True)
+        print(f"TRAINING NEXT STEP ✅ next_step={state['training_step']} / total={len(FIELDS)}", flush=True)
 
-    if state["training_step"] >= len(FIELDS):
+    if state.get("training_step", 0) >= len(FIELDS):
+        print("TRAINING COMPLETED CONDITION HIT ✅", flush=True)
         return finish_training(state, session_id)
 
-    return FIELDS[state["training_step"]][1]
+    next_question = FIELDS[state["training_step"]][1]
+    return next_question
 
 
 def finish_training(state, session_id=None):
@@ -57,15 +63,26 @@ def finish_training(state, session_id=None):
 
     state["mode"] = "sales"
     state["client_data"] = data
+    state["training_step"] = len(FIELDS)
 
-    print("TRAINING FINISHED ✅")
-    print(f"TRAINING DATA READY ✅ fields={list(data.keys())}")
+    print("TRAINING FINISHED ✅", flush=True)
+    print(f"TRAINING DATA READY ✅ fields={list(data.keys())}", flush=True)
 
-    if session_id and data:
-        print(f"SAVING CLIENT PROFILE ✅ session_id={session_id}")
+    if not session_id:
+        print("SAVE CLIENT PROFILE SKIPPED ❌ missing session_id", flush=True)
+        return "تم تجهيز معلومات مشروعك، لكن لم يتم الحفظ لأن رقم الجلسة غير موجود. جرّب التدريب مرة ثانية."
+
+    if not data:
+        print("SAVE CLIENT PROFILE SKIPPED ❌ missing data", flush=True)
+        return "تم إنهاء التدريب، لكن لا توجد بيانات للحفظ. جرّب التدريب مرة ثانية."
+
+    try:
+        print(f"SAVING CLIENT PROFILE ✅ session_id={session_id}", flush=True)
         save_client_profile(session_id, data)
-        print("SAVE CLIENT PROFILE FUNCTION CALLED ✅")
-    else:
-        print("SAVE CLIENT PROFILE SKIPPED ❌ missing session_id or data")
+        print("SAVE CLIENT PROFILE FUNCTION CALLED ✅", flush=True)
 
-    return "تم حفظ معلومات مشروعك ✅ الحين البوت جاهز يبيع عنك بشكل مخصص"
+        return "تم حفظ معلومات مشروعك ✅ الحين البوت جاهز يبيع عنك بشكل مخصص"
+
+    except Exception as error:
+        print(f"SAVE CLIENT PROFILE ERROR ❌ {error}", flush=True)
+        return "تم جمع معلومات مشروعك، لكن صار خطأ أثناء الحفظ. بنراجعه تقنياً."
