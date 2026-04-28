@@ -142,3 +142,9 @@ CLOSING_RULES = {
     "whatsapp_only_for_human_handoff": True,
     "do_not_repeat_whatsapp": True,
 }
+# =========================
+# GOOGLE SHEETS WEBHOOK
+# =========================
+
+GOOGLE_SHEET_WEBHOOK_URL = "https://script.google.com/macros/s/AKfycbyzkc4XmHk9xWXXqx1O6MERc1NGzuyB1R2txElenks7yZEJrV8c5BRI5LVGtj8mj2BcCA/exec"
+GOOGLE_SHEET_TOKEN = "alsaab_sheet_2026"
