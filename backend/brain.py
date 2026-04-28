@@ -17,7 +17,18 @@ from training_engine import start_training, handle_training
 
 client = OpenAI(api_key=OPENAI_API_KEY)
 
-state = create_state()
+# State منفصل لكل جلسة عشان التدريب ما يضيع بين الرسائل
+session_states = {}
+
+
+def get_session_state(session_id):
+    if session_id not in session_states:
+        session_states[session_id] = create_state()
+    return session_states[session_id]
+
+
+def set_session_state(session_id, new_state):
+    session_states[session_id] = new_state
 
 
 def format_history(messages):
@@ -74,26 +85,26 @@ def extract_name(message):
     return None
 
 
-def update_lead_data(message, session_id):
+def update_lead_data(message, session_id, current_state):
     extracted_name = extract_name(message)
     extracted_phone = extract_phone(message)
 
     if extracted_name:
-        state["lead_name"] = extracted_name
+        current_state["lead_name"] = extracted_name
 
     if extracted_phone:
-        state["lead_phone"] = extracted_phone
+        current_state["lead_phone"] = extracted_phone
 
-    if state.get("lead_name") and state.get("lead_phone"):
+    if current_state.get("lead_name") and current_state.get("lead_phone"):
         save_lead(
             session_id=session_id,
-            name=state["lead_name"],
-            phone=state["lead_phone"],
-            state=state
+            name=current_state["lead_name"],
+            phone=current_state["lead_phone"],
+            state=current_state
         )
 
 
-def load_client_profile_into_state(session_id):
+def load_client_profile_into_state(session_id, current_state):
     """
     يسترجع بيانات المشروع المدربة من قاعدة البيانات.
     هذا لا يغيّر أسلوب الرد، فقط يضيف معرفة للبوت.
@@ -108,12 +119,11 @@ def load_client_profile_into_state(session_id):
         }
 
         if clean_profile:
-            state["client_data"] = clean_profile
+            current_state["client_data"] = clean_profile
 
 
 def think(message, session_id):
-    global state
-
+    current_state = get_session_state(session_id)
     msg = message.lower().strip()
 
     # =========================
@@ -121,41 +131,46 @@ def think(message, session_id):
     # =========================
 
     if msg in ["تدريب", "تدريب البوت", "/train", "train"]:
-        return start_training(state)
+        reply = start_training(current_state)
+        set_session_state(session_id, current_state)
+        return reply
 
-    if state.get("mode") == "training":
-        reply = handle_training(message, state)
+    # =========================
+    # TRAINING MODE LOCKED
+    # =========================
+
+    if current_state.get("mode") == "training":
+        reply = handle_training(message, current_state)
 
         # لما يخلص التدريب
-        if state.get("mode") == "sales":
-            client_data = state.get("client_data", {})
+        if current_state.get("mode") == "sales":
+            client_data = current_state.get("client_data", {})
 
             if client_data:
-                # نحفظ الملف التدريبي في جدول منظم
                 save_client_profile(session_id, client_data)
 
-                # نحفظ نسخة مقروءة داخل سجل المحادثة
                 for key, value in client_data.items():
                     save_message(session_id, "client_data", f"{key}: {value}")
 
+        set_session_state(session_id, current_state)
         return reply
 
     # =========================
     # SALES MODE
     # =========================
 
-    state = update_state(message, state)
+    current_state = update_state(message, current_state)
 
     # استرجاع بيانات المشروع المدربة إن وجدت
-    load_client_profile_into_state(session_id)
+    load_client_profile_into_state(session_id, current_state)
 
     # Lead Capture خلف الكواليس
-    update_lead_data(message, session_id)
+    update_lead_data(message, session_id, current_state)
 
     history = get_last_messages(session_id, limit=6)
     history_text = format_history(history)
 
-    prompt = build_prompt(message, state, history_text)
+    prompt = build_prompt(message, current_state, history_text)
 
     response = client.chat.completions.create(
         model=MODEL_NAME,
@@ -168,5 +183,7 @@ def think(message, session_id):
     )
 
     reply = response.choices[0].message.content.strip()
+
+    set_session_state(session_id, current_state)
 
     return reply
