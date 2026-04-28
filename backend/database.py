@@ -77,6 +77,7 @@ def init_db():
         session_id TEXT UNIQUE,
         business_name TEXT,
         business_type TEXT,
+        general_description TEXT,
         products TEXT,
         prices TEXT,
         offers TEXT,
@@ -90,6 +91,9 @@ def init_db():
         updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
     )
     """)
+
+    # Migration للأعمدة الجديدة إذا كان جدول client_profiles قديم
+    add_column_if_missing(c, "client_profiles", "general_description", "TEXT")
 
     conn.commit()
     conn.close()
@@ -178,6 +182,7 @@ def send_lead_to_google_sheet(session_id, name, phone, state, status="new"):
 
     payload = {
         "token": GOOGLE_SHEET_TOKEN,
+        "action": "lead",
         "name": name or "",
         "phone": phone or "",
         "user_type": normalize_user_type(state),
@@ -208,6 +213,53 @@ def send_lead_to_google_sheet(session_id, name, phone, state, status="new"):
 
     except Exception as error:
         print(f"Google Sheets sync failed: {error}")
+        return False
+
+
+def send_client_profile_to_google_sheet(session_id, data):
+    """
+    يرسل بيانات تدريب المشروع إلى Google Sheet في صفحة ClientProfiles.
+    إذا فشل الإرسال، ما يوقف البوت.
+    """
+    if not GOOGLE_SHEET_WEBHOOK_URL or not GOOGLE_SHEET_TOKEN:
+        print("Google Sheets webhook is not configured.")
+        return False
+
+    payload = {
+        "token": GOOGLE_SHEET_TOKEN,
+        "action": "client_profile",
+        "session_id": session_id or "",
+        "business_name": data.get("business_name", ""),
+        "business_type": data.get("business_type", ""),
+        "general_description": data.get("general_description", ""),
+        "products": data.get("products", ""),
+        "prices": data.get("prices", ""),
+        "offers": data.get("offers", ""),
+        "ordering": data.get("ordering", ""),
+        "whatsapp": data.get("whatsapp", ""),
+        "areas": data.get("areas", ""),
+        "faqs": data.get("faqs", ""),
+        "objections": data.get("objections", ""),
+        "tone": data.get("tone", ""),
+    }
+
+    try:
+        data_encoded = json.dumps(payload, ensure_ascii=False).encode("utf-8")
+
+        request = urllib.request.Request(
+            GOOGLE_SHEET_WEBHOOK_URL,
+            data=data_encoded,
+            headers={"Content-Type": "application/json"},
+            method="POST"
+        )
+
+        with urllib.request.urlopen(request, timeout=5) as response:
+            response.read()
+
+        return True
+
+    except Exception as error:
+        print(f"Google Sheets client profile sync failed: {error}")
         return False
 
 
@@ -373,6 +425,7 @@ def save_client_profile(session_id, data):
     values = (
         data.get("business_name"),
         data.get("business_type"),
+        data.get("general_description"),
         data.get("products"),
         data.get("prices"),
         data.get("offers"),
@@ -392,6 +445,7 @@ def save_client_profile(session_id, data):
             SET
                 business_name=?,
                 business_type=?,
+                general_description=?,
                 products=?,
                 prices=?,
                 offers=?,
@@ -414,6 +468,7 @@ def save_client_profile(session_id, data):
                 session_id,
                 business_name,
                 business_type,
+                general_description,
                 products,
                 prices,
                 offers,
@@ -425,13 +480,15 @@ def save_client_profile(session_id, data):
                 tone,
                 raw_data
             )
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             """,
             (session_id,) + values
         )
 
     conn.commit()
     conn.close()
+
+    send_client_profile_to_google_sheet(session_id, data)
 
 
 def get_client_profile(session_id):
@@ -443,6 +500,7 @@ def get_client_profile(session_id):
         SELECT
             business_name,
             business_type,
+            general_description,
             products,
             prices,
             offers,
@@ -468,16 +526,17 @@ def get_client_profile(session_id):
     return {
         "business_name": row[0],
         "business_type": row[1],
-        "products": row[2],
-        "prices": row[3],
-        "offers": row[4],
-        "ordering": row[5],
-        "whatsapp": row[6],
-        "areas": row[7],
-        "faqs": row[8],
-        "objections": row[9],
-        "tone": row[10],
-        "raw_data": row[11],
+        "general_description": row[2],
+        "products": row[3],
+        "prices": row[4],
+        "offers": row[5],
+        "ordering": row[6],
+        "whatsapp": row[7],
+        "areas": row[8],
+        "faqs": row[9],
+        "objections": row[10],
+        "tone": row[11],
+        "raw_data": row[12],
     }
 
 
@@ -492,6 +551,7 @@ def get_client_profiles(limit=100):
             session_id,
             business_name,
             business_type,
+            general_description,
             products,
             prices,
             offers,
@@ -520,16 +580,17 @@ def get_client_profiles(limit=100):
             "session_id": row[1],
             "business_name": row[2],
             "business_type": row[3],
-            "products": row[4],
-            "prices": row[5],
-            "offers": row[6],
-            "ordering": row[7],
-            "whatsapp": row[8],
-            "areas": row[9],
-            "faqs": row[10],
-            "objections": row[11],
-            "tone": row[12],
-            "updated_at": row[13],
+            "general_description": row[4],
+            "products": row[5],
+            "prices": row[6],
+            "offers": row[7],
+            "ordering": row[8],
+            "whatsapp": row[9],
+            "areas": row[10],
+            "faqs": row[11],
+            "objections": row[12],
+            "tone": row[13],
+            "updated_at": row[14],
         })
 
     return profiles
@@ -585,6 +646,7 @@ def export_client_profiles_for_google_sheets():
             "Session ID",
             "Business Name",
             "Business Type",
+            "General Description",
             "Products",
             "Prices",
             "Offers",
@@ -604,6 +666,7 @@ def export_client_profiles_for_google_sheets():
             profile["session_id"],
             profile["business_name"],
             profile["business_type"],
+            profile["general_description"],
             profile["products"],
             profile["prices"],
             profile["offers"],
