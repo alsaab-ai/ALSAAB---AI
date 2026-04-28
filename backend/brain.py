@@ -10,7 +10,6 @@ from database import (
     get_last_messages,
     save_message,
     save_lead,
-    save_client_profile,
     get_client_profile,
 )
 from training_engine import start_training, handle_training
@@ -126,11 +125,15 @@ def think(message, session_id):
     current_state = get_session_state(session_id)
     msg = message.lower().strip()
 
+    print(f"THINK CALLED ✅ session_id={session_id}")
+    print(f"CURRENT MODE ✅ mode={current_state.get('mode')}")
+
     # =========================
     # TRAINING MODE START
     # =========================
 
     if msg in ["تدريب", "تدريب البوت", "/train", "train"]:
+        print("TRAINING COMMAND DETECTED ✅")
         reply = start_training(current_state)
         set_session_state(session_id, current_state)
         return reply
@@ -140,14 +143,18 @@ def think(message, session_id):
     # =========================
 
     if current_state.get("mode") == "training":
-        reply = handle_training(message, current_state)
+        print("TRAINING MODE ACTIVE ✅")
+
+        reply = handle_training(message, current_state, session_id)
 
         # لما يخلص التدريب
         if current_state.get("mode") == "sales":
+            print("TRAINING MOVED TO SALES ✅")
+
             client_data = current_state.get("client_data", {})
 
             if client_data:
-                save_client_profile(session_id, client_data)
+                print("SAVING CLIENT DATA INTO MESSAGE HISTORY ✅")
 
                 for key, value in client_data.items():
                     save_message(session_id, "client_data", f"{key}: {value}")
@@ -158,6 +165,8 @@ def think(message, session_id):
     # =========================
     # SALES MODE
     # =========================
+
+    print("SALES MODE ACTIVE ✅")
 
     current_state = update_state(message, current_state)
 
