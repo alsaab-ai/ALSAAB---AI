@@ -1013,30 +1013,51 @@ def home():
 
 @app.route("/chat", methods=["POST"])
 def chat():
+    print("MAIN CHAT ROUTE HIT ✅", flush=True)
+
     data = request.json or {}
+    print(f"MAIN REQUEST DATA ✅ {data}", flush=True)
 
     message = data.get("message", "").strip()
     session_id = data.get("session_id")
 
+    print(f"MAIN MESSAGE ✅ {message}", flush=True)
+    print(f"MAIN SESSION BEFORE ✅ {session_id}", flush=True)
+
     if not session_id:
         session_id = str(uuid.uuid4())
+        print(f"MAIN NEW SESSION CREATED ✅ {session_id}", flush=True)
 
     if not message:
+        print("MAIN EMPTY MESSAGE ❌", flush=True)
         return jsonify({
             "reply": "اكتب رسالتك عشان أقدر أساعدك.",
             "session_id": session_id
         })
 
-    save_message(session_id, "user", message)
+    try:
+        save_message(session_id, "user", message)
+        print("MAIN USER MESSAGE SAVED ✅", flush=True)
 
-    reply = think(message, session_id)
+        reply = think(message, session_id)
+        print(f"MAIN THINK REPLY ✅ {reply}", flush=True)
 
-    save_message(session_id, "bot", reply)
+        save_message(session_id, "bot", reply)
+        print("MAIN BOT MESSAGE SAVED ✅", flush=True)
 
-    return jsonify({
-        "reply": reply,
-        "session_id": session_id
-    })
+        return jsonify({
+            "reply": reply,
+            "session_id": session_id
+        })
+
+    except Exception as error:
+        print(f"MAIN CHAT ERROR ❌ {error}", flush=True)
+
+        return jsonify({
+            "reply": "صار خطأ تقني مؤقت. جرب مرة ثانية.",
+            "session_id": session_id,
+            "error": str(error)
+        }), 500
 
 
 @app.route("/leads", methods=["GET"])
