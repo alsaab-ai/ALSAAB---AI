@@ -47,13 +47,11 @@ HTML = r"""
 html, body {
     margin: 0;
     padding: 0;
-    min-height: 100%;
+    width: 100%;
+    height: 100%;
     background: var(--bg-main);
     font-family: "Cairo", Arial, sans-serif;
     color: var(--text-main);
-}
-
-body {
     overflow: hidden;
 }
 
@@ -124,7 +122,7 @@ body {
     background:
         radial-gradient(circle at top, rgba(214,168,79,0.13), transparent 34%),
         linear-gradient(180deg, rgba(255,255,255,0.035), rgba(255,255,255,0.01));
-    overflow: hidden;
+    overflow-y: auto;
 }
 
 .sidebar::before {
@@ -266,6 +264,7 @@ body {
     flex-direction: column;
     min-width: 0;
     height: 100%;
+    overflow: hidden;
 }
 
 .chat-header {
@@ -279,6 +278,7 @@ body {
     background:
         radial-gradient(circle at top left, rgba(214,168,79,0.09), transparent 35%),
         linear-gradient(180deg, rgba(255,255,255,0.045), rgba(255,255,255,0.015));
+    flex-shrink: 0;
 }
 
 .header-title {
@@ -352,22 +352,33 @@ body {
     background:
         radial-gradient(circle at 85% 15%, rgba(214,168,79,0.06), transparent 34%),
         radial-gradient(circle at 12% 88%, rgba(34,197,94,0.04), transparent 28%);
+    overflow: hidden;
 }
 
 .messages {
     flex: 1;
-    overflow-y: auto;
+    min-height: 0;
+    overflow-y: scroll;
+    overflow-x: hidden;
     padding: 22px;
     scroll-behavior: smooth;
+    scrollbar-width: thin;
+    scrollbar-color: rgba(214,168,79,0.55) rgba(255,255,255,0.06);
 }
 
 .messages::-webkit-scrollbar {
-    width: 8px;
+    width: 11px;
+}
+
+.messages::-webkit-scrollbar-track {
+    background: rgba(255,255,255,0.05);
+    border-radius: 999px;
 }
 
 .messages::-webkit-scrollbar-thumb {
-    background: rgba(214,168,79,0.22);
+    background: linear-gradient(180deg, rgba(243,211,123,0.75), rgba(214,168,79,0.35));
     border-radius: 999px;
+    border: 2px solid rgba(7,10,18,0.85);
 }
 
 .welcome-card {
@@ -474,6 +485,7 @@ body {
 .typing-wrap {
     display: none;
     padding: 0 22px 14px;
+    flex-shrink: 0;
 }
 
 .typing {
@@ -515,6 +527,7 @@ body {
     border-top: 1px solid rgba(255,255,255,0.07);
     background:
         linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.04));
+    flex-shrink: 0;
 }
 
 .composer {
@@ -694,9 +707,9 @@ textarea::placeholder {
 
             <div class="side-card gold">
                 <div class="side-label">نظام مبيعات ذكي</div>
-                <h2 class="side-title">أفخم تجربة شات لإغلاق العملاء</h2>
+                <h2 class="side-title">أقوى نظام مبيعات ذكي يرفع المبيعات بشكل صاروخي 🚀</h2>
                 <p class="side-text">
-                    مساعد ذكي يفهم العميل، يشخّص المشكلة، يقترح الحل، ويقربه من قرار الاشتراك.
+                    مساعد مبيعات ذكي، يفهم و يحلل العميل و يشخّص و يحل المشكلة و يساعدك في إغلاق الصفقات و اتخاذ القرار مع العملاء.
                 </p>
 
                 <div class="side-list">
@@ -827,6 +840,24 @@ function currentTime() {
     });
 }
 
+function scrollToBottom() {
+    const box = document.getElementById("messages");
+
+    if (!box) return;
+
+    requestAnimationFrame(function() {
+        box.scrollTop = box.scrollHeight;
+
+        setTimeout(function() {
+            box.scrollTop = box.scrollHeight;
+        }, 80);
+
+        setTimeout(function() {
+            box.scrollTop = box.scrollHeight;
+        }, 250);
+    });
+}
+
 function addMsg(text, type) {
     const box = document.getElementById("messages");
 
@@ -844,15 +875,14 @@ function addMsg(text, type) {
 
     row.appendChild(div);
     box.appendChild(row);
-    box.scrollTop = box.scrollHeight;
+    scrollToBottom();
 }
 
 function showTyping(show) {
     const typingWrap = document.getElementById("typingWrap");
-    const box = document.getElementById("messages");
 
     typingWrap.style.display = show ? "block" : "none";
-    box.scrollTop = box.scrollHeight;
+    scrollToBottom();
 }
 
 function sendQuick(text) {
@@ -895,6 +925,7 @@ async function sendMsg() {
 
         showTyping(false);
         addMsg(data.reply, "bot");
+        scrollToBottom();
 
     } catch (error) {
         showTyping(false);
@@ -923,6 +954,7 @@ textarea.addEventListener("keydown", function(event) {
 
 window.addEventListener("load", function() {
     textarea.focus();
+    scrollToBottom();
 });
 </script>
 </body>
