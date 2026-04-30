@@ -4,6 +4,7 @@ import sqlite3
 import json
 import urllib.request
 import urllib.error
+from datetime import datetime, timedelta
 
 try:
     from config import GOOGLE_SHEET_WEBHOOK_URL, GOOGLE_SHEET_TOKEN
@@ -11,12 +12,49 @@ except Exception:
     GOOGLE_SHEET_WEBHOOK_URL = ""
     GOOGLE_SHEET_TOKEN = ""
 
+try:
+    from config import PACKAGES, USAGE_LIMIT_MESSAGES
+except Exception:
+    PACKAGES = {
+        "starter": {"monthly_reply_limit": 2000},
+        "growth": {"monthly_reply_limit": 6000},
+        "elite": {"monthly_reply_limit": 12000},
+    }
+
+    USAGE_LIMIT_MESSAGES = {
+        "ar": (
+            "تم استهلاك باقتك الحالية لهذا الشهر ✅\n\n"
+            "لإكمال استخدام ALSAAB AI، تقدر ترقّي باقتك أو تنتظر تجديد الدورة الشهرية."
+        )
+    }
+
 
 DB_NAME = "alsaab_ai.db"
 
 
 def get_connection():
     return sqlite3.connect(DB_NAME)
+
+
+def current_timestamp():
+    return datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S")
+
+
+def next_month_timestamp():
+    return (datetime.utcnow() + timedelta(days=30)).strftime("%Y-%m-%d %H:%M:%S")
+
+
+def parse_timestamp(value):
+    if not value:
+        return None
+
+    try:
+        return datetime.strptime(str(value), "%Y-%m-%d %H:%M:%S")
+    except Exception:
+        try:
+            return datetime.fromisoformat(str(value))
+        except Exception:
+            return None
 
 
 def add_column_if_missing(cursor, table_name, column_name, column_definition):
@@ -92,6 +130,65 @@ def init_db():
     """)
 
     add_column_if_missing(c, "client_profiles", "general_description", "TEXT")
+
+    c.execute("""
+    CREATE TABLE IF NOT EXISTS client_subscriptions (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        session_id TEXT UNIQUE,
+        client_id TEXT,
+        bot_id TEXT,
+        plan_name TEXT,
+        monthly_reply_limit INTEGER,
+        monthly_replies_used INTEGER DEFAULT 0,
+        subscription_status TEXT DEFAULT 'inactive',
+        billing_cycle_start TIMESTAMP,
+        billing_cycle_end TIMESTAMP,
+        stripe_customer_id TEXT,
+        stripe_subscription_id TEXT,
+        package_amount TEXT,
+        notes TEXT,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    )
+    """)
+
+    add_column_if_missing(c, "client_subscriptions", "client_id", "TEXT")
+    add_column_if_missing(c, "client_subscriptions", "bot_id", "TEXT")
+    add_column_if_missing(c, "client_subscriptions", "plan_name", "TEXT")
+    add_column_if_missing(c, "client_subscriptions", "monthly_reply_limit", "INTEGER")
+    add_column_if_missing(c, "client_subscriptions", "monthly_replies_used", "INTEGER DEFAULT 0")
+    add_column_if_missing(c, "client_subscriptions", "subscription_status", "TEXT DEFAULT 'inactive'")
+    add_column_if_missing(c, "client_subscriptions", "billing_cycle_start", "TIMESTAMP")
+    add_column_if_missing(c, "client_subscriptions", "billing_cycle_end", "TIMESTAMP")
+    add_column_if_missing(c, "client_subscriptions", "stripe_customer_id", "TEXT")
+    add_column_if_missing(c, "client_subscriptions", "stripe_subscription_id", "TEXT")
+    add_column_if_missing(c, "client_subscriptions", "package_amount", "TEXT")
+    add_column_if_missing(c, "client_subscriptions", "notes", "TEXT")
+    add_column_if_missing(c, "client_subscriptions", "created_at", "TIMESTAMP")
+    add_column_if_missing(c, "client_subscriptions", "updated_at", "TIMESTAMP")
+
+    c.execute("""
+    CREATE TABLE IF NOT EXISTS usage_logs (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        session_id TEXT,
+        client_id TEXT,
+        bot_id TEXT,
+        plan_name TEXT,
+        usage_type TEXT DEFAULT 'bot_reply',
+        message_role TEXT DEFAULT 'bot',
+        replies_count INTEGER DEFAULT 1,
+        tokens_estimate INTEGER DEFAULT 0,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    )
+    """)
+
+    add_column_if_missing(c, "usage_logs", "client_id", "TEXT")
+    add_column_if_missing(c, "usage_logs", "bot_id", "TEXT")
+    add_column_if_missing(c, "usage_logs", "plan_name", "TEXT")
+    add_column_if_missing(c, "usage_logs", "usage_type", "TEXT DEFAULT 'bot_reply'")
+    add_column_if_missing(c, "usage_logs", "message_role", "TEXT DEFAULT 'bot'")
+    add_column_if_missing(c, "usage_logs", "replies_count", "INTEGER DEFAULT 1")
+    add_column_if_missing(c, "usage_logs", "tokens_estimate", "INTEGER DEFAULT 0")
 
     conn.commit()
     conn.close()
@@ -616,6 +713,639 @@ def get_client_profiles(limit=100):
     return profiles
 
 
+# =========================
+# SUBSCRIPTION / USAGE SYSTEM
+# =========================
+
+def normalize_plan_name(plan_name):
+    if not plan_name:
+        return ""
+
+    plan_name = str(plan_name).lower().strip()
+
+    aliases = {
+        "start": "starter",
+        "basic": "starter",
+        "beginner": "starter",
+        "بداية": "starter",
+        "البداية": "starter",
+        "starter": "starter",
+
+        "growth": "growth",
+        "pro": "growth",
+        "professional": "growth",
+        "نمو": "growth",
+        "النمو": "growth",
+
+        "elite": "elite",
+        "premium": "elite",
+        "vip": "elite",
+        "نخبة": "elite",
+        "النخبة": "elite",
+
+        "enterprise": "enterprise",
+        "custom": "enterprise",
+        "شركة": "enterprise",
+        "شركات": "enterprise",
+    }
+
+    return aliases.get(plan_name, plan_name)
+
+
+def get_plan_reply_limit(plan_name, custom_reply_limit=None):
+    plan_name = normalize_plan_name(plan_name)
+
+    if custom_reply_limit is not None:
+        try:
+            return int(custom_reply_limit)
+        except Exception:
+            pass
+
+    if plan_name == "enterprise":
+        return 999999999
+
+    plan_data = PACKAGES.get(plan_name, {})
+
+    try:
+        return int(plan_data.get("monthly_reply_limit", 0))
+    except Exception:
+        return 0
+
+
+def get_usage_limit_message(reason="limit_reached", subscription=None):
+    if reason == "no_subscription":
+        return (
+            "لا يوجد اشتراك فعال مرتبط بهذه الجلسة حالياً.\n\n"
+            "للاستمرار في استخدام ALSAAB AI، لازم يتم تفعيل اشتراكك أولاً أو اختيار إحدى الباقات."
+        )
+
+    if reason == "inactive_subscription":
+        return (
+            "اشتراكك غير فعال حالياً.\n\n"
+            "للاستمرار في استخدام ALSAAB AI، يرجى تفعيل الاشتراك أو تجديد الباقة."
+        )
+
+    if reason == "cancelled_subscription":
+        return (
+            "اشتراكك ملغي حالياً.\n\n"
+            "لإعادة استخدام ALSAAB AI، يرجى تفعيل اشتراك جديد."
+        )
+
+    if reason == "limit_reached":
+        return USAGE_LIMIT_MESSAGES.get(
+            "ar",
+            (
+                "تم استهلاك باقتك الحالية لهذا الشهر ✅\n\n"
+                "لإكمال استخدام ALSAAB AI، تقدر ترقّي باقتك أو تنتظر تجديد الدورة الشهرية."
+            )
+        )
+
+    return (
+        "لا يمكن استخدام ALSAAB AI حالياً.\n\n"
+        "يرجى مراجعة حالة الاشتراك أو ترقية الباقة."
+    )
+
+
+def get_client_subscription(session_id):
+    conn = get_connection()
+    c = conn.cursor()
+
+    c.execute(
+        """
+        SELECT
+            id,
+            session_id,
+            client_id,
+            bot_id,
+            plan_name,
+            monthly_reply_limit,
+            monthly_replies_used,
+            subscription_status,
+            billing_cycle_start,
+            billing_cycle_end,
+            stripe_customer_id,
+            stripe_subscription_id,
+            package_amount,
+            notes,
+            created_at,
+            updated_at
+        FROM client_subscriptions
+        WHERE session_id=?
+        """,
+        (session_id,)
+    )
+
+    row = c.fetchone()
+    conn.close()
+
+    if not row:
+        return None
+
+    return {
+        "id": row[0],
+        "session_id": row[1],
+        "client_id": row[2],
+        "bot_id": row[3],
+        "plan_name": row[4],
+        "monthly_reply_limit": row[5] or 0,
+        "monthly_replies_used": row[6] or 0,
+        "subscription_status": row[7],
+        "billing_cycle_start": row[8],
+        "billing_cycle_end": row[9],
+        "stripe_customer_id": row[10],
+        "stripe_subscription_id": row[11],
+        "package_amount": row[12],
+        "notes": row[13],
+        "created_at": row[14],
+        "updated_at": row[15],
+    }
+
+
+def create_or_update_subscription(
+    session_id,
+    plan_name,
+    client_id="",
+    bot_id="",
+    status="active",
+    custom_reply_limit=None,
+    stripe_customer_id="",
+    stripe_subscription_id="",
+    package_amount="",
+    notes="",
+    reset_usage=True
+):
+    plan_name = normalize_plan_name(plan_name)
+    monthly_reply_limit = get_plan_reply_limit(plan_name, custom_reply_limit)
+
+    now = current_timestamp()
+    cycle_end = next_month_timestamp()
+
+    conn = get_connection()
+    c = conn.cursor()
+
+    c.execute(
+        "SELECT id FROM client_subscriptions WHERE session_id=?",
+        (session_id,)
+    )
+    existing = c.fetchone()
+
+    if existing:
+        if reset_usage:
+            c.execute(
+                """
+                UPDATE client_subscriptions
+                SET
+                    client_id=?,
+                    bot_id=?,
+                    plan_name=?,
+                    monthly_reply_limit=?,
+                    monthly_replies_used=0,
+                    subscription_status=?,
+                    billing_cycle_start=?,
+                    billing_cycle_end=?,
+                    stripe_customer_id=?,
+                    stripe_subscription_id=?,
+                    package_amount=?,
+                    notes=?,
+                    updated_at=CURRENT_TIMESTAMP
+                WHERE session_id=?
+                """,
+                (
+                    client_id,
+                    bot_id,
+                    plan_name,
+                    monthly_reply_limit,
+                    status,
+                    now,
+                    cycle_end,
+                    stripe_customer_id,
+                    stripe_subscription_id,
+                    package_amount,
+                    notes,
+                    session_id
+                )
+            )
+        else:
+            c.execute(
+                """
+                UPDATE client_subscriptions
+                SET
+                    client_id=?,
+                    bot_id=?,
+                    plan_name=?,
+                    monthly_reply_limit=?,
+                    subscription_status=?,
+                    stripe_customer_id=?,
+                    stripe_subscription_id=?,
+                    package_amount=?,
+                    notes=?,
+                    updated_at=CURRENT_TIMESTAMP
+                WHERE session_id=?
+                """,
+                (
+                    client_id,
+                    bot_id,
+                    plan_name,
+                    monthly_reply_limit,
+                    status,
+                    stripe_customer_id,
+                    stripe_subscription_id,
+                    package_amount,
+                    notes,
+                    session_id
+                )
+            )
+    else:
+        c.execute(
+            """
+            INSERT INTO client_subscriptions (
+                session_id,
+                client_id,
+                bot_id,
+                plan_name,
+                monthly_reply_limit,
+                monthly_replies_used,
+                subscription_status,
+                billing_cycle_start,
+                billing_cycle_end,
+                stripe_customer_id,
+                stripe_subscription_id,
+                package_amount,
+                notes
+            )
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            """,
+            (
+                session_id,
+                client_id,
+                bot_id,
+                plan_name,
+                monthly_reply_limit,
+                0,
+                status,
+                now,
+                cycle_end,
+                stripe_customer_id,
+                stripe_subscription_id,
+                package_amount,
+                notes
+            )
+        )
+
+    conn.commit()
+    conn.close()
+
+    print(
+        f"SUBSCRIPTION SAVED ✅ session_id={session_id} plan={plan_name} limit={monthly_reply_limit} status={status}",
+        flush=True
+    )
+
+    return get_client_subscription(session_id)
+
+
+def set_subscription_status(session_id, status, notes=""):
+    conn = get_connection()
+    c = conn.cursor()
+
+    c.execute(
+        """
+        UPDATE client_subscriptions
+        SET
+            subscription_status=?,
+            notes=?,
+            updated_at=CURRENT_TIMESTAMP
+        WHERE session_id=?
+        """,
+        (status, notes, session_id)
+    )
+
+    conn.commit()
+    conn.close()
+
+    print(f"SUBSCRIPTION STATUS UPDATED ✅ session_id={session_id} status={status}", flush=True)
+
+    return get_client_subscription(session_id)
+
+
+def cancel_subscription(session_id, notes="cancelled by admin or customer request"):
+    return set_subscription_status(session_id, "cancelled", notes=notes)
+
+
+def reset_subscription_usage(session_id):
+    now = current_timestamp()
+    cycle_end = next_month_timestamp()
+
+    conn = get_connection()
+    c = conn.cursor()
+
+    c.execute(
+        """
+        UPDATE client_subscriptions
+        SET
+            monthly_replies_used=0,
+            billing_cycle_start=?,
+            billing_cycle_end=?,
+            updated_at=CURRENT_TIMESTAMP
+        WHERE session_id=?
+        """,
+        (now, cycle_end, session_id)
+    )
+
+    conn.commit()
+    conn.close()
+
+    print(f"SUBSCRIPTION USAGE RESET ✅ session_id={session_id}", flush=True)
+
+    return get_client_subscription(session_id)
+
+
+def reset_subscription_usage_if_needed(session_id):
+    subscription = get_client_subscription(session_id)
+
+    if not subscription:
+        return None
+
+    status = str(subscription.get("subscription_status", "")).lower().strip()
+
+    if status != "active":
+        return subscription
+
+    billing_cycle_end = parse_timestamp(subscription.get("billing_cycle_end"))
+
+    if not billing_cycle_end:
+        return subscription
+
+    if datetime.utcnow() >= billing_cycle_end:
+        return reset_subscription_usage(session_id)
+
+    return subscription
+
+
+def can_client_use_bot(session_id):
+    subscription = reset_subscription_usage_if_needed(session_id)
+
+    if not subscription:
+        return {
+            "allowed": False,
+            "reason": "no_subscription",
+            "message": get_usage_limit_message("no_subscription"),
+            "subscription": None,
+        }
+
+    status = str(subscription.get("subscription_status", "")).lower().strip()
+
+    if status == "cancelled":
+        return {
+            "allowed": False,
+            "reason": "cancelled_subscription",
+            "message": get_usage_limit_message("cancelled_subscription", subscription),
+            "subscription": subscription,
+        }
+
+    if status != "active":
+        return {
+            "allowed": False,
+            "reason": "inactive_subscription",
+            "message": get_usage_limit_message("inactive_subscription", subscription),
+            "subscription": subscription,
+        }
+
+    monthly_reply_limit = int(subscription.get("monthly_reply_limit") or 0)
+    monthly_replies_used = int(subscription.get("monthly_replies_used") or 0)
+
+    if monthly_reply_limit <= 0:
+        return {
+            "allowed": False,
+            "reason": "invalid_limit",
+            "message": get_usage_limit_message("invalid_limit", subscription),
+            "subscription": subscription,
+        }
+
+    if monthly_replies_used >= monthly_reply_limit:
+        return {
+            "allowed": False,
+            "reason": "limit_reached",
+            "message": get_usage_limit_message("limit_reached", subscription),
+            "subscription": subscription,
+        }
+
+    return {
+        "allowed": True,
+        "reason": "active",
+        "message": "",
+        "subscription": subscription,
+    }
+
+
+def record_bot_reply_usage(session_id, replies_count=1, tokens_estimate=0):
+    usage_check = can_client_use_bot(session_id)
+
+    if not usage_check.get("allowed"):
+        print(
+            f"USAGE NOT RECORDED ❌ session_id={session_id} reason={usage_check.get('reason')}",
+            flush=True
+        )
+        return False
+
+    subscription = usage_check.get("subscription") or {}
+
+    client_id = subscription.get("client_id") or ""
+    bot_id = subscription.get("bot_id") or ""
+    plan_name = subscription.get("plan_name") or ""
+
+    conn = get_connection()
+    c = conn.cursor()
+
+    c.execute(
+        """
+        INSERT INTO usage_logs (
+            session_id,
+            client_id,
+            bot_id,
+            plan_name,
+            usage_type,
+            message_role,
+            replies_count,
+            tokens_estimate
+        )
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+        """,
+        (
+            session_id,
+            client_id,
+            bot_id,
+            plan_name,
+            "bot_reply",
+            "bot",
+            replies_count,
+            tokens_estimate
+        )
+    )
+
+    c.execute(
+        """
+        UPDATE client_subscriptions
+        SET
+            monthly_replies_used = monthly_replies_used + ?,
+            updated_at=CURRENT_TIMESTAMP
+        WHERE session_id=?
+        """,
+        (replies_count, session_id)
+    )
+
+    conn.commit()
+    conn.close()
+
+    updated_subscription = get_client_subscription(session_id)
+
+    print(
+        f"USAGE RECORDED ✅ session_id={session_id} used={updated_subscription.get('monthly_replies_used')} limit={updated_subscription.get('monthly_reply_limit')}",
+        flush=True
+    )
+
+    return True
+
+
+def get_usage_summary(session_id):
+    subscription = reset_subscription_usage_if_needed(session_id)
+
+    if not subscription:
+        return {
+            "has_subscription": False,
+            "allowed": False,
+            "reason": "no_subscription",
+            "message": get_usage_limit_message("no_subscription"),
+        }
+
+    monthly_reply_limit = int(subscription.get("monthly_reply_limit") or 0)
+    monthly_replies_used = int(subscription.get("monthly_replies_used") or 0)
+    remaining = max(monthly_reply_limit - monthly_replies_used, 0)
+
+    usage_check = can_client_use_bot(session_id)
+
+    return {
+        "has_subscription": True,
+        "allowed": usage_check.get("allowed"),
+        "reason": usage_check.get("reason"),
+        "message": usage_check.get("message"),
+        "session_id": subscription.get("session_id"),
+        "client_id": subscription.get("client_id"),
+        "bot_id": subscription.get("bot_id"),
+        "plan_name": subscription.get("plan_name"),
+        "subscription_status": subscription.get("subscription_status"),
+        "monthly_reply_limit": monthly_reply_limit,
+        "monthly_replies_used": monthly_replies_used,
+        "remaining_replies": remaining,
+        "billing_cycle_start": subscription.get("billing_cycle_start"),
+        "billing_cycle_end": subscription.get("billing_cycle_end"),
+    }
+
+
+def get_usage_logs(session_id, limit=100):
+    conn = get_connection()
+    c = conn.cursor()
+
+    c.execute(
+        """
+        SELECT
+            id,
+            session_id,
+            client_id,
+            bot_id,
+            plan_name,
+            usage_type,
+            message_role,
+            replies_count,
+            tokens_estimate,
+            created_at
+        FROM usage_logs
+        WHERE session_id=?
+        ORDER BY id DESC
+        LIMIT ?
+        """,
+        (session_id, limit)
+    )
+
+    rows = c.fetchall()
+    conn.close()
+
+    logs = []
+
+    for row in rows:
+        logs.append({
+            "id": row[0],
+            "session_id": row[1],
+            "client_id": row[2],
+            "bot_id": row[3],
+            "plan_name": row[4],
+            "usage_type": row[5],
+            "message_role": row[6],
+            "replies_count": row[7],
+            "tokens_estimate": row[8],
+            "created_at": row[9],
+        })
+
+    return logs
+
+
+def get_all_subscriptions(limit=100):
+    conn = get_connection()
+    c = conn.cursor()
+
+    c.execute(
+        """
+        SELECT
+            id,
+            session_id,
+            client_id,
+            bot_id,
+            plan_name,
+            monthly_reply_limit,
+            monthly_replies_used,
+            subscription_status,
+            billing_cycle_start,
+            billing_cycle_end,
+            stripe_customer_id,
+            stripe_subscription_id,
+            package_amount,
+            notes,
+            created_at,
+            updated_at
+        FROM client_subscriptions
+        ORDER BY id DESC
+        LIMIT ?
+        """,
+        (limit,)
+    )
+
+    rows = c.fetchall()
+    conn.close()
+
+    subscriptions = []
+
+    for row in rows:
+        subscriptions.append({
+            "id": row[0],
+            "session_id": row[1],
+            "client_id": row[2],
+            "bot_id": row[3],
+            "plan_name": row[4],
+            "monthly_reply_limit": row[5],
+            "monthly_replies_used": row[6],
+            "subscription_status": row[7],
+            "billing_cycle_start": row[8],
+            "billing_cycle_end": row[9],
+            "stripe_customer_id": row[10],
+            "stripe_subscription_id": row[11],
+            "package_amount": row[12],
+            "notes": row[13],
+            "created_at": row[14],
+            "updated_at": row[15],
+        })
+
+    return subscriptions
+
+
 def export_leads_for_google_sheets():
     leads = get_leads(limit=1000)
 
@@ -697,6 +1427,59 @@ def export_client_profiles_for_google_sheets():
             profile["objections"],
             profile["tone"],
             profile["updated_at"],
+        ])
+
+    return rows
+
+
+def export_subscriptions_for_google_sheets():
+    subscriptions = get_all_subscriptions(limit=1000)
+
+    rows = [
+        [
+            "ID",
+            "Session ID",
+            "Client ID",
+            "Bot ID",
+            "Plan Name",
+            "Monthly Reply Limit",
+            "Monthly Replies Used",
+            "Remaining Replies",
+            "Subscription Status",
+            "Billing Cycle Start",
+            "Billing Cycle End",
+            "Stripe Customer ID",
+            "Stripe Subscription ID",
+            "Package Amount",
+            "Notes",
+            "Created At",
+            "Updated At",
+        ]
+    ]
+
+    for subscription in subscriptions:
+        monthly_reply_limit = int(subscription.get("monthly_reply_limit") or 0)
+        monthly_replies_used = int(subscription.get("monthly_replies_used") or 0)
+        remaining = max(monthly_reply_limit - monthly_replies_used, 0)
+
+        rows.append([
+            subscription["id"],
+            subscription["session_id"],
+            subscription["client_id"],
+            subscription["bot_id"],
+            subscription["plan_name"],
+            monthly_reply_limit,
+            monthly_replies_used,
+            remaining,
+            subscription["subscription_status"],
+            subscription["billing_cycle_start"],
+            subscription["billing_cycle_end"],
+            subscription["stripe_customer_id"],
+            subscription["stripe_subscription_id"],
+            subscription["package_amount"],
+            subscription["notes"],
+            subscription["created_at"],
+            subscription["updated_at"],
         ])
 
     return rows
