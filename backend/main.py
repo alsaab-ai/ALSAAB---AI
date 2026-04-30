@@ -2,7 +2,16 @@ print("ALSAAB AI is running 🔥")
 
 from flask import Flask, request, jsonify, render_template_string
 from brain import think
-from database import init_db, save_message, get_leads
+from database import (
+    init_db,
+    save_message,
+    get_leads,
+    get_client_subscription,
+    can_client_use_bot,
+    record_bot_reply_usage,
+    create_or_update_subscription,
+    get_usage_summary,
+)
 import uuid
 import os
 
@@ -1119,11 +1128,44 @@ def chat():
         save_message(session_id, "user", message)
         print("MAIN USER MESSAGE SAVED ✅", flush=True)
 
+        subscription = get_client_subscription(session_id)
+
+        if subscription:
+            print(f"SUBSCRIPTION FOUND ✅ session_id={session_id}", flush=True)
+
+            usage_check = can_client_use_bot(session_id)
+
+            if not usage_check.get("allowed"):
+                blocked_reply = usage_check.get("message") or "تم إيقاف الاستخدام مؤقتاً بسبب حالة الاشتراك."
+
+                print(
+                    f"USAGE BLOCKED ❌ session_id={session_id} reason={usage_check.get('reason')}",
+                    flush=True
+                )
+
+                save_message(session_id, "bot", blocked_reply)
+
+                return jsonify({
+                    "reply": blocked_reply,
+                    "session_id": session_id,
+                    "usage": {
+                        "allowed": False,
+                        "reason": usage_check.get("reason"),
+                    }
+                })
+
+        else:
+            print("NO SUBSCRIPTION FOUND ✅ treating as ALSAAB main sales bot / new visitor", flush=True)
+
         reply = think(message, session_id)
         print(f"MAIN THINK REPLY ✅ {reply}", flush=True)
 
         save_message(session_id, "bot", reply)
         print("MAIN BOT MESSAGE SAVED ✅", flush=True)
+
+        if subscription:
+            record_bot_reply_usage(session_id)
+            print("BOT REPLY USAGE RECORDED ✅", flush=True)
 
         return jsonify({
             "reply": reply,
@@ -1138,6 +1180,81 @@ def chat():
             "session_id": session_id,
             "error": str(error)
         }), 500
+
+
+@app.route("/admin/activate-subscription", methods=["GET"])
+def activate_subscription():
+    key = request.args.get("key")
+
+    if key != ADMIN_KEY:
+        return jsonify({"error": "Unauthorized"}), 401
+
+    session_id = request.args.get("session_id", "").strip()
+    plan = request.args.get("plan", "growth").strip()
+    client_id = request.args.get("client_id", "").strip()
+    bot_id = request.args.get("bot_id", "").strip()
+    status = request.args.get("status", "active").strip()
+    limit = request.args.get("limit")
+    package_amount = request.args.get("package_amount", "").strip()
+    notes = request.args.get("notes", "").strip()
+
+    if not session_id:
+        return jsonify({
+            "status": "error",
+            "message": "session_id is required"
+        }), 400
+
+    custom_reply_limit = None
+
+    if limit:
+        try:
+            custom_reply_limit = int(limit)
+        except Exception:
+            return jsonify({
+                "status": "error",
+                "message": "limit must be a number"
+            }), 400
+
+    subscription = create_or_update_subscription(
+        session_id=session_id,
+        plan_name=plan,
+        client_id=client_id,
+        bot_id=bot_id,
+        status=status,
+        custom_reply_limit=custom_reply_limit,
+        package_amount=package_amount,
+        notes=notes,
+        reset_usage=True
+    )
+
+    return jsonify({
+        "status": "success",
+        "message": "Subscription activated successfully",
+        "subscription": subscription
+    })
+
+
+@app.route("/admin/usage-summary", methods=["GET"])
+def usage_summary():
+    key = request.args.get("key")
+
+    if key != ADMIN_KEY:
+        return jsonify({"error": "Unauthorized"}), 401
+
+    session_id = request.args.get("session_id", "").strip()
+
+    if not session_id:
+        return jsonify({
+            "status": "error",
+            "message": "session_id is required"
+        }), 400
+
+    summary = get_usage_summary(session_id)
+
+    return jsonify({
+        "status": "success",
+        "usage": summary
+    })
 
 
 @app.route("/leads", methods=["GET"])
