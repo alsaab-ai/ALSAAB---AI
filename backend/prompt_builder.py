@@ -29,6 +29,38 @@ except Exception:
         )
     }
 
+try:
+    from config import APP_BASE_URL, PAYMENT_ROUTE_LINKS
+except Exception:
+    APP_BASE_URL = "https://alsaab-ai.onrender.com"
+    PAYMENT_ROUTE_LINKS = {
+        "starter": f"{APP_BASE_URL}/pay/starter",
+        "growth": f"{APP_BASE_URL}/pay/growth",
+        "elite": f"{APP_BASE_URL}/pay/elite",
+    }
+
+
+def build_internal_payment_link(plan_name, state):
+    session_id = state.get("session_id", "")
+
+    internal_base = PAYMENT_ROUTE_LINKS.get(
+        plan_name,
+        f"{APP_BASE_URL}/pay/{plan_name}"
+    )
+
+    if session_id:
+        return f"{internal_base}?sid={session_id}"
+
+    return PAYMENT_LINKS.get(plan_name, internal_base)
+
+
+def format_payment_links(state):
+    return {
+        "starter": build_internal_payment_link("starter", state),
+        "growth": build_internal_payment_link("growth", state),
+        "elite": build_internal_payment_link("elite", state),
+    }
+
 
 def format_packages():
     return f"""
@@ -213,6 +245,8 @@ def format_client_data(state):
 
 
 def build_prompt(message, state, conversation_history=""):
+    payment_links = format_payment_links(state)
+
     return f"""
 أنت {SYSTEM_NAME} من {COMPANY_NAME}.
 
@@ -469,6 +503,63 @@ def build_prompt(message, state, conversation_history=""):
 
 ---
 
+🤝 Human Handoff / التواصل البشري وخدمة العملاء:
+
+إذا العميل طلب أو أصر على التواصل البشري أو خدمة العملاء أو التواصل مع مصعب أو التواصل مع الصعب، لا تعاند ولا تطوّل عليه.
+
+اعتبر هذه العبارات طلب تواصل بشري مباشر:
+- أبغي أكلم شخص
+- ابي اكلم شخص
+- أبغي خدمة العملاء
+- ابي خدمة العملاء
+- أبغي أتواصل مع مصعب
+- ابي اتواصل مع مصعب
+- أبغي أتواصل مع الصعب
+- ابي اتواصل مع الصعب
+- ابا اتواصل مع الصعب
+- أرغب بالتواصل مع الصعب
+- ارغب بالتواصل مع الصعب
+- أبغي رقمكم
+- ابي رقمكم
+- أبغي تواصل مباشر
+- ابي تواصل مباشر
+- ما أبي بوت
+- ما ابي بوت
+- أبغي إنسان
+- ابي انسان
+- أبغي موظف
+- ابي موظف
+- اتصلوا فيني
+- كلموني
+- حولني لشخص
+- حولني لموظف
+- أريد أكلم الدعم
+- أريد أكلم الإدارة
+
+إذا channel = website:
+- أعطه رابط الواتساب مباشرة:
+{WHATSAPP_LINK}
+- استخدم رد مثل:
+"أكيد، إذا تبغي تواصل بشري مباشر مع الصعب أو فريق ALSAAB AI تقدر تتواصل من هنا 👇
+{WHATSAPP_LINK}
+
+وبنفس الوقت، إذا هدفك تبدأ بالنظام أو تختار الباقة المناسبة، أقدر أرتب لك الخطوة من هنا مباشرة."
+
+إذا channel = whatsapp:
+- لا ترسل له رابط واتساب لأنه أصلاً داخل واتساب.
+- استخدم رد مثل:
+"أكيد، بطلب لك تواصل بشري مباشر مع الصعب أو فريق ALSAAB AI. اكتب لي اسمك، نوع مشروعك، وأفضل وقت للتواصل، وبنرتب لك الخطوة المناسبة."
+
+قواعد مهمة:
+- لا تقول "حولتك الآن" إذا ما عندك نظام تحويل بشري فعلي.
+- لا تكذب وتقول إن موظف دخل المحادثة إذا هذا غير صحيح.
+- لا تحاول تمنعه من التواصل البشري إذا أصر.
+- قبل التحويل، ممكن تعطيه جملة قصيرة تحافظ على البيع:
+  "أكيد، وبنفس الوقت واضح إن موضوعك يستاهل نختصره ونختار لك الخطوة الصح."
+- إذا العميل متوتر أو معصب، كن هادي ولبق، ووجهه للتواصل البشري بدون تصعيد.
+
+---
+
 💳 الدفع:
 
 إذا العميل جاهز أو قال:
@@ -486,13 +577,13 @@ def build_prompt(message, state, conversation_history=""):
 اختر الباقة المناسبة لك:"
 
 - البداية:
-{PAYMENT_LINKS["starter"]}
+{payment_links["starter"]}
 
 - النمو:
-{PAYMENT_LINKS["growth"]}
+{payment_links["growth"]}
 
 - النخبة:
-{PAYMENT_LINKS["elite"]}
+{payment_links["elite"]}
 
 إذا القناة واتساب:
 لا تذكر واتساب، فقط أرسل روابط الدفع.
@@ -512,6 +603,11 @@ def build_prompt(message, state, conversation_history=""):
 - قل له:
   "واضح إن استخدامكم أعلى من الباقات العادية. الأفضل نجهز لكم باقة Enterprise بفاتورة شهرية منفصلة حسب حجم الاستخدام والربط المطلوب."
 - بعدها وجّهه للتواصل البشري أو تجهيز عرض خاص.
+
+مهم جداً:
+- روابط الدفع لازم تكون الروابط الداخلية التي تحتوي على session_id.
+- لا تستخدم روابط Stripe المباشرة إذا كانت روابط الدفع الداخلية متاحة.
+- الهدف من روابط الدفع الداخلية هو ربط الدفع بجلسة العميل وتفعيل الاشتراك تلقائياً بعد Stripe Webhook.
 
 ---
 
@@ -739,6 +835,7 @@ def build_prompt(message, state, conversation_history=""):
 - النشاط: {state.get("business_type")}
 - المشكلة: {state.get("pain_point")}
 - المرحلة: {state.get("stage")}
+- session_id: {state.get("session_id")}
 
 ---
 
