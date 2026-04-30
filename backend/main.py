@@ -321,6 +321,13 @@ html, body {
     line-height: 1.5;
 }
 
+.header-actions {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-shrink: 0;
+}
+
 .status-pill {
     display: inline-flex;
     align-items: center;
@@ -341,6 +348,45 @@ html, body {
     border-radius: 50%;
     background: var(--green);
     box-shadow: 0 0 0 6px rgba(34,197,94,0.16);
+}
+
+.chat-close-btn {
+    width: 42px;
+    height: 42px;
+    border-radius: 15px;
+    border: 1px solid rgba(214,168,79,0.38);
+    background:
+        linear-gradient(145deg, rgba(255,255,255,0.08), rgba(255,255,255,0.025)),
+        rgba(7, 10, 18, 0.82);
+    color: var(--gold-2);
+    display: grid;
+    place-items: center;
+    cursor: pointer;
+    font-family: "Cairo", Arial, sans-serif;
+    font-size: 20px;
+    font-weight: 900;
+    line-height: 1;
+    box-shadow:
+        0 10px 24px rgba(0,0,0,0.22),
+        0 0 18px rgba(214,168,79,0.08);
+    transition: 0.18s ease;
+    flex-shrink: 0;
+}
+
+.chat-close-btn:hover {
+    transform: translateY(-1px);
+    border-color: rgba(243,211,123,0.65);
+    background:
+        linear-gradient(145deg, rgba(243,211,123,0.18), rgba(214,168,79,0.06)),
+        rgba(7, 10, 18, 0.92);
+    color: #ffffff;
+    box-shadow:
+        0 14px 30px rgba(0,0,0,0.30),
+        0 0 26px rgba(214,168,79,0.18);
+}
+
+.chat-close-btn:active {
+    transform: scale(0.96);
 }
 
 .messages-wrap {
@@ -638,8 +684,19 @@ textarea::placeholder {
         font-size: 12px;
     }
 
+    .header-actions {
+        gap: 8px;
+    }
+
     .status-pill {
         display: none;
+    }
+
+    .chat-close-btn {
+        width: 42px;
+        height: 42px;
+        border-radius: 14px;
+        font-size: 19px;
     }
 
     .messages {
@@ -750,9 +807,15 @@ textarea::placeholder {
                     </div>
                 </div>
 
-                <div class="status-pill">
-                    <span class="status-dot"></span>
-                    <span>Online 24/7</span>
+                <div class="header-actions">
+                    <div class="status-pill">
+                        <span class="status-dot"></span>
+                        <span>Online 24/7</span>
+                    </div>
+
+                    <button class="chat-close-btn" onclick="closeChat()" title="إغلاق الشات" aria-label="إغلاق الشات">
+                        ✕
+                    </button>
                 </div>
             </header>
 
@@ -889,6 +952,23 @@ function sendQuick(text) {
     const input = document.getElementById("msg");
     input.value = text;
     sendMsg();
+}
+
+function closeChat() {
+    try {
+        window.parent.postMessage({
+            type: "ALSAAB_CLOSE_CHAT",
+            source: "ALSAAB_AI"
+        }, "*");
+    } catch (error) {
+        console.error(error);
+    }
+
+    const page = document.querySelector(".page");
+
+    if (page) {
+        page.style.display = "none";
+    }
 }
 
 async function sendMsg() {
