@@ -21,6 +21,10 @@ COMPANY_NAME = "ALSAAB AI"
 WEBSITE_URL = "https://www.alsaab.io"
 WHATSAPP_LINK = "https://wa.me/971523288001"
 
+# رابط تطبيق Render الأساسي
+# نستخدمه لاحقاً في روابط الدفع الداخلية والـ webhook
+APP_BASE_URL = os.getenv("APP_BASE_URL", "https://alsaab-ai.onrender.com")
+
 
 # =========================
 # SUBSCRIPTION PACKAGES
@@ -285,6 +289,77 @@ PAYMENT_LINKS = {
     "growth": "https://buy.stripe.com/6oU3cw08Yalw24eeRpaEE01",
     "elite": "https://buy.stripe.com/28E14o3la79k7oyfVtaEE02",
 }
+
+
+# =========================
+# STRIPE CONFIG
+# =========================
+
+# Stripe Secret Key نحتاجه لاحقاً إذا بنستخدم Stripe API مباشرة.
+# حالياً نقدر نبدأ بالـ Payment Links + Webhook.
+STRIPE_SECRET_KEY = os.getenv("STRIPE_SECRET_KEY", "")
+
+# Stripe Webhook Secret ينضاف من Render Environment Variables.
+# لا تحطه داخل GitHub.
+STRIPE_WEBHOOK_SECRET = os.getenv("STRIPE_WEBHOOK_SECRET", "")
+
+# مدة قبول توقيع Stripe Webhook بالثواني.
+STRIPE_WEBHOOK_TOLERANCE_SECONDS = 300
+
+# أحداث Stripe التي نهتم بها حالياً.
+STRIPE_ALLOWED_EVENTS = [
+    "checkout.session.completed",
+    "invoice.paid",
+    "invoice.payment_failed",
+    "customer.subscription.deleted",
+    "customer.subscription.updated",
+]
+
+# روابط دفع داخلية تمر عبر Render قبل Stripe.
+# الهدف منها نربط session_id بالخطة قبل الدفع.
+PAYMENT_ROUTE_LINKS = {
+    "starter": f"{APP_BASE_URL}/pay/starter",
+    "growth": f"{APP_BASE_URL}/pay/growth",
+    "elite": f"{APP_BASE_URL}/pay/elite",
+}
+
+# إعدادات ربط الباقات مع Stripe Webhook.
+# Webhook سيستخدم plan_name لتفعيل الاشتراك وحد الردود.
+STRIPE_PLAN_CONFIG = {
+    "starter": {
+        "plan_name": "starter",
+        "payment_link": PAYMENT_LINKS["starter"],
+        "internal_payment_route": PAYMENT_ROUTE_LINKS["starter"],
+        "monthly_reply_limit": PACKAGES["starter"]["monthly_reply_limit"],
+        "package_amount": "399 AED",
+        "subscription_type": "monthly",
+    },
+    "growth": {
+        "plan_name": "growth",
+        "payment_link": PAYMENT_LINKS["growth"],
+        "internal_payment_route": PAYMENT_ROUTE_LINKS["growth"],
+        "monthly_reply_limit": PACKAGES["growth"]["monthly_reply_limit"],
+        "package_amount": "799 AED",
+        "subscription_type": "monthly",
+    },
+    "elite": {
+        "plan_name": "elite",
+        "payment_link": PAYMENT_LINKS["elite"],
+        "internal_payment_route": PAYMENT_ROUTE_LINKS["elite"],
+        "monthly_reply_limit": PACKAGES["elite"]["monthly_reply_limit"],
+        "package_amount": "1499 AED",
+        "subscription_type": "monthly",
+    },
+}
+
+# مفتاح client_reference_id داخل Stripe Checkout.
+# لاحقاً بنرسله بهذا الشكل:
+# session_id::plan_name
+STRIPE_CLIENT_REFERENCE_SEPARATOR = "::"
+
+# روابط يرجع لها العميل بعد الدفع أو عند الإلغاء.
+STRIPE_SUCCESS_URL = f"{APP_BASE_URL}/payment-success"
+STRIPE_CANCEL_URL = f"{APP_BASE_URL}/payment-cancel"
 
 
 # =========================
