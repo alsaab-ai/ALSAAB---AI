@@ -125,6 +125,9 @@ def think(message, session_id):
     current_state = get_session_state(session_id)
     msg = message.lower().strip()
 
+    # مهم: نخزن session_id داخل state عشان prompt_builder يقدر يبني روابط الدفع الداخلية
+    current_state["session_id"] = session_id
+
     print(f"THINK CALLED ✅ session_id={session_id}")
     print(f"CURRENT MODE ✅ mode={current_state.get('mode')}")
 
@@ -169,6 +172,9 @@ def think(message, session_id):
     print("SALES MODE ACTIVE ✅")
 
     current_state = update_state(message, current_state)
+
+    # مهم: نعيد تثبيت session_id بعد update_state عشان ما يضيع إذا رجّع state جديد
+    current_state["session_id"] = session_id
 
     # استرجاع بيانات المشروع المدربة إن وجدت
     load_client_profile_into_state(session_id, current_state)
