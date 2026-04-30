@@ -65,7 +65,6 @@ def init_db():
     )
     """)
 
-    # Migration للأعمدة الجديدة إذا كان جدول leads قديم
     add_column_if_missing(c, "leads", "user_type", "TEXT")
     add_column_if_missing(c, "leads", "business_name", "TEXT")
     add_column_if_missing(c, "leads", "email", "TEXT")
@@ -92,11 +91,12 @@ def init_db():
     )
     """)
 
-    # Migration للأعمدة الجديدة إذا كان جدول client_profiles قديم
     add_column_if_missing(c, "client_profiles", "general_description", "TEXT")
 
     conn.commit()
     conn.close()
+
+    print("DATABASE INIT DONE ✅", flush=True)
 
 
 def save_message(session_id, role, content):
@@ -128,10 +128,6 @@ def get_last_messages(session_id, limit=6):
 
 
 def get_state_value(state, key, default=""):
-    """
-    يجيب القيمة من state.
-    وإذا ما حصلها، يحاول يجيبها من client_data.
-    """
     if not state:
         return default
 
@@ -149,9 +145,6 @@ def get_state_value(state, key, default=""):
 
 
 def normalize_user_type(state):
-    """
-    يحول نوع المستخدم إلى Business / Personal عشان Google Sheet يكون مرتب.
-    """
     raw_user_type = get_state_value(state, "user_type", "")
 
     if not raw_user_type:
@@ -171,15 +164,69 @@ def normalize_user_type(state):
     return raw_user_type
 
 
-def send_lead_to_google_sheet(session_id, name, phone, state, status="new"):
+def post_to_google_sheet(payload, label="unknown"):
     """
-    يرسل بيانات العميل إلى Google Sheet.
-    إذا فشل الإرسال، ما يوقف البوت.
+    يرسل Payload إلى Google Apps Script ويطبع الرد كامل في Render Logs.
     """
-    if not GOOGLE_SHEET_WEBHOOK_URL or not GOOGLE_SHEET_TOKEN:
-        print("Google Sheets webhook is not configured.")
+    print(f"GOOGLE SHEET SEND START ✅ label={label}", flush=True)
+
+    if not GOOGLE_SHEET_WEBHOOK_URL:
+        print("GOOGLE SHEET ERROR ❌ GOOGLE_SHEET_WEBHOOK_URL is empty", flush=True)
         return False
 
+    if not GOOGLE_SHEET_TOKEN:
+        print("GOOGLE SHEET ERROR ❌ GOOGLE_SHEET_TOKEN is empty", flush=True)
+        return False
+
+    print(f"GOOGLE SHEET URL EXISTS ✅ startswith={GOOGLE_SHEET_WEBHOOK_URL[:35]}", flush=True)
+    print(f"GOOGLE SHEET PAYLOAD ACTION ✅ action={payload.get('action')}", flush=True)
+
+    try:
+        data_encoded = json.dumps(payload, ensure_ascii=False).encode("utf-8")
+
+        request = urllib.request.Request(
+            GOOGLE_SHEET_WEBHOOK_URL,
+            data=data_encoded,
+            headers={"Content-Type": "application/json"},
+            method="POST"
+        )
+
+        with urllib.request.urlopen(request, timeout=15) as response:
+            status_code = response.getcode()
+            response_body = response.read().decode("utf-8", errors="replace")
+
+        print(f"GOOGLE SHEET RESPONSE STATUS ✅ {status_code}", flush=True)
+        print(f"GOOGLE SHEET RESPONSE BODY ✅ {response_body}", flush=True)
+
+        try:
+            response_json = json.loads(response_body)
+            if response_json.get("status") == "success":
+                print("GOOGLE SHEET SAVE SUCCESS ✅", flush=True)
+                return True
+
+            print(f"GOOGLE SHEET SAVE NOT SUCCESS ❌ {response_json}", flush=True)
+            return False
+
+        except Exception:
+            print("GOOGLE SHEET RESPONSE NOT JSON ⚠️", flush=True)
+            return status_code in [200, 201, 202]
+
+    except urllib.error.HTTPError as error:
+        try:
+            error_body = error.read().decode("utf-8", errors="replace")
+        except Exception:
+            error_body = ""
+
+        print(f"GOOGLE SHEET HTTP ERROR ❌ code={error.code}", flush=True)
+        print(f"GOOGLE SHEET HTTP ERROR BODY ❌ {error_body}", flush=True)
+        return False
+
+    except Exception as error:
+        print(f"GOOGLE SHEET REQUEST ERROR ❌ {error}", flush=True)
+        return False
+
+
+def send_lead_to_google_sheet(session_id, name, phone, state, status="new"):
     payload = {
         "token": GOOGLE_SHEET_TOKEN,
         "action": "lead",
@@ -196,35 +243,10 @@ def send_lead_to_google_sheet(session_id, name, phone, state, status="new"):
         "session_id": session_id or "",
     }
 
-    try:
-        data = json.dumps(payload, ensure_ascii=False).encode("utf-8")
-
-        request = urllib.request.Request(
-            GOOGLE_SHEET_WEBHOOK_URL,
-            data=data,
-            headers={"Content-Type": "application/json"},
-            method="POST"
-        )
-
-        with urllib.request.urlopen(request, timeout=5) as response:
-            response.read()
-
-        return True
-
-    except Exception as error:
-        print(f"Google Sheets sync failed: {error}")
-        return False
+    return post_to_google_sheet(payload, label="lead")
 
 
 def send_client_profile_to_google_sheet(session_id, data):
-    """
-    يرسل بيانات تدريب المشروع إلى Google Sheet في صفحة ClientProfiles.
-    إذا فشل الإرسال، ما يوقف البوت.
-    """
-    if not GOOGLE_SHEET_WEBHOOK_URL or not GOOGLE_SHEET_TOKEN:
-        print("Google Sheets webhook is not configured.")
-        return False
-
     payload = {
         "token": GOOGLE_SHEET_TOKEN,
         "action": "client_profile",
@@ -243,24 +265,7 @@ def send_client_profile_to_google_sheet(session_id, data):
         "tone": data.get("tone", ""),
     }
 
-    try:
-        data_encoded = json.dumps(payload, ensure_ascii=False).encode("utf-8")
-
-        request = urllib.request.Request(
-            GOOGLE_SHEET_WEBHOOK_URL,
-            data=data_encoded,
-            headers={"Content-Type": "application/json"},
-            method="POST"
-        )
-
-        with urllib.request.urlopen(request, timeout=5) as response:
-            response.read()
-
-        return True
-
-    except Exception as error:
-        print(f"Google Sheets client profile sync failed: {error}")
-        return False
+    return post_to_google_sheet(payload, label="client_profile")
 
 
 def save_lead(session_id, name, phone, state):
@@ -346,8 +351,8 @@ def save_lead(session_id, name, phone, state):
     conn.commit()
     conn.close()
 
-    # نرسل إلى Google Sheet فقط لما يكون lead جديد
-    # عشان ما تتكرر الصفوف في الشيت مع كل رسالة.
+    print("LEAD SAVED TO SQLITE ✅", flush=True)
+
     if is_new_lead:
         send_lead_to_google_sheet(
             session_id=session_id,
@@ -411,6 +416,10 @@ def get_leads(limit=100):
 
 
 def save_client_profile(session_id, data):
+    print("SAVE CLIENT PROFILE START ✅", flush=True)
+    print(f"SAVE CLIENT PROFILE SESSION ✅ {session_id}", flush=True)
+    print(f"SAVE CLIENT PROFILE DATA KEYS ✅ {list(data.keys())}", flush=True)
+
     conn = get_connection()
     c = conn.cursor()
 
@@ -439,6 +448,8 @@ def save_client_profile(session_id, data):
     )
 
     if existing:
+        print("CLIENT PROFILE EXISTS ✅ updating SQLite", flush=True)
+
         c.execute(
             """
             UPDATE client_profiles
@@ -462,6 +473,8 @@ def save_client_profile(session_id, data):
             values + (session_id,)
         )
     else:
+        print("CLIENT PROFILE NEW ✅ inserting SQLite", flush=True)
+
         c.execute(
             """
             INSERT INTO client_profiles (
@@ -488,7 +501,14 @@ def save_client_profile(session_id, data):
     conn.commit()
     conn.close()
 
-    send_client_profile_to_google_sheet(session_id, data)
+    print("CLIENT PROFILE SAVED TO SQLITE ✅", flush=True)
+
+    sheet_result = send_client_profile_to_google_sheet(session_id, data)
+
+    if sheet_result:
+        print("CLIENT PROFILE SENT TO GOOGLE SHEET ✅", flush=True)
+    else:
+        print("CLIENT PROFILE GOOGLE SHEET SEND FAILED ❌", flush=True)
 
 
 def get_client_profile(session_id):
