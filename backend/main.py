@@ -1,6 +1,6 @@
 print("ALSAAB AI is running 🔥")
 
-from flask import Flask, request, jsonify, render_template_string
+from flask import Flask, request, jsonify, render_template_string, redirect
 from brain import think
 from database import (
     init_db,
@@ -12,14 +12,118 @@ from database import (
     create_or_update_subscription,
     get_usage_summary,
 )
+from config import (
+    STRIPE_PLAN_CONFIG,
+    STRIPE_WEBHOOK_SECRET,
+    STRIPE_WEBHOOK_TOLERANCE_SECONDS,
+)
 import uuid
 import os
+import json
+import time
+import hmac
+import hashlib
+from urllib.parse import urlencode, urlparse, urlunparse, parse_qsl
 
 app = Flask(__name__)
 
 init_db()
 
 ADMIN_KEY = "alsaab123"
+SAFE_STRIPE_REFERENCE_SEPARATOR = "__"
+
+
+def build_stripe_client_reference_id(session_id, plan_name):
+    return f"{session_id}{SAFE_STRIPE_REFERENCE_SEPARATOR}{plan_name}"
+
+
+def parse_stripe_client_reference_id(reference_id):
+    if not reference_id:
+        return "", ""
+
+    reference_id = str(reference_id).strip()
+
+    if SAFE_STRIPE_REFERENCE_SEPARATOR in reference_id:
+        parts = reference_id.rsplit(SAFE_STRIPE_REFERENCE_SEPARATOR, 1)
+        if len(parts) == 2:
+            return parts[0].strip(), parts[1].strip()
+
+    if "::" in reference_id:
+        parts = reference_id.rsplit("::", 1)
+        if len(parts) == 2:
+            return parts[0].strip(), parts[1].strip()
+
+    return "", ""
+
+
+def append_query_params(url, params):
+    parsed_url = urlparse(url)
+    current_params = dict(parse_qsl(parsed_url.query))
+
+    for key, value in params.items():
+        if value is not None and value != "":
+            current_params[key] = value
+
+    new_query = urlencode(current_params)
+
+    return urlunparse(parsed_url._replace(query=new_query))
+
+
+def verify_stripe_signature(payload, signature_header, webhook_secret, tolerance_seconds=300):
+    if not webhook_secret:
+        return False, "STRIPE_WEBHOOK_SECRET is not configured"
+
+    if not signature_header:
+        return False, "Stripe-Signature header is missing"
+
+    try:
+        parts = signature_header.split(",")
+        timestamp = None
+        signatures = []
+
+        for part in parts:
+            if "=" not in part:
+                continue
+
+            key, value = part.split("=", 1)
+            key = key.strip()
+            value = value.strip()
+
+            if key == "t":
+                timestamp = value
+
+            if key == "v1":
+                signatures.append(value)
+
+        if not timestamp:
+            return False, "Stripe timestamp is missing"
+
+        if not signatures:
+            return False, "Stripe v1 signature is missing"
+
+        timestamp_int = int(timestamp)
+        current_time = int(time.time())
+
+        if tolerance_seconds and abs(current_time - timestamp_int) > int(tolerance_seconds):
+            return False, "Stripe signature timestamp is outside tolerance"
+
+        signed_payload = timestamp.encode("utf-8") + b"." + payload
+
+        expected_signature = hmac.new(
+            webhook_secret.encode("utf-8"),
+            signed_payload,
+            hashlib.sha256
+        ).hexdigest()
+
+        for signature in signatures:
+            if hmac.compare_digest(expected_signature, signature):
+                return True, "verified"
+
+        return False, "No matching Stripe signature"
+
+    except Exception as error:
+        return False, str(error)
+
 
 HTML = r"""
 <!DOCTYPE html>
@@ -1098,6 +1202,343 @@ th { background:#0b5; color:white; }
 @app.route("/")
 def home():
     return render_template_string(HTML)
+
+
+@app.route("/pay/<plan_name>", methods=["GET"])
+def pay(plan_name):
+    plan_name = str(plan_name or "").lower().strip()
+    session_id = request.args.get("sid") or request.args.get("session_id")
+
+    if plan_name not in STRIPE_PLAN_CONFIG:
+        return jsonify({
+            "status": "error",
+            "message": "Invalid plan name"
+        }), 400
+
+    if not session_id:
+        return render_template_string("""
+        <!DOCTYPE html>
+        <html lang="ar" dir="rtl">
+        <head>
+            <meta charset="UTF-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            <title>ALSAAB AI Payment</title>
+            <style>
+                body {
+                    margin: 0;
+                    min-height: 100vh;
+                    display: grid;
+                    place-items: center;
+                    background: #05070d;
+                    color: #fff;
+                    font-family: Arial, sans-serif;
+                    padding: 24px;
+                }
+                .card {
+                    max-width: 520px;
+                    background: rgba(255,255,255,0.06);
+                    border: 1px solid rgba(214,168,79,0.35);
+                    border-radius: 22px;
+                    padding: 28px;
+                    text-align: center;
+                    box-shadow: 0 24px 70px rgba(0,0,0,0.45);
+                }
+                h1 {
+                    color: #f3d37b;
+                    margin-top: 0;
+                }
+                p {
+                    line-height: 1.8;
+                    color: #cbd5e1;
+                }
+            </style>
+        </head>
+        <body>
+            <div class="card">
+                <h1>رابط الدفع غير مكتمل</h1>
+                <p>
+                    افتح رابط الدفع من داخل محادثة ALSAAB AI عشان نربط الدفع بجلسة العميل بشكل صحيح.
+                </p>
+            </div>
+        </body>
+        </html>
+        """), 400
+
+    plan_config = STRIPE_PLAN_CONFIG[plan_name]
+    payment_link = plan_config.get("payment_link", "")
+
+    if not payment_link:
+        return jsonify({
+            "status": "error",
+            "message": "Payment link is not configured"
+        }), 500
+
+    client_reference_id = build_stripe_client_reference_id(session_id, plan_name)
+
+    payment_url = append_query_params(
+        payment_link,
+        {
+            "client_reference_id": client_reference_id
+        }
+    )
+
+    print(
+        f"PAYMENT REDIRECT ✅ session_id={session_id} plan={plan_name} reference={client_reference_id}",
+        flush=True
+    )
+
+    return redirect(payment_url, code=302)
+
+
+@app.route("/stripe-webhook", methods=["POST"])
+def stripe_webhook():
+    payload = request.get_data()
+    signature_header = request.headers.get("Stripe-Signature", "")
+
+    verified, verification_message = verify_stripe_signature(
+        payload=payload,
+        signature_header=signature_header,
+        webhook_secret=STRIPE_WEBHOOK_SECRET,
+        tolerance_seconds=STRIPE_WEBHOOK_TOLERANCE_SECONDS
+    )
+
+    if not verified:
+        print(f"STRIPE WEBHOOK SIGNATURE FAILED ❌ {verification_message}", flush=True)
+
+        return jsonify({
+            "status": "error",
+            "message": "Invalid Stripe signature"
+        }), 400
+
+    try:
+        event = json.loads(payload.decode("utf-8"))
+    except Exception as error:
+        print(f"STRIPE WEBHOOK JSON ERROR ❌ {error}", flush=True)
+
+        return jsonify({
+            "status": "error",
+            "message": "Invalid JSON payload"
+        }), 400
+
+    event_type = event.get("type", "")
+    event_id = event.get("id", "")
+
+    print(f"STRIPE WEBHOOK RECEIVED ✅ event={event_type} id={event_id}", flush=True)
+
+    if event_type == "checkout.session.completed":
+        checkout_session = event.get("data", {}).get("object", {})
+
+        client_reference_id = checkout_session.get("client_reference_id", "")
+        session_id, plan_name = parse_stripe_client_reference_id(client_reference_id)
+
+        if not session_id or not plan_name:
+            print(
+                f"STRIPE CHECKOUT IGNORED ⚠️ missing client_reference_id={client_reference_id}",
+                flush=True
+            )
+
+            return jsonify({
+                "status": "ignored",
+                "reason": "missing_or_invalid_client_reference_id"
+            })
+
+        plan_name = str(plan_name).lower().strip()
+
+        if plan_name not in STRIPE_PLAN_CONFIG:
+            print(f"STRIPE CHECKOUT IGNORED ⚠️ invalid plan={plan_name}", flush=True)
+
+            return jsonify({
+                "status": "ignored",
+                "reason": "invalid_plan"
+            })
+
+        plan_config = STRIPE_PLAN_CONFIG[plan_name]
+
+        stripe_customer_id = checkout_session.get("customer", "") or ""
+        stripe_subscription_id = checkout_session.get("subscription", "") or ""
+        package_amount = plan_config.get("package_amount", "")
+
+        subscription = create_or_update_subscription(
+            session_id=session_id,
+            plan_name=plan_name,
+            client_id=session_id,
+            bot_id="",
+            status="active",
+            custom_reply_limit=plan_config.get("monthly_reply_limit"),
+            stripe_customer_id=stripe_customer_id,
+            stripe_subscription_id=stripe_subscription_id,
+            package_amount=package_amount,
+            notes=f"Activated automatically by Stripe checkout.session.completed event {event_id}",
+            reset_usage=True
+        )
+
+        print(
+            f"STRIPE SUBSCRIPTION ACTIVATED ✅ session_id={session_id} plan={plan_name}",
+            flush=True
+        )
+
+        return jsonify({
+            "status": "success",
+            "message": "Subscription activated",
+            "subscription": subscription
+        })
+
+    if event_type == "invoice.paid":
+        print("STRIPE INVOICE PAID ✅ received for future renewal handling", flush=True)
+
+        return jsonify({
+            "status": "received",
+            "message": "invoice.paid received"
+        })
+
+    if event_type == "invoice.payment_failed":
+        print("STRIPE INVOICE PAYMENT FAILED ⚠️ received for future handling", flush=True)
+
+        return jsonify({
+            "status": "received",
+            "message": "invoice.payment_failed received"
+        })
+
+    if event_type == "customer.subscription.deleted":
+        print("STRIPE SUBSCRIPTION DELETED ⚠️ received for future cancellation handling", flush=True)
+
+        return jsonify({
+            "status": "received",
+            "message": "customer.subscription.deleted received"
+        })
+
+    if event_type == "customer.subscription.updated":
+        print("STRIPE SUBSCRIPTION UPDATED ✅ received for future handling", flush=True)
+
+        return jsonify({
+            "status": "received",
+            "message": "customer.subscription.updated received"
+        })
+
+    return jsonify({
+        "status": "ignored",
+        "message": f"Unhandled event type: {event_type}"
+    })
+
+
+@app.route("/payment-success", methods=["GET"])
+def payment_success():
+    return render_template_string("""
+    <!DOCTYPE html>
+    <html lang="ar" dir="rtl">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>تم الدفع - ALSAAB AI</title>
+        <style>
+            body {
+                margin: 0;
+                min-height: 100vh;
+                display: grid;
+                place-items: center;
+                background:
+                    radial-gradient(circle at 20% 20%, rgba(214,168,79,0.16), transparent 30%),
+                    linear-gradient(135deg, #03050a, #0a0f1d);
+                color: #fff;
+                font-family: Arial, sans-serif;
+                padding: 24px;
+            }
+            .card {
+                max-width: 620px;
+                background: rgba(255,255,255,0.06);
+                border: 1px solid rgba(214,168,79,0.38);
+                border-radius: 24px;
+                padding: 32px;
+                text-align: center;
+                box-shadow: 0 24px 70px rgba(0,0,0,0.48);
+            }
+            h1 {
+                margin-top: 0;
+                color: #f3d37b;
+                font-size: 28px;
+            }
+            p {
+                color: #cbd5e1;
+                line-height: 1.9;
+                font-size: 16px;
+            }
+            .note {
+                margin-top: 18px;
+                color: #94a3b8;
+                font-size: 13px;
+            }
+        </style>
+    </head>
+    <body>
+        <div class="card">
+            <h1>تم الدفع بنجاح ✅</h1>
+            <p>
+                اشتراكك في ALSAAB AI قيد التفعيل الآن.
+                ارجع للمحادثة واكتب: <strong>تدريب البوت</strong>
+                عشان نجهز النظام لمشروعك خطوة خطوة.
+            </p>
+            <div class="note">
+                إذا ما تفعل الاشتراك مباشرة، انتظر دقيقة ثم جرب مرة ثانية.
+            </div>
+        </div>
+    </body>
+    </html>
+    """)
+
+
+@app.route("/payment-cancel", methods=["GET"])
+def payment_cancel():
+    return render_template_string("""
+    <!DOCTYPE html>
+    <html lang="ar" dir="rtl">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>لم يكتمل الدفع - ALSAAB AI</title>
+        <style>
+            body {
+                margin: 0;
+                min-height: 100vh;
+                display: grid;
+                place-items: center;
+                background:
+                    radial-gradient(circle at 20% 20%, rgba(214,168,79,0.16), transparent 30%),
+                    linear-gradient(135deg, #03050a, #0a0f1d);
+                color: #fff;
+                font-family: Arial, sans-serif;
+                padding: 24px;
+            }
+            .card {
+                max-width: 620px;
+                background: rgba(255,255,255,0.06);
+                border: 1px solid rgba(214,168,79,0.38);
+                border-radius: 24px;
+                padding: 32px;
+                text-align: center;
+                box-shadow: 0 24px 70px rgba(0,0,0,0.48);
+            }
+            h1 {
+                margin-top: 0;
+                color: #f3d37b;
+                font-size: 28px;
+            }
+            p {
+                color: #cbd5e1;
+                line-height: 1.9;
+                font-size: 16px;
+            }
+        </style>
+    </head>
+    <body>
+        <div class="card">
+            <h1>لم يكتمل الدفع</h1>
+            <p>
+                ما عليك، تقدر ترجع للمحادثة وتختار الباقة المناسبة لك مرة ثانية.
+            </p>
+        </div>
+    </body>
+    </html>
+    """)
 
 
 @app.route("/chat", methods=["POST"])
