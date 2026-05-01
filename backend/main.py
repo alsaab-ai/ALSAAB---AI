@@ -24,6 +24,7 @@ import json
 import time
 import hmac
 import hashlib
+import re
 from urllib.parse import urlencode, urlparse, urlunparse, parse_qsl
 
 app = Flask(__name__)
@@ -58,6 +59,23 @@ def is_active_subscription(subscription):
 
     status = str(subscription.get("subscription_status", "")).lower().strip()
     return status == "active"
+
+
+def normalize_source_partner_id(value):
+    value = str(value or "").strip()
+
+    if not value:
+        return ""
+
+    if value.lower() == "alsaab":
+        return "alsaab"
+
+    match = re.search(r"ALS-P\d+", value.upper())
+
+    if match:
+        return match.group(0).strip()
+
+    return ""
 
 
 def build_stripe_client_reference_id(session_id, plan_name):
@@ -1005,7 +1023,58 @@ textarea::placeholder {
 
 <script>
 let sessionId = localStorage.getItem("session_id");
+let sourcePartnerId = localStorage.getItem("source_partner_id") || "";
 let isSending = false;
+
+function normalizeSourcePartnerId(value) {
+    value = String(value || "").trim();
+
+    if (!value) return "";
+
+    if (value.toLowerCase() === "alsaab") {
+        return "alsaab";
+    }
+
+    const match = value.toUpperCase().match(/ALS-P\d+/);
+
+    if (match && match[0]) {
+        return match[0];
+    }
+
+    return "";
+}
+
+function captureSourcePartnerId() {
+    try {
+        const params = new URLSearchParams(window.location.search);
+        const ref =
+            params.get("ref") ||
+            params.get("source_partner_id") ||
+            params.get("partner_id") ||
+            params.get("sponsor_partner_id") ||
+            "";
+
+        const normalizedRef = normalizeSourcePartnerId(ref);
+
+        if (normalizedRef) {
+            sourcePartnerId = normalizedRef;
+            localStorage.setItem("source_partner_id", normalizedRef);
+            console.log("ALSAAB referral captured:", normalizedRef);
+            return normalizedRef;
+        }
+
+        sourcePartnerId = normalizeSourcePartnerId(sourcePartnerId);
+
+        if (sourcePartnerId) {
+            localStorage.setItem("source_partner_id", sourcePartnerId);
+        }
+
+        return sourcePartnerId;
+    } catch (error) {
+        console.error("Referral capture error:", error);
+        return "";
+    }
+}
 
 function escapeHtml(text) {
     return String(text)
@@ -1119,6 +1188,8 @@ async function sendMsg() {
 
     if (!text) return;
 
+    sourcePartnerId = captureSourcePartnerId();
+
     isSending = true;
     button.disabled = true;
 
@@ -1133,7 +1204,8 @@ async function sendMsg() {
             headers: {"Content-Type": "application/json"},
             body: JSON.stringify({
                 message: text,
-                session_id: sessionId
+                session_id: sessionId,
+                source_partner_id: sourcePartnerId
             })
         });
 
@@ -1141,6 +1213,14 @@ async function sendMsg() {
 
         sessionId = data.session_id;
         localStorage.setItem("session_id", sessionId);
+
+        if (data.source_partner_id) {
+            sourcePartnerId = normalizeSourcePartnerId(data.source_partner_id);
+
+            if (sourcePartnerId) {
+                localStorage.setItem("source_partner_id", sourcePartnerId);
+            }
+        }
 
         showTyping(false);
         addMsg(data.reply, "bot");
@@ -1172,6 +1252,7 @@ textarea.addEventListener("keydown", function(event) {
 });
 
 window.addEventListener("load", function() {
+    captureSourcePartnerId();
     textarea.focus();
     scrollToBottom();
 });
@@ -1576,9 +1657,16 @@ def chat():
 
     message = data.get("message", "").strip()
     session_id = data.get("session_id")
+    source_partner_id = normalize_source_partner_id(
+        data.get("source_partner_id")
+        or data.get("referrer_partner_id")
+        or data.get("ref")
+        or ""
+    )
 
     print(f"MAIN MESSAGE ✅ {message}", flush=True)
     print(f"MAIN SESSION BEFORE ✅ {session_id}", flush=True)
+    print(f"MAIN SOURCE PARTNER ✅ {source_partner_id}", flush=True)
 
     if not session_id:
         session_id = str(uuid.uuid4())
@@ -1588,7 +1676,8 @@ def chat():
         print("MAIN EMPTY MESSAGE ❌", flush=True)
         return jsonify({
             "reply": "اكتب رسالتك عشان أقدر أساعدك.",
-            "session_id": session_id
+            "session_id": session_id,
+            "source_partner_id": source_partner_id
         })
 
     try:
@@ -1605,6 +1694,7 @@ def chat():
             return jsonify({
                 "reply": TRAINING_LOCKED_REPLY,
                 "session_id": session_id,
+                "source_partner_id": source_partner_id,
                 "training": {
                     "allowed": False,
                     "reason": "no_active_subscription"
@@ -1629,6 +1719,7 @@ def chat():
                 return jsonify({
                     "reply": blocked_reply,
                     "session_id": session_id,
+                    "source_partner_id": source_partner_id,
                     "usage": {
                         "allowed": False,
                         "reason": usage_check.get("reason"),
@@ -1638,7 +1729,19 @@ def chat():
         else:
             print("NO SUBSCRIPTION FOUND ✅ treating as ALSAAB main sales bot / new visitor", flush=True)
 
-        reply = think(message, session_id)
+        try:
+            reply = think(
+                message,
+                session_id,
+                source_partner_id=source_partner_id
+            )
+        except TypeError as type_error:
+            if "source_partner_id" in str(type_error) or "unexpected keyword argument" in str(type_error):
+                print("THINK FALLBACK ⚠️ brain.py does not accept source_partner_id yet", flush=True)
+                reply = think(message, session_id)
+            else:
+                raise
+
         print(f"MAIN THINK REPLY ✅ {reply}", flush=True)
 
         save_message(session_id, "bot", reply)
@@ -1650,7 +1753,8 @@ def chat():
 
         return jsonify({
             "reply": reply,
-            "session_id": session_id
+            "session_id": session_id,
+            "source_partner_id": source_partner_id
         })
 
     except Exception as error:
@@ -1659,6 +1763,7 @@ def chat():
         return jsonify({
             "reply": "صار خطأ تقني مؤقت. جرب مرة ثانية.",
             "session_id": session_id,
+            "source_partner_id": source_partner_id,
             "error": str(error)
         }), 500
 
