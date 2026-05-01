@@ -89,6 +89,7 @@ def init_db():
     CREATE TABLE IF NOT EXISTS leads (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         session_id TEXT,
+        client_id TEXT,
         name TEXT,
         phone TEXT,
         user_type TEXT,
@@ -103,6 +104,7 @@ def init_db():
     )
     """)
 
+    add_column_if_missing(c, "leads", "client_id", "TEXT")
     add_column_if_missing(c, "leads", "user_type", "TEXT")
     add_column_if_missing(c, "leads", "business_name", "TEXT")
     add_column_if_missing(c, "leads", "email", "TEXT")
@@ -112,6 +114,7 @@ def init_db():
     CREATE TABLE IF NOT EXISTS client_profiles (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         session_id TEXT UNIQUE,
+        client_id TEXT,
         business_name TEXT,
         business_type TEXT,
         general_description TEXT,
@@ -129,6 +132,7 @@ def init_db():
     )
     """)
 
+    add_column_if_missing(c, "client_profiles", "client_id", "TEXT")
     add_column_if_missing(c, "client_profiles", "general_description", "TEXT")
 
     c.execute("""
@@ -261,6 +265,33 @@ def normalize_user_type(state):
     return raw_user_type
 
 
+def get_effective_client_id(session_id, client_id="", state=None):
+    """
+    يرجع client_id ثابت للعميل.
+    الأولوية:
+    1. client_id المرسل صراحة
+    2. client_id داخل state
+    3. client_id داخل الاشتراك
+    4. session_id كحل مؤقت
+    """
+    if client_id:
+        return str(client_id).strip()
+
+    if state:
+        state_client_id = get_state_value(state, "client_id", "")
+        if state_client_id:
+            return str(state_client_id).strip()
+
+    try:
+        subscription = get_client_subscription(session_id)
+        if subscription and subscription.get("client_id"):
+            return str(subscription.get("client_id")).strip()
+    except Exception:
+        pass
+
+    return session_id or ""
+
+
 def post_to_google_sheet(payload, label="unknown"):
     """
     يرسل Payload إلى Google Apps Script ويطبع الرد كامل في Render Logs.
@@ -324,9 +355,12 @@ def post_to_google_sheet(payload, label="unknown"):
 
 
 def send_lead_to_google_sheet(session_id, name, phone, state, status="new"):
+    client_id = get_effective_client_id(session_id, state=state)
+
     payload = {
         "token": GOOGLE_SHEET_TOKEN,
         "action": "lead",
+        "client_id": client_id or "",
         "name": name or "",
         "phone": phone or "",
         "user_type": normalize_user_type(state),
@@ -343,11 +377,17 @@ def send_lead_to_google_sheet(session_id, name, phone, state, status="new"):
     return post_to_google_sheet(payload, label="lead")
 
 
-def send_client_profile_to_google_sheet(session_id, data):
+def send_client_profile_to_google_sheet(session_id, data, client_id=""):
+    effective_client_id = get_effective_client_id(
+        session_id,
+        client_id=client_id or data.get("client_id", "")
+    )
+
     payload = {
         "token": GOOGLE_SHEET_TOKEN,
         "action": "client_profile",
         "session_id": session_id or "",
+        "client_id": effective_client_id or "",
         "business_name": data.get("business_name", ""),
         "business_type": data.get("business_type", ""),
         "general_description": data.get("general_description", ""),
@@ -369,6 +409,7 @@ def save_lead(session_id, name, phone, state):
     conn = get_connection()
     c = conn.cursor()
 
+    client_id = get_effective_client_id(session_id, state=state)
     user_type = normalize_user_type(state)
     business_name = get_state_value(state, "business_name", "")
     business_type = get_state_value(state, "business_type", "")
@@ -390,6 +431,7 @@ def save_lead(session_id, name, phone, state):
             """
             UPDATE leads
             SET
+                client_id=?,
                 name=?,
                 user_type=?,
                 business_name=?,
@@ -401,6 +443,7 @@ def save_lead(session_id, name, phone, state):
             WHERE id=?
             """,
             (
+                client_id,
                 name,
                 user_type,
                 business_name,
@@ -417,6 +460,7 @@ def save_lead(session_id, name, phone, state):
             """
             INSERT INTO leads (
                 session_id,
+                client_id,
                 name,
                 phone,
                 user_type,
@@ -427,10 +471,11 @@ def save_lead(session_id, name, phone, state):
                 email,
                 country
             )
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             """,
             (
                 session_id,
+                client_id,
                 name,
                 phone,
                 user_type,
@@ -469,6 +514,7 @@ def get_leads(limit=100):
         SELECT
             id,
             session_id,
+            client_id,
             name,
             phone,
             user_type,
@@ -496,26 +542,34 @@ def get_leads(limit=100):
         leads.append({
             "id": row[0],
             "session_id": row[1],
-            "name": row[2],
-            "phone": row[3],
-            "user_type": row[4],
-            "business_name": row[5],
-            "business_type": row[6],
-            "pain_point": row[7],
-            "channel": row[8],
-            "status": row[9],
-            "email": row[10],
-            "country": row[11],
-            "created_at": row[12],
+            "client_id": row[2],
+            "name": row[3],
+            "phone": row[4],
+            "user_type": row[5],
+            "business_name": row[6],
+            "business_type": row[7],
+            "pain_point": row[8],
+            "channel": row[9],
+            "status": row[10],
+            "email": row[11],
+            "country": row[12],
+            "created_at": row[13],
         })
 
     return leads
 
 
-def save_client_profile(session_id, data):
+def save_client_profile(session_id, data, client_id=""):
     print("SAVE CLIENT PROFILE START ✅", flush=True)
     print(f"SAVE CLIENT PROFILE SESSION ✅ {session_id}", flush=True)
     print(f"SAVE CLIENT PROFILE DATA KEYS ✅ {list(data.keys())}", flush=True)
+
+    effective_client_id = get_effective_client_id(
+        session_id,
+        client_id=client_id or data.get("client_id", "")
+    )
+
+    data["client_id"] = effective_client_id
 
     conn = get_connection()
     c = conn.cursor()
@@ -523,12 +577,19 @@ def save_client_profile(session_id, data):
     raw_data = json.dumps(data, ensure_ascii=False)
 
     c.execute(
-        "SELECT id FROM client_profiles WHERE session_id=?",
-        (session_id,)
+        """
+        SELECT id FROM client_profiles
+        WHERE client_id=? OR session_id=?
+        ORDER BY id DESC
+        LIMIT 1
+        """,
+        (effective_client_id, session_id)
     )
     existing = c.fetchone()
 
     values = (
+        session_id,
+        effective_client_id,
         data.get("business_name"),
         data.get("business_type"),
         data.get("general_description"),
@@ -551,6 +612,8 @@ def save_client_profile(session_id, data):
             """
             UPDATE client_profiles
             SET
+                session_id=?,
+                client_id=?,
                 business_name=?,
                 business_type=?,
                 general_description=?,
@@ -565,9 +628,9 @@ def save_client_profile(session_id, data):
                 tone=?,
                 raw_data=?,
                 updated_at=CURRENT_TIMESTAMP
-            WHERE session_id=?
+            WHERE id=?
             """,
-            values + (session_id,)
+            values + (existing[0],)
         )
     else:
         print("CLIENT PROFILE NEW ✅ inserting SQLite", flush=True)
@@ -576,6 +639,7 @@ def save_client_profile(session_id, data):
             """
             INSERT INTO client_profiles (
                 session_id,
+                client_id,
                 business_name,
                 business_type,
                 general_description,
@@ -590,17 +654,21 @@ def save_client_profile(session_id, data):
                 tone,
                 raw_data
             )
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             """,
-            (session_id,) + values
+            values
         )
 
     conn.commit()
     conn.close()
 
-    print("CLIENT PROFILE SAVED TO SQLITE ✅", flush=True)
+    print(f"CLIENT PROFILE SAVED TO SQLITE ✅ client_id={effective_client_id}", flush=True)
 
-    sheet_result = send_client_profile_to_google_sheet(session_id, data)
+    sheet_result = send_client_profile_to_google_sheet(
+        session_id=session_id,
+        data=data,
+        client_id=effective_client_id
+    )
 
     if sheet_result:
         print("CLIENT PROFILE SENT TO GOOGLE SHEET ✅", flush=True)
@@ -608,13 +676,16 @@ def save_client_profile(session_id, data):
         print("CLIENT PROFILE GOOGLE SHEET SEND FAILED ❌", flush=True)
 
 
-def get_client_profile(session_id):
+def get_client_profile(session_id, client_id=""):
+    effective_client_id = get_effective_client_id(session_id, client_id=client_id)
+
     conn = get_connection()
     c = conn.cursor()
 
     c.execute(
         """
         SELECT
+            client_id,
             business_name,
             business_type,
             general_description,
@@ -629,9 +700,11 @@ def get_client_profile(session_id):
             tone,
             raw_data
         FROM client_profiles
-        WHERE session_id=?
+        WHERE client_id=? OR session_id=?
+        ORDER BY id DESC
+        LIMIT 1
         """,
-        (session_id,)
+        (effective_client_id, session_id)
     )
 
     row = c.fetchone()
@@ -641,19 +714,20 @@ def get_client_profile(session_id):
         return {}
 
     return {
-        "business_name": row[0],
-        "business_type": row[1],
-        "general_description": row[2],
-        "products": row[3],
-        "prices": row[4],
-        "offers": row[5],
-        "ordering": row[6],
-        "whatsapp": row[7],
-        "areas": row[8],
-        "faqs": row[9],
-        "objections": row[10],
-        "tone": row[11],
-        "raw_data": row[12],
+        "client_id": row[0],
+        "business_name": row[1],
+        "business_type": row[2],
+        "general_description": row[3],
+        "products": row[4],
+        "prices": row[5],
+        "offers": row[6],
+        "ordering": row[7],
+        "whatsapp": row[8],
+        "areas": row[9],
+        "faqs": row[10],
+        "objections": row[11],
+        "tone": row[12],
+        "raw_data": row[13],
     }
 
 
@@ -666,6 +740,7 @@ def get_client_profiles(limit=100):
         SELECT
             id,
             session_id,
+            client_id,
             business_name,
             business_type,
             general_description,
@@ -695,19 +770,20 @@ def get_client_profiles(limit=100):
         profiles.append({
             "id": row[0],
             "session_id": row[1],
-            "business_name": row[2],
-            "business_type": row[3],
-            "general_description": row[4],
-            "products": row[5],
-            "prices": row[6],
-            "offers": row[7],
-            "ordering": row[8],
-            "whatsapp": row[9],
-            "areas": row[10],
-            "faqs": row[11],
-            "objections": row[12],
-            "tone": row[13],
-            "updated_at": row[14],
+            "client_id": row[2],
+            "business_name": row[3],
+            "business_type": row[4],
+            "general_description": row[5],
+            "products": row[6],
+            "prices": row[7],
+            "offers": row[8],
+            "ordering": row[9],
+            "whatsapp": row[10],
+            "areas": row[11],
+            "faqs": row[12],
+            "objections": row[13],
+            "tone": row[14],
+            "updated_at": row[15],
         })
 
     return profiles
@@ -874,6 +950,9 @@ def create_or_update_subscription(
     notes="",
     reset_usage=True
 ):
+    if not client_id:
+        client_id = session_id
+
     plan_name = normalize_plan_name(plan_name)
     monthly_reply_limit = get_plan_reply_limit(plan_name, custom_reply_limit)
 
@@ -996,7 +1075,7 @@ def create_or_update_subscription(
     conn.close()
 
     print(
-        f"SUBSCRIPTION SAVED ✅ session_id={session_id} plan={plan_name} limit={monthly_reply_limit} status={status}",
+        f"SUBSCRIPTION SAVED ✅ session_id={session_id} client_id={client_id} plan={plan_name} limit={monthly_reply_limit} status={status}",
         flush=True
     )
 
@@ -1149,7 +1228,7 @@ def record_bot_reply_usage(session_id, replies_count=1, tokens_estimate=0):
 
     subscription = usage_check.get("subscription") or {}
 
-    client_id = subscription.get("client_id") or ""
+    client_id = subscription.get("client_id") or session_id
     bot_id = subscription.get("bot_id") or ""
     plan_name = subscription.get("plan_name") or ""
 
@@ -1199,7 +1278,7 @@ def record_bot_reply_usage(session_id, replies_count=1, tokens_estimate=0):
     updated_subscription = get_client_subscription(session_id)
 
     print(
-        f"USAGE RECORDED ✅ session_id={session_id} used={updated_subscription.get('monthly_replies_used')} limit={updated_subscription.get('monthly_reply_limit')}",
+        f"USAGE RECORDED ✅ session_id={session_id} client_id={client_id} used={updated_subscription.get('monthly_replies_used')} limit={updated_subscription.get('monthly_reply_limit')}",
         flush=True
     )
 
@@ -1353,6 +1432,7 @@ def export_leads_for_google_sheets():
         [
             "ID",
             "Session ID",
+            "Client ID",
             "Name",
             "Phone",
             "User Type",
@@ -1371,6 +1451,7 @@ def export_leads_for_google_sheets():
         rows.append([
             lead["id"],
             lead["session_id"],
+            lead["client_id"],
             lead["name"],
             lead["phone"],
             lead["user_type"],
@@ -1394,6 +1475,7 @@ def export_client_profiles_for_google_sheets():
         [
             "ID",
             "Session ID",
+            "Client ID",
             "Business Name",
             "Business Type",
             "General Description",
@@ -1414,6 +1496,7 @@ def export_client_profiles_for_google_sheets():
         rows.append([
             profile["id"],
             profile["session_id"],
+            profile["client_id"],
             profile["business_name"],
             profile["business_type"],
             profile["general_description"],
@@ -1483,6 +1566,8 @@ def export_subscriptions_for_google_sheets():
         ])
 
     return rows
+
+
 # =========================
 # MLM / PARTNER GOOGLE SHEETS SYSTEM
 # =========================
