@@ -13,6 +13,12 @@ from database import (
     get_client_profile,
 )
 from training_engine import start_training, handle_training
+from partner_engine import (
+    is_partner_registration_request,
+    is_partner_registration_active,
+    start_partner_registration,
+    handle_partner_registration,
+)
 
 client = OpenAI(api_key=OPENAI_API_KEY)
 
@@ -391,6 +397,37 @@ def think(message, session_id):
         return reply
 
     # =========================
+    # PARTNER REGISTRATION MODE
+    # =========================
+
+    if is_partner_registration_active(current_state):
+        print("PARTNER REGISTRATION MODE ACTIVE ✅", flush=True)
+
+        reply = handle_partner_registration(
+            message=message,
+            state=current_state,
+            session_id=session_id
+        )
+
+        set_session_state(session_id, current_state)
+        return reply
+
+    # =========================
+    # PARTNER REGISTRATION START
+    # =========================
+
+    if is_partner_registration_request(message):
+        print("PARTNER REGISTRATION REQUEST DETECTED ✅", flush=True)
+
+        reply = start_partner_registration(
+            state=current_state,
+            session_id=session_id
+        )
+
+        set_session_state(session_id, current_state)
+        return reply
+
+    # =========================
     # CUSTOMER NAME + PHONE CAPTURE
     # =========================
 
@@ -488,6 +525,9 @@ def think(message, session_id):
 
     existing_customer_name = get_customer_name(current_state)
     existing_customer_phone = get_customer_phone(current_state)
+    existing_partner_id = current_state.get("partner_id", "")
+    existing_partner_referral_link = current_state.get("partner_referral_link", "")
+    existing_partner_rank = current_state.get("partner_rank", "")
 
     current_state = update_state(message_to_process, current_state)
 
@@ -502,6 +542,16 @@ def think(message, session_id):
     if existing_customer_phone:
         current_state["customer_phone"] = existing_customer_phone
         current_state["lead_phone"] = existing_customer_phone
+
+    # نحافظ على بيانات الشريك إذا update_state رجّع state جديد
+    if existing_partner_id:
+        current_state["partner_id"] = existing_partner_id
+
+    if existing_partner_referral_link:
+        current_state["partner_referral_link"] = existing_partner_referral_link
+
+    if existing_partner_rank:
+        current_state["partner_rank"] = existing_partner_rank
 
     # استرجاع بيانات المشروع المدربة إن وجدت
     load_client_profile_into_state(session_id, current_state)
