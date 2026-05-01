@@ -1483,3 +1483,231 @@ def export_subscriptions_for_google_sheets():
         ])
 
     return rows
+# =========================
+# MLM / PARTNER GOOGLE SHEETS SYSTEM
+# =========================
+
+def post_to_google_sheet_json(payload, label="unknown"):
+    """
+    نفس فكرة post_to_google_sheet، لكن يرجع JSON كامل.
+    نحتاجه في MLM عشان نستلم partner_id و referral_link من Google Apps Script.
+    """
+    print(f"GOOGLE SHEET JSON SEND START ✅ label={label}", flush=True)
+
+    if not GOOGLE_SHEET_WEBHOOK_URL:
+        print("GOOGLE SHEET JSON ERROR ❌ GOOGLE_SHEET_WEBHOOK_URL is empty", flush=True)
+        return {
+            "status": "error",
+            "message": "GOOGLE_SHEET_WEBHOOK_URL is empty"
+        }
+
+    if not GOOGLE_SHEET_TOKEN:
+        print("GOOGLE SHEET JSON ERROR ❌ GOOGLE_SHEET_TOKEN is empty", flush=True)
+        return {
+            "status": "error",
+            "message": "GOOGLE_SHEET_TOKEN is empty"
+        }
+
+    print(f"GOOGLE SHEET JSON PAYLOAD ACTION ✅ action={payload.get('action')}", flush=True)
+
+    try:
+        data_encoded = json.dumps(payload, ensure_ascii=False).encode("utf-8")
+
+        request = urllib.request.Request(
+            GOOGLE_SHEET_WEBHOOK_URL,
+            data=data_encoded,
+            headers={"Content-Type": "application/json"},
+            method="POST"
+        )
+
+        with urllib.request.urlopen(request, timeout=15) as response:
+            status_code = response.getcode()
+            response_body = response.read().decode("utf-8", errors="replace")
+
+        print(f"GOOGLE SHEET JSON RESPONSE STATUS ✅ {status_code}", flush=True)
+        print(f"GOOGLE SHEET JSON RESPONSE BODY ✅ {response_body}", flush=True)
+
+        try:
+            response_json = json.loads(response_body)
+
+            if response_json.get("status") == "success":
+                print(f"GOOGLE SHEET JSON SAVE SUCCESS ✅ label={label}", flush=True)
+            else:
+                print(f"GOOGLE SHEET JSON SAVE NOT SUCCESS ❌ {response_json}", flush=True)
+
+            return response_json
+
+        except Exception:
+            print("GOOGLE SHEET JSON RESPONSE NOT JSON ⚠️", flush=True)
+
+            return {
+                "status": "success" if status_code in [200, 201, 202] else "error",
+                "message": "Response was not JSON",
+                "status_code": status_code,
+                "raw_response": response_body
+            }
+
+    except urllib.error.HTTPError as error:
+        try:
+            error_body = error.read().decode("utf-8", errors="replace")
+        except Exception:
+            error_body = ""
+
+        print(f"GOOGLE SHEET JSON HTTP ERROR ❌ code={error.code}", flush=True)
+        print(f"GOOGLE SHEET JSON HTTP ERROR BODY ❌ {error_body}", flush=True)
+
+        return {
+            "status": "error",
+            "message": "HTTP error",
+            "code": error.code,
+            "body": error_body
+        }
+
+    except Exception as error:
+        print(f"GOOGLE SHEET JSON REQUEST ERROR ❌ {error}", flush=True)
+
+        return {
+            "status": "error",
+            "message": str(error)
+        }
+
+
+def send_partner_to_google_sheet(
+    partner_name,
+    phone,
+    email="",
+    country="",
+    invited_by="",
+    notes="",
+    level="Level 1",
+    status="active",
+    partner_id="",
+    referral_link=""
+):
+    """
+    يسجل شريك جديد في Google Sheet صفحة Partners.
+    Google Apps Script هو اللي يولد Partner ID و Referral Link إذا ما أرسلناهم.
+    """
+    payload = {
+        "token": GOOGLE_SHEET_TOKEN,
+        "action": "partner",
+        "partner_name": partner_name or "",
+        "name": partner_name or "",
+        "phone": phone or "",
+        "whatsapp": phone or "",
+        "email": email or "",
+        "country": country or "",
+        "invited_by": invited_by or "",
+        "notes": notes or "",
+        "level": level or "Level 1",
+        "status": status or "active",
+        "partner_id": partner_id or "",
+        "referral_link": referral_link or "",
+    }
+
+    return post_to_google_sheet_json(payload, label="partner")
+
+
+def send_referral_to_google_sheet(
+    partner_id,
+    referral_name="",
+    referral_phone="",
+    referral_email="",
+    source="website",
+    package_name="",
+    payment_status="pending",
+    subscription_status="pending",
+    session_id="",
+    client_id="",
+    notes=""
+):
+    """
+    يسجل إحالة جديدة في Google Sheet صفحة Referrals.
+    """
+    payload = {
+        "token": GOOGLE_SHEET_TOKEN,
+        "action": "referral",
+        "partner_id": partner_id or "",
+        "referral_name": referral_name or "",
+        "name": referral_name or "",
+        "referral_phone": referral_phone or "",
+        "phone": referral_phone or "",
+        "referral_email": referral_email or "",
+        "email": referral_email or "",
+        "source": source or "website",
+        "package": package_name or "",
+        "plan_name": package_name or "",
+        "payment_status": payment_status or "pending",
+        "subscription_status": subscription_status or "pending",
+        "session_id": session_id or "",
+        "client_id": client_id or "",
+        "notes": notes or "",
+    }
+
+    return post_to_google_sheet_json(payload, label="referral")
+
+
+def send_commission_to_google_sheet(
+    partner_id,
+    partner_name="",
+    referral_name="",
+    package_name="",
+    package_amount="",
+    commission_percent="25",
+    commission_amount="",
+    recurring_type="monthly",
+    status="pending",
+    paid_date="",
+    notes=""
+):
+    """
+    يسجل عمولة في Google Sheet صفحة Commissions.
+    """
+    payload = {
+        "token": GOOGLE_SHEET_TOKEN,
+        "action": "commission",
+        "partner_id": partner_id or "",
+        "partner_name": partner_name or "",
+        "referral_name": referral_name or "",
+        "client_name": referral_name or "",
+        "package": package_name or "",
+        "plan_name": package_name or "",
+        "package_amount": package_amount or "",
+        "commission_percent": commission_percent or "25",
+        "commission_amount": commission_amount or "",
+        "recurring_type": recurring_type or "monthly",
+        "recurring": recurring_type or "monthly",
+        "status": status or "pending",
+        "paid_date": paid_date or "",
+        "notes": notes or "",
+    }
+
+    return post_to_google_sheet_json(payload, label="commission")
+
+
+def send_mlm_level_to_google_sheet(
+    partner_id,
+    current_level="Level 1",
+    required_sales="1",
+    completed_sales="0",
+    required_course_workshop="الاشتراك بأي باقة",
+    level_status="active",
+    next_level="Level 2"
+):
+    """
+    يسجل أو يحدث مستوى الشريك في Google Sheet صفحة MLMLevels.
+    """
+    payload = {
+        "token": GOOGLE_SHEET_TOKEN,
+        "action": "mlm_level",
+        "partner_id": partner_id or "",
+        "current_level": current_level or "Level 1",
+        "required_sales": required_sales or "1",
+        "completed_sales": completed_sales or "0",
+        "required_course_workshop": required_course_workshop or "",
+        "required_course": required_course_workshop or "",
+        "level_status": level_status or "active",
+        "next_level": next_level or "",
+    }
+
+    return post_to_google_sheet_json(payload, label="mlm_level")
