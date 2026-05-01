@@ -14,6 +14,11 @@ except Exception:
     GOOGLE_SHEET_TOKEN = ""
 
 try:
+    from config import COMPANY_OWNER_PARTNER_ID
+except Exception:
+    COMPANY_OWNER_PARTNER_ID = "alsaab"
+
+try:
     from config import PACKAGES, USAGE_LIMIT_MESSAGES
 except Exception:
     PACKAGES = {
@@ -91,6 +96,8 @@ def init_db():
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         session_id TEXT,
         client_id TEXT,
+        source_partner_id TEXT,
+        referral_saved_at TIMESTAMP,
         name TEXT,
         phone TEXT,
         user_type TEXT,
@@ -106,6 +113,8 @@ def init_db():
     """)
 
     add_column_if_missing(c, "leads", "client_id", "TEXT")
+    add_column_if_missing(c, "leads", "source_partner_id", "TEXT")
+    add_column_if_missing(c, "leads", "referral_saved_at", "TIMESTAMP")
     add_column_if_missing(c, "leads", "user_type", "TEXT")
     add_column_if_missing(c, "leads", "business_name", "TEXT")
     add_column_if_missing(c, "leads", "email", "TEXT")
@@ -302,10 +311,24 @@ def normalize_partner_id(partner_id):
     if not partner_id:
         return ""
 
+    if partner_id.lower() == str(COMPANY_OWNER_PARTNER_ID).lower():
+        return COMPANY_OWNER_PARTNER_ID
+
     if partner_id.lower().startswith("als-p"):
         return partner_id.upper()
 
     return partner_id
+
+
+def get_source_partner_id_from_state(state):
+    source_partner_id = (
+        get_state_value(state, "source_partner_id", "")
+        or get_state_value(state, "referrer_partner_id", "")
+        or get_state_value(state, "ref", "")
+        or ""
+    )
+
+    return normalize_partner_id(source_partner_id)
 
 
 def normalize_partner_rank(rank_value):
@@ -524,11 +547,13 @@ def post_to_google_sheet_json(payload, label="unknown"):
 
 def send_lead_to_google_sheet(session_id, name, phone, state, status="new"):
     client_id = get_effective_client_id(session_id, state=state)
+    source_partner_id = get_source_partner_id_from_state(state)
 
     payload = {
         "token": GOOGLE_SHEET_TOKEN,
         "action": "lead",
         "client_id": client_id or "",
+        "source_partner_id": source_partner_id or "",
         "name": name or "",
         "phone": phone or "",
         "user_type": normalize_user_type(state),
@@ -573,11 +598,93 @@ def send_client_profile_to_google_sheet(session_id, data, client_id=""):
     return post_to_google_sheet(payload, label="client_profile")
 
 
+def mark_referral_saved_for_lead(lead_id):
+    if not lead_id:
+        return False
+
+    conn = get_connection()
+    c = conn.cursor()
+
+    c.execute(
+        """
+        UPDATE leads
+        SET referral_saved_at=?
+        WHERE id=?
+        """,
+        (current_timestamp(), lead_id)
+    )
+
+    conn.commit()
+    conn.close()
+
+    return True
+
+
+def send_referral_for_lead_if_needed(
+    lead_id,
+    session_id,
+    client_id,
+    name,
+    phone,
+    state,
+    source_partner_id,
+    referral_saved_at=""
+):
+    if not source_partner_id:
+        print("REFERRAL NOT SAVED ⚠️ no source_partner_id", flush=True)
+        return False
+
+    if referral_saved_at:
+        print("REFERRAL ALREADY SAVED ✅ skipping duplicate", flush=True)
+        return False
+
+    email = get_state_value(state, "email", "") or get_state_value(state, "lead_email", "")
+    channel = get_state_value(state, "channel", "website")
+    package_name = (
+        get_state_value(state, "plan_name", "")
+        or get_state_value(state, "package_name", "")
+        or get_state_value(state, "selected_package", "")
+    )
+
+    notes = (
+        "source=lead_capture_referral_tracking; "
+        f"lead_id={lead_id}; "
+        f"session_id={session_id}"
+    )
+
+    result = send_referral_to_google_sheet(
+        source_partner_id=source_partner_id,
+        partner_id=source_partner_id,
+        referral_name=name,
+        referral_phone=phone,
+        referral_email=email,
+        source=channel,
+        package_name=package_name,
+        payment_status="pending",
+        subscription_status="pending",
+        session_id=session_id,
+        client_id=client_id,
+        notes=notes
+    )
+
+    if result.get("status") == "success":
+        mark_referral_saved_for_lead(lead_id)
+        print(
+            f"REFERRAL SAVED ✅ source_partner_id={source_partner_id} lead_id={lead_id}",
+            flush=True
+        )
+        return True
+
+    print(f"REFERRAL SAVE FAILED ❌ {result}", flush=True)
+    return False
+
+
 def save_lead(session_id, name, phone, state):
     conn = get_connection()
     c = conn.cursor()
 
     client_id = get_effective_client_id(session_id, state=state)
+    source_partner_id = get_source_partner_id_from_state(state)
     user_type = normalize_user_type(state)
     business_name = get_state_value(state, "business_name", "")
     business_type = get_state_value(state, "business_type", "")
@@ -587,19 +694,35 @@ def save_lead(session_id, name, phone, state):
     country = get_state_value(state, "country", "")
 
     c.execute(
-        "SELECT id FROM leads WHERE session_id=? AND phone=?",
+        """
+        SELECT
+            id,
+            source_partner_id,
+            referral_saved_at
+        FROM leads
+        WHERE session_id=? AND phone=?
+        """,
         (session_id, phone)
     )
     existing = c.fetchone()
 
     is_new_lead = False
+    lead_id = None
+    referral_saved_at = ""
 
     if existing:
+        lead_id = existing[0]
+        existing_source_partner_id = existing[1] or ""
+        referral_saved_at = existing[2] or ""
+
+        final_source_partner_id = source_partner_id or existing_source_partner_id
+
         c.execute(
             """
             UPDATE leads
             SET
                 client_id=?,
+                source_partner_id=?,
                 name=?,
                 user_type=?,
                 business_name=?,
@@ -612,6 +735,7 @@ def save_lead(session_id, name, phone, state):
             """,
             (
                 client_id,
+                final_source_partner_id,
                 name,
                 user_type,
                 business_name,
@@ -620,15 +744,18 @@ def save_lead(session_id, name, phone, state):
                 channel,
                 email,
                 country,
-                existing[0]
+                lead_id
             )
         )
+
+        source_partner_id = final_source_partner_id
     else:
         c.execute(
             """
             INSERT INTO leads (
                 session_id,
                 client_id,
+                source_partner_id,
                 name,
                 phone,
                 user_type,
@@ -639,11 +766,12 @@ def save_lead(session_id, name, phone, state):
                 email,
                 country
             )
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             """,
             (
                 session_id,
                 client_id,
+                source_partner_id,
                 name,
                 phone,
                 user_type,
@@ -656,6 +784,7 @@ def save_lead(session_id, name, phone, state):
             )
         )
 
+        lead_id = c.lastrowid
         is_new_lead = True
 
     conn.commit()
@@ -672,6 +801,17 @@ def save_lead(session_id, name, phone, state):
             status="new"
         )
 
+    send_referral_for_lead_if_needed(
+        lead_id=lead_id,
+        session_id=session_id,
+        client_id=client_id,
+        name=name,
+        phone=phone,
+        state=state,
+        source_partner_id=source_partner_id,
+        referral_saved_at=referral_saved_at
+    )
+
 
 def get_leads(limit=100):
     conn = get_connection()
@@ -683,6 +823,8 @@ def get_leads(limit=100):
             id,
             session_id,
             client_id,
+            source_partner_id,
+            referral_saved_at,
             name,
             phone,
             user_type,
@@ -711,17 +853,19 @@ def get_leads(limit=100):
             "id": row[0],
             "session_id": row[1],
             "client_id": row[2],
-            "name": row[3],
-            "phone": row[4],
-            "user_type": row[5],
-            "business_name": row[6],
-            "business_type": row[7],
-            "pain_point": row[8],
-            "channel": row[9],
-            "status": row[10],
-            "email": row[11],
-            "country": row[12],
-            "created_at": row[13],
+            "source_partner_id": row[3],
+            "referral_saved_at": row[4],
+            "name": row[5],
+            "phone": row[6],
+            "user_type": row[7],
+            "business_name": row[8],
+            "business_type": row[9],
+            "pain_point": row[10],
+            "channel": row[11],
+            "status": row[12],
+            "email": row[13],
+            "country": row[14],
+            "created_at": row[15],
         })
 
     return leads
@@ -1601,6 +1745,8 @@ def export_leads_for_google_sheets():
             "ID",
             "Session ID",
             "Client ID",
+            "Source Partner ID",
+            "Referral Saved At",
             "Name",
             "Phone",
             "User Type",
@@ -1620,6 +1766,8 @@ def export_leads_for_google_sheets():
             lead["id"],
             lead["session_id"],
             lead["client_id"],
+            lead["source_partner_id"],
+            lead["referral_saved_at"],
             lead["name"],
             lead["phone"],
             lead["user_type"],
