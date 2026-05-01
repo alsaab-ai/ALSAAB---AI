@@ -217,32 +217,135 @@ MLM_LEVELS = {
         "name_ar": "المستوى الأول",
         "title_ar": "شريك البداية",
         "requirements": "الاشتراك بأي باقة",
-        "benefits": "25% عمولة مباشرة + كورس التسويق مجاناً"
+        "benefits": "25% عمولة مباشرة + كورس التسويق مجاناً",
+        "commission_percent": 25,
+        "commission_depth": 1
     },
     "level_2": {
         "name_ar": "المستوى الثاني",
         "title_ar": "شريك النمو",
-        "requirements": "الترقية إلى باقة النمو + بيع 2 عملاء مدفوعين",
-        "benefits": "+5% عمولة شهرية إضافية"
+        "requirements": "الترقية إلى باقة النمو / Pro + بيع 2 عملاء مدفوعين",
+        "benefits": "+5% عمولة شهرية إضافية",
+        "commission_percent": 5,
+        "commission_depth": 2
     },
     "level_3": {
         "name_ar": "المستوى الثالث",
         "title_ar": "شريك المبيعات",
         "requirements": "شراء كورس المبيعات 99$ + بيع 5 عملاء",
-        "benefits": "+4% عمولة شهرية إضافية"
+        "benefits": "+4% عمولة شهرية إضافية",
+        "commission_percent": 4,
+        "commission_depth": 3
     },
     "level_4": {
         "name_ar": "المستوى الرابع",
         "title_ar": "شريك القيادة",
+        "requirements": "شراء ورشة فلسفة الحياة 299$ + إدخال 20 عميل نشط",
+        "benefits": "+3% عمولة شهرية إضافية",
+        "commission_percent": 3,
+        "commission_depth": 4,
         "locked": True,
         "teaser": "الدخل الأكبر يبدأ في المستويات الأعلى 🔐"
     },
     "level_5": {
         "name_ar": "المستوى الخامس",
         "title_ar": "شريك النخبة",
+        "requirements": "شراء كورس رحلة التغيير 1099$ + إدخال 50 عميل نشط",
+        "benefits": "+2% عمولة شهرية إضافية",
+        "commission_percent": 2,
+        "commission_depth": 5,
         "locked": True,
         "teaser": "هذا مستوى القمة والدخل الأقوى 🔐"
     }
+}
+
+
+# =========================
+# MLM OWNER / SPONSOR RULES
+# =========================
+
+COMPANY_OWNER_PARTNER_ID = os.getenv("COMPANY_OWNER_PARTNER_ID", "alsaab")
+MLM_OWNER_PARTNER_ID = COMPANY_OWNER_PARTNER_ID
+
+MLM_SPONSOR_RULES = {
+    "require_sponsor_for_partner_registration": True,
+    "owner_partner_id": COMPANY_OWNER_PARTNER_ID,
+    "owner_id_is_company_income": True,
+    "owner_id_has_no_external_commission": True,
+    "allow_owner_without_sponsor": True,
+    "do_not_auto_assign_owner_before_asking_source": True,
+    "ask_source_before_owner_assignment": True,
+    "prevent_empty_sponsor": True,
+    "prevent_invalid_sponsor": True,
+    "sponsor_change_after_registration_requires_admin": True,
+    "notes": (
+        "كل شريك جديد لازم يكون مرتبط بمعرف الشخص الذي عرفه على النظام. "
+        "إذا عرف العميل النظام من السوشيال ميديا أو الموقع أو إعلان أو الشركة مباشرة، "
+        "يستخدم معرف صاحب الشركة: alsaab. هذا المعرف يمثل دخل الشركة ولا يدخل كعمولة شريك خارجي."
+    )
+}
+
+
+MLM_SOURCE_OPTIONS = {
+    "direct_partner": {
+        "name_ar": "عن طريق شريك",
+        "requires_partner_id": True,
+        "example": "ALS-P00025"
+    },
+    "social_media": {
+        "name_ar": "السوشيال ميديا",
+        "requires_partner_id": False,
+        "default_partner_id": COMPANY_OWNER_PARTNER_ID
+    },
+    "website": {
+        "name_ar": "الموقع",
+        "requires_partner_id": False,
+        "default_partner_id": COMPANY_OWNER_PARTNER_ID
+    },
+    "advertisement": {
+        "name_ar": "إعلان",
+        "requires_partner_id": False,
+        "default_partner_id": COMPANY_OWNER_PARTNER_ID
+    },
+    "company_direct": {
+        "name_ar": "تواصل مباشر مع الشركة",
+        "requires_partner_id": False,
+        "default_partner_id": COMPANY_OWNER_PARTNER_ID
+    },
+    "event_or_seminar": {
+        "name_ar": "ندوة أو فعالية",
+        "requires_partner_id": False,
+        "default_partner_id": COMPANY_OWNER_PARTNER_ID
+    }
+}
+
+
+MLM_REGISTRATION_MESSAGES = {
+    "ask_source_ar": (
+        "قبل ما أكمل تسجيلك كشريك، لازم نربط تسجيلك بالشخص أو المصدر اللي عرّفك على النظام عشان نحفظ الحقوق بدقة.\n\n"
+        "من وين عرفت ALSAAB AI؟\n"
+        "- عن طريق شخص / شريك\n"
+        "- السوشيال ميديا\n"
+        "- الموقع\n"
+        "- إعلان\n"
+        "- ندوة أو فعالية\n"
+        "- تواصل مباشر مع الشركة"
+    ),
+    "ask_sponsor_id_ar": (
+        "اكتب Partner ID الخاص بالشخص اللي عرفك على النظام.\n\n"
+        "مثال:\n"
+        "ALS-P00025\n\n"
+        "مهم: بعد التسجيل، تغيير المعرّف يحتاج مراجعة إدارية عشان نحفظ الحقوق."
+    ),
+    "use_owner_id_ar": (
+        "تمام، بما إنك عرفت النظام من مصدر تابع للشركة، بنربط تسجيلك بمعرف الشركة:\n\n"
+        f"{COMPANY_OWNER_PARTNER_ID}\n\n"
+        "هذا يحفظ التتبع بشكل صحيح داخل النظام."
+    ),
+    "invalid_sponsor_ar": (
+        "لازم يكون عندك Partner ID صحيح للشخص اللي عرفك على النظام.\n\n"
+        "إذا عرفتنا من السوشيال ميديا أو الموقع أو إعلان أو من الشركة مباشرة، بنستخدم معرف الشركة."
+    )
 }
 
 
