@@ -11,6 +11,7 @@ from database import (
     record_bot_reply_usage,
     create_or_update_subscription,
     get_usage_summary,
+    send_partner_to_google_sheet,
 )
 from config import (
     STRIPE_PLAN_CONFIG,
@@ -1696,6 +1697,75 @@ def usage_summary():
         "status": "success",
         "usage": summary
     })
+
+
+@app.route("/admin/create-partner", methods=["GET"])
+def create_partner():
+    key = request.args.get("key")
+
+    if key != ADMIN_KEY:
+        return jsonify({"error": "Unauthorized"}), 401
+
+    partner_name = (
+        request.args.get("partner_name")
+        or request.args.get("name")
+        or ""
+    ).strip()
+
+    phone = (
+        request.args.get("phone")
+        or request.args.get("whatsapp")
+        or ""
+    ).strip()
+
+    email = request.args.get("email", "").strip()
+    country = request.args.get("country", "").strip()
+    invited_by = (
+        request.args.get("invited_by")
+        or request.args.get("invitedBy")
+        or ""
+    ).strip()
+    notes = request.args.get("notes", "").strip()
+    level = request.args.get("level", "Level 1").strip()
+    status = request.args.get("status", "active").strip()
+
+    if not partner_name:
+        return jsonify({
+            "status": "error",
+            "message": "partner name is required"
+        }), 400
+
+    if not phone:
+        return jsonify({
+            "status": "error",
+            "message": "phone is required"
+        }), 400
+
+    result = send_partner_to_google_sheet(
+        partner_name=partner_name,
+        phone=phone,
+        email=email,
+        country=country,
+        invited_by=invited_by,
+        notes=notes,
+        level=level,
+        status=status
+    )
+
+    if result.get("status") == "success":
+        return jsonify({
+            "status": "success",
+            "message": result.get("message", "Partner saved"),
+            "partner_id": result.get("partner_id", ""),
+            "referral_link": result.get("referral_link", ""),
+            "result": result
+        })
+
+    return jsonify({
+        "status": "error",
+        "message": result.get("message", "Partner save failed"),
+        "result": result
+    }), 500
 
 
 @app.route("/leads", methods=["GET"])
