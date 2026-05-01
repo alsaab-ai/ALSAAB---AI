@@ -48,6 +48,45 @@ def format_history(messages):
     return history_text
 
 
+def normalize_source_partner_id(value):
+    value = str(value or "").strip()
+
+    if not value:
+        return ""
+
+    if value.lower() == "alsaab":
+        return "alsaab"
+
+    match = re.search(r"ALS-P\d+", value.upper())
+
+    if match:
+        return match.group(0).strip()
+
+    return ""
+
+
+def apply_source_partner_to_state(current_state, source_partner_id):
+    normalized_source_partner_id = normalize_source_partner_id(source_partner_id)
+
+    if normalized_source_partner_id:
+        current_state["source_partner_id"] = normalized_source_partner_id
+        current_state["referrer_partner_id"] = normalized_source_partner_id
+        current_state["referral_source_captured"] = True
+
+    else:
+        existing_source_partner_id = normalize_source_partner_id(
+            current_state.get("source_partner_id")
+            or current_state.get("referrer_partner_id")
+            or ""
+        )
+
+        if existing_source_partner_id:
+            current_state["source_partner_id"] = existing_source_partner_id
+            current_state["referrer_partner_id"] = existing_source_partner_id
+
+    return current_state
+
+
 def extract_phone(message):
     cleaned = message.replace(" ", "").replace("-", "").replace("+", "00")
 
@@ -352,15 +391,19 @@ def build_name_context(current_state):
     )
 
 
-def think(message, session_id):
+def think(message, session_id, source_partner_id=""):
     current_state = get_session_state(session_id)
     msg = message.lower().strip()
 
     # مهم: نخزن session_id داخل state عشان prompt_builder يقدر يبني روابط الدفع الداخلية
     current_state["session_id"] = session_id
 
+    # Referral Tracking
+    current_state = apply_source_partner_to_state(current_state, source_partner_id)
+
     print(f"THINK CALLED ✅ session_id={session_id}")
     print(f"CURRENT MODE ✅ mode={current_state.get('mode')}")
+    print(f"SOURCE PARTNER STATE ✅ source_partner_id={current_state.get('source_partner_id')}", flush=True)
 
     # =========================
     # TRAINING MODE START
@@ -528,6 +571,8 @@ def think(message, session_id):
     existing_partner_id = current_state.get("partner_id", "")
     existing_partner_referral_link = current_state.get("partner_referral_link", "")
     existing_partner_rank = current_state.get("partner_rank", "")
+    existing_source_partner_id = current_state.get("source_partner_id", "")
+    existing_referrer_partner_id = current_state.get("referrer_partner_id", "")
 
     current_state = update_state(message_to_process, current_state)
 
@@ -552,6 +597,15 @@ def think(message, session_id):
 
     if existing_partner_rank:
         current_state["partner_rank"] = existing_partner_rank
+
+    # نحافظ على مصدر الإحالة إذا update_state رجّع state جديد
+    if existing_source_partner_id:
+        current_state["source_partner_id"] = existing_source_partner_id
+
+    if existing_referrer_partner_id:
+        current_state["referrer_partner_id"] = existing_referrer_partner_id
+
+    current_state = apply_source_partner_to_state(current_state, source_partner_id)
 
     # استرجاع بيانات المشروع المدربة إن وجدت
     load_client_profile_into_state(session_id, current_state)
