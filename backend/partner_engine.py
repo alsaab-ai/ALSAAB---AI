@@ -8,6 +8,87 @@ from database import (
     get_effective_client_id,
 )
 
+try:
+    from config import (
+        COMPANY_OWNER_PARTNER_ID,
+        MLM_SPONSOR_RULES,
+        MLM_SOURCE_OPTIONS,
+        MLM_REGISTRATION_MESSAGES,
+    )
+except Exception:
+    COMPANY_OWNER_PARTNER_ID = "alsaab"
+
+    MLM_SPONSOR_RULES = {
+        "require_sponsor_for_partner_registration": True,
+        "owner_partner_id": COMPANY_OWNER_PARTNER_ID,
+        "owner_id_is_company_income": True,
+        "do_not_auto_assign_owner_before_asking_source": True,
+        "ask_source_before_owner_assignment": True,
+        "prevent_empty_sponsor": True,
+        "prevent_invalid_sponsor": True,
+    }
+
+    MLM_SOURCE_OPTIONS = {
+        "direct_partner": {
+            "name_ar": "عن طريق شريك",
+            "requires_partner_id": True,
+            "example": "ALS-P00025"
+        },
+        "social_media": {
+            "name_ar": "السوشيال ميديا",
+            "requires_partner_id": False,
+            "default_partner_id": COMPANY_OWNER_PARTNER_ID
+        },
+        "website": {
+            "name_ar": "الموقع",
+            "requires_partner_id": False,
+            "default_partner_id": COMPANY_OWNER_PARTNER_ID
+        },
+        "advertisement": {
+            "name_ar": "إعلان",
+            "requires_partner_id": False,
+            "default_partner_id": COMPANY_OWNER_PARTNER_ID
+        },
+        "company_direct": {
+            "name_ar": "تواصل مباشر مع الشركة",
+            "requires_partner_id": False,
+            "default_partner_id": COMPANY_OWNER_PARTNER_ID
+        },
+        "event_or_seminar": {
+            "name_ar": "ندوة أو فعالية",
+            "requires_partner_id": False,
+            "default_partner_id": COMPANY_OWNER_PARTNER_ID
+        }
+    }
+
+    MLM_REGISTRATION_MESSAGES = {
+        "ask_source_ar": (
+            "قبل ما أكمل تسجيلك كشريك، لازم نربط تسجيلك بالشخص أو المصدر اللي عرّفك على النظام عشان نحفظ الحقوق بدقة.\n\n"
+            "من وين عرفت ALSAAB AI؟\n"
+            "- عن طريق شخص / شريك\n"
+            "- السوشيال ميديا\n"
+            "- الموقع\n"
+            "- إعلان\n"
+            "- ندوة أو فعالية\n"
+            "- تواصل مباشر مع الشركة"
+        ),
+        "ask_sponsor_id_ar": (
+            "اكتب Partner ID الخاص بالشخص اللي عرفك على النظام.\n\n"
+            "مثال:\n"
+            "ALS-P00025\n\n"
+            "مهم: بعد التسجيل، تغيير المعرّف يحتاج مراجعة إدارية عشان نحفظ الحقوق."
+        ),
+        "use_owner_id_ar": (
+            "تمام، بما إنك عرفت النظام من مصدر تابع للشركة، بنربط تسجيلك بمعرف الشركة:\n\n"
+            f"{COMPANY_OWNER_PARTNER_ID}\n\n"
+            "هذا يحفظ التتبع بشكل صحيح داخل النظام."
+        ),
+        "invalid_sponsor_ar": (
+            "لازم يكون عندك Partner ID صحيح للشخص اللي عرفك على النظام.\n\n"
+            "إذا عرفتنا من السوشيال ميديا أو الموقع أو إعلان أو من الشركة مباشرة، بنستخدم معرف الشركة."
+        )
+    }
+
 
 PARTNER_REGISTRATION_TRIGGERS = [
     "أبغي أسجل كشريك",
@@ -44,6 +125,7 @@ PARTNER_REGISTRATION_STEPS = [
     "country",
     "has_business",
     "goal",
+    "source",
     "sponsor",
 ]
 
@@ -54,6 +136,25 @@ def normalize_text(value):
 
 def normalize_lower(value):
     return normalize_text(value).lower()
+
+
+def normalize_partner_id(value):
+    value = normalize_text(value)
+
+    if not value:
+        return ""
+
+    if value.lower() == str(COMPANY_OWNER_PARTNER_ID).lower():
+        return COMPANY_OWNER_PARTNER_ID
+
+    value_upper = value.upper()
+
+    match = re.search(r"ALS-P\d+", value_upper)
+
+    if match:
+        return match.group(0).strip()
+
+    return ""
 
 
 def is_partner_registration_request(message):
@@ -129,9 +230,15 @@ def extract_email(message):
 
 
 def extract_partner_id(message):
-    msg = str(message or "").strip().upper()
+    msg = str(message or "").strip()
 
-    match = re.search(r"ALS-P\d+", msg)
+    if str(COMPANY_OWNER_PARTNER_ID).lower() in msg.lower().split():
+        return COMPANY_OWNER_PARTNER_ID
+
+    if msg.lower() == str(COMPANY_OWNER_PARTNER_ID).lower():
+        return COMPANY_OWNER_PARTNER_ID
+
+    match = re.search(r"ALS-P\d+", msg.upper())
 
     if match:
         return match.group(0).strip()
@@ -220,11 +327,15 @@ def get_initial_step(data):
     return "email"
 
 
-def get_next_step(current_step):
+def get_next_step(current_step, data=None):
     try:
         current_index = PARTNER_REGISTRATION_STEPS.index(current_step)
     except ValueError:
         return None
+
+    if current_step == "source" and data:
+        if data.get("skip_sponsor_step"):
+            return None
 
     next_index = current_index + 1
 
@@ -232,6 +343,135 @@ def get_next_step(current_step):
         return None
 
     return PARTNER_REGISTRATION_STEPS[next_index]
+
+
+def detect_source_type(message):
+    msg = normalize_lower(message)
+
+    if not msg:
+        return ""
+
+    if extract_partner_id(msg):
+        return "direct_partner"
+
+    direct_partner_keywords = [
+        "شخص",
+        "شريك",
+        "صديق",
+        "رفيقي",
+        "واحد",
+        "احد",
+        "أحد",
+        "معرف",
+        "partner",
+        "affiliate",
+        "referral",
+        "دعاني",
+        "عرفني",
+        "عن طريق شخص",
+        "عن طريق شريك",
+    ]
+
+    social_keywords = [
+        "سوشيال",
+        "انستغرام",
+        "انستا",
+        "تيك توك",
+        "tiktok",
+        "instagram",
+        "snap",
+        "سناب",
+        "facebook",
+        "فيسبوك",
+        "linkedin",
+        "لينكد",
+        "يوتيوب",
+        "youtube",
+        "social",
+        "social media",
+    ]
+
+    website_keywords = [
+        "الموقع",
+        "موقع",
+        "website",
+        "alsaab.io",
+        "ويبسايت",
+    ]
+
+    advertisement_keywords = [
+        "اعلان",
+        "إعلان",
+        "ads",
+        "ad",
+        "advertisement",
+        "ممولة",
+        "إعلان ممول",
+        "اعلان ممول",
+    ]
+
+    event_keywords = [
+        "ندوة",
+        "فعالية",
+        "محاضرة",
+        "ورشة",
+        "event",
+        "seminar",
+        "workshop",
+    ]
+
+    company_direct_keywords = [
+        "الشركة",
+        "الصعب",
+        "مصعب",
+        "تواصل مباشر",
+        "منكم",
+        "من عندكم",
+        "من الشركة",
+        "whatsapp",
+        "واتساب الشركة",
+    ]
+
+    for keyword in direct_partner_keywords:
+        if keyword.lower() in msg:
+            return "direct_partner"
+
+    for keyword in social_keywords:
+        if keyword.lower() in msg:
+            return "social_media"
+
+    for keyword in website_keywords:
+        if keyword.lower() in msg:
+            return "website"
+
+    for keyword in advertisement_keywords:
+        if keyword.lower() in msg:
+            return "advertisement"
+
+    for keyword in event_keywords:
+        if keyword.lower() in msg:
+            return "event_or_seminar"
+
+    for keyword in company_direct_keywords:
+        if keyword.lower() in msg:
+            return "company_direct"
+
+    return ""
+
+
+def source_requires_sponsor_id(source_type):
+    source_data = MLM_SOURCE_OPTIONS.get(source_type, {})
+    return bool(source_data.get("requires_partner_id"))
+
+
+def get_default_partner_id_for_source(source_type):
+    source_data = MLM_SOURCE_OPTIONS.get(source_type, {})
+    return source_data.get("default_partner_id", COMPANY_OWNER_PARTNER_ID)
+
+
+def get_source_name_ar(source_type):
+    source_data = MLM_SOURCE_OPTIONS.get(source_type, {})
+    return source_data.get("name_ar", source_type)
 
 
 def get_question_for_step(step, data):
@@ -277,12 +517,29 @@ def get_question_for_step(step, data):
             "- عندي مشروع وأبغي أضيف مصدر دخل"
         )
 
+    if step == "source":
+        return MLM_REGISTRATION_MESSAGES.get(
+            "ask_source_ar",
+            (
+                "قبل ما أكمل تسجيلك كشريك، لازم نعرف من وين عرفت ALSAAB AI عشان نحفظ الحقوق بدقة.\n\n"
+                "- عن طريق شخص / شريك\n"
+                "- السوشيال ميديا\n"
+                "- الموقع\n"
+                "- إعلان\n"
+                "- ندوة أو فعالية\n"
+                "- تواصل مباشر مع الشركة"
+            )
+        )
+
     if step == "sponsor":
-        return (
-            "هل أحد دعاك للنظام؟\n\n"
-            "إذا عندك Partner ID اكتبه مثل:\n"
-            "ALS-P00001\n\n"
-            "وإذا ما حد دعاك، اكتب: لا"
+        return MLM_REGISTRATION_MESSAGES.get(
+            "ask_sponsor_id_ar",
+            (
+                "اكتب Partner ID الخاص بالشخص اللي عرفك على النظام.\n\n"
+                "مثال:\n"
+                "ALS-P00025\n\n"
+                "مهم: بعد التسجيل، تغيير المعرّف يحتاج مراجعة إدارية عشان نحفظ الحقوق."
+            )
         )
 
     return "كمل بياناتك لو سمحت."
@@ -369,17 +626,59 @@ def process_partner_step(message, state, session_id):
 
         data["goal"] = goal
 
-    elif step == "sponsor":
-        if is_skip_answer(raw_message):
-            data["invited_by"] = ""
-            data["sponsor_partner_id"] = ""
-            data["parent_partner_id"] = ""
-        else:
-            sponsor_partner_id = extract_partner_id(raw_message)
+    elif step == "source":
+        source_type = detect_source_type(raw_message)
 
-            data["invited_by"] = raw_message
-            data["sponsor_partner_id"] = sponsor_partner_id
-            data["parent_partner_id"] = sponsor_partner_id
+        if not source_type:
+            return False, (
+                "لازم نحدد المصدر عشان نحفظ الحقوق بدقة.\n\n"
+                "اكتب مثلاً:\n"
+                "- عن طريق شخص / شريك\n"
+                "- السوشيال ميديا\n"
+                "- الموقع\n"
+                "- إعلان\n"
+                "- ندوة أو فعالية\n"
+                "- تواصل مباشر مع الشركة"
+            )
+
+        data["source_type"] = source_type
+        data["source_description"] = raw_message
+
+        partner_id_in_message = extract_partner_id(raw_message)
+
+        if source_requires_sponsor_id(source_type):
+            if partner_id_in_message:
+                data["invited_by"] = partner_id_in_message
+                data["sponsor_partner_id"] = partner_id_in_message
+                data["parent_partner_id"] = partner_id_in_message
+                data["skip_sponsor_step"] = True
+            else:
+                data["skip_sponsor_step"] = False
+
+        else:
+            owner_partner_id = get_default_partner_id_for_source(source_type)
+
+            data["invited_by"] = get_source_name_ar(source_type)
+            data["sponsor_partner_id"] = owner_partner_id
+            data["parent_partner_id"] = owner_partner_id
+            data["skip_sponsor_step"] = True
+            data["owner_partner_id_used"] = True
+
+    elif step == "sponsor":
+        sponsor_partner_id = extract_partner_id(raw_message)
+
+        if not sponsor_partner_id:
+            return False, MLM_REGISTRATION_MESSAGES.get(
+                "invalid_sponsor_ar",
+                (
+                    "لازم يكون عندك Partner ID صحيح للشخص اللي عرفك على النظام.\n\n"
+                    "إذا عرفتنا من السوشيال ميديا أو الموقع أو إعلان أو من الشركة مباشرة، بنستخدم معرف الشركة."
+                )
+            )
+
+        data["invited_by"] = raw_message
+        data["sponsor_partner_id"] = sponsor_partner_id
+        data["parent_partner_id"] = sponsor_partner_id
 
     return True, ""
 
@@ -390,10 +689,18 @@ def build_partner_notes(data, session_id):
         f"session_id={session_id}",
         f"has_business={data.get('has_business', '')}",
         f"goal={data.get('goal', '')}",
+        f"source_type={data.get('source_type', '')}",
+        f"source_description={data.get('source_description', '')}",
     ]
 
     if data.get("invited_by"):
         notes_parts.append(f"invited_by={data.get('invited_by')}")
+
+    if data.get("sponsor_partner_id"):
+        notes_parts.append(f"sponsor_partner_id={data.get('sponsor_partner_id')}")
+
+    if data.get("owner_partner_id_used"):
+        notes_parts.append("owner_partner_id_used=true")
 
     return "; ".join(notes_parts)
 
@@ -410,6 +717,14 @@ def finish_partner_registration(state, session_id):
     parent_partner_id = data.get("parent_partner_id", "")
     client_id = data.get("client_id") or get_effective_client_id(session_id, state=state)
     notes = build_partner_notes(data, session_id)
+
+    if MLM_SPONSOR_RULES.get("prevent_empty_sponsor", True) and not sponsor_partner_id:
+        data["step"] = "source"
+        return (
+            "ما أقدر أكمل التسجيل بدون تحديد المصدر أو معرف الشخص اللي عرفك على النظام.\n\n"
+            "هذا مهم عشان نحفظ الحقوق وما نلخبط العمولات.\n\n"
+            + get_question_for_step("source", data)
+        )
 
     result = send_partner_to_google_sheet(
         partner_name=partner_name,
@@ -466,7 +781,14 @@ def finish_partner_registration(state, session_id):
     sponsor_text = ""
 
     if sponsor_partner_id:
-        sponsor_text = f"\n\nتم ربطك تحت الشريك:\n{sponsor_partner_id}"
+        if sponsor_partner_id == COMPANY_OWNER_PARTNER_ID:
+            sponsor_text = (
+                f"\n\nتم ربط تسجيلك بمصدر الشركة:\n{sponsor_partner_id}"
+            )
+        else:
+            sponsor_text = (
+                f"\n\nتم ربطك تحت الشريك:\n{sponsor_partner_id}"
+            )
 
     return (
         f"تم تسجيلك كشريك في ALSAAB AI بنجاح ✅\n\n"
@@ -494,7 +816,7 @@ def handle_partner_registration(message, state, session_id):
     if not is_valid:
         return error_message
 
-    next_step = get_next_step(current_step)
+    next_step = get_next_step(current_step, data)
 
     if next_step:
         data["step"] = next_step
