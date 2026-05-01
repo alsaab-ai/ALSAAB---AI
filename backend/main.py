@@ -33,6 +33,32 @@ init_db()
 ADMIN_KEY = "alsaab123"
 SAFE_STRIPE_REFERENCE_SEPARATOR = "__"
 
+TRAINING_COMMANDS = [
+    "تدريب",
+    "تدريب البوت",
+    "/train",
+    "train",
+]
+
+TRAINING_LOCKED_REPLY = (
+    "تدريب البوت متاح للمشتركين فقط ✅\n\n"
+    "إذا تبغي نجهز البوت لمشروعك، اختر الباقة المناسبة أولاً، "
+    "وبعد تفعيل الاشتراك نبدأ تدريب مشروعك خطوة خطوة."
+)
+
+
+def is_training_command(message):
+    msg = str(message or "").lower().strip()
+    return msg in TRAINING_COMMANDS
+
+
+def is_active_subscription(subscription):
+    if not subscription:
+        return False
+
+    status = str(subscription.get("subscription_status", "")).lower().strip()
+    return status == "active"
+
 
 def build_stripe_client_reference_id(session_id, plan_name):
     return f"{session_id}{SAFE_STRIPE_REFERENCE_SEPARATOR}{plan_name}"
@@ -939,12 +965,11 @@ textarea::placeholder {
                         <h3 class="welcome-title">هلا وسهلا 👋</h3>
                         <p class="welcome-text">
                             أنا ALSAAB AI. أقدر أساعدك في زيادة المبيعات، اختيار الباقة المناسبة،
-                            تدريب البوت لمشروعك، أو معرفة نظام الشراكة والدخل الإضافي.
+                            أو معرفة نظام الشراكة والدخل الإضافي.
                         </p>
 
                         <div class="quick-actions">
                             <button class="quick-chip" onclick="sendQuick('أبغي أعرف الباقات')">عرض الباقات</button>
-                            <button class="quick-chip" onclick="sendQuick('تدريب البوت')">تدريب البوت</button>
                             <button class="quick-chip" onclick="sendQuick('عندي مشروع وأبغي أرفع المبيعات')">عندي مشروع</button>
                             <button class="quick-chip" onclick="sendQuick('محتاج دخل إضافي')">دخل إضافي</button>
                         </div>
@@ -1572,6 +1597,20 @@ def chat():
 
         subscription = get_client_subscription(session_id)
 
+        if is_training_command(message) and not is_active_subscription(subscription):
+            print("TRAINING BLOCKED ❌ no active subscription", flush=True)
+
+            save_message(session_id, "bot", TRAINING_LOCKED_REPLY)
+
+            return jsonify({
+                "reply": TRAINING_LOCKED_REPLY,
+                "session_id": session_id,
+                "training": {
+                    "allowed": False,
+                    "reason": "no_active_subscription"
+                }
+            })
+
         if subscription:
             print(f"SUBSCRIPTION FOUND ✅ session_id={session_id}", flush=True)
 
@@ -1656,6 +1695,9 @@ def activate_subscription():
                 "status": "error",
                 "message": "limit must be a number"
             }), 400
+
+    if not client_id:
+        client_id = session_id
 
     subscription = create_or_update_subscription(
         session_id=session_id,
