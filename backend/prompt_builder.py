@@ -1,5 +1,7 @@
 # prompt_builder.py
 
+from urllib.parse import urlencode
+
 from config import (
     SYSTEM_NAME,
     COMPANY_NAME,
@@ -40,8 +42,37 @@ except Exception:
     }
 
 
+def normalize_source_partner_id(value):
+    value = str(value or "").strip()
+
+    if not value:
+        return ""
+
+    if value.lower() == "alsaab":
+        return "alsaab"
+
+    value_upper = value.upper()
+
+    if value_upper.startswith("ALS-P"):
+        return value_upper
+
+    return ""
+
+
+def get_payment_source_partner_id(state):
+    source_partner_id = (
+        state.get("source_partner_id")
+        or state.get("referrer_partner_id")
+        or state.get("ref")
+        or ""
+    )
+
+    return normalize_source_partner_id(source_partner_id)
+
+
 def build_internal_payment_link(plan_name, state):
     session_id = state.get("session_id", "")
+    source_partner_id = get_payment_source_partner_id(state)
 
     internal_base = PAYMENT_ROUTE_LINKS.get(
         plan_name,
@@ -49,7 +80,15 @@ def build_internal_payment_link(plan_name, state):
     )
 
     if session_id:
-        return f"{internal_base}?sid={session_id}"
+        params = {
+            "sid": session_id
+        }
+
+        if source_partner_id:
+            params["ref"] = source_partner_id
+            params["source_partner_id"] = source_partner_id
+
+        return f"{internal_base}?{urlencode(params)}"
 
     return PAYMENT_LINKS.get(plan_name, internal_base)
 

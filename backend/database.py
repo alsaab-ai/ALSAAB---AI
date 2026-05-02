@@ -151,6 +151,7 @@ def init_db():
         session_id TEXT UNIQUE,
         client_id TEXT,
         bot_id TEXT,
+        source_partner_id TEXT,
         plan_name TEXT,
         monthly_reply_limit INTEGER,
         monthly_replies_used INTEGER DEFAULT 0,
@@ -168,6 +169,7 @@ def init_db():
 
     add_column_if_missing(c, "client_subscriptions", "client_id", "TEXT")
     add_column_if_missing(c, "client_subscriptions", "bot_id", "TEXT")
+    add_column_if_missing(c, "client_subscriptions", "source_partner_id", "TEXT")
     add_column_if_missing(c, "client_subscriptions", "plan_name", "TEXT")
     add_column_if_missing(c, "client_subscriptions", "monthly_reply_limit", "INTEGER")
     add_column_if_missing(c, "client_subscriptions", "monthly_replies_used", "INTEGER DEFAULT 0")
@@ -329,6 +331,59 @@ def get_source_partner_id_from_state(state):
     )
 
     return normalize_partner_id(source_partner_id)
+
+
+def get_source_partner_id_for_session(session_id):
+    """
+    يرجع source_partner_id المرتبط بالجلسة.
+    الأولوية:
+    1. client_subscriptions
+    2. leads
+    """
+    if not session_id:
+        return ""
+
+    conn = get_connection()
+    c = conn.cursor()
+
+    try:
+        c.execute(
+            """
+            SELECT source_partner_id
+            FROM client_subscriptions
+            WHERE session_id=?
+            ORDER BY id DESC
+            LIMIT 1
+            """,
+            (session_id,)
+        )
+        row = c.fetchone()
+
+        if row and row[0]:
+            conn.close()
+            return normalize_partner_id(row[0])
+
+        c.execute(
+            """
+            SELECT source_partner_id
+            FROM leads
+            WHERE session_id=? AND source_partner_id IS NOT NULL AND source_partner_id != ''
+            ORDER BY id DESC
+            LIMIT 1
+            """,
+            (session_id,)
+        )
+        row = c.fetchone()
+
+        if row and row[0]:
+            conn.close()
+            return normalize_partner_id(row[0])
+
+    except Exception as error:
+        print(f"GET SOURCE PARTNER ERROR ❌ {error}", flush=True)
+
+    conn.close()
+    return ""
 
 
 def normalize_partner_rank(rank_value):
@@ -1205,6 +1260,7 @@ def get_client_subscription(session_id):
             session_id,
             client_id,
             bot_id,
+            source_partner_id,
             plan_name,
             monthly_reply_limit,
             monthly_replies_used,
@@ -1234,18 +1290,19 @@ def get_client_subscription(session_id):
         "session_id": row[1],
         "client_id": row[2],
         "bot_id": row[3],
-        "plan_name": row[4],
-        "monthly_reply_limit": row[5] or 0,
-        "monthly_replies_used": row[6] or 0,
-        "subscription_status": row[7],
-        "billing_cycle_start": row[8],
-        "billing_cycle_end": row[9],
-        "stripe_customer_id": row[10],
-        "stripe_subscription_id": row[11],
-        "package_amount": row[12],
-        "notes": row[13],
-        "created_at": row[14],
-        "updated_at": row[15],
+        "source_partner_id": row[4],
+        "plan_name": row[5],
+        "monthly_reply_limit": row[6] or 0,
+        "monthly_replies_used": row[7] or 0,
+        "subscription_status": row[8],
+        "billing_cycle_start": row[9],
+        "billing_cycle_end": row[10],
+        "stripe_customer_id": row[11],
+        "stripe_subscription_id": row[12],
+        "package_amount": row[13],
+        "notes": row[14],
+        "created_at": row[15],
+        "updated_at": row[16],
     }
 
 
@@ -1260,10 +1317,15 @@ def create_or_update_subscription(
     stripe_subscription_id="",
     package_amount="",
     notes="",
-    reset_usage=True
+    reset_usage=True,
+    source_partner_id=""
 ):
     if not client_id:
         client_id = session_id
+
+    source_partner_id = normalize_partner_id(
+        source_partner_id or get_source_partner_id_for_session(session_id)
+    )
 
     plan_name = normalize_plan_name(plan_name)
     monthly_reply_limit = get_plan_reply_limit(plan_name, custom_reply_limit)
@@ -1288,6 +1350,7 @@ def create_or_update_subscription(
                 SET
                     client_id=?,
                     bot_id=?,
+                    source_partner_id=?,
                     plan_name=?,
                     monthly_reply_limit=?,
                     monthly_replies_used=0,
@@ -1304,6 +1367,7 @@ def create_or_update_subscription(
                 (
                     client_id,
                     bot_id,
+                    source_partner_id,
                     plan_name,
                     monthly_reply_limit,
                     status,
@@ -1323,6 +1387,7 @@ def create_or_update_subscription(
                 SET
                     client_id=?,
                     bot_id=?,
+                    source_partner_id=?,
                     plan_name=?,
                     monthly_reply_limit=?,
                     subscription_status=?,
@@ -1336,6 +1401,7 @@ def create_or_update_subscription(
                 (
                     client_id,
                     bot_id,
+                    source_partner_id,
                     plan_name,
                     monthly_reply_limit,
                     status,
@@ -1353,6 +1419,7 @@ def create_or_update_subscription(
                 session_id,
                 client_id,
                 bot_id,
+                source_partner_id,
                 plan_name,
                 monthly_reply_limit,
                 monthly_replies_used,
@@ -1364,12 +1431,13 @@ def create_or_update_subscription(
                 package_amount,
                 notes
             )
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             """,
             (
                 session_id,
                 client_id,
                 bot_id,
+                source_partner_id,
                 plan_name,
                 monthly_reply_limit,
                 0,
@@ -1387,11 +1455,36 @@ def create_or_update_subscription(
     conn.close()
 
     print(
-        f"SUBSCRIPTION SAVED ✅ session_id={session_id} client_id={client_id} plan={plan_name} limit={monthly_reply_limit} status={status}",
+        f"SUBSCRIPTION SAVED ✅ session_id={session_id} client_id={client_id} source_partner_id={source_partner_id} plan={plan_name} limit={monthly_reply_limit} status={status}",
         flush=True
     )
 
-    return get_client_subscription(session_id)
+    subscription = get_client_subscription(session_id)
+
+    try:
+        sheet_result = send_subscription_to_google_sheet(
+            client_id=subscription.get("client_id") or client_id,
+            session_id=subscription.get("session_id") or session_id,
+            source_partner_id=subscription.get("source_partner_id") or source_partner_id,
+            plan_name=subscription.get("plan_name") or plan_name,
+            package_amount=subscription.get("package_amount") or package_amount,
+            subscription_status=subscription.get("subscription_status") or status,
+            stripe_customer_id=subscription.get("stripe_customer_id") or stripe_customer_id,
+            stripe_subscription_id=subscription.get("stripe_subscription_id") or stripe_subscription_id,
+            current_period_start=subscription.get("billing_cycle_start") or now,
+            current_period_end=subscription.get("billing_cycle_end") or cycle_end,
+            notes=notes or "Saved from create_or_update_subscription"
+        )
+
+        if sheet_result.get("status") == "success":
+            print("SUBSCRIPTION SENT TO GOOGLE SHEET ✅", flush=True)
+        else:
+            print(f"SUBSCRIPTION GOOGLE SHEET SEND NOT SUCCESS ⚠️ {sheet_result}", flush=True)
+
+    except Exception as error:
+        print(f"SUBSCRIPTION GOOGLE SHEET SEND ERROR ❌ {error}", flush=True)
+
+    return subscription
 
 
 def set_subscription_status(session_id, status, notes=""):
@@ -1622,6 +1715,7 @@ def get_usage_summary(session_id):
         "session_id": subscription.get("session_id"),
         "client_id": subscription.get("client_id"),
         "bot_id": subscription.get("bot_id"),
+        "source_partner_id": subscription.get("source_partner_id"),
         "plan_name": subscription.get("plan_name"),
         "subscription_status": subscription.get("subscription_status"),
         "monthly_reply_limit": monthly_reply_limit,
@@ -1690,6 +1784,7 @@ def get_all_subscriptions(limit=100):
             session_id,
             client_id,
             bot_id,
+            source_partner_id,
             plan_name,
             monthly_reply_limit,
             monthly_replies_used,
@@ -1720,18 +1815,19 @@ def get_all_subscriptions(limit=100):
             "session_id": row[1],
             "client_id": row[2],
             "bot_id": row[3],
-            "plan_name": row[4],
-            "monthly_reply_limit": row[5],
-            "monthly_replies_used": row[6],
-            "subscription_status": row[7],
-            "billing_cycle_start": row[8],
-            "billing_cycle_end": row[9],
-            "stripe_customer_id": row[10],
-            "stripe_subscription_id": row[11],
-            "package_amount": row[12],
-            "notes": row[13],
-            "created_at": row[14],
-            "updated_at": row[15],
+            "source_partner_id": row[4],
+            "plan_name": row[5],
+            "monthly_reply_limit": row[6],
+            "monthly_replies_used": row[7],
+            "subscription_status": row[8],
+            "billing_cycle_start": row[9],
+            "billing_cycle_end": row[10],
+            "stripe_customer_id": row[11],
+            "stripe_subscription_id": row[12],
+            "package_amount": row[13],
+            "notes": row[14],
+            "created_at": row[15],
+            "updated_at": row[16],
         })
 
     return subscriptions
@@ -1840,6 +1936,7 @@ def export_subscriptions_for_google_sheets():
             "Session ID",
             "Client ID",
             "Bot ID",
+            "Source Partner ID",
             "Plan Name",
             "Monthly Reply Limit",
             "Monthly Replies Used",
@@ -1866,6 +1963,7 @@ def export_subscriptions_for_google_sheets():
             subscription["session_id"],
             subscription["client_id"],
             subscription["bot_id"],
+            subscription["source_partner_id"],
             subscription["plan_name"],
             monthly_reply_limit,
             monthly_replies_used,

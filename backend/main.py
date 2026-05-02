@@ -12,6 +12,7 @@ from database import (
     create_or_update_subscription,
     get_usage_summary,
     send_partner_to_google_sheet,
+    get_source_partner_id_for_session,
 )
 from config import (
     STRIPE_PLAN_CONFIG,
@@ -78,27 +79,52 @@ def normalize_source_partner_id(value):
     return ""
 
 
-def build_stripe_client_reference_id(session_id, plan_name):
+def build_stripe_client_reference_id(session_id, plan_name, source_partner_id=""):
+    source_partner_id = normalize_source_partner_id(source_partner_id)
+
+    if source_partner_id:
+        return (
+            f"{session_id}"
+            f"{SAFE_STRIPE_REFERENCE_SEPARATOR}{plan_name}"
+            f"{SAFE_STRIPE_REFERENCE_SEPARATOR}{source_partner_id}"
+        )
+
     return f"{session_id}{SAFE_STRIPE_REFERENCE_SEPARATOR}{plan_name}"
 
 
 def parse_stripe_client_reference_id(reference_id):
     if not reference_id:
-        return "", ""
+        return "", "", ""
 
     reference_id = str(reference_id).strip()
 
     if SAFE_STRIPE_REFERENCE_SEPARATOR in reference_id:
-        parts = reference_id.rsplit(SAFE_STRIPE_REFERENCE_SEPARATOR, 1)
+        parts = reference_id.rsplit(SAFE_STRIPE_REFERENCE_SEPARATOR, 2)
+
+        if len(parts) == 3:
+            return (
+                parts[0].strip(),
+                parts[1].strip(),
+                normalize_source_partner_id(parts[2])
+            )
+
         if len(parts) == 2:
-            return parts[0].strip(), parts[1].strip()
+            return parts[0].strip(), parts[1].strip(), ""
 
     if "::" in reference_id:
-        parts = reference_id.rsplit("::", 1)
-        if len(parts) == 2:
-            return parts[0].strip(), parts[1].strip()
+        parts = reference_id.rsplit("::", 2)
 
-    return "", ""
+        if len(parts) == 3:
+            return (
+                parts[0].strip(),
+                parts[1].strip(),
+                normalize_source_partner_id(parts[2])
+            )
+
+        if len(parts) == 2:
+            return parts[0].strip(), parts[1].strip(), ""
+
+    return "", "", ""
 
 
 def append_query_params(url, params):
@@ -1315,6 +1341,12 @@ def home():
 def pay(plan_name):
     plan_name = str(plan_name or "").lower().strip()
     session_id = request.args.get("sid") or request.args.get("session_id")
+    source_partner_id = normalize_source_partner_id(
+        request.args.get("ref")
+        or request.args.get("source_partner_id")
+        or request.args.get("partner_id")
+        or ""
+    )
 
     if plan_name not in STRIPE_PLAN_CONFIG:
         return jsonify({
@@ -1371,6 +1403,15 @@ def pay(plan_name):
         </html>
         """), 400
 
+    if not source_partner_id:
+        try:
+            source_partner_id = get_source_partner_id_for_session(session_id)
+        except Exception as error:
+            print(f"PAY SOURCE PARTNER LOOKUP ERROR ❌ {error}", flush=True)
+            source_partner_id = ""
+
+    source_partner_id = normalize_source_partner_id(source_partner_id)
+
     plan_config = STRIPE_PLAN_CONFIG[plan_name]
     payment_link = plan_config.get("payment_link", "")
 
@@ -1380,7 +1421,11 @@ def pay(plan_name):
             "message": "Payment link is not configured"
         }), 500
 
-    client_reference_id = build_stripe_client_reference_id(session_id, plan_name)
+    client_reference_id = build_stripe_client_reference_id(
+        session_id=session_id,
+        plan_name=plan_name,
+        source_partner_id=source_partner_id
+    )
 
     payment_url = append_query_params(
         payment_link,
@@ -1390,7 +1435,7 @@ def pay(plan_name):
     )
 
     print(
-        f"PAYMENT REDIRECT ✅ session_id={session_id} plan={plan_name} reference={client_reference_id}",
+        f"PAYMENT REDIRECT ✅ session_id={session_id} plan={plan_name} source_partner_id={source_partner_id} reference={client_reference_id}",
         flush=True
     )
 
@@ -1436,7 +1481,7 @@ def stripe_webhook():
         checkout_session = event.get("data", {}).get("object", {})
 
         client_reference_id = checkout_session.get("client_reference_id", "")
-        session_id, plan_name = parse_stripe_client_reference_id(client_reference_id)
+        session_id, plan_name, source_partner_id = parse_stripe_client_reference_id(client_reference_id)
 
         if not session_id or not plan_name:
             print(
@@ -1459,6 +1504,15 @@ def stripe_webhook():
                 "reason": "invalid_plan"
             })
 
+        if not source_partner_id:
+            try:
+                source_partner_id = get_source_partner_id_for_session(session_id)
+            except Exception as error:
+                print(f"STRIPE SOURCE PARTNER LOOKUP ERROR ❌ {error}", flush=True)
+                source_partner_id = ""
+
+        source_partner_id = normalize_source_partner_id(source_partner_id)
+
         plan_config = STRIPE_PLAN_CONFIG[plan_name]
 
         stripe_customer_id = checkout_session.get("customer", "") or ""
@@ -1476,11 +1530,12 @@ def stripe_webhook():
             stripe_subscription_id=stripe_subscription_id,
             package_amount=package_amount,
             notes=f"Activated automatically by Stripe checkout.session.completed event {event_id}",
-            reset_usage=True
+            reset_usage=True,
+            source_partner_id=source_partner_id
         )
 
         print(
-            f"STRIPE SUBSCRIPTION ACTIVATED ✅ session_id={session_id} plan={plan_name}",
+            f"STRIPE SUBSCRIPTION ACTIVATED ✅ session_id={session_id} plan={plan_name} source_partner_id={source_partner_id}",
             flush=True
         )
 
@@ -1783,6 +1838,12 @@ def activate_subscription():
     limit = request.args.get("limit")
     package_amount = request.args.get("package_amount", "").strip()
     notes = request.args.get("notes", "").strip()
+    source_partner_id = normalize_source_partner_id(
+        request.args.get("source_partner_id")
+        or request.args.get("ref")
+        or request.args.get("partner_id")
+        or ""
+    )
 
     if not session_id:
         return jsonify({
@@ -1804,6 +1865,13 @@ def activate_subscription():
     if not client_id:
         client_id = session_id
 
+    if not source_partner_id:
+        try:
+            source_partner_id = get_source_partner_id_for_session(session_id)
+        except Exception as error:
+            print(f"ADMIN SOURCE PARTNER LOOKUP ERROR ❌ {error}", flush=True)
+            source_partner_id = ""
+
     subscription = create_or_update_subscription(
         session_id=session_id,
         plan_name=plan,
@@ -1813,7 +1881,8 @@ def activate_subscription():
         custom_reply_limit=custom_reply_limit,
         package_amount=package_amount,
         notes=notes,
-        reset_usage=True
+        reset_usage=True,
+        source_partner_id=source_partner_id
     )
 
     return jsonify({
