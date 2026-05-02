@@ -1838,11 +1838,107 @@ def stripe_webhook():
         })
 
     if event_type == "customer.subscription.updated":
-        print("STRIPE SUBSCRIPTION UPDATED ✅ received for future handling", flush=True)
+        stripe_subscription = event.get("data", {}).get("object", {})
+
+        stripe_subscription_id = stripe_subscription.get("id", "") or ""
+
+        if isinstance(stripe_subscription_id, dict):
+            stripe_subscription_id = stripe_subscription_id.get("id", "") or ""
+
+        if not stripe_subscription_id:
+            print(
+                "STRIPE SUBSCRIPTION UPDATED IGNORED ⚠️ missing stripe_subscription_id",
+                flush=True
+            )
+
+            return jsonify({
+                "status": "ignored",
+                "reason": "missing_stripe_subscription_id"
+            })
+
+        existing_subscription = get_client_subscription_by_stripe_subscription_id(
+            stripe_subscription_id
+        )
+
+        if not existing_subscription:
+            print(
+                f"STRIPE SUBSCRIPTION UPDATED IGNORED ⚠️ subscription not found stripe_subscription_id={stripe_subscription_id}",
+                flush=True
+            )
+
+            return jsonify({
+                "status": "ignored",
+                "reason": "subscription_not_found",
+                "stripe_subscription_id": stripe_subscription_id
+            })
+
+        stripe_status = str(stripe_subscription.get("status", "") or "").lower().strip()
+
+        mapped_status = existing_subscription.get("subscription_status") or "active"
+
+        if stripe_status in ["past_due", "unpaid", "incomplete", "incomplete_expired"]:
+            mapped_status = "payment_failed"
+
+        elif stripe_status in ["canceled", "cancelled"]:
+            mapped_status = "cancelled"
+
+        elif stripe_status in ["paused"]:
+            mapped_status = "inactive"
+
+        elif stripe_status in ["active", "trialing"]:
+            print(
+                f"STRIPE SUBSCRIPTION UPDATED RECEIVED ✅ active update ignored for commission safety stripe_subscription_id={stripe_subscription_id}",
+                flush=True
+            )
+
+            return jsonify({
+                "status": "received",
+                "message": "customer.subscription.updated active event received; invoice.paid handles renewal/commission logic",
+                "stripe_subscription_id": stripe_subscription_id,
+                "stripe_status": stripe_status
+            })
+
+        session_id = existing_subscription.get("session_id") or ""
+        plan_name = existing_subscription.get("plan_name") or "growth"
+        source_partner_id = normalize_source_partner_id(
+            existing_subscription.get("source_partner_id") or ""
+        )
+
+        stripe_customer_id = (
+            stripe_subscription.get("customer", "")
+            or existing_subscription.get("stripe_customer_id")
+            or ""
+        )
+
+        package_amount = existing_subscription.get("package_amount") or ""
+
+        subscription = create_or_update_subscription(
+            session_id=session_id,
+            plan_name=plan_name,
+            client_id=existing_subscription.get("client_id") or session_id,
+            bot_id=existing_subscription.get("bot_id") or "",
+            status=mapped_status,
+            custom_reply_limit=existing_subscription.get("monthly_reply_limit"),
+            stripe_customer_id=stripe_customer_id,
+            stripe_subscription_id=stripe_subscription_id,
+            package_amount=package_amount,
+            notes=f"Updated automatically by Stripe customer.subscription.updated event {event_id}; stripe_status={stripe_status}",
+            reset_usage=False,
+            source_partner_id=source_partner_id
+        )
+
+        print(
+            f"STRIPE SUBSCRIPTION UPDATED HANDLED ✅ session_id={session_id} mapped_status={mapped_status} stripe_status={stripe_status} stripe_subscription_id={stripe_subscription_id}",
+            flush=True
+        )
 
         return jsonify({
-            "status": "received",
-            "message": "customer.subscription.updated received"
+            "status": "success",
+            "message": "customer.subscription.updated handled",
+            "stripe_subscription_id": stripe_subscription_id,
+            "stripe_status": stripe_status,
+            "mapped_status": mapped_status,
+            "subscription": subscription
         })
 
     return jsonify({
