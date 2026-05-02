@@ -25,6 +25,8 @@ client = OpenAI(api_key=OPENAI_API_KEY)
 # State منفصل لكل جلسة عشان التدريب ما يضيع بين الرسائل
 session_states = {}
 
+INTERNATIONAL_PHONE_EXAMPLE = "+971523288001"
+
 
 def get_session_state(session_id):
     if session_id not in session_states:
@@ -87,22 +89,109 @@ def apply_source_partner_to_state(current_state, source_partner_id):
     return current_state
 
 
-def extract_phone(message):
-    cleaned = message.replace(" ", "").replace("-", "").replace("+", "00")
+def convert_arabic_digits(value):
+    if value is None:
+        return ""
 
-    patterns = [
-        r"00971\d{8,9}",
-        r"971\d{8,9}",
-        r"05\d{8}",
-        r"5\d{8}",
-    ]
+    value = str(value)
 
-    for pattern in patterns:
-        match = re.search(pattern, cleaned)
-        if match:
-            return match.group(0)
+    arabic_digits_map = {
+        "٠": "0",
+        "١": "1",
+        "٢": "2",
+        "٣": "3",
+        "٤": "4",
+        "٥": "5",
+        "٦": "6",
+        "٧": "7",
+        "٨": "8",
+        "٩": "9",
+        "۰": "0",
+        "۱": "1",
+        "۲": "2",
+        "۳": "3",
+        "۴": "4",
+        "۵": "5",
+        "۶": "6",
+        "۷": "7",
+        "۸": "8",
+        "۹": "9",
+    }
+
+    for arabic_digit, english_digit in arabic_digits_map.items():
+        value = value.replace(arabic_digit, english_digit)
+
+    return value
+
+
+def normalize_international_phone(value):
+    """
+    يحول الرقم إلى صيغة دولية موحدة:
+    +971523288001
+
+    يقبل:
+    +971523288001
+    00971523288001
+    971523288001
+
+    يرفض:
+    0500000000
+    523288001
+    """
+    value = convert_arabic_digits(value)
+    value = str(value or "").strip()
+
+    if not value:
+        return None
+
+    cleaned = re.sub(r"[\s\-\(\)\.\u200f\u200e]", "", value)
+
+    if cleaned.startswith("+"):
+        digits = cleaned[1:]
+
+        if digits.isdigit() and 10 <= len(digits) <= 15:
+            return "+" + digits
+
+        return None
+
+    if cleaned.startswith("00"):
+        digits = cleaned[2:]
+
+        if digits.isdigit() and 10 <= len(digits) <= 15:
+            return "+" + digits
+
+        return None
+
+    if cleaned.isdigit():
+        # نرفض المحلي بدون فتح خط
+        if cleaned.startswith("0"):
+            return None
+
+        # نقبل الرقم إذا واضح أنه يحتوي country code
+        if 10 <= len(cleaned) <= 15:
+            return "+" + cleaned
 
     return None
+
+
+def extract_phone(message):
+    message = convert_arabic_digits(message)
+    text = str(message or "")
+
+    # نبحث عن أرقام محتملة مع + أو 00 أو أرقام طويلة تحتوي كود الدولة
+    candidates = re.findall(
+        r"(?:\+|00)?\d[\d\s\-\(\)\.]{7,22}\d",
+        text
+    )
+
+    for candidate in candidates:
+        normalized_phone = normalize_international_phone(candidate)
+
+        if normalized_phone:
+            return normalized_phone
+
+    # محاولة أخيرة لو كانت الرسالة كلها رقم
+    return normalize_international_phone(text)
 
 
 def clean_name_value(name):
@@ -290,11 +379,13 @@ def set_customer_name(current_state, name):
 
 
 def set_customer_phone(current_state, phone):
-    if not phone:
+    normalized_phone = normalize_international_phone(phone)
+
+    if not normalized_phone:
         return
 
-    current_state["lead_phone"] = phone
-    current_state["customer_phone"] = phone
+    current_state["lead_phone"] = normalized_phone
+    current_state["customer_phone"] = normalized_phone
     current_state["phone_captured"] = True
     current_state["awaiting_customer_phone"] = False
     current_state["phone_asked"] = True
@@ -351,9 +442,7 @@ def update_lead_data(message, session_id, current_state):
         current_state["name_captured"] = True
 
     if extracted_phone:
-        current_state["lead_phone"] = extracted_phone
-        current_state["customer_phone"] = extracted_phone
-        current_state["phone_captured"] = True
+        set_customer_phone(current_state, extracted_phone)
 
     save_lead_if_ready(session_id, current_state)
 
@@ -539,8 +628,8 @@ def think(message, session_id, source_partner_id=""):
 
         elif current_state.get("awaiting_customer_phone"):
             reply = (
-                "اكتب رقم الواتساب عشان نحفظ بياناتك ونتابع معاك بشكل مرتب ✅\n\n"
-                "مثال: 0500000000"
+                "اكتب رقم الواتساب مع فتح الخط عشان نحفظ بياناتك ونتابع معاك بشكل صحيح ✅\n\n"
+                f"مثال: {INTERNATIONAL_PHONE_EXAMPLE}"
             )
             set_session_state(session_id, current_state)
             return reply
@@ -555,7 +644,8 @@ def think(message, session_id, source_partner_id=""):
             customer_name = get_customer_name(current_state)
             reply = (
                 f"تمام يا {customer_name}، تشرفت فيك 👋\n\n"
-                "عشان نقدر نتابع معاك لو انقطع الشات، اكتب رقم الواتساب؟"
+                "عشان نقدر نتابع معاك لو انقطع الشات، اكتب رقم الواتساب مع فتح الخط؟\n\n"
+                f"مثال: {INTERNATIONAL_PHONE_EXAMPLE}"
             )
             set_session_state(session_id, current_state)
             return reply

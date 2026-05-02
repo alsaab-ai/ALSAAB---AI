@@ -129,6 +129,8 @@ PARTNER_REGISTRATION_STEPS = [
     "sponsor",
 ]
 
+INTERNATIONAL_PHONE_EXAMPLE = "+971523288001"
+
 
 def normalize_text(value):
     return str(value or "").strip()
@@ -136,6 +138,91 @@ def normalize_text(value):
 
 def normalize_lower(value):
     return normalize_text(value).lower()
+
+
+def convert_arabic_digits(value):
+    if value is None:
+        return ""
+
+    value = str(value)
+
+    arabic_digits_map = {
+        "٠": "0",
+        "١": "1",
+        "٢": "2",
+        "٣": "3",
+        "٤": "4",
+        "٥": "5",
+        "٦": "6",
+        "٧": "7",
+        "٨": "8",
+        "٩": "9",
+        "۰": "0",
+        "۱": "1",
+        "۲": "2",
+        "۳": "3",
+        "۴": "4",
+        "۵": "5",
+        "۶": "6",
+        "۷": "7",
+        "۸": "8",
+        "۹": "9",
+    }
+
+    for arabic_digit, english_digit in arabic_digits_map.items():
+        value = value.replace(arabic_digit, english_digit)
+
+    return value
+
+
+def normalize_international_phone(value):
+    """
+    يحول الرقم إلى صيغة دولية موحدة:
+    +971523288001
+
+    يقبل:
+    +971523288001
+    00971523288001
+    971523288001
+
+    يرفض:
+    0500000000
+    523288001
+    """
+    value = convert_arabic_digits(value)
+    value = str(value or "").strip()
+
+    if not value:
+        return ""
+
+    cleaned = re.sub(r"[\s\-\(\)\.\u200f\u200e]", "", value)
+
+    if cleaned.startswith("+"):
+        digits = cleaned[1:]
+
+        if digits.isdigit() and 10 <= len(digits) <= 15:
+            return "+" + digits
+
+        return ""
+
+    if cleaned.startswith("00"):
+        digits = cleaned[2:]
+
+        if digits.isdigit() and 10 <= len(digits) <= 15:
+            return "+" + digits
+
+        return ""
+
+    if cleaned.isdigit():
+        # نرفض الرقم المحلي بدون فتح خط
+        if cleaned.startswith("0"):
+            return ""
+
+        # نقبل الرقم إذا واضح أنه يحتوي country code
+        if 10 <= len(cleaned) <= 15:
+            return "+" + cleaned
+
+    return ""
 
 
 def normalize_partner_id(value):
@@ -222,21 +309,21 @@ def is_partner_registration_active(state):
 
 
 def extract_phone(message):
-    cleaned = str(message or "").replace(" ", "").replace("-", "").replace("+", "00")
+    message = convert_arabic_digits(message)
+    text = str(message or "")
 
-    patterns = [
-        r"00971\d{8,9}",
-        r"971\d{8,9}",
-        r"05\d{8}",
-        r"5\d{8}",
-    ]
+    candidates = re.findall(
+        r"(?:\+|00)?\d[\d\s\-\(\)\.]{7,22}\d",
+        text
+    )
 
-    for pattern in patterns:
-        match = re.search(pattern, cleaned)
-        if match:
-            return match.group(0)
+    for candidate in candidates:
+        normalized_phone = normalize_international_phone(candidate)
 
-    return ""
+        if normalized_phone:
+            return normalized_phone
+
+    return normalize_international_phone(text)
 
 
 def extract_email(message):
@@ -309,12 +396,14 @@ def get_state_name(state):
 
 
 def get_state_phone(state):
-    return (
+    raw_phone = (
         state.get("customer_phone")
         or state.get("lead_phone")
         or state.get("partner_phone")
         or ""
     )
+
+    return normalize_international_phone(raw_phone)
 
 
 def get_or_create_partner_data(state, session_id):
@@ -335,8 +424,16 @@ def get_or_create_partner_data(state, session_id):
     if existing_name and not data.get("partner_name"):
         data["partner_name"] = existing_name
 
-    if existing_phone and not data.get("phone"):
+    if existing_phone and not normalize_international_phone(data.get("phone", "")):
         data["phone"] = existing_phone
+
+    if data.get("phone"):
+        normalized_existing_data_phone = normalize_international_phone(data.get("phone", ""))
+
+        if normalized_existing_data_phone:
+            data["phone"] = normalized_existing_data_phone
+        else:
+            data["phone"] = ""
 
     return data
 
@@ -345,7 +442,7 @@ def get_initial_step(data):
     if not data.get("partner_name"):
         return "partner_name"
 
-    if not data.get("phone"):
+    if not normalize_international_phone(data.get("phone", "")):
         return "phone"
 
     return "email"
@@ -511,10 +608,14 @@ def get_question_for_step(step, data):
         if partner_name:
             return (
                 f"تمام يا {partner_name} 👌\n\n"
-                "اكتب رقم الواتساب عشان نربطه بملف الشراكة."
+                "اكتب رقم الواتساب مع فتح الخط عشان نربطه بملف الشراكة.\n\n"
+                f"مثال: {INTERNATIONAL_PHONE_EXAMPLE}"
             )
 
-        return "اكتب رقم الواتساب عشان نربطه بملف الشراكة."
+        return (
+            "اكتب رقم الواتساب مع فتح الخط عشان نربطه بملف الشراكة.\n\n"
+            f"مثال: {INTERNATIONAL_PHONE_EXAMPLE}"
+        )
 
     if step == "email":
         return (
@@ -609,13 +710,14 @@ def process_partner_step(message, state, session_id):
 
         if not phone:
             return False, (
-                "اكتب رقم واتساب صحيح عشان نحفظه في ملف الشراكة.\n\n"
-                "مثال: 0500000000"
+                "اكتب رقم واتساب صحيح مع فتح الخط عشان نحفظه في ملف الشراكة.\n\n"
+                f"مثال: {INTERNATIONAL_PHONE_EXAMPLE}"
             )
 
         data["phone"] = phone
         state["customer_phone"] = phone
         state["lead_phone"] = phone
+        state["phone_captured"] = True
 
     elif step == "email":
         if is_skip_answer(raw_message):
@@ -754,7 +856,7 @@ def finish_partner_registration(state, session_id):
     data = get_or_create_partner_data(state, session_id)
 
     partner_name = data.get("partner_name", "")
-    phone = data.get("phone", "")
+    phone = normalize_international_phone(data.get("phone", ""))
     email = data.get("email", "")
     country = data.get("country", "")
     invited_by = data.get("invited_by", "")
@@ -762,6 +864,18 @@ def finish_partner_registration(state, session_id):
     parent_partner_id = data.get("parent_partner_id", "")
     client_id = data.get("client_id") or get_effective_client_id(session_id, state=state)
     notes = build_partner_notes(data, session_id)
+
+    if not phone:
+        data["step"] = "phone"
+        return (
+            "قبل ما أكمل التسجيل، لازم رقم الواتساب يكون مع فتح الخط.\n\n"
+            f"مثال: {INTERNATIONAL_PHONE_EXAMPLE}"
+        )
+
+    data["phone"] = phone
+    state["customer_phone"] = phone
+    state["lead_phone"] = phone
+    state["phone_captured"] = True
 
     if MLM_SPONSOR_RULES.get("prevent_empty_sponsor", True) and not sponsor_partner_id:
         data["step"] = "source"
