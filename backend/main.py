@@ -1762,11 +1762,79 @@ def stripe_webhook():
         })
 
     if event_type == "customer.subscription.deleted":
-        print("STRIPE SUBSCRIPTION DELETED ⚠️ received for future cancellation handling", flush=True)
+        stripe_subscription = event.get("data", {}).get("object", {})
+
+        stripe_subscription_id = stripe_subscription.get("id", "") or ""
+
+        if isinstance(stripe_subscription_id, dict):
+            stripe_subscription_id = stripe_subscription_id.get("id", "") or ""
+
+        if not stripe_subscription_id:
+            print(
+                "STRIPE SUBSCRIPTION DELETED IGNORED ⚠️ missing stripe_subscription_id",
+                flush=True
+            )
+
+            return jsonify({
+                "status": "ignored",
+                "reason": "missing_stripe_subscription_id"
+            })
+
+        existing_subscription = get_client_subscription_by_stripe_subscription_id(
+            stripe_subscription_id
+        )
+
+        if not existing_subscription:
+            print(
+                f"STRIPE SUBSCRIPTION DELETED IGNORED ⚠️ subscription not found stripe_subscription_id={stripe_subscription_id}",
+                flush=True
+            )
+
+            return jsonify({
+                "status": "ignored",
+                "reason": "subscription_not_found",
+                "stripe_subscription_id": stripe_subscription_id
+            })
+
+        session_id = existing_subscription.get("session_id") or ""
+        plan_name = existing_subscription.get("plan_name") or "growth"
+        source_partner_id = normalize_source_partner_id(
+            existing_subscription.get("source_partner_id") or ""
+        )
+
+        stripe_customer_id = (
+            stripe_subscription.get("customer", "")
+            or existing_subscription.get("stripe_customer_id")
+            or ""
+        )
+
+        package_amount = existing_subscription.get("package_amount") or ""
+
+        subscription = create_or_update_subscription(
+            session_id=session_id,
+            plan_name=plan_name,
+            client_id=existing_subscription.get("client_id") or session_id,
+            bot_id=existing_subscription.get("bot_id") or "",
+            status="cancelled",
+            custom_reply_limit=existing_subscription.get("monthly_reply_limit"),
+            stripe_customer_id=stripe_customer_id,
+            stripe_subscription_id=stripe_subscription_id,
+            package_amount=package_amount,
+            notes=f"Cancelled automatically by Stripe customer.subscription.deleted event {event_id}",
+            reset_usage=False,
+            source_partner_id=source_partner_id
+        )
+
+        print(
+            f"STRIPE SUBSCRIPTION DELETED HANDLED ⚠️ session_id={session_id} plan={plan_name} source_partner_id={source_partner_id} stripe_subscription_id={stripe_subscription_id}",
+            flush=True
+        )
 
         return jsonify({
-            "status": "received",
-            "message": "customer.subscription.deleted received"
+            "status": "success",
+            "message": "customer.subscription.deleted handled",
+            "stripe_subscription_id": stripe_subscription_id,
+            "subscription": subscription
         })
 
     if event_type == "customer.subscription.updated":
