@@ -196,6 +196,51 @@ def verify_stripe_signature(payload, signature_header, webhook_secret, tolerance
         return False, str(error)
 
 
+def get_admin_payload():
+    """
+    يقرأ بيانات admin routes من JSON أو Form.
+    مهم: GET صار للمعاينة فقط، والتنفيذ الحقيقي POST فقط.
+    """
+    if request.is_json:
+        return request.json or {}
+
+    if request.form:
+        return request.form.to_dict()
+
+    return {}
+
+
+def get_payload_value(payload, *keys, default=""):
+    for key in keys:
+        value = payload.get(key)
+
+        if value is not None and str(value).strip() != "":
+            return str(value).strip()
+
+    return default
+
+
+def get_admin_key(payload):
+    return (
+        get_payload_value(payload, "key", default="")
+        or request.args.get("key", "").strip()
+    )
+
+
+def admin_get_preview(action_name, required_fields=None, example_body=None):
+    return jsonify({
+        "status": "preview_only",
+        "message": (
+            f"{action_name} does not execute with GET anymore. "
+            "Use POST with JSON body to execute this admin action."
+        ),
+        "method_required": "POST",
+        "reason": "GET links can be triggered by browser preview, prefetch, or copy/link scanners.",
+        "required_fields": required_fields or [],
+        "example_body": example_body or {}
+    })
+
+
 HTML = r"""
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
@@ -1823,26 +1868,47 @@ def chat():
         }), 500
 
 
-@app.route("/admin/activate-subscription", methods=["GET"])
+@app.route("/admin/activate-subscription", methods=["GET", "POST"])
 def activate_subscription():
-    key = request.args.get("key")
+    payload = get_admin_payload()
+    key = get_admin_key(payload)
 
     if key != ADMIN_KEY:
         return jsonify({"error": "Unauthorized"}), 401
 
-    session_id = request.args.get("session_id", "").strip()
-    plan = request.args.get("plan", "growth").strip()
-    client_id = request.args.get("client_id", "").strip()
-    bot_id = request.args.get("bot_id", "").strip()
-    status = request.args.get("status", "active").strip()
-    limit = request.args.get("limit")
-    package_amount = request.args.get("package_amount", "").strip()
-    notes = request.args.get("notes", "").strip()
+    if request.method == "GET":
+        return admin_get_preview(
+            action_name="activate-subscription",
+            required_fields=[
+                "key",
+                "session_id",
+                "plan",
+                "source_partner_id optional",
+                "package_amount optional"
+            ],
+            example_body={
+                "key": ADMIN_KEY,
+                "session_id": "commission-test-001",
+                "plan": "growth",
+                "source_partner_id": "ALS-P00001",
+                "package_amount": "799 AED",
+                "notes": "manual_post_activation"
+            }
+        )
+
+    session_id = get_payload_value(payload, "session_id")
+    plan = get_payload_value(payload, "plan", default="growth")
+    client_id = get_payload_value(payload, "client_id")
+    bot_id = get_payload_value(payload, "bot_id")
+    status = get_payload_value(payload, "status", default="active")
+    limit = get_payload_value(payload, "limit")
+    package_amount = get_payload_value(payload, "package_amount")
+    notes = get_payload_value(payload, "notes")
+
     source_partner_id = normalize_source_partner_id(
-        request.args.get("source_partner_id")
-        or request.args.get("ref")
-        or request.args.get("partner_id")
-        or ""
+        get_payload_value(payload, "source_partner_id")
+        or get_payload_value(payload, "ref")
+        or get_payload_value(payload, "partner_id")
     )
 
     if not session_id:
@@ -1915,35 +1981,62 @@ def usage_summary():
     })
 
 
-@app.route("/admin/create-partner", methods=["GET"])
+@app.route("/admin/create-partner", methods=["GET", "POST"])
 def create_partner():
-    key = request.args.get("key")
+    payload = get_admin_payload()
+    key = get_admin_key(payload)
 
     if key != ADMIN_KEY:
         return jsonify({"error": "Unauthorized"}), 401
 
+    if request.method == "GET":
+        return admin_get_preview(
+            action_name="create-partner",
+            required_fields=[
+                "key",
+                "partner_name",
+                "phone",
+                "invited_by",
+                "level"
+            ],
+            example_body={
+                "key": ADMIN_KEY,
+                "partner_name": "MLM Level 1 Test",
+                "phone": "+971500000001",
+                "email": "test@alsaab.ai",
+                "country": "UAE",
+                "invited_by": "alsaab",
+                "level": "Level 1",
+                "status": "active",
+                "notes": "created_by_post_only"
+            }
+        )
+
     partner_name = (
-        request.args.get("partner_name")
-        or request.args.get("name")
-        or ""
-    ).strip()
+        get_payload_value(payload, "partner_name")
+        or get_payload_value(payload, "name")
+    )
 
     phone = (
-        request.args.get("phone")
-        or request.args.get("whatsapp")
-        or ""
-    ).strip()
+        get_payload_value(payload, "phone")
+        or get_payload_value(payload, "whatsapp")
+    )
 
-    email = request.args.get("email", "").strip()
-    country = request.args.get("country", "").strip()
+    email = get_payload_value(payload, "email")
+    country = get_payload_value(payload, "country")
     invited_by = (
-        request.args.get("invited_by")
-        or request.args.get("invitedBy")
-        or ""
-    ).strip()
-    notes = request.args.get("notes", "").strip()
-    level = request.args.get("level", "Level 1").strip()
-    status = request.args.get("status", "active").strip()
+        get_payload_value(payload, "invited_by")
+        or get_payload_value(payload, "invitedBy")
+        or get_payload_value(payload, "sponsor_partner_id")
+        or get_payload_value(payload, "sponsor_id")
+        or get_payload_value(payload, "parent_partner_id")
+        or get_payload_value(payload, "ref")
+        or get_payload_value(payload, "source_partner_id")
+    )
+    notes = get_payload_value(payload, "notes")
+    level = get_payload_value(payload, "level", default="Level 1")
+    status = get_payload_value(payload, "status", default="active")
+    client_id = get_payload_value(payload, "client_id")
 
     if not partner_name:
         return jsonify({
@@ -1957,16 +2050,38 @@ def create_partner():
             "message": "phone is required"
         }), 400
 
-    result = send_partner_to_google_sheet(
-        partner_name=partner_name,
-        phone=phone,
-        email=email,
-        country=country,
-        invited_by=invited_by,
-        notes=notes,
-        level=level,
-        status=status
-    )
+    if not invited_by:
+        return jsonify({
+            "status": "error",
+            "message": "invited_by / sponsor_partner_id is required"
+        }), 400
+
+    try:
+        result = send_partner_to_google_sheet(
+            partner_name=partner_name,
+            phone=phone,
+            email=email,
+            country=country,
+            invited_by=invited_by,
+            notes=notes,
+            level=level,
+            status=status,
+            client_id=client_id,
+            sponsor_partner_id=invited_by,
+            parent_partner_id=invited_by,
+            partner_rank=level
+        )
+    except TypeError:
+        result = send_partner_to_google_sheet(
+            partner_name=partner_name,
+            phone=phone,
+            email=email,
+            country=country,
+            invited_by=invited_by,
+            notes=notes,
+            level=level,
+            status=status
+        )
 
     if result.get("status") == "success":
         return jsonify({
@@ -1974,6 +2089,9 @@ def create_partner():
             "message": result.get("message", "Partner saved"),
             "partner_id": result.get("partner_id", ""),
             "referral_link": result.get("referral_link", ""),
+            "sponsor_partner_id": result.get("sponsor_partner_id", invited_by),
+            "parent_partner_id": result.get("parent_partner_id", invited_by),
+            "invited_by": result.get("invited_by", invited_by),
             "result": result
         })
 
