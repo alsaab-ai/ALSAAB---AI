@@ -157,6 +157,30 @@ def normalize_partner_id(value):
     return ""
 
 
+def apply_sponsor_referral_to_state(state, sponsor_partner_id, source_type="", source_description=""):
+    """
+    يثبت مصدر الإحالة داخل state عشان save_lead يحفظه في Referrals.
+    مهم جداً لتسجيل الشركاء: Partner جاب Partner.
+    """
+    normalized_sponsor = normalize_partner_id(sponsor_partner_id)
+
+    if not normalized_sponsor:
+        return ""
+
+    state["source_partner_id"] = normalized_sponsor
+    state["referrer_partner_id"] = normalized_sponsor
+    state["referral_source_captured"] = True
+    state["referral_context"] = "partner_registration"
+
+    if source_type:
+        state["referral_source_type"] = source_type
+
+    if source_description:
+        state["referral_source_description"] = source_description
+
+    return normalized_sponsor
+
+
 def is_partner_registration_request(message):
     msg = normalize_lower(message)
 
@@ -652,6 +676,13 @@ def process_partner_step(message, state, session_id):
                 data["sponsor_partner_id"] = partner_id_in_message
                 data["parent_partner_id"] = partner_id_in_message
                 data["skip_sponsor_step"] = True
+
+                apply_sponsor_referral_to_state(
+                    state=state,
+                    sponsor_partner_id=partner_id_in_message,
+                    source_type=source_type,
+                    source_description=raw_message
+                )
             else:
                 data["skip_sponsor_step"] = False
 
@@ -663,6 +694,13 @@ def process_partner_step(message, state, session_id):
             data["parent_partner_id"] = owner_partner_id
             data["skip_sponsor_step"] = True
             data["owner_partner_id_used"] = True
+
+            apply_sponsor_referral_to_state(
+                state=state,
+                sponsor_partner_id=owner_partner_id,
+                source_type=source_type,
+                source_description=raw_message
+            )
 
     elif step == "sponsor":
         sponsor_partner_id = extract_partner_id(raw_message)
@@ -679,6 +717,13 @@ def process_partner_step(message, state, session_id):
         data["invited_by"] = raw_message
         data["sponsor_partner_id"] = sponsor_partner_id
         data["parent_partner_id"] = sponsor_partner_id
+
+        apply_sponsor_referral_to_state(
+            state=state,
+            sponsor_partner_id=sponsor_partner_id,
+            source_type=data.get("source_type", "direct_partner"),
+            source_description=data.get("source_description", raw_message)
+        )
 
     return True, ""
 
@@ -726,6 +771,13 @@ def finish_partner_registration(state, session_id):
             + get_question_for_step("source", data)
         )
 
+    apply_sponsor_referral_to_state(
+        state=state,
+        sponsor_partner_id=sponsor_partner_id,
+        source_type=data.get("source_type", ""),
+        source_description=data.get("source_description", "")
+    )
+
     result = send_partner_to_google_sheet(
         partner_name=partner_name,
         phone=phone,
@@ -759,14 +811,28 @@ def finish_partner_registration(state, session_id):
     state["mode"] = "sales"
     state["partner_registration_completed"] = True
 
+    if sponsor_partner_id:
+        apply_sponsor_referral_to_state(
+            state=state,
+            sponsor_partner_id=sponsor_partner_id,
+            source_type=data.get("source_type", ""),
+            source_description=data.get("source_description", "")
+        )
+
     if partner_name and phone:
         try:
+            previous_channel = state.get("channel", "")
+            state["channel"] = "partner_registration"
+
             save_lead(
                 session_id=session_id,
                 name=partner_name,
                 phone=phone,
                 state=state
             )
+
+            if previous_channel:
+                state["channel"] = previous_channel
         except Exception as error:
             print(f"PARTNER LEAD SAVE ERROR ❌ {error}", flush=True)
 
