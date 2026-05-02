@@ -1677,11 +1677,88 @@ def stripe_webhook():
         })
 
     if event_type == "invoice.payment_failed":
-        print("STRIPE INVOICE PAYMENT FAILED ⚠️ received for future handling", flush=True)
+        invoice = event.get("data", {}).get("object", {})
+
+        invoice_id = invoice.get("id", "") or ""
+        stripe_subscription_id = invoice.get("subscription", "") or ""
+
+        if isinstance(stripe_subscription_id, dict):
+            stripe_subscription_id = stripe_subscription_id.get("id", "") or ""
+
+        if not stripe_subscription_id:
+            parent = invoice.get("parent", {}) or {}
+            subscription_details = parent.get("subscription_details", {}) or {}
+            stripe_subscription_id = subscription_details.get("subscription", "") or ""
+
+        if not stripe_subscription_id:
+            print(
+                f"STRIPE INVOICE PAYMENT FAILED IGNORED ⚠️ missing stripe_subscription_id invoice_id={invoice_id}",
+                flush=True
+            )
+
+            return jsonify({
+                "status": "ignored",
+                "reason": "missing_stripe_subscription_id",
+                "invoice_id": invoice_id
+            })
+
+        existing_subscription = get_client_subscription_by_stripe_subscription_id(
+            stripe_subscription_id
+        )
+
+        if not existing_subscription:
+            print(
+                f"STRIPE INVOICE PAYMENT FAILED IGNORED ⚠️ subscription not found stripe_subscription_id={stripe_subscription_id} invoice_id={invoice_id}",
+                flush=True
+            )
+
+            return jsonify({
+                "status": "ignored",
+                "reason": "subscription_not_found",
+                "stripe_subscription_id": stripe_subscription_id,
+                "invoice_id": invoice_id
+            })
+
+        session_id = existing_subscription.get("session_id") or ""
+        plan_name = existing_subscription.get("plan_name") or "growth"
+        source_partner_id = normalize_source_partner_id(
+            existing_subscription.get("source_partner_id") or ""
+        )
+
+        stripe_customer_id = (
+            invoice.get("customer", "")
+            or existing_subscription.get("stripe_customer_id")
+            or ""
+        )
+
+        package_amount = existing_subscription.get("package_amount") or ""
+
+        subscription = create_or_update_subscription(
+            session_id=session_id,
+            plan_name=plan_name,
+            client_id=existing_subscription.get("client_id") or session_id,
+            bot_id=existing_subscription.get("bot_id") or "",
+            status="payment_failed",
+            custom_reply_limit=existing_subscription.get("monthly_reply_limit"),
+            stripe_customer_id=stripe_customer_id,
+            stripe_subscription_id=stripe_subscription_id,
+            package_amount=package_amount,
+            notes=f"Payment failed by Stripe invoice.payment_failed event {event_id}; invoice_id={invoice_id}",
+            reset_usage=False,
+            source_partner_id=source_partner_id
+        )
+
+        print(
+            f"STRIPE INVOICE PAYMENT FAILED HANDLED ⚠️ session_id={session_id} plan={plan_name} source_partner_id={source_partner_id} invoice_id={invoice_id}",
+            flush=True
+        )
 
         return jsonify({
-            "status": "received",
-            "message": "invoice.payment_failed received"
+            "status": "success",
+            "message": "invoice.payment_failed handled",
+            "invoice_id": invoice_id,
+            "stripe_subscription_id": stripe_subscription_id,
+            "subscription": subscription
         })
 
     if event_type == "customer.subscription.deleted":
