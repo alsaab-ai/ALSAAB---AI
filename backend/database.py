@@ -1305,7 +1305,33 @@ def get_client_subscription(session_id):
         "updated_at": row[16],
     }
 
+def get_client_subscription_by_stripe_subscription_id(stripe_subscription_id):
+    stripe_subscription_id = str(stripe_subscription_id or "").strip()
 
+    if not stripe_subscription_id:
+        return None
+
+    conn = get_connection()
+    c = conn.cursor()
+
+    c.execute(
+        """
+        SELECT session_id
+        FROM client_subscriptions
+        WHERE stripe_subscription_id=?
+        ORDER BY id DESC
+        LIMIT 1
+        """,
+        (stripe_subscription_id,)
+    )
+
+    row = c.fetchone()
+    conn.close()
+
+    if not row or not row[0]:
+        return None
+
+    return get_client_subscription(row[0])
 def create_or_update_subscription(
     session_id,
     plan_name,
