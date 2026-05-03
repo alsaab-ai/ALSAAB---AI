@@ -1722,6 +1722,12 @@ def create_or_update_subscription(
     except Exception as error:
         print(f"SUBSCRIPTION GOOGLE SHEET SEND ERROR ❌ {error}", flush=True)
 
+    try:
+        if source_partner_id and str(source_partner_id).lower() != str(COMPANY_OWNER_PARTNER_ID).lower():
+            sync_partner_level_progress_to_google_sheet(source_partner_id)
+    except Exception as level_sync_error:
+        print(f"SUBSCRIPTION SOURCE PARTNER LEVEL SYNC ERROR ❌ {level_sync_error}", flush=True)
+
     return subscription
 
 
@@ -2418,13 +2424,130 @@ def send_commission_to_google_sheet(
 ):
     """
     يسجل عمولة في Google Sheet صفحة Commissions.
-    يدعم النظام الجديد للعمولات الشهرية:
-    Invoice ID + Beneficiary Partner ID يمنع التكرار داخل Apps Script.
+    هذا الإصدار يمرر العمولة أولاً على Level Qualification Engine:
+    - لا عمولة للشركة alsaab.
+    - لا عمولة إذا اشتراك الشريك غير active.
+    - لا عمولة على عمق أعلى من مستوى الشريك الحقيقي.
     """
+    import re
+
+    from level_engine import (
+        get_commission_rate_for_depth,
+        is_partner_eligible_for_commission_depth,
+    )
+
     normalized_beneficiary = normalize_partner_id(beneficiary_partner_id or partner_id)
     normalized_source = normalize_partner_id(source_partner_id)
     normalized_line_owner = normalize_partner_id(line_owner_partner_id)
     normalized_rank = normalize_partner_rank(partner_rank or "Level 1")
+
+    if not normalized_beneficiary:
+        return {
+            "status": "skipped",
+            "reason": "missing_beneficiary_partner_id",
+            "partner_id": partner_id,
+            "beneficiary_partner_id": beneficiary_partner_id,
+        }
+
+    if str(normalized_beneficiary).lower() == str(COMPANY_OWNER_PARTNER_ID).lower():
+        return {
+            "status": "skipped",
+            "reason": "company_owner_does_not_receive_commission",
+            "beneficiary_partner_id": normalized_beneficiary,
+        }
+
+    depth_text = str(commission_depth or "").strip()
+    depth_int = 0
+
+    if depth_text:
+        try:
+            depth_int = int(float(depth_text))
+        except (TypeError, ValueError):
+            depth_int = 0
+
+    if depth_int <= 0:
+        match = re.search(r"level\s*([1-5])", str(normalized_rank or ""), flags=re.IGNORECASE)
+        if match:
+            depth_int = int(match.group(1))
+
+    if depth_int <= 0:
+        depth_int = 1
+
+    if depth_int < 1 or depth_int > 5:
+        return {
+            "status": "skipped",
+            "reason": "invalid_commission_depth",
+            "beneficiary_partner_id": normalized_beneficiary,
+            "commission_depth": commission_depth,
+        }
+
+    try:
+        progress = calculate_and_save_partner_level_progress(normalized_beneficiary)
+    except Exception as error:
+        print(f"COMMISSION LEVEL CHECK ERROR ❌ partner_id={normalized_beneficiary} error={error}", flush=True)
+
+        return {
+            "status": "skipped",
+            "reason": "level_check_error",
+            "beneficiary_partner_id": normalized_beneficiary,
+            "message": str(error),
+        }
+
+    current_level = int(progress.get("current_level") or 0)
+    subscription_status = progress.get("subscription_status") or ""
+
+    eligible = is_partner_eligible_for_commission_depth(
+        current_level=current_level,
+        commission_depth=depth_int,
+        subscription_status=subscription_status,
+    )
+
+    if not eligible:
+        return {
+            "status": "skipped",
+            "reason": "partner_not_eligible_for_commission_depth",
+            "beneficiary_partner_id": normalized_beneficiary,
+            "current_level": current_level,
+            "commission_depth": depth_int,
+            "subscription_status": subscription_status,
+        }
+
+    depth_rate = float(get_commission_rate_for_depth(depth_int) or 0)
+
+    if depth_rate <= 0:
+        return {
+            "status": "skipped",
+            "reason": "zero_commission_rate_for_depth",
+            "beneficiary_partner_id": normalized_beneficiary,
+            "commission_depth": depth_int,
+        }
+
+    effective_commission_percent = str(depth_rate).rstrip("0").rstrip(".")
+
+    effective_commission_amount = commission_amount or ""
+
+    if not effective_commission_amount and package_amount:
+        try:
+            amount_number = float(
+                re.sub(r"[^0-9.]", "", str(package_amount)) or "0"
+            )
+
+            effective_commission_amount = f"{amount_number * depth_rate / 100:.2f}"
+        except Exception:
+            effective_commission_amount = ""
+
+    eligibility_note = (
+        f"level_engine_checked=true; "
+        f"beneficiary_current_level={current_level}; "
+        f"commission_depth={depth_int}; "
+        f"subscription_status={subscription_status}"
+    )
+
+    final_notes = notes or ""
+    if final_notes:
+        final_notes = f"{final_notes}; {eligibility_note}"
+    else:
+        final_notes = eligibility_note
 
     payload = {
         "token": GOOGLE_SHEET_TOKEN,
@@ -2441,23 +2564,23 @@ def send_commission_to_google_sheet(
         "partner_id": normalized_beneficiary or "",
         "partner_name": partner_name or "",
         "referral_name": referral_name or payer_name or "",
-        "commission_depth": commission_depth or "",
-        "depth": commission_depth or "",
+        "commission_depth": str(depth_int),
+        "depth": str(depth_int),
         "line_owner_partner_id": normalized_line_owner or "",
-        "partner_rank": normalized_rank or "",
-        "level": normalized_rank or "",
+        "partner_rank": _level_number_to_label(current_level),
+        "level": _level_number_to_label(current_level),
         "package": package_name or "",
         "plan_name": package_name or "",
         "package_amount": package_amount or "",
-        "commission_percent": commission_percent or get_default_commission_percent_for_rank(normalized_rank),
-        "commission_amount": commission_amount or "",
+        "commission_percent": effective_commission_percent,
+        "commission_amount": effective_commission_amount or "",
         "recurring_type": recurring_type or "monthly",
         "recurring": recurring_type or "monthly",
         "period_start": period_start or "",
         "period_end": period_end or "",
         "status": status or "pending",
         "paid_date": paid_date or "",
-        "notes": notes or "",
+        "notes": final_notes,
     }
 
     return post_to_google_sheet_json(payload, label="commission")
@@ -2770,6 +2893,11 @@ def save_auto_partner_mapping_from_result(
     )
 
     print(f"AUTO PARTNER MAPPING SAVED {mapped}", flush=True)
+
+    try:
+        sync_partner_level_progress_to_google_sheet(partner_id)
+    except Exception as level_sync_error:
+        print(f"AUTO PARTNER LEVEL SYNC ERROR ❌ {level_sync_error}", flush=True)
 
     return mapped
 
@@ -3248,3 +3376,121 @@ def is_partner_commission_eligible_from_database(partner_id, commission_depth):
         commission_depth=commission_depth,
         subscription_status=progress.get("subscription_status") or "",
     )
+
+def _level_number_to_label(level_value):
+    try:
+        level_number = int(level_value or 0)
+    except (TypeError, ValueError):
+        level_number = 0
+
+    if level_number <= 0:
+        return "Level 0"
+
+    return f"Level {level_number}"
+
+
+def _course_code_to_display_name(course_code):
+    mapping = {
+        "marketing_course_free": "كورس التسويق المجاني",
+        "sales_course_99": "كورس المبيعات 99$",
+        "life_philosophy_workshop_299": "ورشة فلسفة الحياة 299$",
+        "change_journey_course_1099": "كورس رحلة التغيير 1099$",
+    }
+
+    return mapping.get(str(course_code or "").strip(), str(course_code or "").strip())
+
+
+def _build_required_course_text(required_courses):
+    required_courses = required_courses or []
+
+    if not required_courses:
+        return "لا يوجد كورس مدفوع مطلوب لهذا المستوى"
+
+    return " + ".join(
+        _course_code_to_display_name(course)
+        for course in required_courses
+        if course
+    )
+
+
+def sync_partner_level_progress_to_google_sheet(partner_id):
+    """
+    يحسب مستوى الشريك الحقيقي من قاعدة البيانات ثم يرسله إلى Google Sheets / MLMLevels.
+    هذا لا يدفع عمولات. فقط يحدّث حالة المستوى والتقدم.
+    """
+    partner_id = normalize_partner_id(partner_id)
+
+    if not partner_id:
+        return {
+            "status": "skipped",
+            "message": "partner_id is missing"
+        }
+
+    if str(partner_id).lower() == str(COMPANY_OWNER_PARTNER_ID).lower():
+        return {
+            "status": "skipped",
+            "message": "company owner does not need MLM level sync",
+            "partner_id": partner_id
+        }
+
+    try:
+        progress = calculate_and_save_partner_level_progress(partner_id)
+
+        current_level_number = int(progress.get("current_level") or 0)
+        current_level_label = _level_number_to_label(current_level_number)
+
+        next_level_number = progress.get("next_level")
+        next_level_label = _level_number_to_label(next_level_number) if next_level_number else ""
+
+        active_direct_customers = int(progress.get("active_direct_customers") or 0)
+
+        required_sales = "0"
+        required_course_workshop = ""
+
+        if next_level_number:
+            level_details = progress.get("level_details") or []
+            next_detail = level_details[int(next_level_number) - 1] if len(level_details) >= int(next_level_number) else {}
+
+            required_sales = str(next_detail.get("min_active_direct_customers") or "0")
+            required_course_workshop = _build_required_course_text(
+                next_detail.get("required_courses") or []
+            )
+        else:
+            required_sales = str(active_direct_customers)
+            required_course_workshop = "تم الوصول إلى أعلى مستوى"
+
+        level_status = "active" if progress.get("commission_eligible") else "inactive"
+
+        sheet_result = send_mlm_level_to_google_sheet(
+            partner_id=partner_id,
+            current_level=current_level_label,
+            required_sales=required_sales,
+            completed_sales=str(active_direct_customers),
+            required_course_workshop=required_course_workshop,
+            level_status=level_status,
+            next_level=next_level_label,
+            partner_rank=current_level_label
+        )
+
+        print(
+            f"PARTNER LEVEL SYNC ✅ partner_id={partner_id} level={current_level_label} next={next_level_label} result={sheet_result}",
+            flush=True
+        )
+
+        progress["mlm_level_sheet_result"] = sheet_result
+
+        return {
+            "status": "success",
+            "partner_id": partner_id,
+            "progress": progress,
+            "sheet_result": sheet_result,
+        }
+
+    except Exception as error:
+        print(f"PARTNER LEVEL SYNC ERROR ❌ partner_id={partner_id} error={error}", flush=True)
+
+        return {
+            "status": "error",
+            "partner_id": partner_id,
+            "message": str(error),
+        }
