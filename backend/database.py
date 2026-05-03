@@ -1512,6 +1512,23 @@ def ensure_paid_client_is_partner(
             partner_rank="Level 1"
         )
 
+        try:
+            save_auto_partner_mapping_from_result(
+                result=result,
+                client_id=client_id,
+                session_id=session_id,
+                sponsor_partner_id=source_partner_id,
+                partner_name=final_partner_name,
+                phone=final_phone,
+                email=final_email,
+                country=final_country,
+                plan_name=plan_name,
+                package_amount=package_amount,
+                stripe_subscription_id=stripe_subscription_id,
+            )
+        except Exception as mapping_error:
+            print(f"AUTO PARTNER MAPPING SAVE ERROR {mapping_error}", flush=True)
+
         print(f"AUTO PARTNER CREATE RESULT {result}", flush=True)
 
         return result
@@ -2477,3 +2494,757 @@ def send_mlm_level_to_google_sheet(
     }
 
     return post_to_google_sheet_json(payload, label="mlm_level")
+
+def _level_db_table_exists(table_name):
+    try:
+        conn = get_connection()
+        c = conn.cursor()
+        c.execute(
+            "SELECT name FROM sqlite_master WHERE type='table' AND name=?",
+            (table_name,)
+        )
+        row = c.fetchone()
+        conn.close()
+        return bool(row)
+    except Exception as error:
+        print(f"LEVEL DB TABLE EXISTS ERROR {error}", flush=True)
+        return False
+
+
+def _level_db_columns(table_name):
+    try:
+        if not _level_db_table_exists(table_name):
+            return set()
+
+        conn = get_connection()
+        c = conn.cursor()
+        c.execute(f"PRAGMA table_info({table_name})")
+        rows = c.fetchall()
+        conn.close()
+
+        return {str(row[1]) for row in rows}
+
+    except Exception as error:
+        print(f"LEVEL DB COLUMNS ERROR {error}", flush=True)
+        return set()
+
+
+def _pick_first_existing_column(columns, candidates):
+    for candidate in candidates:
+        if candidate in columns:
+            return candidate
+    return ""
+
+
+def init_level_qualification_tables():
+    conn = get_connection()
+    c = conn.cursor()
+
+    c.execute(
+        """
+        CREATE TABLE IF NOT EXISTS partner_client_map (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            partner_id TEXT UNIQUE,
+            client_id TEXT,
+            session_id TEXT,
+            sponsor_partner_id TEXT,
+            partner_name TEXT,
+            phone TEXT,
+            email TEXT,
+            country TEXT,
+            plan_name TEXT,
+            package_amount TEXT,
+            stripe_subscription_id TEXT,
+            created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+            updated_at TEXT DEFAULT CURRENT_TIMESTAMP
+        )
+        """
+    )
+
+    c.execute(
+        """
+        CREATE TABLE IF NOT EXISTS course_purchases (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            partner_id TEXT,
+            course_code TEXT,
+            course_name TEXT,
+            amount REAL,
+            currency TEXT DEFAULT 'USD',
+            status TEXT DEFAULT 'paid',
+            stripe_payment_id TEXT,
+            notes TEXT,
+            paid_at TEXT DEFAULT CURRENT_TIMESTAMP,
+            refunded_at TEXT,
+            created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+            updated_at TEXT DEFAULT CURRENT_TIMESTAMP,
+            UNIQUE(partner_id, course_code, stripe_payment_id)
+        )
+        """
+    )
+
+    c.execute(
+        """
+        CREATE TABLE IF NOT EXISTS partner_level_progress (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            partner_id TEXT UNIQUE,
+            current_level INTEGER DEFAULT 0,
+            current_level_name TEXT,
+            next_level INTEGER,
+            next_level_name TEXT,
+            current_package TEXT,
+            subscription_status TEXT,
+            subscription_active INTEGER DEFAULT 0,
+            commission_eligible INTEGER DEFAULT 0,
+            active_direct_customers INTEGER DEFAULT 0,
+            purchased_courses TEXT,
+            missing_requirements TEXT,
+            progress_json TEXT,
+            updated_at TEXT DEFAULT CURRENT_TIMESTAMP
+        )
+        """
+    )
+
+    conn.commit()
+    conn.close()
+
+
+def extract_partner_id_from_google_sheet_result(result):
+    if not result:
+        return ""
+
+    priority_keys = [
+        "partner_id",
+        "partnerId",
+        "Partner ID",
+        "generated_partner_id",
+        "new_partner_id",
+        "id",
+    ]
+
+    if isinstance(result, dict):
+        for key in priority_keys:
+            value = result.get(key)
+            if value:
+                value = str(value).strip()
+                if value.lower() == "alsaab" or value.upper().startswith("ALS-P"):
+                    return value if value.lower() == "alsaab" else value.upper()
+
+        for value in result.values():
+            partner_id = extract_partner_id_from_google_sheet_result(value)
+            if partner_id:
+                return partner_id
+
+    if isinstance(result, list):
+        for item in result:
+            partner_id = extract_partner_id_from_google_sheet_result(item)
+            if partner_id:
+                return partner_id
+
+    return ""
+
+
+def save_partner_client_mapping(
+    partner_id,
+    client_id="",
+    session_id="",
+    sponsor_partner_id="",
+    partner_name="",
+    phone="",
+    email="",
+    country="",
+    plan_name="",
+    package_amount="",
+    stripe_subscription_id="",
+):
+    init_level_qualification_tables()
+
+    partner_id = normalize_partner_id(partner_id)
+
+    if not partner_id or str(partner_id).lower() == str(COMPANY_OWNER_PARTNER_ID).lower():
+        return {
+            "status": "skipped",
+            "message": "No regular partner_id to map",
+            "partner_id": partner_id,
+        }
+
+    client_id = str(client_id or session_id or "").strip()
+    session_id = str(session_id or client_id or "").strip()
+    sponsor_partner_id = normalize_partner_id(sponsor_partner_id or COMPANY_OWNER_PARTNER_ID)
+
+    conn = get_connection()
+    c = conn.cursor()
+
+    c.execute(
+        """
+        INSERT INTO partner_client_map (
+            partner_id,
+            client_id,
+            session_id,
+            sponsor_partner_id,
+            partner_name,
+            phone,
+            email,
+            country,
+            plan_name,
+            package_amount,
+            stripe_subscription_id,
+            created_at,
+            updated_at
+        )
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
+        ON CONFLICT(partner_id) DO UPDATE SET
+            client_id=COALESCE(NULLIF(excluded.client_id, ''), partner_client_map.client_id),
+            session_id=COALESCE(NULLIF(excluded.session_id, ''), partner_client_map.session_id),
+            sponsor_partner_id=COALESCE(NULLIF(excluded.sponsor_partner_id, ''), partner_client_map.sponsor_partner_id),
+            partner_name=COALESCE(NULLIF(excluded.partner_name, ''), partner_client_map.partner_name),
+            phone=COALESCE(NULLIF(excluded.phone, ''), partner_client_map.phone),
+            email=COALESCE(NULLIF(excluded.email, ''), partner_client_map.email),
+            country=COALESCE(NULLIF(excluded.country, ''), partner_client_map.country),
+            plan_name=COALESCE(NULLIF(excluded.plan_name, ''), partner_client_map.plan_name),
+            package_amount=COALESCE(NULLIF(excluded.package_amount, ''), partner_client_map.package_amount),
+            stripe_subscription_id=COALESCE(NULLIF(excluded.stripe_subscription_id, ''), partner_client_map.stripe_subscription_id),
+            updated_at=CURRENT_TIMESTAMP
+        """,
+        (
+            partner_id,
+            client_id,
+            session_id,
+            sponsor_partner_id,
+            str(partner_name or "").strip(),
+            str(phone or "").strip(),
+            str(email or "").strip(),
+            str(country or "").strip(),
+            str(plan_name or "").strip(),
+            str(package_amount or "").strip(),
+            str(stripe_subscription_id or "").strip(),
+        )
+    )
+
+    conn.commit()
+    conn.close()
+
+    return {
+        "status": "success",
+        "partner_id": partner_id,
+        "client_id": client_id,
+        "session_id": session_id,
+        "sponsor_partner_id": sponsor_partner_id,
+    }
+
+
+def save_auto_partner_mapping_from_result(
+    result,
+    client_id="",
+    session_id="",
+    sponsor_partner_id="",
+    partner_name="",
+    phone="",
+    email="",
+    country="",
+    plan_name="",
+    package_amount="",
+    stripe_subscription_id="",
+):
+    partner_id = extract_partner_id_from_google_sheet_result(result)
+
+    if not partner_id:
+        print(f"AUTO PARTNER MAPPING SKIPPED no partner_id in result={result}", flush=True)
+        return {
+            "status": "skipped",
+            "message": "partner_id not found in google sheet result",
+            "result": result,
+        }
+
+    mapped = save_partner_client_mapping(
+        partner_id=partner_id,
+        client_id=client_id,
+        session_id=session_id,
+        sponsor_partner_id=sponsor_partner_id,
+        partner_name=partner_name,
+        phone=phone,
+        email=email,
+        country=country,
+        plan_name=plan_name,
+        package_amount=package_amount,
+        stripe_subscription_id=stripe_subscription_id,
+    )
+
+    print(f"AUTO PARTNER MAPPING SAVED {mapped}", flush=True)
+
+    return mapped
+
+
+def get_partner_client_mapping(partner_id):
+    init_level_qualification_tables()
+
+    partner_id = normalize_partner_id(partner_id)
+
+    conn = get_connection()
+    c = conn.cursor()
+
+    c.execute(
+        """
+        SELECT
+            partner_id,
+            client_id,
+            session_id,
+            sponsor_partner_id,
+            partner_name,
+            phone,
+            email,
+            country,
+            plan_name,
+            package_amount,
+            stripe_subscription_id,
+            created_at,
+            updated_at
+        FROM partner_client_map
+        WHERE partner_id=?
+        LIMIT 1
+        """,
+        (partner_id,)
+    )
+
+    row = c.fetchone()
+    conn.close()
+
+    if not row:
+        return {}
+
+    return {
+        "partner_id": row[0],
+        "client_id": row[1],
+        "session_id": row[2],
+        "sponsor_partner_id": row[3],
+        "partner_name": row[4],
+        "phone": row[5],
+        "email": row[6],
+        "country": row[7],
+        "plan_name": row[8],
+        "package_amount": row[9],
+        "stripe_subscription_id": row[10],
+        "created_at": row[11],
+        "updated_at": row[12],
+    }
+
+
+def get_partner_subscription_snapshot(partner_id):
+    from level_engine import normalize_package_name
+
+    mapping = get_partner_client_mapping(partner_id)
+    client_id = str(mapping.get("client_id") or "").strip()
+    session_id = str(mapping.get("session_id") or "").strip()
+
+    default_snapshot = {
+        "partner_id": normalize_partner_id(partner_id),
+        "client_id": client_id,
+        "session_id": session_id,
+        "plan_name": normalize_package_name(mapping.get("plan_name") or ""),
+        "subscription_status": "",
+        "stripe_subscription_id": mapping.get("stripe_subscription_id") or "",
+        "package_amount": mapping.get("package_amount") or "",
+    }
+
+    table = "client_subscriptions"
+
+    if not _level_db_table_exists(table):
+        return default_snapshot
+
+    columns = _level_db_columns(table)
+
+    plan_col = _pick_first_existing_column(
+        columns,
+        ["plan_name", "package_name", "plan", "package", "subscription_plan"]
+    )
+
+    status_col = _pick_first_existing_column(
+        columns,
+        ["status", "subscription_status", "state"]
+    )
+
+    client_col = _pick_first_existing_column(
+        columns,
+        ["client_id", "session_id", "user_id"]
+    )
+
+    session_col = _pick_first_existing_column(
+        columns,
+        ["session_id", "client_id", "user_id"]
+    )
+
+    stripe_col = _pick_first_existing_column(
+        columns,
+        ["stripe_subscription_id", "subscription_id"]
+    )
+
+    amount_col = _pick_first_existing_column(
+        columns,
+        ["package_amount", "amount", "price", "subscription_amount"]
+    )
+
+    if not client_col and not session_col:
+        return default_snapshot
+
+    select_cols = []
+
+    for col in [plan_col, status_col, client_col, session_col, stripe_col, amount_col]:
+        if col and col not in select_cols:
+            select_cols.append(col)
+
+    if not select_cols:
+        return default_snapshot
+
+    where_clauses = []
+    params = []
+
+    if client_id and client_col:
+        where_clauses.append(f"{client_col}=?")
+        params.append(client_id)
+
+    if session_id and session_col:
+        where_clauses.append(f"{session_col}=?")
+        params.append(session_id)
+
+    if not where_clauses:
+        return default_snapshot
+
+    query = (
+        f"SELECT {', '.join(select_cols)} FROM {table} "
+        f"WHERE {' OR '.join(where_clauses)} "
+        "ORDER BY id DESC LIMIT 1"
+    )
+
+    try:
+        conn = get_connection()
+        c = conn.cursor()
+        c.execute(query, tuple(params))
+        row = c.fetchone()
+        conn.close()
+
+        if not row:
+            return default_snapshot
+
+        values = dict(zip(select_cols, row))
+
+        snapshot = dict(default_snapshot)
+
+        if plan_col:
+            snapshot["plan_name"] = normalize_package_name(values.get(plan_col) or snapshot["plan_name"])
+
+        if status_col:
+            snapshot["subscription_status"] = str(values.get(status_col) or "").strip().lower()
+
+        if client_col:
+            snapshot["client_id"] = str(values.get(client_col) or snapshot["client_id"] or "").strip()
+
+        if session_col:
+            snapshot["session_id"] = str(values.get(session_col) or snapshot["session_id"] or "").strip()
+
+        if stripe_col:
+            snapshot["stripe_subscription_id"] = str(values.get(stripe_col) or snapshot["stripe_subscription_id"] or "").strip()
+
+        if amount_col:
+            snapshot["package_amount"] = str(values.get(amount_col) or snapshot["package_amount"] or "").strip()
+
+        return snapshot
+
+    except Exception as error:
+        print(f"PARTNER SUBSCRIPTION SNAPSHOT ERROR {error}", flush=True)
+        return default_snapshot
+
+
+def count_active_direct_paid_customers(partner_id):
+    from level_engine import ACTIVE_SUBSCRIPTION_STATUSES
+
+    partner_id = normalize_partner_id(partner_id)
+    table = "client_subscriptions"
+
+    if not partner_id or not _level_db_table_exists(table):
+        return 0
+
+    columns = _level_db_columns(table)
+
+    source_col = _pick_first_existing_column(
+        columns,
+        ["source_partner_id", "sponsor_partner_id", "partner_id", "ref_partner_id"]
+    )
+
+    status_col = _pick_first_existing_column(
+        columns,
+        ["status", "subscription_status", "state"]
+    )
+
+    distinct_col = _pick_first_existing_column(
+        columns,
+        ["client_id", "session_id", "stripe_customer_id", "email"]
+    )
+
+    if not source_col:
+        return 0
+
+    if not distinct_col:
+        distinct_col = source_col
+
+    query = f"SELECT COUNT(DISTINCT {distinct_col}) FROM {table} WHERE {source_col}=?"
+    params = [partner_id]
+
+    if status_col:
+        placeholders = ",".join(["?"] * len(ACTIVE_SUBSCRIPTION_STATUSES))
+        query += f" AND LOWER({status_col}) IN ({placeholders})"
+        params.extend(sorted(ACTIVE_SUBSCRIPTION_STATUSES))
+
+    try:
+        conn = get_connection()
+        c = conn.cursor()
+        c.execute(query, tuple(params))
+        row = c.fetchone()
+        conn.close()
+
+        return int(row[0] or 0) if row else 0
+
+    except Exception as error:
+        print(f"COUNT ACTIVE DIRECT CUSTOMERS ERROR {error}", flush=True)
+        return 0
+
+
+def record_partner_course_purchase(
+    partner_id,
+    course_code,
+    course_name="",
+    amount=0,
+    currency="USD",
+    status="paid",
+    stripe_payment_id="manual",
+    notes="",
+    paid_at="",
+):
+    from level_engine import normalize_course_code
+
+    init_level_qualification_tables()
+
+    partner_id = normalize_partner_id(partner_id)
+    course_code = normalize_course_code(course_code)
+    status = str(status or "paid").strip().lower()
+    stripe_payment_id = str(stripe_payment_id or "manual").strip()
+
+    if not partner_id or not course_code:
+        return {
+            "status": "error",
+            "message": "partner_id and course_code are required"
+        }
+
+    conn = get_connection()
+    c = conn.cursor()
+
+    c.execute(
+        """
+        INSERT OR IGNORE INTO course_purchases (
+            partner_id,
+            course_code,
+            course_name,
+            amount,
+            currency,
+            status,
+            stripe_payment_id,
+            notes,
+            paid_at,
+            created_at,
+            updated_at
+        )
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, COALESCE(NULLIF(?, ''), CURRENT_TIMESTAMP), CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
+        """,
+        (
+            partner_id,
+            course_code,
+            str(course_name or "").strip(),
+            float(amount or 0),
+            str(currency or "USD").strip().upper(),
+            status,
+            stripe_payment_id,
+            str(notes or "").strip(),
+            str(paid_at or "").strip(),
+        )
+    )
+
+    conn.commit()
+    conn.close()
+
+    return {
+        "status": "success",
+        "partner_id": partner_id,
+        "course_code": course_code,
+        "stripe_payment_id": stripe_payment_id,
+    }
+
+
+def get_partner_purchased_courses(partner_id):
+    init_level_qualification_tables()
+
+    partner_id = normalize_partner_id(partner_id)
+
+    conn = get_connection()
+    c = conn.cursor()
+
+    c.execute(
+        """
+        SELECT DISTINCT course_code
+        FROM course_purchases
+        WHERE partner_id=?
+          AND LOWER(status) IN ('paid', 'active', 'completed')
+          AND (refunded_at IS NULL OR refunded_at='')
+        """,
+        (partner_id,)
+    )
+
+    rows = c.fetchall()
+    conn.close()
+
+    return [row[0] for row in rows if row and row[0]]
+
+
+def calculate_partner_level_from_database(partner_id):
+    from level_engine import calculate_partner_level_progress
+
+    partner_id = normalize_partner_id(partner_id)
+
+    subscription = get_partner_subscription_snapshot(partner_id)
+    active_direct_customers = count_active_direct_paid_customers(partner_id)
+    purchased_courses = get_partner_purchased_courses(partner_id)
+
+    progress = calculate_partner_level_progress(
+        package_name=subscription.get("plan_name") or "",
+        active_direct_customers=active_direct_customers,
+        purchased_courses=purchased_courses,
+        subscription_status=subscription.get("subscription_status") or "",
+    )
+
+    progress["partner_id"] = partner_id
+    progress["client_id"] = subscription.get("client_id") or ""
+    progress["session_id"] = subscription.get("session_id") or ""
+    progress["stripe_subscription_id"] = subscription.get("stripe_subscription_id") or ""
+    progress["package_amount"] = subscription.get("package_amount") or ""
+
+    return progress
+
+
+def save_partner_level_progress(partner_id, progress):
+    import json
+
+    init_level_qualification_tables()
+
+    partner_id = normalize_partner_id(partner_id)
+
+    conn = get_connection()
+    c = conn.cursor()
+
+    c.execute(
+        """
+        INSERT INTO partner_level_progress (
+            partner_id,
+            current_level,
+            current_level_name,
+            next_level,
+            next_level_name,
+            current_package,
+            subscription_status,
+            subscription_active,
+            commission_eligible,
+            active_direct_customers,
+            purchased_courses,
+            missing_requirements,
+            progress_json,
+            updated_at
+        )
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP)
+        ON CONFLICT(partner_id) DO UPDATE SET
+            current_level=excluded.current_level,
+            current_level_name=excluded.current_level_name,
+            next_level=excluded.next_level,
+            next_level_name=excluded.next_level_name,
+            current_package=excluded.current_package,
+            subscription_status=excluded.subscription_status,
+            subscription_active=excluded.subscription_active,
+            commission_eligible=excluded.commission_eligible,
+            active_direct_customers=excluded.active_direct_customers,
+            purchased_courses=excluded.purchased_courses,
+            missing_requirements=excluded.missing_requirements,
+            progress_json=excluded.progress_json,
+            updated_at=CURRENT_TIMESTAMP
+        """,
+        (
+            partner_id,
+            int(progress.get("current_level") or 0),
+            progress.get("current_level_name") or "",
+            progress.get("next_level"),
+            progress.get("next_level_name") or "",
+            progress.get("current_package") or "",
+            progress.get("subscription_status") or "",
+            1 if progress.get("subscription_active") else 0,
+            1 if progress.get("commission_eligible") else 0,
+            int(progress.get("active_direct_customers") or 0),
+            json.dumps(progress.get("purchased_courses") or [], ensure_ascii=False),
+            json.dumps(progress.get("missing_requirements") or [], ensure_ascii=False),
+            json.dumps(progress, ensure_ascii=False),
+        )
+    )
+
+    conn.commit()
+    conn.close()
+
+    return {
+        "status": "success",
+        "partner_id": partner_id,
+        "current_level": progress.get("current_level"),
+        "commission_eligible": progress.get("commission_eligible"),
+    }
+
+
+def calculate_and_save_partner_level_progress(partner_id):
+    progress = calculate_partner_level_from_database(partner_id)
+    save_result = save_partner_level_progress(partner_id, progress)
+    progress["save_result"] = save_result
+    return progress
+
+
+def get_saved_partner_level_progress(partner_id):
+    import json
+
+    init_level_qualification_tables()
+
+    partner_id = normalize_partner_id(partner_id)
+
+    conn = get_connection()
+    c = conn.cursor()
+
+    c.execute(
+        """
+        SELECT progress_json
+        FROM partner_level_progress
+        WHERE partner_id=?
+        LIMIT 1
+        """,
+        (partner_id,)
+    )
+
+    row = c.fetchone()
+    conn.close()
+
+    if not row or not row[0]:
+        return {}
+
+    try:
+        return json.loads(row[0])
+    except Exception:
+        return {}
+
+
+def is_partner_commission_eligible_from_database(partner_id, commission_depth):
+    from level_engine import is_partner_eligible_for_commission_depth
+
+    progress = calculate_and_save_partner_level_progress(partner_id)
+
+    return is_partner_eligible_for_commission_depth(
+        current_level=progress.get("current_level") or 0,
+        commission_depth=commission_depth,
+        subscription_status=progress.get("subscription_status") or "",
+    )
