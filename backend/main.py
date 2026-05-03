@@ -14,6 +14,7 @@ from database import (
     send_partner_to_google_sheet,
     get_source_partner_id_for_session,
     get_client_subscription_by_stripe_subscription_id,
+    ensure_paid_client_is_partner,
 )
 from config import (
     STRIPE_PLAN_CONFIG,
@@ -1580,6 +1581,32 @@ def stripe_webhook():
             source_partner_id=source_partner_id
         )
 
+        try:
+            customer_details = checkout_session.get("customer_details", {}) or {}
+
+            auto_partner_result = ensure_paid_client_is_partner(
+                session_id=session_id,
+                client_id=session_id,
+                source_partner_id=source_partner_id,
+                partner_name=customer_details.get("name", "") or "",
+                phone=customer_details.get("phone", "") or "",
+                email=(
+                    customer_details.get("email", "")
+                    or checkout_session.get("customer_email", "")
+                    or ""
+                ),
+                country="",
+                notes=f"auto_partner_from_checkout_session_completed; stripe_event_id={event_id}",
+                stripe_subscription_id=stripe_subscription_id,
+                plan_name=plan_name,
+                package_amount=package_amount
+            )
+
+            print(f"STRIPE AUTO PARTNER RESULT {auto_partner_result}", flush=True)
+
+        except Exception as error:
+            print(f"STRIPE AUTO PARTNER ERROR {error}", flush=True)
+
         print(
             f"STRIPE SUBSCRIPTION ACTIVATED ✅ session_id={session_id} plan={plan_name} source_partner_id={source_partner_id}",
             flush=True
@@ -1662,6 +1689,26 @@ def stripe_webhook():
             reset_usage=True,
             source_partner_id=source_partner_id
         )
+
+        try:
+            auto_partner_result = ensure_paid_client_is_partner(
+                session_id=session_id,
+                client_id=existing_subscription.get("client_id") or session_id,
+                source_partner_id=source_partner_id,
+                partner_name="",
+                phone="",
+                email="",
+                country="",
+                notes=f"auto_partner_from_invoice_paid_fallback; stripe_event_id={event_id}; invoice_id={invoice_id}",
+                stripe_subscription_id=stripe_subscription_id,
+                plan_name=plan_name,
+                package_amount=package_amount
+            )
+
+            print(f"INVOICE PAID AUTO PARTNER RESULT {auto_partner_result}", flush=True)
+
+        except Exception as error:
+            print(f"INVOICE PAID AUTO PARTNER ERROR {error}", flush=True)
 
         print(
             f"STRIPE INVOICE PAID HANDLED ✅ session_id={session_id} plan={plan_name} source_partner_id={source_partner_id} invoice_id={invoice_id}",
@@ -2269,6 +2316,27 @@ def activate_subscription():
         reset_usage=True,
         source_partner_id=source_partner_id
     )
+
+    if str(status or "").lower().strip() in ["active", "paid"]:
+        try:
+            auto_partner_result = ensure_paid_client_is_partner(
+                session_id=session_id,
+                client_id=client_id,
+                source_partner_id=source_partner_id,
+                partner_name="",
+                phone="",
+                email="",
+                country="",
+                notes=f"auto_partner_from_admin_activate_subscription; {notes}",
+                stripe_subscription_id="",
+                plan_name=plan,
+                package_amount=package_amount
+            )
+
+            print(f"ADMIN AUTO PARTNER RESULT {auto_partner_result}", flush=True)
+
+        except Exception as error:
+            print(f"ADMIN AUTO PARTNER ERROR {error}", flush=True)
 
     return jsonify({
         "status": "success",

@@ -1332,6 +1332,201 @@ def get_client_subscription_by_stripe_subscription_id(stripe_subscription_id):
         return None
 
     return get_client_subscription(row[0])
+
+def get_latest_lead_for_session(session_id):
+    session_id = str(session_id or "").strip()
+
+    if not session_id:
+        return {}
+
+    try:
+        conn = get_connection()
+        c = conn.cursor()
+
+        c.execute(
+            """
+            SELECT
+                name,
+                phone,
+                email,
+                country,
+                business_name,
+                user_type
+            FROM leads
+            WHERE session_id=?
+            ORDER BY id DESC
+            LIMIT 1
+            """,
+            (session_id,)
+        )
+
+        row = c.fetchone()
+        conn.close()
+
+        if not row:
+            return {}
+
+        return {
+            "name": row[0] or "",
+            "phone": row[1] or "",
+            "email": row[2] or "",
+            "country": row[3] or "",
+            "business_name": row[4] or "",
+            "user_type": row[5] or "",
+        }
+
+    except Exception as error:
+        print(f"LATEST LEAD LOOKUP ERROR {error}", flush=True)
+        return {}
+
+
+def build_auto_partner_name(session_id, client_id="", email="", phone="", lead_name="", business_name=""):
+    lead_name = str(lead_name or "").strip()
+    business_name = str(business_name or "").strip()
+    email = str(email or "").strip()
+    phone = str(phone or "").strip()
+    reference_id = str(client_id or session_id or "").strip()
+
+    if lead_name:
+        return lead_name
+
+    if business_name:
+        return business_name
+
+    if email and "@" in email:
+        return email.split("@")[0].strip() or email
+
+    if phone:
+        return f"ALSAAB Partner {phone}"
+
+    if reference_id:
+        return f"ALSAAB Partner {reference_id[:8]}"
+
+    return "ALSAAB Partner"
+
+
+def normalize_auto_partner_source(source_partner_id, session_id=""):
+    normalized_source = normalize_partner_id(
+        source_partner_id
+        or get_source_partner_id_for_session(session_id)
+        or COMPANY_OWNER_PARTNER_ID
+    )
+
+    if not normalized_source:
+        return COMPANY_OWNER_PARTNER_ID
+
+    if str(normalized_source).lower() == str(COMPANY_OWNER_PARTNER_ID).lower():
+        return COMPANY_OWNER_PARTNER_ID
+
+    if str(normalized_source).upper().startswith("ALS-P"):
+        return str(normalized_source).upper()
+
+    return COMPANY_OWNER_PARTNER_ID
+
+
+def ensure_paid_client_is_partner(
+    session_id,
+    client_id="",
+    source_partner_id="",
+    partner_name="",
+    phone="",
+    email="",
+    country="",
+    notes="",
+    stripe_subscription_id="",
+    plan_name="",
+    package_amount=""
+):
+    """
+    أي شخص يدفع يصير عميل + شريك تلقائياً.
+    إذا ما عنده Partner ID في Google Sheets، Apps Script يولده.
+    إذا عنده Partner مسبقاً، Apps Script يرجع نفس Partner ID بدون تكرار.
+    """
+    session_id = str(session_id or "").strip()
+    client_id = str(client_id or session_id or "").strip()
+
+    if not session_id and not client_id:
+        return {
+            "status": "error",
+            "message": "session_id or client_id is required"
+        }
+
+    if not session_id:
+        session_id = client_id
+
+    source_partner_id = normalize_auto_partner_source(
+        source_partner_id,
+        session_id=session_id
+    )
+
+    latest_lead = get_latest_lead_for_session(session_id)
+
+    final_phone = str(phone or latest_lead.get("phone", "") or "").strip()
+    final_email = str(email or latest_lead.get("email", "") or "").strip()
+    final_country = str(country or latest_lead.get("country", "") or "").strip()
+
+    final_partner_name = build_auto_partner_name(
+        session_id=session_id,
+        client_id=client_id,
+        email=final_email,
+        phone=final_phone,
+        lead_name=partner_name or latest_lead.get("name", ""),
+        business_name=latest_lead.get("business_name", "")
+    )
+
+    notes_parts = []
+
+    if notes:
+        notes_parts.append(str(notes))
+
+    notes_parts.extend([
+        "auto_created_from_paid_client",
+        f"session_id={session_id}",
+        f"client_id={client_id}",
+        f"source_partner_id={source_partner_id}",
+        f"stripe_subscription_id={stripe_subscription_id or ''}",
+        f"plan_name={plan_name or ''}",
+        f"package_amount={package_amount or ''}",
+    ])
+
+    final_notes = "; ".join(notes_parts)
+
+    try:
+        print(
+            f"AUTO PARTNER CREATE START session_id={session_id} client_id={client_id} sponsor={source_partner_id}",
+            flush=True
+        )
+
+        result = send_partner_to_google_sheet(
+            partner_name=final_partner_name,
+            phone=final_phone,
+            email=final_email,
+            country=final_country,
+            invited_by=source_partner_id,
+            notes=final_notes,
+            level="Level 1",
+            status="active",
+            client_id=client_id,
+            sponsor_partner_id=source_partner_id,
+            parent_partner_id=source_partner_id,
+            partner_rank="Level 1"
+        )
+
+        print(f"AUTO PARTNER CREATE RESULT {result}", flush=True)
+
+        return result
+
+    except Exception as error:
+        print(f"AUTO PARTNER CREATE ERROR {error}", flush=True)
+
+        return {
+            "status": "error",
+            "message": str(error),
+            "session_id": session_id,
+            "client_id": client_id,
+            "source_partner_id": source_partner_id
+        }
+
 def create_or_update_subscription(
     session_id,
     plan_name,
