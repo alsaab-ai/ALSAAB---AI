@@ -1561,8 +1561,9 @@ def create_or_update_subscription(
     if not client_id:
         client_id = session_id
 
-    source_partner_id = normalize_partner_id(
-        source_partner_id or get_source_partner_id_for_session(session_id)
+    source_partner_id = normalize_auto_partner_source(
+        source_partner_id,
+        session_id=session_id
     )
 
     plan_name = normalize_plan_name(plan_name)
@@ -1721,6 +1722,30 @@ def create_or_update_subscription(
 
     except Exception as error:
         print(f"SUBSCRIPTION GOOGLE SHEET SEND ERROR ❌ {error}", flush=True)
+
+    try:
+        if str(status or "").lower() in ("active", "paid", "trialing"):
+            auto_partner_result = ensure_paid_client_is_partner(
+                session_id=session_id,
+                client_id=client_id,
+                source_partner_id=source_partner_id,
+                notes=(notes or "") + "; AUTO PAID CLIENT PARTNER ENSURE FROM SUBSCRIPTION",
+                stripe_subscription_id=stripe_subscription_id,
+                plan_name=plan_name,
+                package_amount=package_amount
+            )
+
+            print(
+                f"AUTO PAID CLIENT PARTNER ENSURE RESULT ✅ {auto_partner_result}",
+                flush=True
+            )
+        else:
+            print(
+                f"AUTO PAID CLIENT PARTNER ENSURE SKIPPED status={status}",
+                flush=True
+            )
+    except Exception as auto_partner_error:
+        print(f"AUTO PAID CLIENT PARTNER ENSURE ERROR ❌ {auto_partner_error}", flush=True)
 
     try:
         if source_partner_id and str(source_partner_id).lower() != str(COMPANY_OWNER_PARTNER_ID).lower():
