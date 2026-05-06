@@ -2619,12 +2619,31 @@ def send_mlm_level_to_google_sheet(
     required_course_workshop="الاشتراك بأي باقة",
     level_status="active",
     next_level="Level 2",
-    partner_rank=""
+    partner_rank="",
+    current_package="",
+    subscription_status="",
+    commission_eligible="",
+    missing_requirements="",
+    last_updated=""
 ):
     """
     يسجل أو يحدث مستوى الشريك في Google Sheet صفحة MLMLevels.
+    يدعم الأعمدة الجديدة:
+    Current Package, Subscription Status, Commission Eligible, Missing Requirements, Last Updated
     """
+    import json
+
     normalized_rank = normalize_partner_rank(partner_rank or current_level)
+
+    if isinstance(missing_requirements, (list, dict)):
+        missing_requirements_value = json.dumps(missing_requirements, ensure_ascii=False)
+    else:
+        missing_requirements_value = str(missing_requirements or "")
+
+    if isinstance(commission_eligible, bool):
+        commission_eligible_value = "yes" if commission_eligible else "no"
+    else:
+        commission_eligible_value = str(commission_eligible or "")
 
     payload = {
         "token": GOOGLE_SHEET_TOKEN,
@@ -2639,6 +2658,11 @@ def send_mlm_level_to_google_sheet(
         "level_status": level_status or "active",
         "next_rank": next_level or "",
         "next_level": next_level or "",
+        "current_package": current_package or "",
+        "subscription_status": subscription_status or "",
+        "commission_eligible": commission_eligible_value,
+        "missing_requirements": missing_requirements_value,
+        "last_updated": last_updated or current_timestamp(),
     }
 
     return post_to_google_sheet_json(payload, label="mlm_level")
@@ -3486,6 +3510,11 @@ def sync_partner_level_progress_to_google_sheet(partner_id):
 
         level_status = "active" if progress.get("commission_eligible") else "inactive"
 
+        missing_requirements = progress.get("missing_requirements") or []
+        current_package = progress.get("current_package") or ""
+        subscription_status = progress.get("subscription_status") or ""
+        commission_eligible = "yes" if progress.get("commission_eligible") else "no"
+
         sheet_result = send_mlm_level_to_google_sheet(
             partner_id=partner_id,
             current_level=current_level_label,
@@ -3494,11 +3523,16 @@ def sync_partner_level_progress_to_google_sheet(partner_id):
             required_course_workshop=required_course_workshop,
             level_status=level_status,
             next_level=next_level_label,
-            partner_rank=current_level_label
+            partner_rank=current_level_label,
+            current_package=current_package,
+            subscription_status=subscription_status,
+            commission_eligible=commission_eligible,
+            missing_requirements=missing_requirements,
+            last_updated=current_timestamp()
         )
 
         print(
-            f"PARTNER LEVEL SYNC ✅ partner_id={partner_id} level={current_level_label} next={next_level_label} result={sheet_result}",
+            f"PARTNER LEVEL SYNC ✅ partner_id={partner_id} level={current_level_label} next={next_level_label} package={current_package} subscription_status={subscription_status} commission_eligible={commission_eligible} result={sheet_result}",
             flush=True
         )
 
