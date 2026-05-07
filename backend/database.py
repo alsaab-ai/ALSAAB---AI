@@ -1196,23 +1196,111 @@ def normalize_plan_name(plan_name):
 
 
 def get_plan_reply_limit(plan_name, custom_reply_limit=None):
-    plan_name = normalize_plan_name(plan_name)
-
-    if custom_reply_limit is not None:
+    if custom_reply_limit not in (None, "", 0, "0"):
         try:
             return int(custom_reply_limit)
         except Exception:
             pass
 
-    if plan_name == "enterprise":
-        return 999999999
-
-    plan_data = PACKAGES.get(plan_name, {})
+    plan = normalize_plan_name(plan_name)
 
     try:
-        return int(plan_data.get("monthly_reply_limit", 0))
-    except Exception:
-        return 0
+        from config import PACKAGES
+
+        package = PACKAGES.get(plan) or {}
+        limit = (
+            package.get("customer_reply_limit")
+            or package.get("total_customer_reply_limit")
+            or package.get("monthly_reply_limit")
+        )
+
+        if str(limit).lower() == "custom":
+            return 0
+
+        if limit not in (None, ""):
+            return int(limit)
+
+    except Exception as error:
+        print(f"GET PLAN REPLY LIMIT CONFIG ERROR ⚠️ {error}", flush=True)
+
+    if plan == "starter":
+        return 2000
+
+    if plan == "growth":
+        return 6000
+
+    if plan == "elite":
+        return 15000
+
+    return 6000
+
+
+def get_plan_owner_advisory_reply_limit(plan_name):
+    plan = normalize_plan_name(plan_name)
+
+    try:
+        from config import PACKAGES
+
+        package = PACKAGES.get(plan) or {}
+        limit = package.get("owner_advisory_reply_limit") or 0
+        return int(limit)
+
+    except Exception as error:
+        print(f"GET PLAN OWNER ADVISORY LIMIT ERROR ⚠️ {error}", flush=True)
+
+    if plan == "growth":
+        return 1000
+
+    if plan == "elite":
+        return 2000
+
+    return 0
+
+
+def get_plan_package_features(plan_name):
+    plan = normalize_plan_name(plan_name)
+
+    try:
+        from config import PACKAGES
+
+        package = PACKAGES.get(plan) or {}
+
+        return {
+            "plan_name": plan,
+            "customer_reply_limit": int(package.get("customer_reply_limit") or package.get("monthly_reply_limit") or 0),
+            "base_customer_reply_limit": int(package.get("base_customer_reply_limit") or package.get("customer_reply_limit") or package.get("monthly_reply_limit") or 0),
+            "gift_reply_limit": int(package.get("gift_reply_limit") or 0),
+            "total_customer_reply_limit": int(package.get("total_customer_reply_limit") or package.get("customer_reply_limit") or package.get("monthly_reply_limit") or 0),
+            "owner_advisory_reply_limit": int(package.get("owner_advisory_reply_limit") or 0),
+            "channels": package.get("channels") or [],
+            "whatsapp_included": bool(package.get("whatsapp_included")),
+            "website_included": bool(package.get("website_included")),
+            "instagram_included": bool(package.get("instagram_included")),
+            "dashboard_advisory_enabled": bool(package.get("dashboard_advisory_enabled")),
+            "image_catalog_enabled": bool(package.get("image_catalog_enabled")),
+            "client_payment_links_enabled": bool(package.get("client_payment_links_enabled")),
+            "advisor_level": package.get("advisor_level") or "",
+        }
+
+    except Exception as error:
+        print(f"GET PLAN PACKAGE FEATURES ERROR ⚠️ {error}", flush=True)
+
+    return {
+        "plan_name": plan,
+        "customer_reply_limit": get_plan_reply_limit(plan),
+        "base_customer_reply_limit": get_plan_reply_limit(plan),
+        "gift_reply_limit": 0,
+        "total_customer_reply_limit": get_plan_reply_limit(plan),
+        "owner_advisory_reply_limit": get_plan_owner_advisory_reply_limit(plan),
+        "channels": [],
+        "whatsapp_included": False,
+        "website_included": False,
+        "instagram_included": False,
+        "dashboard_advisory_enabled": False,
+        "image_catalog_enabled": False,
+        "client_payment_links_enabled": False,
+        "advisor_level": "",
+    }
 
 
 def get_usage_limit_message(reason="limit_reached", subscription=None):

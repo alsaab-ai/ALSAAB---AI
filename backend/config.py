@@ -34,111 +34,158 @@ PACKAGES = {
     "starter": {
         "name_ar": "باقة البداية",
         "price_ar": "399 درهم إماراتي شهرياً",
-        "position": "تجربة ذكية للدخول",
-        "best_for": "اللي ميزانيته محدودة أو يريد يجرب النظام أولاً",
-        "note": "ليست الباقة الأقوى، لكنها مدخل ممتاز للبدء.",
+        "position": "بداية الدخول للنظام",
+        "best_for": "للمشاريع الصغيرة أو من يريد تجربة النظام بتكلفة أقل",
+        "note": "باقة دخول أساسية، مناسبة للبداية ولا تشمل الاستشارات الخاصة أو ربط الموقع.",
         "monthly_reply_limit": 2000,
+        "customer_reply_limit": 2000,
+        "base_customer_reply_limit": 2000,
+        "gift_reply_limit": 0,
+        "total_customer_reply_limit": 2000,
+        "owner_advisory_reply_limit": 0,
         "main_channel": "whatsapp",
+        "channels": ["whatsapp"],
         "whatsapp_included": True,
         "website_included": False,
+        "instagram_included": False,
+        "dashboard_advisory_enabled": False,
+        "image_catalog_enabled": False,
+        "client_payment_links_enabled": False,
+        "advisor_level": "none",
         "website_note": "لا تشمل ربط البوت على الموقع. المنفذ الرئيسي هو WhatsApp.",
         "support_level": "دعم أساسي",
         "customization_level": "تخصيص أساسي",
         "reporting_level": "بدون تقارير متقدمة",
         "recommended": False,
         "features": [
-            "2000 رد شهرياً",
-            "بوت مبيعات على WhatsApp",
+            "2000 رد شهري للعملاء",
+            "تركيب على WhatsApp",
+            "بوت مبيعات أساسي",
             "تدريب مشروع واحد",
             "حفظ بيانات العملاء",
             "حفظ بيانات المشروع",
             "Google Sheets Leads",
             "Google Sheets ClientProfiles",
-            "ردود مبيعات أساسية",
-            "روابط دفع داخل المحادثة"
+            "Partner ID + Referral Link",
+            "عمولة مباشرة 25% عند الاشتراك النشط"
         ],
         "not_included": [
             "ربط الموقع",
-            "Dashboard كامل",
-            "Follow-up أوتوماتيكي",
-            "تقارير متقدمة",
-            "تخصيص عميق",
-            "أولوية دعم"
+            "Client Dashboard متقدم",
+            "استشارات خاصة لصاحب المشروع",
+            "إضافة صور المنتجات والكتالوجات",
+            "روابط دفع خاصة بالعميل",
+            "Instagram",
+            "Follow-up أوتوماتيكي كامل",
+            "تقارير متقدمة"
         ],
-        "sales_recommendation": "لا ترشح هذه الباقة إلا إذا العميل طلب الأرخص، ميزانيته محدودة، أو يريد تجربة بسيطة فقط."
+        "sales_recommendation": "لا ترشح هذه الباقة إلا إذا العميل طلب الأرخص أو يريد تجربة بسيطة فقط."
     },
 
     "growth": {
         "name_ar": "باقة النمو",
         "price_ar": "799 درهم إماراتي شهرياً",
         "position": "الباقة الموصى بها",
-        "best_for": "معظم المشاريع اللي تريد تحسين الرد والمتابعة والتحويل",
-        "note": "هذه الباقة الأفضل لمعظم المشاريع.",
+        "best_for": "معظم أصحاب المشاريع والشركاء الذين يريدون بوت مبيعات + مستشار أعمال ومبيعات.",
+        "note": "هذه الباقة الأفضل لمعظم المشاريع لأنها تجمع بين ردود العملاء والاستشارات الخاصة لصاحب المشروع.",
         "monthly_reply_limit": 6000,
-        "main_channel": "whatsapp",
+        "customer_reply_limit": 6000,
+        "base_customer_reply_limit": 6000,
+        "gift_reply_limit": 0,
+        "total_customer_reply_limit": 6000,
+        "owner_advisory_reply_limit": 1000,
+        "main_channel": "whatsapp + website",
+        "channels": ["whatsapp", "website"],
         "whatsapp_included": True,
         "website_included": True,
-        "website_note": "تشمل إمكانية ربط البوت على الموقع بالإضافة إلى WhatsApp.",
+        "instagram_included": False,
+        "dashboard_advisory_enabled": True,
+        "image_catalog_enabled": True,
+        "client_payment_links_enabled": True,
+        "advisor_level": "business_sales_advisor",
+        "website_note": "تشمل WhatsApp + إمكانية ربط البوت على الموقع.",
         "support_level": "أولوية أعلى من باقة البداية",
         "customization_level": "تخصيص أفضل حسب المشروع",
         "reporting_level": "تقارير مبدئية لاحقاً",
         "recommended": True,
         "features": [
-            "6000 رد شهرياً",
-            "بوت مبيعات على WhatsApp",
-            "إمكانية ربط البوت على الموقع",
+            "6000 رد شهري للعملاء",
+            "1000 رد شهري استشاري لصاحب المشروع من Client Dashboard",
+            "تركيب على WhatsApp",
+            "إمكانية التركيب على الموقع",
+            "بوت مبيعات وخدمة عملاء للمشروع",
+            "مستشار ريادة أعمال ومبيعات لصاحب المشروع أو الشريك",
+            "إضافة صور المنتجات والكتالوجات",
+            "إضافة روابط دفع خاصة بالمنتجات من داخل Client Dashboard",
             "تدريب مشروع واحد",
             "Google Sheets Leads",
             "Google Sheets ClientProfiles",
-            "Prompt مبيعات أقوى",
             "تحسين أسلوب الرد حسب نشاط العميل",
             "معالجة اعتراضات أفضل",
-            "ربط البوت بأسلوب المشروع",
-            "روابط دفع داخل المحادثة"
+            "Partner ID + Referral Link",
+            "مؤهل للوصول إلى Level 2 و Level 3 حسب الشروط"
         ],
         "not_included": [
-            "Dashboard كامل متقدم",
+            "Instagram",
+            "Client Dashboard متقدم جداً",
             "Follow-up أوتوماتيكي كامل",
-            "ربط أنظمة داخلية",
-            "تخصيص Enterprise"
+            "ربط أنظمة داخلية متقدمة",
+            "Enterprise custom integrations"
         ],
-        "sales_recommendation": "هذه هي الباقة الافتراضية الموصى بها لصاحب المشروع الذي يريد رفع المبيعات وتحسين الردود والتحويل."
+        "sales_recommendation": "هذه هي الباقة الافتراضية الموصى بها لمعظم أصحاب المشاريع والشركاء."
     },
 
     "elite": {
         "name_ar": "باقة النخبة",
         "price_ar": "1499 درهم إماراتي شهرياً",
         "position": "أقوى باقة",
-        "best_for": "المشاريع الجادة اللي عندها عملاء وتريد إغلاق ومتابعة أقوى",
-        "note": "هذه للعميل الجاد الذي يريد نتيجة قوية.",
-        "monthly_reply_limit": 12000,
-        "main_channel": "whatsapp",
+        "best_for": "المشاريع الجادة والشركاء المتقدمين الذين يريدون حجم ردود أعلى وقنوات أكثر وتخصيص أقوى.",
+        "note": "باقة متقدمة للمشاريع الجادة، وتشمل ردود إضافية هدية واستشارات أعمق لصاحب المشروع.",
+        "monthly_reply_limit": 15000,
+        "customer_reply_limit": 15000,
+        "base_customer_reply_limit": 12000,
+        "gift_reply_limit": 3000,
+        "total_customer_reply_limit": 15000,
+        "owner_advisory_reply_limit": 2000,
+        "main_channel": "whatsapp + website + instagram",
+        "channels": ["whatsapp", "website", "instagram"],
         "whatsapp_included": True,
         "website_included": True,
-        "website_note": "تشمل WhatsApp + Website Bot مع تخصيص أقوى.",
+        "instagram_included": True,
+        "dashboard_advisory_enabled": True,
+        "image_catalog_enabled": True,
+        "client_payment_links_enabled": True,
+        "advisor_level": "advanced_business_sales_advisor",
+        "website_note": "تشمل WhatsApp + Website + دعم Instagram ضمن الربط المتقدم.",
         "support_level": "أولوية دعم أعلى",
         "customization_level": "تخصيص أعمق للبرومبت وسيناريوهات البيع",
         "reporting_level": "تقارير أفضل لاحقاً",
         "recommended": False,
         "features": [
-            "12000 رد شهرياً",
-            "بوت مبيعات على WhatsApp",
-            "بوت مبيعات على الموقع",
-            "تخصيص أعمق للبرومبت",
-            "Objection Handling أقوى",
+            "12000 رد شهري للعملاء",
+            "3000 رد هدية من شركة الصعب",
+            "مجموع ردود العملاء = 15000 رد شهري",
+            "2000 رد شهري استشاري لصاحب المشروع من Client Dashboard",
+            "تركيب على WhatsApp",
+            "تركيب على الموقع",
+            "دعم Instagram ضمن الربط المتقدم",
+            "بوت مبيعات وخدمة عملاء أقوى",
+            "مستشار ريادة أعمال ومبيعات أقوى وأكثر تخصيصاً",
+            "إضافة صور المنتجات والكتالوجات",
+            "إضافة روابط دفع خاصة بالمنتجات من داخل Client Dashboard",
+            "تخصيص أعمق للردود",
+            "معالجة اعتراضات أقوى",
             "إعداد سيناريوهات بيع أفضل",
-            "أولوية دعم",
-            "قابلية أعلى للتوسع",
-            "Google Sheets Leads",
-            "Google Sheets ClientProfiles",
-            "روابط دفع داخل المحادثة"
+            "Partner ID + Referral Link",
+            "شرط أساسي للوصول إلى Level 4 و Level 5"
         ],
         "not_included": [
             "استخدام غير محدود بدون سياسة استخدام عادلة",
+            "استلام مبالغ العملاء نيابة عنهم",
             "ربط أنظمة داخلية متقدمة بدون اتفاق خاص",
             "Enterprise custom integrations"
         ],
-        "sales_recommendation": "رشح هذه الباقة للعميل الجاد، أو المشروع الذي عنده حجم محادثات أعلى ويريد تخصيص أقوى."
+        "sales_recommendation": "رشح هذه الباقة للعميل الجاد أو الشريك المتقدم أو المشروع الذي يحتاج قنوات أكثر وتخصيص أعلى."
     }
 }
 
@@ -190,20 +237,20 @@ USAGE_LIMIT_RULES = {
 
 USAGE_LIMIT_MESSAGES = {
     "ar": (
-        "تم استهلاك باقتك الحالية لهذا الشهر ✅\n\n"
-        "لإكمال استخدام ALSAAB AI، تقدر ترقّي باقتك أو تنتظر تجديد الدورة الشهرية.\n\n"
+        "تم استهلاك حد الردود الشهري لباقتك الحالية ✅\n\n"
+        "لإكمال استخدام ALSAAB AI، تقدر ترقي باقتك أو تنتظر تجديد الدورة الشهرية.\n\n"
         "الباقات المتاحة:\n"
-        "- باقة النمو: 6000 رد شهرياً\n"
-        "- باقة النخبة: 12000 رد شهرياً\n\n"
-        "وإذا استخدامك عالي أو عندك شركة كبيرة، نقدر نجهز لك باقة خاصة للشركات بفاتورة شهرية منفصلة."
+        "- باقة النمو: 6000 رد شهري للعملاء + 1000 رد استشاري لصاحب المشروع من Client Dashboard\n"
+        "- باقة النخبة: 15000 رد شهري للعملاء + 2000 رد استشاري لصاحب المشروع من Client Dashboard\n\n"
+        "إذا استخدامك عالي أو عندك شركة كبيرة، نقدر نجهز لك باقة Enterprise باتفاق خاص."
     ),
     "en": (
         "Your current monthly package limit has been used ✅\n\n"
         "To continue using ALSAAB AI, you can upgrade your package or wait for the next monthly cycle.\n\n"
         "Available options:\n"
-        "- Growth Package: 6000 replies/month\n"
-        "- Elite Package: 12000 replies/month\n\n"
-        "For high-volume usage or large companies, we can prepare a custom Enterprise monthly invoice."
+        "- Growth Package: 6000 customer replies/month + 1000 owner advisory replies/month from Client Dashboard\n"
+        "- Elite Package: 15000 customer replies/month + 2000 owner advisory replies/month from Client Dashboard\n\n"
+        "For high usage or larger companies, we can prepare a custom Enterprise plan."
     )
 }
 
