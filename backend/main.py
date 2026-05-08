@@ -2996,6 +2996,70 @@ def partner_dashboard_view():
       font-size: 21px;
     }
 
+    .form-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 14px;
+      margin-top: 14px;
+    }
+
+    .field {
+      display: flex;
+      flex-direction: column;
+      gap: 7px;
+    }
+
+    .field.full {
+      grid-column: 1 / -1;
+    }
+
+    .field label {
+      color: #d7b85a;
+      font-size: 14px;
+      font-weight: 700;
+    }
+
+    input, textarea {
+      width: 100%;
+      box-sizing: border-box;
+      background: #0b0b0b;
+      border: 1px solid rgba(215, 184, 90, 0.35);
+      color: #fff;
+      border-radius: 12px;
+      padding: 12px;
+      font-family: Arial, Tahoma, sans-serif;
+      font-size: 14px;
+      outline: none;
+    }
+
+    textarea {
+      min-height: 110px;
+      resize: vertical;
+    }
+
+    .upload-box {
+      border: 1px dashed rgba(215, 184, 90, 0.45);
+      border-radius: 14px;
+      padding: 18px;
+      color: #cfc7ad;
+      background: rgba(255,255,255,0.02);
+      margin-top: 12px;
+    }
+
+    .primary-btn {
+      display: inline-block;
+      margin-top: 12px;
+      border: 1px solid rgba(215, 184, 90, 0.55);
+      background: linear-gradient(135deg, #2a220f, #141414);
+      color: #f0cc68;
+      padding: 11px 16px;
+      border-radius: 999px;
+      text-decoration: none;
+      font-weight: 700;
+      cursor: not-allowed;
+      opacity: 0.85;
+    }
+
     .info-row {
       display: grid;
       grid-template-columns: 210px 1fr;
@@ -3116,12 +3180,6 @@ def partner_dashboard_view():
         </div>
       </a>
     </div>
-
-    <div class="header">
-      <h1>{{ t.dashboard_title }}</h1>
-      <div class="sub">{{ t.intro }}</div>
-    </div>
-
     <div class="grid">
       <div class="card">
         <h3>{{ t.partner_id }}</h3>
@@ -3395,6 +3453,19 @@ def client_dashboard_view():
             "project_data": "بيانات المشروع",
             "image_groups": "صور المنتجات والكتالوجات",
             "payment_links": "روابط الدفع الخاصة",
+            "owner_advisory": "استشارات صاحب المشروع",
+            "owner_advisory_desc": "من هنا تستخدم ردود الاستشارات الخاصة بك كمشترك. تسأل عن المبيعات، التسويق، تطوير العروض، الاعتراضات، وتحسين أداء مشروعك.",
+            "ask_advisor": "فتح الاستشارات الخاصة",
+            "image_group_title": "اسم مجموعة الصور",
+            "image_group_description": "وصف عام للمجموعة وتعليمات البيع",
+            "image_group_notes": "اكتب شرحاً واضحاً عن المنتجات، الأسعار، العروض، متى يرشح موظف المبيعات الذكي كل منتج، وأي ملاحظات مهمة.",
+            "upload_images": "رفع صور المنتجات والكتالوجات",
+            "upload_note": "رفع الصور والحفظ الفعلي سيتم ربطه في المرحلة القادمة. حالياً هذه واجهة تجهيز.",
+            "product_name": "اسم المنتج",
+            "payment_link": "رابط الدفع",
+            "payment_description": "وصف المنتج أو العرض",
+            "add_payment_link": "إضافة رابط دفع",
+            "payment_note": "العميل يضيف روابط الدفع الخاصة به، وهو يستلم مبالغ عملائه بنفسه. ALSAAB AI لا يستلم مبالغ عملاء العميل.",
             "coming_soon": "قيد التجهيز في المرحلة القادمة",
             "mvp_note": "هذه نسخة MVP مبدئية. لاحقاً سيتم ربطها بتسجيل الدخول الرسمي، واستخدامها لإدارة مشروعك وموظف المبيعات الذكي."
         },
@@ -3419,6 +3490,19 @@ def client_dashboard_view():
             "project_data": "Project Data",
             "image_groups": "Product & Catalog Image Groups",
             "payment_links": "Client Payment Links",
+            "owner_advisory": "Owner Advisory",
+            "owner_advisory_desc": "Use your private advisory replies to ask about sales, marketing, offers, objections, and improving your business performance.",
+            "ask_advisor": "Open Advisory Chat",
+            "image_group_title": "Image Group Title",
+            "image_group_description": "Group Description & Sales Instructions",
+            "image_group_notes": "Describe the products, prices, offers, when the Smart Sales Employee should recommend them, and any important notes.",
+            "upload_images": "Upload Product & Catalog Images",
+            "upload_note": "Image upload and saving will be connected in the next phase. This is a preparation UI.",
+            "product_name": "Product Name",
+            "payment_link": "Payment Link",
+            "payment_description": "Product or Offer Description",
+            "add_payment_link": "Add Payment Link",
+            "payment_note": "The client adds their own payment links and receives their customer payments directly. ALSAAB AI does not collect the client's customer payments.",
             "coming_soon": "Coming in the next phase",
             "mvp_note": "This is an early MVP. Later it will be connected to the official login and used to manage your project and Smart Sales Employee."
         }
@@ -3662,6 +3746,70 @@ def client_dashboard_view():
       font-size: 21px;
     }
 
+    .form-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 14px;
+      margin-top: 14px;
+    }
+
+    .field {
+      display: flex;
+      flex-direction: column;
+      gap: 7px;
+    }
+
+    .field.full {
+      grid-column: 1 / -1;
+    }
+
+    .field label {
+      color: #d7b85a;
+      font-size: 14px;
+      font-weight: 700;
+    }
+
+    input, textarea {
+      width: 100%;
+      box-sizing: border-box;
+      background: #0b0b0b;
+      border: 1px solid rgba(215, 184, 90, 0.35);
+      color: #fff;
+      border-radius: 12px;
+      padding: 12px;
+      font-family: Arial, Tahoma, sans-serif;
+      font-size: 14px;
+      outline: none;
+    }
+
+    textarea {
+      min-height: 110px;
+      resize: vertical;
+    }
+
+    .upload-box {
+      border: 1px dashed rgba(215, 184, 90, 0.45);
+      border-radius: 14px;
+      padding: 18px;
+      color: #cfc7ad;
+      background: rgba(255,255,255,0.02);
+      margin-top: 12px;
+    }
+
+    .primary-btn {
+      display: inline-block;
+      margin-top: 12px;
+      border: 1px solid rgba(215, 184, 90, 0.55);
+      background: linear-gradient(135deg, #2a220f, #141414);
+      color: #f0cc68;
+      padding: 11px 16px;
+      border-radius: 999px;
+      text-decoration: none;
+      font-weight: 700;
+      cursor: not-allowed;
+      opacity: 0.85;
+    }
+
     .info-row {
       display: grid;
       grid-template-columns: 210px 1fr;
@@ -3734,16 +3882,10 @@ def client_dashboard_view():
         <div class="portal-card-text">{{ t.client_text }}</div>
       </a>
     </div>
-
-    <div class="header">
-      <h1>{{ t.dashboard_title }}</h1>
-      <div class="sub">{{ t.intro }}</div>
-    </div>
-
     <div class="grid">
       <div class="card">
-        <h3>{{ t.client_id }}</h3>
-        <div class="big">{{ client_id or "-" }}</div>
+        <h3>{{ "معرف الحساب" if lang == "ar" else "Account ID" }}</h3>
+        <div class="big">{{ partner_id }}</div>
         <div class="muted">{{ t.partner_id }}: {{ partner_id }}</div>
       </div>
 
@@ -3773,18 +3915,64 @@ def client_dashboard_view():
     </div>
 
     <div class="section">
+      <h2>{{ t.owner_advisory }}</h2>
+      <div class="sub">{{ t.owner_advisory_desc }}</div>
+      <a class="primary-btn" href="javascript:void(0)">{{ t.ask_advisor }}</a>
+      <div class="muted">{{ t.coming_soon }}</div>
+    </div>
+
+    <div class="section">
       <h2>{{ t.project_data }}</h2>
       <div class="sub">{{ t.coming_soon }}</div>
     </div>
 
     <div class="section">
       <h2>{{ t.image_groups }}</h2>
-      <div class="sub">{{ t.coming_soon }}</div>
+      <div class="sub">{{ t.image_group_notes }}</div>
+
+      <div class="form-grid">
+        <div class="field">
+          <label>{{ t.image_group_title }}</label>
+          <input type="text" placeholder="{{ t.image_group_title }}" disabled>
+        </div>
+
+        <div class="field">
+          <label>{{ t.upload_images }}</label>
+          <input type="file" multiple disabled>
+        </div>
+
+        <div class="field full">
+          <label>{{ t.image_group_description }}</label>
+          <textarea placeholder="{{ t.image_group_description }}" disabled></textarea>
+        </div>
+      </div>
+
+      <div class="upload-box">{{ t.upload_note }}</div>
     </div>
 
     <div class="section">
       <h2>{{ t.payment_links }}</h2>
-      <div class="sub">{{ t.coming_soon }}</div>
+      <div class="sub">{{ t.payment_note }}</div>
+
+      <div class="form-grid">
+        <div class="field">
+          <label>{{ t.product_name }}</label>
+          <input type="text" placeholder="{{ t.product_name }}" disabled>
+        </div>
+
+        <div class="field">
+          <label>{{ t.payment_link }}</label>
+          <input type="url" placeholder="https://..." disabled>
+        </div>
+
+        <div class="field full">
+          <label>{{ t.payment_description }}</label>
+          <textarea placeholder="{{ t.payment_description }}" disabled></textarea>
+        </div>
+      </div>
+
+      <a class="primary-btn" href="javascript:void(0)">{{ t.add_payment_link }}</a>
+      <div class="muted">{{ t.coming_soon }}</div>
     </div>
 
     <div class="section">
