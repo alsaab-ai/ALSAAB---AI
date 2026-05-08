@@ -2792,6 +2792,7 @@ def partner_dashboard_view():
         language_url = en_url if is_ar else ar_url
         partner_dashboard_url = f"/partner-dashboard?key={quote(key)}&partner_id={quote(partner_id)}&lang={lang}"
         client_dashboard_url = f"/client-dashboard?key={quote(key)}&partner_id={quote(partner_id)}&lang={lang}"
+        owner_advisory_url = f"/owner-advisory?key={quote(key)}&partner_id={quote(partner_id)}&lang={lang}"
 
         def money(value):
             try:
@@ -2914,7 +2915,28 @@ def partner_dashboard_view():
 
     .portal-card.active {
       border-color: #d7b85a;
-      box-shadow: 0 0 20px rgba(215, 184, 90, 0.12);
+      background: linear-gradient(135deg, #d7b85a, #8b6b21);
+      color: #0b0b0b;
+      box-shadow: 0 0 25px rgba(215, 184, 90, 0.22);
+      position: relative;
+    }
+
+    .portal-card.active .portal-card-title,
+    .portal-card.active .portal-card-text {
+      color: #0b0b0b;
+    }
+
+    .portal-card.active::after {
+      content: "أنت هنا";
+      position: absolute;
+      top: 12px;
+      left: 14px;
+      background: #0b0b0b;
+      color: #f0cc68;
+      border-radius: 999px;
+      padding: 4px 10px;
+      font-size: 12px;
+      font-weight: 700;
     }
 
     .portal-card-title {
@@ -3383,6 +3405,7 @@ def partner_dashboard_view():
             language_url=language_url,
             partner_dashboard_url=partner_dashboard_url,
             client_dashboard_url=client_dashboard_url,
+            owner_advisory_url=owner_advisory_url,
             data=result,
             profile=profile,
             level=level,
@@ -3725,7 +3748,28 @@ def client_dashboard_view():
 
     .portal-card.active {
       border-color: #d7b85a;
-      box-shadow: 0 0 20px rgba(215, 184, 90, 0.12);
+      background: linear-gradient(135deg, #d7b85a, #8b6b21);
+      color: #0b0b0b;
+      box-shadow: 0 0 25px rgba(215, 184, 90, 0.22);
+      position: relative;
+    }
+
+    .portal-card.active .portal-card-title,
+    .portal-card.active .portal-card-text {
+      color: #0b0b0b;
+    }
+
+    .portal-card.active::after {
+      content: "أنت هنا";
+      position: absolute;
+      top: 12px;
+      left: 14px;
+      background: #0b0b0b;
+      color: #f0cc68;
+      border-radius: 999px;
+      padding: 4px 10px;
+      font-size: 12px;
+      font-weight: 700;
     }
 
     .portal-card-title {
@@ -3981,20 +4025,51 @@ def client_dashboard_view():
     <div class="section">
       <h2>{{ t.owner_advisory }}</h2>
       <div class="sub">{{ t.owner_advisory_desc }}</div>
-      <a class="primary-btn" href="javascript:void(0)">{{ t.ask_advisor }}</a>
+      <a class="primary-btn" href="{{ owner_advisory_url }}">{{ t.ask_advisor }}</a>
       <div class="muted">{{ t.coming_soon }}</div>
     </div>
 
     <div class="section">
       <h2>{{ t.project_data }}</h2>
-      <div class="sub">{{ t.coming_soon }}</div>
+      <div class="sub">اكتب بيانات مشروعك الأساسية حتى يفهم موظف المبيعات الذكي طبيعة مشروعك.</div>
+
+      <form method="POST" action="/client-dashboard/save-project-data">
+        <input type="hidden" name="key" value="{{ key }}">
+        <input type="hidden" name="partner_id" value="{{ partner_id }}">
+        <input type="hidden" name="client_id" value="{{ client_id }}">
+        <input type="hidden" name="lang" value="{{ lang }}">
+
+        <div class="form-grid">
+          <div class="field">
+            <label>اسم المشروع</label>
+            <input type="text" name="business_name" placeholder="مثال: متجر العطور الفاخر">
+          </div>
+
+          <div class="field">
+            <label>نوع النشاط</label>
+            <input type="text" name="business_type" placeholder="مثال: عطور، مطعم، عيادة، عقار">
+          </div>
+
+          <div class="field full">
+            <label>وصف مبسط للمشروع</label>
+            <textarea name="general_description" placeholder="اكتب ماذا يبيع مشروعك، من هو جمهورك، وما أهم مميزاتك."></textarea>
+          </div>
+
+          <div class="field full">
+            <label>ملاحظات مهمة لموظف المبيعات الذكي</label>
+            <textarea name="products" placeholder="اكتب المنتجات أو الخدمات الأساسية، الأسعار العامة، العروض، وطريقة الطلب."></textarea>
+          </div>
+        </div>
+
+        <button class="primary-btn" type="submit">حفظ بيانات المشروع</button>
+      </form>
     </div>
 
     <div class="section">
       <h2>{{ t.image_groups }}</h2>
       <div class="sub">{{ t.image_group_notes }}</div>
 
-      <form method="POST" action="/client-dashboard/save-image-group">
+      <form method="POST" action="/client-dashboard/save-image-group" enctype="multipart/form-data">
         <input type="hidden" name="key" value="{{ key }}">
         <input type="hidden" name="partner_id" value="{{ partner_id }}">
         <input type="hidden" name="client_id" value="{{ client_id }}">
@@ -4007,8 +4082,8 @@ def client_dashboard_view():
           </div>
 
           <div class="field">
-            <label>{{ t.image_urls }}</label>
-            <textarea name="image_urls" placeholder="https://example.com/catalog-1.jpg"></textarea>
+            <label>رفع الصور أو الكتالوجات</label>
+            <input type="file" name="images" multiple accept="image/*,.pdf">
           </div>
 
           <div class="field full">
@@ -4022,7 +4097,7 @@ def client_dashboard_view():
           </div>
         </div>
 
-        <button class="primary-btn" type="submit">{{ t.save_image_group }}</button>
+        <button class="primary-btn" type="submit">حفظ وإضافة مجموعة منتجات</button>
       </form>
 
       <div class="upload-box">{{ t.image_urls_note }}</div>
@@ -4079,7 +4154,7 @@ def client_dashboard_view():
           </div>
         </div>
 
-        <button class="primary-btn" type="submit">{{ t.save_payment_link }}</button>
+        <button class="primary-btn" type="submit">{{ t.save_payment_link }}</button><div class="muted" style="margin-top:10px;">بعد الحفظ تقدر تضيف رابط دفع إضافي لنفس العميل.</div>
       </form>
 
       <div class="small-list">
@@ -4097,13 +4172,7 @@ def client_dashboard_view():
         {% endfor %}
       </div>
     </div>
-
-    <div class="section">
-      <h2>MVP</h2>
-      <div class="sub">{{ t.mvp_note }}</div>
-    </div>
-
-  </div>
+</div>
 </body>
 </html>
         """
@@ -4159,6 +4228,7 @@ def client_dashboard_view():
 @app.route("/client-dashboard/save-image-group", methods=["POST"])
 def client_dashboard_save_image_group():
     import os
+    import base64
     from urllib.parse import quote
 
     key = request.form.get("key", "").strip()
@@ -4173,7 +4243,29 @@ def client_dashboard_save_image_group():
     if lang not in ("ar", "en"):
         lang = "ar"
 
+    uploaded_files = []
+
     try:
+        for file in request.files.getlist("images"):
+            if not file or not file.filename:
+                continue
+
+            raw = file.read()
+
+            if not raw:
+                continue
+
+            # Basic safety limit per file for MVP: 5 MB
+            if len(raw) > 5 * 1024 * 1024:
+                print(f"CLIENT DASHBOARD UPLOAD SKIPPED large file={file.filename}", flush=True)
+                continue
+
+            uploaded_files.append({
+                "name": file.filename,
+                "mime_type": file.content_type or "application/octet-stream",
+                "content_base64": base64.b64encode(raw).decode("ascii")
+            })
+
         from database import post_to_google_sheet_json
 
         google_sheet_token = os.getenv("GOOGLE_SHEET_TOKEN", "")
@@ -4187,7 +4279,8 @@ def client_dashboard_save_image_group():
             "group_description": request.form.get("group_description", "").strip(),
             "sales_instructions": request.form.get("sales_instructions", "").strip(),
             "image_urls": request.form.get("image_urls", "").strip(),
-            "notes": "Saved from Client Dashboard MVP"
+            "uploaded_files": uploaded_files,
+            "notes": "Saved from Client Dashboard MVP with file upload"
         }
 
         result = post_to_google_sheet_json(payload, label="client_dashboard_save_image_group")
@@ -4227,21 +4320,44 @@ def client_dashboard_save_payment_link():
 
         google_sheet_token = os.getenv("GOOGLE_SHEET_TOKEN", "")
 
-        payload = {
-            "token": google_sheet_token,
-            "action": "client_payment_link",
-            "partner_id": partner_id,
-            "client_id": client_id,
-            "product_name": request.form.get("product_name", "").strip(),
-            "payment_link": request.form.get("payment_link", "").strip(),
-            "amount": request.form.get("amount", "").strip(),
-            "currency": request.form.get("currency", "AED").strip() or "AED",
-            "description": request.form.get("description", "").strip(),
-            "notes": "Saved from Client Dashboard MVP"
-        }
+        product_names = request.form.getlist("product_name")
+        payment_links = request.form.getlist("payment_link")
+        amounts = request.form.getlist("amount")
+        currencies = request.form.getlist("currency")
+        descriptions = request.form.getlist("description")
 
-        result = post_to_google_sheet_json(payload, label="client_dashboard_save_payment_link")
-        status = "payment_link_saved" if isinstance(result, dict) and result.get("status") == "success" else "payment_link_error"
+        max_len = max(len(product_names), len(payment_links), len(amounts), len(currencies), len(descriptions), 1)
+        saved_count = 0
+
+        for index in range(max_len):
+            product_name = product_names[index].strip() if index < len(product_names) else ""
+            payment_link = payment_links[index].strip() if index < len(payment_links) else ""
+            amount = amounts[index].strip() if index < len(amounts) else ""
+            currency = currencies[index].strip() if index < len(currencies) and currencies[index].strip() else "AED"
+            description = descriptions[index].strip() if index < len(descriptions) else ""
+
+            if not product_name and not payment_link:
+                continue
+
+            payload = {
+                "token": google_sheet_token,
+                "action": "client_payment_link",
+                "partner_id": partner_id,
+                "client_id": client_id,
+                "product_name": product_name,
+                "payment_link": payment_link,
+                "amount": amount,
+                "currency": currency,
+                "description": description,
+                "notes": "Saved from Client Dashboard MVP"
+            }
+
+            result = post_to_google_sheet_json(payload, label="client_dashboard_save_payment_link")
+
+            if isinstance(result, dict) and result.get("status") == "success":
+                saved_count += 1
+
+        status = "payment_link_saved" if saved_count > 0 else "payment_link_error"
 
         return redirect(
             f"/client-dashboard?key={quote(key)}&partner_id={quote(partner_id)}&lang={quote(lang)}&saved={quote(status)}"
@@ -4255,6 +4371,128 @@ def client_dashboard_save_payment_link():
         )
 
 # ===== ALSAAB_CLIENT_DASHBOARD_SAVE_ROUTES_V1 END =====
+
+
+
+# ===== ALSAAB_CLIENT_PROJECT_DATA_AND_ADVISORY_V1 START =====
+
+@app.route("/client-dashboard/save-project-data", methods=["POST"])
+def client_dashboard_save_project_data():
+    import os
+    from urllib.parse import quote
+
+    key = request.form.get("key", "").strip()
+
+    if key != ADMIN_KEY:
+        return "Unauthorized", 401
+
+    partner_id = request.form.get("partner_id", "").strip()
+    client_id = request.form.get("client_id", "").strip() or partner_id
+    lang = request.form.get("lang", "ar").strip().lower()
+
+    if lang not in ("ar", "en"):
+        lang = "ar"
+
+    try:
+        from database import post_to_google_sheet_json
+
+        google_sheet_token = os.getenv("GOOGLE_SHEET_TOKEN", "")
+
+        payload = {
+            "token": google_sheet_token,
+            "action": "client_profile",
+            "partner_id": partner_id,
+            "client_id": client_id,
+            "session_id": client_id,
+            "business_name": request.form.get("business_name", "").strip(),
+            "business_type": request.form.get("business_type", "").strip(),
+            "general_description": request.form.get("general_description", "").strip(),
+            "products": request.form.get("products", "").strip(),
+            "notes": "Saved from Client Dashboard project data MVP"
+        }
+
+        result = post_to_google_sheet_json(payload, label="client_dashboard_save_project_data")
+        status = "project_data_saved" if isinstance(result, dict) and result.get("status") == "success" else "project_data_error"
+
+        return redirect(
+            f"/client-dashboard?key={quote(key)}&partner_id={quote(partner_id)}&lang={quote(lang)}&saved={quote(status)}"
+        )
+
+    except Exception as error:
+        print(f"CLIENT DASHBOARD SAVE PROJECT DATA ERROR ❌ {error}", flush=True)
+
+        return redirect(
+            f"/client-dashboard?key={quote(key)}&partner_id={quote(partner_id)}&lang={quote(lang)}&saved=project_data_error"
+        )
+
+
+@app.route("/owner-advisory", methods=["GET"])
+def owner_advisory_view():
+    from urllib.parse import quote
+
+    key = request.args.get("key", "").strip()
+
+    if key != ADMIN_KEY:
+        return "Unauthorized", 401
+
+    partner_id = request.args.get("partner_id", "").strip()
+    lang = request.args.get("lang", "ar").strip().lower()
+
+    if lang not in ("ar", "en"):
+        lang = "ar"
+
+    if not partner_id:
+        return "partner_id is required", 400
+
+    direction = "rtl" if lang == "ar" else "ltr"
+
+    title = "استشارات صاحب المشروع" if lang == "ar" else "Owner Advisory"
+    subtitle = (
+        "هذه صفحة الاستشارات الخاصة المرتبطة بمعرف حسابك. سيتم ربط المحادثة الذكية المستمرة في المرحلة القادمة."
+        if lang == "ar"
+        else "This advisory page is tied to your account ID. Persistent smart advisory chat will be connected in the next phase."
+    )
+
+    back_url = f"/client-dashboard?key={quote(key)}&partner_id={quote(partner_id)}&lang={quote(lang)}"
+
+    return render_template_string(
+        """
+        <!doctype html>
+        <html lang="{{ lang }}" dir="{{ direction }}">
+        <head>
+          <meta charset="utf-8">
+          <meta name="viewport" content="width=device-width, initial-scale=1">
+          <title>{{ title }}</title>
+          <style>
+            body { margin:0; background:#0b0b0b; color:#f5f0df; font-family:Arial,Tahoma,sans-serif; direction:{{ direction }}; }
+            .page { max-width:900px; margin:0 auto; padding:30px; }
+            .card { background:#111; border:1px solid rgba(215,184,90,.4); border-radius:18px; padding:24px; }
+            h1 { color:#d7b85a; margin-top:0; }
+            .sub { color:#cfc7ad; line-height:1.8; }
+            a { color:#f0cc68; text-decoration:none; display:inline-block; margin-top:18px; border:1px solid rgba(215,184,90,.45); padding:10px 14px; border-radius:999px; }
+          </style>
+        </head>
+        <body>
+          <div class="page">
+            <div class="card">
+              <h1>{{ title }}</h1>
+              <div class="sub">{{ subtitle }}</div>
+              <div class="sub" style="margin-top:12px;">Partner ID: {{ partner_id }}</div>
+              <a href="{{ back_url }}">العودة إلى Client Dashboard</a>
+            </div>
+          </div>
+        </body>
+        </html>
+        """,
+        lang=lang,
+        direction=direction,
+        title=title,
+        subtitle=subtitle,
+        partner_id=partner_id,
+        back_url=back_url
+    )
+
+# ===== ALSAAB_CLIENT_PROJECT_DATA_AND_ADVISORY_V1 END =====
 
 
 if __name__ == "__main__":
