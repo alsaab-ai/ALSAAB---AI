@@ -2510,6 +2510,93 @@ def leads_view():
     return render_template_string(LEADS_HTML, leads=leads)
 
 
+
+# ===== ALSAAB_PARTNER_DASHBOARD_RENDER_API_V1 START =====
+
+@app.route("/partner-dashboard-data", methods=["GET", "POST"])
+def partner_dashboard_data():
+    """
+    Partner Dashboard Data API MVP.
+
+    Temporary security:
+    - Requires ADMIN_KEY for testing.
+    - Later this must use logged-in user session and resolve partner_id internally.
+
+    Returns:
+    - partner profile
+    - level progress
+    - direct customers
+    - commissions
+    - courses
+    - tree data
+    """
+    import os
+
+    payload = get_admin_payload()
+    key = get_admin_key(payload)
+
+    if key != ADMIN_KEY:
+        return jsonify({"error": "Unauthorized"}), 401
+
+    partner_id = (
+        get_payload_value(payload, "partner_id", default="")
+        or request.args.get("partner_id", "").strip()
+    )
+
+    partner_id = str(partner_id or "").strip()
+
+    if not partner_id:
+        return jsonify({
+            "status": "error",
+            "message": "partner_id is required"
+        }), 400
+
+    try:
+        from database import post_to_google_sheet_json
+
+        google_sheet_token = os.getenv("GOOGLE_SHEET_TOKEN", "")
+
+        if not google_sheet_token:
+            return jsonify({
+                "status": "error",
+                "message": "GOOGLE_SHEET_TOKEN is missing in environment"
+            }), 500
+
+        sheet_payload = {
+            "token": google_sheet_token,
+            "action": "partner_dashboard_data",
+            "partner_id": partner_id
+        }
+
+        result = post_to_google_sheet_json(
+            sheet_payload,
+            label="partner_dashboard_data"
+        )
+
+        if not isinstance(result, dict):
+            return jsonify({
+                "status": "error",
+                "message": "Invalid partner dashboard response",
+                "raw_result": str(result)
+            }), 500
+
+        return jsonify(result)
+
+    except Exception as error:
+        print(
+            f"PARTNER DASHBOARD DATA ERROR ❌ partner_id={partner_id} error={error}",
+            flush=True
+        )
+
+        return jsonify({
+            "status": "error",
+            "message": str(error),
+            "partner_id": partner_id
+        }), 500
+
+# ===== ALSAAB_PARTNER_DASHBOARD_RENDER_API_V1 END =====
+
+
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 10000))
     app.run(host="0.0.0.0", port=port, debug=False)
