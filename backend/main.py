@@ -2790,6 +2790,8 @@ def partner_dashboard_view():
         en_url = f"/partner-dashboard?key={quote(key)}&partner_id={quote(partner_id)}&lang=en"
 
         language_url = en_url if is_ar else ar_url
+        partner_dashboard_url = f"/partner-dashboard?key={quote(key)}&partner_id={quote(partner_id)}&lang={lang}"
+        client_dashboard_url = f"/client-dashboard?key={quote(key)}&partner_id={quote(partner_id)}&lang={lang}"
 
         def money(value):
             try:
@@ -2884,6 +2886,48 @@ def partner_dashboard_view():
 
     .action-btn:hover {
       background: #1a160d;
+    }
+
+    .portal-switch {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 14px;
+      margin-bottom: 18px;
+    }
+
+    .portal-card {
+      background: linear-gradient(135deg, #111, #17130b);
+      border: 1px solid rgba(215, 184, 90, 0.45);
+      border-radius: 18px;
+      padding: 18px;
+      color: #f5f0df;
+      text-decoration: none;
+      display: block;
+      transition: transform 0.15s ease, border-color 0.15s ease, background 0.15s ease;
+    }
+
+    .portal-card:hover {
+      transform: translateY(-2px);
+      border-color: #d7b85a;
+      background: linear-gradient(135deg, #161616, #211a0d);
+    }
+
+    .portal-card.active {
+      border-color: #d7b85a;
+      box-shadow: 0 0 20px rgba(215, 184, 90, 0.12);
+    }
+
+    .portal-card-title {
+      color: #d7b85a;
+      font-weight: 800;
+      font-size: 20px;
+      margin-bottom: 8px;
+    }
+
+    .portal-card-text {
+      color: #cfc7ad;
+      line-height: 1.6;
+      font-size: 14px;
     }
 
     .header {
@@ -3055,6 +3099,22 @@ def partner_dashboard_view():
         <a class="action-btn" href="{{ website_url }}">{{ t.back_site }}</a>
         <a class="action-btn" href="{{ language_url }}">{{ t.language }}</a>
       </div>
+    </div>
+
+    <div class="portal-switch">
+      <a class="portal-card active" href="{{ partner_dashboard_url }}">
+        <div class="portal-card-title">Partner Dashboard</div>
+        <div class="portal-card-text">
+          الشراكة، العمولات، المستويات، العملاء، الكورسات، ومتطلبات الترقية.
+        </div>
+      </a>
+
+      <a class="portal-card" href="{{ client_dashboard_url }}">
+        <div class="portal-card-title">Client Dashboard</div>
+        <div class="portal-card-text">
+          مشروعك، باقتك، استخدامك، بيانات موظف المبيعات الذكي، الصور، والكتالوجات.
+        </div>
+      </a>
     </div>
 
     <div class="header">
@@ -3233,6 +3293,8 @@ def partner_dashboard_view():
             t=t,
             website_url=WEBSITE_URL,
             language_url=language_url,
+            partner_dashboard_url=partner_dashboard_url,
+            client_dashboard_url=client_dashboard_url,
             data=result,
             profile=profile,
             level=level,
@@ -3268,6 +3330,512 @@ def partner_dashboard_view():
         ), 500
 
 # ===== ALSAAB_PARTNER_DASHBOARD_UI_MVP_V1 END =====
+
+
+
+# ===== ALSAAB_CLIENT_DASHBOARD_UI_MVP_V1 START =====
+
+@app.route("/client-dashboard", methods=["GET"])
+def client_dashboard_view():
+    """
+    Client Dashboard MVP page.
+
+    Temporary security:
+    - Requires ADMIN_KEY for testing.
+    - Later this will use logged-in WordPress/user session.
+    - Official login should use Partner ID as the main identifier, then resolve client_id internally.
+    """
+    import os
+    from urllib.parse import quote
+
+    key = request.args.get("key", "").strip()
+
+    if key != ADMIN_KEY:
+        return "Unauthorized", 401
+
+    partner_id = request.args.get("partner_id", "").strip()
+
+    if not partner_id:
+        return "partner_id is required", 400
+
+    lang = request.args.get("lang", "ar").strip().lower()
+
+    if lang not in ("ar", "en"):
+        lang = "ar"
+
+    is_ar = lang == "ar"
+    direction = "rtl" if is_ar else "ltr"
+    text_align = "right" if is_ar else "left"
+
+    try:
+        from config import WEBSITE_URL, PACKAGES
+    except Exception:
+        WEBSITE_URL = "https://alsaab.io"
+        PACKAGES = {}
+
+    t = {
+        "ar": {
+            "page_title": "ALSAAB AI - لوحة العميل",
+            "dashboard_title": "Client Dashboard",
+            "intro": "لوحة العميل الخاصة بمشروعك. هنا تتابع باقتك، استخدامك، بيانات مشروعك، وموظف المبيعات الذكي.",
+            "back_site": "العودة إلى موقع ALSAAB AI",
+            "language": "English",
+            "partner_portal": "Partner Dashboard",
+            "client_portal": "Client Dashboard",
+            "partner_text": "الشراكة، العمولات، المستويات، العملاء، الكورسات، ومتطلبات الترقية.",
+            "client_text": "مشروعك، باقتك، استخدامك، بيانات موظف المبيعات الذكي، الصور، والكتالوجات.",
+            "client_id": "Client ID",
+            "partner_id": "Partner ID",
+            "current_package": "الباقة الحالية",
+            "subscription_status": "حالة الاشتراك",
+            "customer_replies": "ردود العملاء",
+            "advisory_replies": "ردود الاستشارات",
+            "channels": "القنوات",
+            "features": "المزايا",
+            "project_data": "بيانات المشروع",
+            "image_groups": "صور المنتجات والكتالوجات",
+            "payment_links": "روابط الدفع الخاصة",
+            "coming_soon": "قيد التجهيز في المرحلة القادمة",
+            "mvp_note": "هذه نسخة MVP مبدئية. لاحقاً سيتم ربطها بتسجيل الدخول الرسمي، واستخدامها لإدارة مشروعك وموظف المبيعات الذكي."
+        },
+        "en": {
+            "page_title": "ALSAAB AI - Client Dashboard",
+            "dashboard_title": "Client Dashboard",
+            "intro": "Your project dashboard. Track your package, usage, project data, and Smart Sales Employee setup.",
+            "back_site": "Back to ALSAAB AI Website",
+            "language": "العربية",
+            "partner_portal": "Partner Dashboard",
+            "client_portal": "Client Dashboard",
+            "partner_text": "Partnership, commissions, levels, customers, courses, and upgrade requirements.",
+            "client_text": "Your project, package, usage, Smart Sales Employee data, product images, and catalogs.",
+            "client_id": "Client ID",
+            "partner_id": "Partner ID",
+            "current_package": "Current Package",
+            "subscription_status": "Subscription Status",
+            "customer_replies": "Customer Replies",
+            "advisory_replies": "Advisory Replies",
+            "channels": "Channels",
+            "features": "Features",
+            "project_data": "Project Data",
+            "image_groups": "Product & Catalog Image Groups",
+            "payment_links": "Client Payment Links",
+            "coming_soon": "Coming in the next phase",
+            "mvp_note": "This is an early MVP. Later it will be connected to the official login and used to manage your project and Smart Sales Employee."
+        }
+    }[lang]
+
+    try:
+        from database import post_to_google_sheet_json
+
+        google_sheet_token = os.getenv("GOOGLE_SHEET_TOKEN", "")
+
+        if not google_sheet_token:
+            return "GOOGLE_SHEET_TOKEN is missing", 500
+
+        result = post_to_google_sheet_json(
+            {
+                "token": google_sheet_token,
+                "action": "partner_dashboard_data",
+                "partner_id": partner_id
+            },
+            label="client_dashboard_page"
+        )
+
+        if not isinstance(result, dict) or result.get("status") != "success":
+            return render_template_string(
+                """
+                <html>
+                <head><meta charset="utf-8"><title>Client Dashboard Error</title></head>
+                <body style="font-family:Arial; direction:rtl; padding:30px;">
+                  <h2>حدث خطأ في تحميل بيانات العميل</h2>
+                  <pre>{{ result }}</pre>
+                </body>
+                </html>
+                """,
+                result=result
+            ), 500
+
+        profile = result.get("partner_profile") or {}
+        level = result.get("level") or {}
+
+        client_id = profile.get("client_id") or ""
+        current_package = (level.get("current_package") or "").lower()
+        subscription_status = level.get("subscription_status") or ""
+
+        package = PACKAGES.get(current_package) or {}
+
+        customer_limit = (
+            package.get("total_customer_reply_limit")
+            or package.get("customer_reply_limit")
+            or package.get("monthly_reply_limit")
+            or "-"
+        )
+
+        advisory_limit = package.get("owner_advisory_reply_limit", 0)
+        channels = package.get("channels") or []
+
+        ar_url = f"/client-dashboard?key={quote(key)}&partner_id={quote(partner_id)}&lang=ar"
+        en_url = f"/client-dashboard?key={quote(key)}&partner_id={quote(partner_id)}&lang=en"
+        language_url = en_url if is_ar else ar_url
+
+        partner_dashboard_url = f"/partner-dashboard?key={quote(key)}&partner_id={quote(partner_id)}&lang={lang}"
+        client_dashboard_url = f"/client-dashboard?key={quote(key)}&partner_id={quote(partner_id)}&lang={lang}"
+
+        html = """
+<!DOCTYPE html>
+<html lang="{{ lang }}" dir="{{ direction }}">
+<head>
+  <meta charset="utf-8">
+  <title>{{ t.page_title }}</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <style>
+    body {
+      margin: 0;
+      background: #0b0b0b;
+      color: #f5f0df;
+      font-family: Arial, Tahoma, sans-serif;
+      direction: {{ direction }};
+      text-align: {{ text_align }};
+    }
+
+    .page {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 28px;
+    }
+
+    .topbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 14px;
+      margin-bottom: 16px;
+      flex-wrap: wrap;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .logo-mark {
+      width: 54px;
+      height: 54px;
+      border-radius: 16px;
+      border: 1px solid #c8a84b;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #d7b85a;
+      font-weight: 800;
+      letter-spacing: 1px;
+      background: linear-gradient(135deg, #111, #211c0f);
+      font-size: 12px;
+    }
+
+    .brand-title {
+      color: #d7b85a;
+      font-size: 19px;
+      font-weight: 800;
+    }
+
+    .brand-note {
+      color: #9f967b;
+      font-size: 12px;
+      margin-top: 3px;
+    }
+
+    .actions {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .action-btn {
+      border: 1px solid rgba(215, 184, 90, 0.5);
+      color: #f0cc68;
+      background: #111;
+      padding: 10px 14px;
+      border-radius: 999px;
+      text-decoration: none;
+      font-size: 14px;
+    }
+
+    .portal-switch {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 14px;
+      margin-bottom: 18px;
+    }
+
+    .portal-card {
+      background: linear-gradient(135deg, #111, #17130b);
+      border: 1px solid rgba(215, 184, 90, 0.45);
+      border-radius: 18px;
+      padding: 18px;
+      color: #f5f0df;
+      text-decoration: none;
+      display: block;
+    }
+
+    .portal-card.active {
+      border-color: #d7b85a;
+      box-shadow: 0 0 20px rgba(215, 184, 90, 0.12);
+    }
+
+    .portal-card-title {
+      color: #d7b85a;
+      font-weight: 800;
+      font-size: 20px;
+      margin-bottom: 8px;
+    }
+
+    .portal-card-text {
+      color: #cfc7ad;
+      line-height: 1.6;
+      font-size: 14px;
+    }
+
+    .header {
+      background: linear-gradient(135deg, #111, #1d1a10);
+      border: 1px solid #c8a84b;
+      border-radius: 18px;
+      padding: 24px;
+      margin-bottom: 20px;
+    }
+
+    .header h1 {
+      margin: 0 0 8px;
+      color: #d7b85a;
+      font-size: 28px;
+    }
+
+    .sub {
+      color: #cfc7ad;
+      line-height: 1.7;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 14px;
+      margin-bottom: 20px;
+    }
+
+    .card {
+      background: #121212;
+      border: 1px solid rgba(215, 184, 90, 0.35);
+      border-radius: 16px;
+      padding: 18px;
+    }
+
+    .card h3 {
+      margin: 0 0 10px;
+      color: #d7b85a;
+      font-size: 16px;
+    }
+
+    .big {
+      font-size: 24px;
+      font-weight: 700;
+      color: #fff;
+    }
+
+    .muted {
+      color: #aaa;
+      font-size: 13px;
+      margin-top: 5px;
+    }
+
+    .section {
+      background: #111;
+      border: 1px solid rgba(215, 184, 90, 0.25);
+      border-radius: 18px;
+      padding: 20px;
+      margin-bottom: 18px;
+    }
+
+    .section h2 {
+      margin: 0 0 14px;
+      color: #d7b85a;
+      font-size: 21px;
+    }
+
+    .info-row {
+      display: grid;
+      grid-template-columns: 210px 1fr;
+      gap: 12px;
+      padding: 9px 0;
+      border-bottom: 1px solid rgba(255,255,255,0.08);
+    }
+
+    .label {
+      color: #c8a84b;
+    }
+
+    .value {
+      color: #fff;
+      word-break: break-word;
+    }
+
+    a {
+      color: #f0cc68;
+      text-decoration: none;
+    }
+
+    @media (max-width: 900px) {
+      .grid, .portal-switch {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+
+      .info-row {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    @media (max-width: 600px) {
+      .grid, .portal-switch {
+        grid-template-columns: 1fr;
+      }
+
+      .page {
+        padding: 16px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="page">
+
+    <div class="topbar">
+      <div class="brand">
+        <div class="logo-mark">ALSAAB</div>
+        <div>
+          <div class="brand-title">ALSAAB AI</div>
+          <div class="brand-note">Official account dashboard MVP</div>
+        </div>
+      </div>
+
+      <div class="actions">
+        <a class="action-btn" href="{{ website_url }}">{{ t.back_site }}</a>
+        <a class="action-btn" href="{{ language_url }}">{{ t.language }}</a>
+      </div>
+    </div>
+
+    <div class="portal-switch">
+      <a class="portal-card" href="{{ partner_dashboard_url }}">
+        <div class="portal-card-title">{{ t.partner_portal }}</div>
+        <div class="portal-card-text">{{ t.partner_text }}</div>
+      </a>
+
+      <a class="portal-card active" href="{{ client_dashboard_url }}">
+        <div class="portal-card-title">{{ t.client_portal }}</div>
+        <div class="portal-card-text">{{ t.client_text }}</div>
+      </a>
+    </div>
+
+    <div class="header">
+      <h1>{{ t.dashboard_title }}</h1>
+      <div class="sub">{{ t.intro }}</div>
+    </div>
+
+    <div class="grid">
+      <div class="card">
+        <h3>{{ t.client_id }}</h3>
+        <div class="big">{{ client_id or "-" }}</div>
+        <div class="muted">{{ t.partner_id }}: {{ partner_id }}</div>
+      </div>
+
+      <div class="card">
+        <h3>{{ t.current_package }}</h3>
+        <div class="big">{{ current_package or "-" }}</div>
+        <div class="muted">{{ t.subscription_status }}: {{ subscription_status or "-" }}</div>
+      </div>
+
+      <div class="card">
+        <h3>{{ t.customer_replies }}</h3>
+        <div class="big">{{ customer_limit }}</div>
+        <div class="muted">Monthly customer reply limit</div>
+      </div>
+
+      <div class="card">
+        <h3>{{ t.advisory_replies }}</h3>
+        <div class="big">{{ advisory_limit }}</div>
+        <div class="muted">Monthly owner advisory limit</div>
+      </div>
+    </div>
+
+    <div class="section">
+      <h2>{{ t.channels }}</h2>
+      <div class="info-row"><div class="label">{{ t.channels }}</div><div class="value">{{ channels | join(", ") if channels else "-" }}</div></div>
+      <div class="info-row"><div class="label">{{ t.features }}</div><div class="value">{{ t.coming_soon }}</div></div>
+    </div>
+
+    <div class="section">
+      <h2>{{ t.project_data }}</h2>
+      <div class="sub">{{ t.coming_soon }}</div>
+    </div>
+
+    <div class="section">
+      <h2>{{ t.image_groups }}</h2>
+      <div class="sub">{{ t.coming_soon }}</div>
+    </div>
+
+    <div class="section">
+      <h2>{{ t.payment_links }}</h2>
+      <div class="sub">{{ t.coming_soon }}</div>
+    </div>
+
+    <div class="section">
+      <h2>MVP</h2>
+      <div class="sub">{{ t.mvp_note }}</div>
+    </div>
+
+  </div>
+</body>
+</html>
+        """
+
+        return render_template_string(
+            html,
+            lang=lang,
+            direction=direction,
+            text_align=text_align,
+            t=t,
+            website_url=WEBSITE_URL,
+            language_url=language_url,
+            partner_dashboard_url=partner_dashboard_url,
+            client_dashboard_url=client_dashboard_url,
+            partner_id=partner_id,
+            client_id=client_id,
+            current_package=current_package,
+            subscription_status=subscription_status,
+            customer_limit=customer_limit,
+            advisory_limit=advisory_limit,
+            channels=channels
+        )
+
+    except Exception as error:
+        print(
+            f"CLIENT DASHBOARD VIEW ERROR ❌ partner_id={partner_id} error={error}",
+            flush=True
+        )
+
+        return render_template_string(
+            """
+            <html>
+            <head><meta charset="utf-8"><title>Client Dashboard Error</title></head>
+            <body style="font-family:Arial; direction:rtl; padding:30px;">
+              <h2>حدث خطأ في عرض Client Dashboard</h2>
+              <p>{{ error }}</p>
+            </body>
+            </html>
+            """,
+            error=str(error)
+        ), 500
+
+# ===== ALSAAB_CLIENT_DASHBOARD_UI_MVP_V1 END =====
 
 
 if __name__ == "__main__":
