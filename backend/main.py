@@ -3448,14 +3448,6 @@ def partner_dashboard_view():
 
 @app.route("/client-dashboard", methods=["GET"])
 def client_dashboard_view():
-    """
-    Client Dashboard MVP page.
-
-    Temporary security:
-    - Requires ADMIN_KEY for testing.
-    - Later this will use logged-in WordPress/user session.
-    - Official login should use Partner ID as the main identifier, then resolve client_id internally.
-    """
     import os
     from urllib.parse import quote
 
@@ -3487,91 +3479,89 @@ def client_dashboard_view():
     t = {
         "ar": {
             "page_title": "ALSAAB AI - لوحة العميل",
-            "dashboard_title": "Client Dashboard",
-            "intro": "لوحة العميل الخاصة بمشروعك. هنا تتابع باقتك، استخدامك، بيانات مشروعك، وموظف المبيعات الذكي.",
             "back_site": "العودة إلى موقع ALSAAB AI",
             "language": "English",
             "partner_portal": "Partner Dashboard",
             "client_portal": "Client Dashboard",
             "partner_text": "الشراكة، العمولات، المستويات، العملاء، الكورسات، ومتطلبات الترقية.",
             "client_text": "مشروعك، باقتك، استخدامك، بيانات موظف المبيعات الذكي، الصور، والكتالوجات.",
-            "client_id": "Client ID",
-            "partner_id": "Partner ID",
+            "account_id": "معرف الحساب",
             "current_package": "الباقة الحالية",
             "subscription_status": "حالة الاشتراك",
             "customer_replies": "ردود العملاء",
             "advisory_replies": "ردود الاستشارات",
             "channels": "القنوات",
-            "features": "المزايا",
-            "project_data": "بيانات المشروع",
-            "image_groups": "صور المنتجات والكتالوجات",
-            "payment_links": "روابط الدفع الخاصة",
             "owner_advisory": "استشارات صاحب المشروع",
-            "owner_advisory_desc": "من هنا تستخدم ردود الاستشارات الخاصة بك كمشترك. تسأل عن المبيعات، التسويق، تطوير العروض، الاعتراضات، وتحسين أداء مشروعك.",
+            "owner_advisory_desc": "من هنا تفتح محادثة خاصة مع موظف المبيعات الذكي كمستشار لمشروعك. المحادثة مرتبطة بمعرف حسابك حتى يستمر معك في رحلة تطوير طويلة.",
             "ask_advisor": "فتح الاستشارات الخاصة",
-            "image_group_title": "اسم مجموعة الصور",
-            "image_group_description": "وصف عام للمجموعة وتعليمات البيع",
-            "image_group_notes": "اكتب شرحاً واضحاً عن المنتجات، الأسعار، العروض، متى يرشح موظف المبيعات الذكي كل منتج، وأي ملاحظات مهمة.",
-            "upload_images": "رفع صور المنتجات والكتالوجات",
-            "upload_note": "رفع الصور والحفظ الفعلي سيتم ربطه في المرحلة القادمة. حالياً هذه واجهة تجهيز.",
+            "project_data": "بيانات المشروع",
+            "project_data_desc": "اكتب معلومات مشروعك الأساسية حتى يفهم موظف المبيعات الذكي طبيعة مشروعك.",
+            "business_name": "اسم المشروع",
+            "business_type": "نوع النشاط",
+            "general_description": "وصف مبسط للمشروع",
+            "products_notes": "ماذا تبيع أو تقدم؟",
+            "save_project": "حفظ بيانات المشروع",
+            "image_groups": "صور المنتجات والكتالوجات",
+            "image_group_title": "اسم مجموعة المنتجات",
+            "image_group_description": "وصف المجموعة وتعليمات البيع",
+            "sales_instructions": "تعليمات مهمة لموظف المبيعات الذكي",
+            "upload_images": "رفع الصور أو الكتالوجات",
+            "save_image_group": "حفظ وإضافة مجموعة منتجات",
+            "saved_image_groups": "مجموعات المنتجات المحفوظة",
+            "payment_links": "روابط الدفع الخاصة",
             "product_name": "اسم المنتج",
             "payment_link": "رابط الدفع",
+            "amount": "السعر",
+            "currency": "العملة",
             "payment_description": "وصف المنتج أو العرض",
-            "add_payment_link": "إضافة رابط دفع",
-            "save_image_group": "حفظ مجموعة المنتجات",
-            "save_payment_link": "حفظ رابط الدفع",
-            "image_urls": "روابط الصور",
-            "image_urls_note": "ضع روابط الصور أو روابط الكتالوجات حالياً. رفع الصور كملفات سيتم ربطه في المرحلة القادمة.",
+            "add_more_payment": "إضافة رابط دفع إضافي",
+            "save_payment_links": "حفظ روابط الدفع",
+            "saved_payment_links": "روابط الدفع المحفوظة",
             "saved_success": "تم الحفظ بنجاح.",
-            "existing_image_groups": "مجموعات المنتجات المحفوظة",
-            "existing_payment_links": "روابط الدفع المحفوظة",
-            "payment_note": "العميل يضيف روابط الدفع الخاصة به، وهو يستلم مبالغ عملائه بنفسه. ALSAAB AI لا يستلم مبالغ عملاء العميل.",
-            "coming_soon": "قيد التجهيز في المرحلة القادمة",
-            "mvp_note": "هذه نسخة MVP مبدئية. لاحقاً سيتم ربطها بتسجيل الدخول الرسمي، واستخدامها لإدارة مشروعك وموظف المبيعات الذكي."
+            "empty": "لا توجد بيانات محفوظة حتى الآن."
         },
         "en": {
             "page_title": "ALSAAB AI - Client Dashboard",
-            "dashboard_title": "Client Dashboard",
-            "intro": "Your project dashboard. Track your package, usage, project data, and Smart Sales Employee setup.",
             "back_site": "Back to ALSAAB AI Website",
             "language": "العربية",
             "partner_portal": "Partner Dashboard",
             "client_portal": "Client Dashboard",
             "partner_text": "Partnership, commissions, levels, customers, courses, and upgrade requirements.",
             "client_text": "Your project, package, usage, Smart Sales Employee data, product images, and catalogs.",
-            "client_id": "Client ID",
-            "partner_id": "Partner ID",
+            "account_id": "Account ID",
             "current_package": "Current Package",
             "subscription_status": "Subscription Status",
             "customer_replies": "Customer Replies",
             "advisory_replies": "Advisory Replies",
             "channels": "Channels",
-            "features": "Features",
-            "project_data": "Project Data",
-            "image_groups": "Product & Catalog Image Groups",
-            "payment_links": "Client Payment Links",
             "owner_advisory": "Owner Advisory",
-            "owner_advisory_desc": "Use your private advisory replies to ask about sales, marketing, offers, objections, and improving your business performance.",
+            "owner_advisory_desc": "Open a private advisory conversation with your Smart Sales Employee. The conversation is tied to your Account ID and continues with your long-term business journey.",
             "ask_advisor": "Open Advisory Chat",
-            "image_group_title": "Image Group Title",
+            "project_data": "Project Data",
+            "project_data_desc": "Add your core project information so the Smart Sales Employee understands your business.",
+            "business_name": "Business Name",
+            "business_type": "Business Type",
+            "general_description": "General Description",
+            "products_notes": "What do you sell or provide?",
+            "save_project": "Save Project Data",
+            "image_groups": "Product & Catalog Images",
+            "image_group_title": "Product Group Name",
             "image_group_description": "Group Description & Sales Instructions",
-            "image_group_notes": "Describe the products, prices, offers, when the Smart Sales Employee should recommend them, and any important notes.",
-            "upload_images": "Upload Product & Catalog Images",
-            "upload_note": "Image upload and saving will be connected in the next phase. This is a preparation UI.",
+            "sales_instructions": "Important instructions for the Smart Sales Employee",
+            "upload_images": "Upload Images or Catalogs",
+            "save_image_group": "Save & Add Product Group",
+            "saved_image_groups": "Saved Product Groups",
+            "payment_links": "Client Payment Links",
             "product_name": "Product Name",
             "payment_link": "Payment Link",
+            "amount": "Amount",
+            "currency": "Currency",
             "payment_description": "Product or Offer Description",
-            "add_payment_link": "Add Payment Link",
-            "save_image_group": "Save Product Group",
-            "save_payment_link": "Save Payment Link",
-            "image_urls": "Image URLs",
-            "image_urls_note": "Add image/catalog URLs for now. Real file upload will be connected in the next phase.",
+            "add_more_payment": "Add Another Payment Link",
+            "save_payment_links": "Save Payment Links",
+            "saved_payment_links": "Saved Payment Links",
             "saved_success": "Saved successfully.",
-            "existing_image_groups": "Saved Product Groups",
-            "existing_payment_links": "Saved Payment Links",
-            "payment_note": "The client adds their own payment links and receives their customer payments directly. ALSAAB AI does not collect the client's customer payments.",
-            "coming_soon": "Coming in the next phase",
-            "mvp_note": "This is an early MVP. Later it will be connected to the official login and used to manage your project and Smart Sales Employee."
+            "empty": "No saved data yet."
         }
     }[lang]
 
@@ -3589,7 +3579,7 @@ def client_dashboard_view():
                 "action": "partner_dashboard_data",
                 "partner_id": partner_id
             },
-            label="client_dashboard_page"
+            label="client_dashboard_partner_data"
         )
 
         if not isinstance(result, dict) or result.get("status") != "success":
@@ -3606,9 +3596,6 @@ def client_dashboard_view():
                 result=result
             ), 500
 
-        profile = result.get("partner_profile") or {}
-        level = result.get("level") or {}
-
         client_dashboard_result = post_to_google_sheet_json(
             {
                 "token": google_sheet_token,
@@ -3621,11 +3608,15 @@ def client_dashboard_view():
         if not isinstance(client_dashboard_result, dict):
             client_dashboard_result = {}
 
+        profile = result.get("partner_profile") or {}
+        level = result.get("level") or {}
+
         product_groups = client_dashboard_result.get("product_image_groups") or []
         client_payment_links = client_dashboard_result.get("client_payment_links") or []
-        saved_message = request.args.get("saved", "").strip()
 
-        client_id = profile.get("client_id") or partner_id or ""
+        account_id = partner_id
+        client_id = partner_id
+
         current_package = (level.get("current_package") or "").lower()
         subscription_status = level.get("subscription_status") or ""
 
@@ -3647,6 +3638,9 @@ def client_dashboard_view():
 
         partner_dashboard_url = f"/partner-dashboard?key={quote(key)}&partner_id={quote(partner_id)}&lang={lang}"
         client_dashboard_url = f"/client-dashboard?key={quote(key)}&partner_id={quote(partner_id)}&lang={lang}"
+        owner_advisory_url = f"/owner-advisory?key={quote(key)}&partner_id={quote(partner_id)}&lang={lang}"
+
+        saved_message = request.args.get("saved", "").strip()
 
         html = """
 <!DOCTYPE html>
@@ -3665,11 +3659,7 @@ def client_dashboard_view():
       text-align: {{ text_align }};
     }
 
-    .page {
-      max-width: 1200px;
-      margin: 0 auto;
-      padding: 28px;
-    }
+    .page { max-width: 1200px; margin: 0 auto; padding: 28px; }
 
     .topbar {
       display: flex;
@@ -3680,11 +3670,7 @@ def client_dashboard_view():
       flex-wrap: wrap;
     }
 
-    .brand {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-    }
+    .brand { display: flex; align-items: center; gap: 12px; }
 
     .logo-mark {
       width: 54px;
@@ -3696,28 +3682,14 @@ def client_dashboard_view():
       justify-content: center;
       color: #d7b85a;
       font-weight: 800;
-      letter-spacing: 1px;
       background: linear-gradient(135deg, #111, #211c0f);
       font-size: 12px;
     }
 
-    .brand-title {
-      color: #d7b85a;
-      font-size: 19px;
-      font-weight: 800;
-    }
+    .brand-title { color: #d7b85a; font-size: 19px; font-weight: 800; }
+    .brand-note { color: #9f967b; font-size: 12px; margin-top: 3px; }
 
-    .brand-note {
-      color: #9f967b;
-      font-size: 12px;
-      margin-top: 3px;
-    }
-
-    .actions {
-      display: flex;
-      gap: 10px;
-      flex-wrap: wrap;
-    }
+    .actions { display: flex; gap: 10px; flex-wrap: wrap; }
 
     .action-btn {
       border: 1px solid rgba(215, 184, 90, 0.5);
@@ -3744,20 +3716,18 @@ def client_dashboard_view():
       color: #f5f0df;
       text-decoration: none;
       display: block;
+      position: relative;
     }
 
     .portal-card.active {
       border-color: #d7b85a;
-      background: linear-gradient(135deg, #d7b85a, #8b6b21);
+      background: linear-gradient(135deg, #d7b85a, #9e7c28);
       color: #0b0b0b;
-      box-shadow: 0 0 25px rgba(215, 184, 90, 0.22);
-      position: relative;
+      box-shadow: 0 0 28px rgba(215, 184, 90, 0.28);
     }
 
     .portal-card.active .portal-card-title,
-    .portal-card.active .portal-card-text {
-      color: #0b0b0b;
-    }
+    .portal-card.active .portal-card-text { color: #0b0b0b; }
 
     .portal-card.active::after {
       content: "أنت هنا";
@@ -3772,37 +3742,8 @@ def client_dashboard_view():
       font-weight: 700;
     }
 
-    .portal-card-title {
-      color: #d7b85a;
-      font-weight: 800;
-      font-size: 20px;
-      margin-bottom: 8px;
-    }
-
-    .portal-card-text {
-      color: #cfc7ad;
-      line-height: 1.6;
-      font-size: 14px;
-    }
-
-    .header {
-      background: linear-gradient(135deg, #111, #1d1a10);
-      border: 1px solid #c8a84b;
-      border-radius: 18px;
-      padding: 24px;
-      margin-bottom: 20px;
-    }
-
-    .header h1 {
-      margin: 0 0 8px;
-      color: #d7b85a;
-      font-size: 28px;
-    }
-
-    .sub {
-      color: #cfc7ad;
-      line-height: 1.7;
-    }
+    .portal-card-title { color: #d7b85a; font-weight: 800; font-size: 20px; margin-bottom: 8px; }
+    .portal-card-text { color: #cfc7ad; line-height: 1.6; font-size: 14px; }
 
     .grid {
       display: grid;
@@ -3811,44 +3752,23 @@ def client_dashboard_view():
       margin-bottom: 20px;
     }
 
-    .card {
+    .card, .section {
       background: #121212;
       border: 1px solid rgba(215, 184, 90, 0.35);
       border-radius: 16px;
       padding: 18px;
     }
 
-    .card h3 {
+    .section { margin-bottom: 18px; }
+
+    .card h3, .section h2 {
       margin: 0 0 10px;
       color: #d7b85a;
-      font-size: 16px;
     }
 
-    .big {
-      font-size: 24px;
-      font-weight: 700;
-      color: #fff;
-    }
-
-    .muted {
-      color: #aaa;
-      font-size: 13px;
-      margin-top: 5px;
-    }
-
-    .section {
-      background: #111;
-      border: 1px solid rgba(215, 184, 90, 0.25);
-      border-radius: 18px;
-      padding: 20px;
-      margin-bottom: 18px;
-    }
-
-    .section h2 {
-      margin: 0 0 14px;
-      color: #d7b85a;
-      font-size: 21px;
-    }
+    .big { font-size: 24px; font-weight: 700; color: #fff; }
+    .muted { color: #aaa; font-size: 13px; margin-top: 5px; }
+    .sub { color: #cfc7ad; line-height: 1.7; }
 
     .form-grid {
       display: grid;
@@ -3857,15 +3777,8 @@ def client_dashboard_view():
       margin-top: 14px;
     }
 
-    .field {
-      display: flex;
-      flex-direction: column;
-      gap: 7px;
-    }
-
-    .field.full {
-      grid-column: 1 / -1;
-    }
+    .field { display: flex; flex-direction: column; gap: 7px; }
+    .field.full { grid-column: 1 / -1; }
 
     .field label {
       color: #d7b85a;
@@ -3886,19 +3799,7 @@ def client_dashboard_view():
       outline: none;
     }
 
-    textarea {
-      min-height: 110px;
-      resize: vertical;
-    }
-
-    .upload-box {
-      border: 1px dashed rgba(215, 184, 90, 0.45);
-      border-radius: 14px;
-      padding: 18px;
-      color: #cfc7ad;
-      background: rgba(255,255,255,0.02);
-      margin-top: 12px;
-    }
+    textarea { min-height: 110px; resize: vertical; }
 
     .primary-btn {
       display: inline-block;
@@ -3911,49 +3812,51 @@ def client_dashboard_view():
       text-decoration: none;
       font-weight: 700;
       cursor: pointer;
-      opacity: 1;
     }
 
-    .info-row {
-      display: grid;
-      grid-template-columns: 210px 1fr;
-      gap: 12px;
-      padding: 9px 0;
-      border-bottom: 1px solid rgba(255,255,255,0.08);
+    .status-message {
+      background: rgba(128, 226, 138, 0.08);
+      border: 1px solid rgba(128, 226, 138, 0.4);
+      color: #80e28a;
+      border-radius: 14px;
+      padding: 13px 16px;
+      margin-bottom: 18px;
+      font-weight: 700;
     }
 
-    .label {
-      color: #c8a84b;
+    .small-list {
+      margin-top: 14px;
+      border-top: 1px solid rgba(255,255,255,0.08);
+      padding-top: 12px;
     }
 
-    .value {
-      color: #fff;
-      word-break: break-word;
+    .small-item {
+      border: 1px solid rgba(215, 184, 90, 0.20);
+      border-radius: 12px;
+      padding: 12px;
+      margin-bottom: 10px;
+      background: rgba(255,255,255,0.02);
     }
 
-    a {
-      color: #f0cc68;
-      text-decoration: none;
+    .small-item-title { color: #d7b85a; font-weight: 800; margin-bottom: 6px; }
+
+    .payment-row {
+      border: 1px solid rgba(215, 184, 90, 0.22);
+      border-radius: 14px;
+      padding: 14px;
+      margin-bottom: 12px;
+      background: rgba(255,255,255,0.02);
     }
+
+    a { color: #f0cc68; text-decoration: none; }
 
     @media (max-width: 900px) {
-      .grid, .portal-switch {
-        grid-template-columns: repeat(2, minmax(0, 1fr));
-      }
-
-      .info-row {
-        grid-template-columns: 1fr;
-      }
+      .grid, .portal-switch, .form-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
     }
 
     @media (max-width: 600px) {
-      .grid, .portal-switch {
-        grid-template-columns: 1fr;
-      }
-
-      .page {
-        padding: 16px;
-      }
+      .grid, .portal-switch, .form-grid { grid-template-columns: 1fr; }
+      .page { padding: 16px; }
     }
   </style>
 </head>
@@ -3965,7 +3868,7 @@ def client_dashboard_view():
         <div class="logo-mark">ALSAAB</div>
         <div>
           <div class="brand-title">ALSAAB AI</div>
-          <div class="brand-note">Official account dashboard MVP</div>
+          <div class="brand-note">Official account dashboard</div>
         </div>
       </div>
 
@@ -3986,11 +3889,16 @@ def client_dashboard_view():
         <div class="portal-card-text">{{ t.client_text }}</div>
       </a>
     </div>
+
+    {% if saved_message %}
+    <div class="status-message">{{ t.saved_success }}</div>
+    {% endif %}
+
     <div class="grid">
       <div class="card">
-        <h3>{{ "معرف الحساب" if lang == "ar" else "Account ID" }}</h3>
-        <div class="big">{{ partner_id }}</div>
-        <div class="muted">{{ t.partner_id }}: {{ partner_id }}</div>
+        <h3>{{ t.account_id }}</h3>
+        <div class="big">{{ account_id }}</div>
+        <div class="muted">Partner ID: {{ partner_id }}</div>
       </div>
 
       <div class="card">
@@ -4014,24 +3922,18 @@ def client_dashboard_view():
 
     <div class="section">
       <h2>{{ t.channels }}</h2>
-      <div class="info-row"><div class="label">{{ t.channels }}</div><div class="value">{{ channels | join(", ") if channels else "-" }}</div></div>
-      <div class="info-row"><div class="label">{{ t.features }}</div><div class="value">{{ t.coming_soon }}</div></div>
+      <div class="sub">{{ channels | join(", ") if channels else "-" }}</div>
     </div>
-
-    {% if saved_message %}
-    <div class="status-message">{{ t.saved_success }}</div>
-    {% endif %}
 
     <div class="section">
       <h2>{{ t.owner_advisory }}</h2>
       <div class="sub">{{ t.owner_advisory_desc }}</div>
       <a class="primary-btn" href="{{ owner_advisory_url }}">{{ t.ask_advisor }}</a>
-      <div class="muted">{{ t.coming_soon }}</div>
     </div>
 
     <div class="section">
       <h2>{{ t.project_data }}</h2>
-      <div class="sub">اكتب بيانات مشروعك الأساسية حتى يفهم موظف المبيعات الذكي طبيعة مشروعك.</div>
+      <div class="sub">{{ t.project_data_desc }}</div>
 
       <form method="POST" action="/client-dashboard/save-project-data">
         <input type="hidden" name="key" value="{{ key }}">
@@ -4041,33 +3943,32 @@ def client_dashboard_view():
 
         <div class="form-grid">
           <div class="field">
-            <label>اسم المشروع</label>
-            <input type="text" name="business_name" placeholder="مثال: متجر العطور الفاخر">
+            <label>{{ t.business_name }}</label>
+            <input type="text" name="business_name" placeholder="{{ t.business_name }}">
           </div>
 
           <div class="field">
-            <label>نوع النشاط</label>
-            <input type="text" name="business_type" placeholder="مثال: عطور، مطعم، عيادة، عقار">
+            <label>{{ t.business_type }}</label>
+            <input type="text" name="business_type" placeholder="{{ t.business_type }}">
           </div>
 
           <div class="field full">
-            <label>وصف مبسط للمشروع</label>
-            <textarea name="general_description" placeholder="اكتب ماذا يبيع مشروعك، من هو جمهورك، وما أهم مميزاتك."></textarea>
+            <label>{{ t.general_description }}</label>
+            <textarea name="general_description" placeholder="{{ t.general_description }}"></textarea>
           </div>
 
           <div class="field full">
-            <label>ملاحظات مهمة لموظف المبيعات الذكي</label>
-            <textarea name="products" placeholder="اكتب المنتجات أو الخدمات الأساسية، الأسعار العامة، العروض، وطريقة الطلب."></textarea>
+            <label>{{ t.products_notes }}</label>
+            <textarea name="products" placeholder="{{ t.products_notes }}"></textarea>
           </div>
         </div>
 
-        <button class="primary-btn" type="submit">حفظ بيانات المشروع</button>
+        <button class="primary-btn" type="submit">{{ t.save_project }}</button>
       </form>
     </div>
 
     <div class="section">
       <h2>{{ t.image_groups }}</h2>
-      <div class="sub">{{ t.image_group_notes }}</div>
 
       <form method="POST" action="/client-dashboard/save-image-group" enctype="multipart/form-data">
         <input type="hidden" name="key" value="{{ key }}">
@@ -4082,7 +3983,7 @@ def client_dashboard_view():
           </div>
 
           <div class="field">
-            <label>رفع الصور أو الكتالوجات</label>
+            <label>{{ t.upload_images }}</label>
             <input type="file" name="images" multiple accept="image/*,.pdf">
           </div>
 
@@ -4092,34 +3993,30 @@ def client_dashboard_view():
           </div>
 
           <div class="field full">
-            <label>{{ t.image_group_notes }}</label>
-            <textarea name="sales_instructions" placeholder="{{ t.image_group_notes }}"></textarea>
+            <label>{{ t.sales_instructions }}</label>
+            <textarea name="sales_instructions" placeholder="{{ t.sales_instructions }}"></textarea>
           </div>
         </div>
 
-        <button class="primary-btn" type="submit">حفظ وإضافة مجموعة منتجات</button>
+        <button class="primary-btn" type="submit">{{ t.save_image_group }}</button>
       </form>
 
-      <div class="upload-box">{{ t.image_urls_note }}</div>
-
       <div class="small-list">
-        <h3 style="color:#d7b85a;">{{ t.existing_image_groups }}</h3>
-
+        <h3 style="color:#d7b85a;">{{ t.saved_image_groups }}</h3>
         {% for group in product_groups[:8] %}
-        <div class="small-item">
-          <div class="small-item-title">{{ group["Group Title"] or "-" }}</div>
-          <div class="muted">{{ group["Group Description"] or "-" }}</div>
-          <div class="muted">Status: {{ group["Status"] or "-" }}</div>
-        </div>
+          <div class="small-item">
+            <div class="small-item-title">{{ group.get("Group Title") or "-" }}</div>
+            <div class="muted">{{ group.get("Group Description") or "-" }}</div>
+            <div class="muted">Status: {{ group.get("Status") or "-" }}</div>
+          </div>
         {% else %}
-        <div class="muted">{{ t.coming_soon }}</div>
+          <div class="muted">{{ t.empty }}</div>
         {% endfor %}
       </div>
     </div>
 
     <div class="section">
       <h2>{{ t.payment_links }}</h2>
-      <div class="sub">{{ t.payment_note }}</div>
 
       <form method="POST" action="/client-dashboard/save-payment-link">
         <input type="hidden" name="key" value="{{ key }}">
@@ -4127,52 +4024,75 @@ def client_dashboard_view():
         <input type="hidden" name="client_id" value="{{ client_id }}">
         <input type="hidden" name="lang" value="{{ lang }}">
 
-        <div class="form-grid">
-          <div class="field">
-            <label>{{ t.product_name }}</label>
-            <input type="text" name="product_name" placeholder="{{ t.product_name }}" required>
-          </div>
+        <div id="paymentRows">
+          <div class="payment-row">
+            <div class="form-grid">
+              <div class="field">
+                <label>{{ t.product_name }}</label>
+                <input type="text" name="product_name" placeholder="{{ t.product_name }}" required>
+              </div>
 
-          <div class="field">
-            <label>{{ t.payment_link }}</label>
-            <input type="url" name="payment_link" placeholder="https://..." required>
-          </div>
+              <div class="field">
+                <label>{{ t.payment_link }}</label>
+                <input type="url" name="payment_link" placeholder="https://..." required>
+              </div>
 
-          <div class="field">
-            <label>{{ t.amount }}</label>
-            <input type="number" step="0.01" name="amount" placeholder="499">
-          </div>
+              <div class="field">
+                <label>{{ t.amount }}</label>
+                <input type="number" step="0.01" name="amount" placeholder="499">
+              </div>
 
-          <div class="field">
-            <label>Currency</label>
-            <input type="text" name="currency" value="AED">
-          </div>
+              <div class="field">
+                <label>{{ t.currency }}</label>
+                <input type="text" name="currency" value="AED">
+              </div>
 
-          <div class="field full">
-            <label>{{ t.payment_description }}</label>
-            <textarea name="description" placeholder="{{ t.payment_description }}"></textarea>
+              <div class="field full">
+                <label>{{ t.payment_description }}</label>
+                <textarea name="description" placeholder="{{ t.payment_description }}"></textarea>
+              </div>
+            </div>
           </div>
         </div>
 
-        <button class="primary-btn" type="submit">{{ t.save_payment_link }}</button><div class="muted" style="margin-top:10px;">بعد الحفظ تقدر تضيف رابط دفع إضافي لنفس العميل.</div>
+        <button class="primary-btn" type="button" onclick="addPaymentRow()">{{ t.add_more_payment }}</button>
+        <button class="primary-btn" type="submit">{{ t.save_payment_links }}</button>
       </form>
 
       <div class="small-list">
-        <h3 style="color:#d7b85a;">{{ t.existing_payment_links }}</h3>
-
+        <h3 style="color:#d7b85a;">{{ t.saved_payment_links }}</h3>
         {% for link in client_payment_links[:8] %}
-        <div class="small-item">
-          <div class="small-item-title">{{ link["Product Name"] or "-" }}</div>
-          <div><a href="{{ link["Payment Link"] }}" target="_blank">{{ link["Payment Link"] }}</a></div>
-          <div class="muted">{{ link["Amount"] or "-" }} {{ link["Currency"] or "" }}</div>
-          <div class="muted">{{ link["Description"] or "-" }}</div>
-        </div>
+          <div class="small-item">
+            <div class="small-item-title">{{ link.get("Product Name") or "-" }}</div>
+            <div><a href="{{ link.get("Payment Link") }}" target="_blank">{{ link.get("Payment Link") }}</a></div>
+            <div class="muted">{{ link.get("Amount") or "-" }} {{ link.get("Currency") or "" }}</div>
+            <div class="muted">{{ link.get("Description") or "-" }}</div>
+          </div>
         {% else %}
-        <div class="muted">{{ t.coming_soon }}</div>
+          <div class="muted">{{ t.empty }}</div>
         {% endfor %}
       </div>
     </div>
-</div>
+
+  </div>
+
+  <script>
+    function addPaymentRow() {
+      const container = document.getElementById("paymentRows");
+      const first = container.querySelector(".payment-row");
+      const clone = first.cloneNode(true);
+
+      clone.querySelectorAll("input, textarea").forEach(function(el) {
+        if (el.name === "currency") {
+          el.value = "AED";
+        } else {
+          el.value = "";
+        }
+      });
+
+      container.appendChild(clone);
+    }
+  </script>
 </body>
 </html>
         """
@@ -4187,8 +4107,10 @@ def client_dashboard_view():
             language_url=language_url,
             partner_dashboard_url=partner_dashboard_url,
             client_dashboard_url=client_dashboard_url,
+            owner_advisory_url=owner_advisory_url,
             key=key,
             partner_id=partner_id,
+            account_id=account_id,
             client_id=client_id,
             current_package=current_package,
             subscription_status=subscription_status,
@@ -4255,7 +4177,7 @@ def client_dashboard_save_image_group():
             if not raw:
                 continue
 
-            # Basic safety limit per file for MVP: 5 MB
+            # MVP safety limit per file: 5 MB
             if len(raw) > 5 * 1024 * 1024:
                 print(f"CLIENT DASHBOARD UPLOAD SKIPPED large file={file.filename}", flush=True)
                 continue
@@ -4278,9 +4200,8 @@ def client_dashboard_save_image_group():
             "group_title": request.form.get("group_title", "").strip(),
             "group_description": request.form.get("group_description", "").strip(),
             "sales_instructions": request.form.get("sales_instructions", "").strip(),
-            "image_urls": request.form.get("image_urls", "").strip(),
             "uploaded_files": uploaded_files,
-            "notes": "Saved from Client Dashboard MVP with file upload"
+            "notes": "Saved from Client Dashboard with file upload"
         }
 
         result = post_to_google_sheet_json(payload, label="client_dashboard_save_image_group")
@@ -4349,7 +4270,7 @@ def client_dashboard_save_payment_link():
                 "amount": amount,
                 "currency": currency,
                 "description": description,
-                "notes": "Saved from Client Dashboard MVP"
+                "notes": "Saved from Client Dashboard"
             }
 
             result = post_to_google_sheet_json(payload, label="client_dashboard_save_payment_link")
@@ -4376,6 +4297,7 @@ def client_dashboard_save_payment_link():
 
 # ===== ALSAAB_CLIENT_PROJECT_DATA_AND_ADVISORY_V1 START =====
 
+@app.route("/client-dashboard/save-project-data", methods=["POST"])
 @app.route("/client-dashboard/save-project-data", methods=["POST"])
 def client_dashboard_save_project_data():
     import os
@@ -4408,7 +4330,7 @@ def client_dashboard_save_project_data():
             "business_type": request.form.get("business_type", "").strip(),
             "general_description": request.form.get("general_description", "").strip(),
             "products": request.form.get("products", "").strip(),
-            "notes": "Saved from Client Dashboard project data MVP"
+            "notes": "Saved from Client Dashboard project data"
         }
 
         result = post_to_google_sheet_json(payload, label="client_dashboard_save_project_data")
@@ -4426,6 +4348,7 @@ def client_dashboard_save_project_data():
         )
 
 
+@app.route("/owner-advisory", methods=["GET"])
 @app.route("/owner-advisory", methods=["GET"])
 def owner_advisory_view():
     from urllib.parse import quote
@@ -4445,15 +4368,15 @@ def owner_advisory_view():
         return "partner_id is required", 400
 
     direction = "rtl" if lang == "ar" else "ltr"
-
     title = "استشارات صاحب المشروع" if lang == "ar" else "Owner Advisory"
     subtitle = (
-        "هذه صفحة الاستشارات الخاصة المرتبطة بمعرف حسابك. سيتم ربط المحادثة الذكية المستمرة في المرحلة القادمة."
+        "هذه محادثة خاصة مرتبطة بمعرف حسابك. استخدمها للاستشارات في المبيعات، التسويق، تطوير العروض، وتحسين أداء مشروعك."
         if lang == "ar"
-        else "This advisory page is tied to your account ID. Persistent smart advisory chat will be connected in the next phase."
+        else "This private advisory chat is tied to your Account ID. Use it for sales, marketing, offers, objections, and business improvement."
     )
 
     back_url = f"/client-dashboard?key={quote(key)}&partner_id={quote(partner_id)}&lang={quote(lang)}"
+    session_id = f"owner_advisory_{partner_id}"
 
     return render_template_string(
         """
@@ -4469,7 +4392,12 @@ def owner_advisory_view():
             .card { background:#111; border:1px solid rgba(215,184,90,.4); border-radius:18px; padding:24px; }
             h1 { color:#d7b85a; margin-top:0; }
             .sub { color:#cfc7ad; line-height:1.8; }
-            a { color:#f0cc68; text-decoration:none; display:inline-block; margin-top:18px; border:1px solid rgba(215,184,90,.45); padding:10px 14px; border-radius:999px; }
+            .chat { margin-top:18px; border:1px solid rgba(215,184,90,.25); border-radius:14px; padding:14px; min-height:330px; max-height:520px; overflow:auto; background:#0b0b0b; }
+            .msg { margin-bottom:12px; line-height:1.7; }
+            .user { color:#f0cc68; }
+            .assistant { color:#fff; }
+            textarea { width:100%; box-sizing:border-box; margin-top:14px; min-height:90px; background:#0b0b0b; color:#fff; border:1px solid rgba(215,184,90,.35); border-radius:12px; padding:12px; font-family:Arial,Tahoma,sans-serif; }
+            button, a { color:#f0cc68; background:#111; text-decoration:none; display:inline-block; margin-top:12px; border:1px solid rgba(215,184,90,.45); padding:10px 14px; border-radius:999px; cursor:pointer; }
           </style>
         </head>
         <body>
@@ -4477,10 +4405,91 @@ def owner_advisory_view():
             <div class="card">
               <h1>{{ title }}</h1>
               <div class="sub">{{ subtitle }}</div>
-              <div class="sub" style="margin-top:12px;">Partner ID: {{ partner_id }}</div>
+              <div class="sub" style="margin-top:8px;">Account ID: {{ partner_id }}</div>
+
+              <div id="chat" class="chat"></div>
+
+              <textarea id="message" placeholder="اكتب سؤالك هنا..."></textarea>
+              <br>
+              <button onclick="sendMessage()">إرسال</button>
               <a href="{{ back_url }}">العودة إلى Client Dashboard</a>
             </div>
           </div>
+
+          <script>
+            const partnerId = {{ partner_id|tojson }};
+            const sessionId = {{ session_id|tojson }};
+            const chatKey = "alsaab_owner_advisory_" + partnerId;
+            const chat = document.getElementById("chat");
+            const messageBox = document.getElementById("message");
+
+            let history = [];
+
+            try {
+              history = JSON.parse(localStorage.getItem(chatKey) || "[]");
+            } catch (e) {
+              history = [];
+            }
+
+            function renderHistory() {
+              chat.innerHTML = "";
+              history.forEach(function(item) {
+                const div = document.createElement("div");
+                div.className = "msg " + item.role;
+                div.innerHTML = "<strong>" + (item.role === "user" ? "أنت" : "المستشار") + ":</strong><br>" + item.text.replace(/\\n/g, "<br>");
+                chat.appendChild(div);
+              });
+              chat.scrollTop = chat.scrollHeight;
+            }
+
+            function saveHistory() {
+              localStorage.setItem(chatKey, JSON.stringify(history));
+            }
+
+            async function sendMessage() {
+              const text = messageBox.value.trim();
+
+              if (!text) {
+                return;
+              }
+
+              history.push({role: "user", text: text});
+              messageBox.value = "";
+              renderHistory();
+              saveHistory();
+
+              try {
+                const response = await fetch("/chat", {
+                  method: "POST",
+                  headers: {"Content-Type": "application/json"},
+                  body: JSON.stringify({
+                    message: text,
+                    session_id: sessionId,
+                    client_id: partnerId,
+                    partner_id: partnerId,
+                    source_partner_id: partnerId,
+                    channel: "owner_advisory",
+                    user_type: "business",
+                    intent: "owner_advisory"
+                  })
+                });
+
+                const data = await response.json();
+                const reply = data.reply || data.response || data.answer || data.message || JSON.stringify(data);
+
+                history.push({role: "assistant", text: reply});
+                renderHistory();
+                saveHistory();
+
+              } catch (error) {
+                history.push({role: "assistant", text: "حدث خطأ مؤقت في الاتصال. حاول مرة أخرى."});
+                renderHistory();
+                saveHistory();
+              }
+            }
+
+            renderHistory();
+          </script>
         </body>
         </html>
         """,
@@ -4489,6 +4498,7 @@ def owner_advisory_view():
         title=title,
         subtitle=subtitle,
         partner_id=partner_id,
+        session_id=session_id,
         back_url=back_url
     )
 
