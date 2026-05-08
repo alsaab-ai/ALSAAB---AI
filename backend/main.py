@@ -1,6 +1,6 @@
 print("ALSAAB AI is running 🔥")
 
-from flask import Flask, request, jsonify, render_template_string, redirect
+from flask import Flask, request, jsonify, render_template_string, redirect, session
 from brain import think
 from database import (
     init_db,
@@ -31,6 +31,14 @@ import re
 from urllib.parse import urlencode, urlparse, urlunparse, parse_qsl
 
 app = Flask(__name__)
+
+
+# ===== ALSAAB_DASHBOARD_SSO_SESSION_SECRET_V1 START =====
+app.secret_key = os.environ.get(
+    "FLASK_SECRET_KEY",
+    os.environ.get("DASHBOARD_SSO_SECRET", "alsaab-ai-dev-session-secret-change-me")
+)
+# ===== ALSAAB_DASHBOARD_SSO_SESSION_SECRET_V1 END =====
 
 init_db()
 
@@ -2613,11 +2621,11 @@ def partner_dashboard_view():
     from urllib.parse import quote
 
     key = request.args.get("key", "").strip()
+    partner_id = request.args.get("partner_id", "").strip() or session.get("partner_id", "")
+    partner_id = normalize_dashboard_partner_id(partner_id)
 
-    if key != ADMIN_KEY:
-        return "Unauthorized", 401
-
-    partner_id = request.args.get("partner_id", "").strip()
+    if not is_dashboard_access_allowed(partner_id, key):
+        return redirect(build_dashboard_login_redirect("partner", partner_id, request.args.get("lang", "ar"))), 302
 
     if not partner_id:
         return "partner_id is required", 400
@@ -2786,13 +2794,13 @@ def partner_dashboard_view():
         purchased_courses = courses.get("purchased_courses") or []
         depth_counts = tree.get("depth_counts") or {}
 
-        ar_url = f"/partner-dashboard?key={quote(key)}&partner_id={quote(partner_id)}&lang=ar"
-        en_url = f"/partner-dashboard?key={quote(key)}&partner_id={quote(partner_id)}&lang=en"
+        ar_url = build_dashboard_nav_url("/partner-dashboard", partner_id, "ar", key)
+        en_url = build_dashboard_nav_url("/partner-dashboard", partner_id, "en", key)
 
         language_url = en_url if is_ar else ar_url
-        partner_dashboard_url = f"/partner-dashboard?key={quote(key)}&partner_id={quote(partner_id)}&lang={lang}"
-        client_dashboard_url = f"/client-dashboard?key={quote(key)}&partner_id={quote(partner_id)}&lang={lang}"
-        owner_advisory_url = f"/owner-advisory?key={quote(key)}&partner_id={quote(partner_id)}&lang={lang}"
+        partner_dashboard_url = build_dashboard_nav_url("/partner-dashboard", partner_id, lang, key)
+        client_dashboard_url = build_dashboard_nav_url("/client-dashboard", partner_id, lang, key)
+        owner_advisory_url = build_dashboard_nav_url("/owner-advisory", partner_id, lang, key)
 
         def money(value):
             try:
@@ -3452,11 +3460,11 @@ def client_dashboard_view():
     from urllib.parse import quote
 
     key = request.args.get("key", "").strip()
+    partner_id = request.args.get("partner_id", "").strip() or session.get("partner_id", "")
+    partner_id = normalize_dashboard_partner_id(partner_id)
 
-    if key != ADMIN_KEY:
-        return "Unauthorized", 401
-
-    partner_id = request.args.get("partner_id", "").strip()
+    if not is_dashboard_access_allowed(partner_id, key):
+        return redirect(build_dashboard_login_redirect("client", partner_id, request.args.get("lang", "ar"))), 302
 
     if not partner_id:
         return "partner_id is required", 400
@@ -3632,13 +3640,13 @@ def client_dashboard_view():
         advisory_limit = package.get("owner_advisory_reply_limit", 0)
         channels = package.get("channels") or []
 
-        ar_url = f"/client-dashboard?key={quote(key)}&partner_id={quote(partner_id)}&lang=ar"
-        en_url = f"/client-dashboard?key={quote(key)}&partner_id={quote(partner_id)}&lang=en"
+        ar_url = build_dashboard_nav_url("/client-dashboard", partner_id, "ar", key)
+        en_url = build_dashboard_nav_url("/client-dashboard", partner_id, "en", key)
         language_url = en_url if is_ar else ar_url
 
-        partner_dashboard_url = f"/partner-dashboard?key={quote(key)}&partner_id={quote(partner_id)}&lang={lang}"
-        client_dashboard_url = f"/client-dashboard?key={quote(key)}&partner_id={quote(partner_id)}&lang={lang}"
-        owner_advisory_url = f"/owner-advisory?key={quote(key)}&partner_id={quote(partner_id)}&lang={lang}"
+        partner_dashboard_url = build_dashboard_nav_url("/partner-dashboard", partner_id, lang, key)
+        client_dashboard_url = build_dashboard_nav_url("/client-dashboard", partner_id, lang, key)
+        owner_advisory_url = build_dashboard_nav_url("/owner-advisory", partner_id, lang, key)
 
         saved_message = request.args.get("saved", "").strip()
 
@@ -4154,11 +4162,11 @@ def client_dashboard_save_image_group():
     from urllib.parse import quote
 
     key = request.form.get("key", "").strip()
+    partner_id = request.form.get("partner_id", "").strip() or session.get("partner_id", "")
+    partner_id = normalize_dashboard_partner_id(partner_id)
 
-    if key != ADMIN_KEY:
-        return "Unauthorized", 401
-
-    partner_id = request.form.get("partner_id", "").strip()
+    if not is_dashboard_access_allowed(partner_id, key):
+        return redirect(build_dashboard_login_redirect("client", partner_id, request.form.get("lang", "ar"))), 302
     client_id = request.form.get("client_id", "").strip() or partner_id
     lang = request.form.get("lang", "ar").strip().lower()
 
@@ -4225,11 +4233,11 @@ def client_dashboard_save_payment_link():
     from urllib.parse import quote
 
     key = request.form.get("key", "").strip()
+    partner_id = request.form.get("partner_id", "").strip() or session.get("partner_id", "")
+    partner_id = normalize_dashboard_partner_id(partner_id)
 
-    if key != ADMIN_KEY:
-        return "Unauthorized", 401
-
-    partner_id = request.form.get("partner_id", "").strip()
+    if not is_dashboard_access_allowed(partner_id, key):
+        return redirect(build_dashboard_login_redirect("client", partner_id, request.form.get("lang", "ar"))), 302
     client_id = request.form.get("client_id", "").strip() or partner_id
     lang = request.form.get("lang", "ar").strip().lower()
 
@@ -4304,11 +4312,11 @@ def client_dashboard_save_project_data():
     from urllib.parse import quote
 
     key = request.form.get("key", "").strip()
+    partner_id = request.form.get("partner_id", "").strip() or session.get("partner_id", "")
+    partner_id = normalize_dashboard_partner_id(partner_id)
 
-    if key != ADMIN_KEY:
-        return "Unauthorized", 401
-
-    partner_id = request.form.get("partner_id", "").strip()
+    if not is_dashboard_access_allowed(partner_id, key):
+        return redirect(build_dashboard_login_redirect("client", partner_id, request.form.get("lang", "ar"))), 302
     client_id = request.form.get("client_id", "").strip() or partner_id
     lang = request.form.get("lang", "ar").strip().lower()
 
@@ -4354,11 +4362,11 @@ def owner_advisory_view():
     from urllib.parse import quote
 
     key = request.args.get("key", "").strip()
+    partner_id = request.args.get("partner_id", "").strip() or session.get("partner_id", "")
+    partner_id = normalize_dashboard_partner_id(partner_id)
 
-    if key != ADMIN_KEY:
-        return "Unauthorized", 401
-
-    partner_id = request.args.get("partner_id", "").strip()
+    if not is_dashboard_access_allowed(partner_id, key):
+        return redirect(build_dashboard_login_redirect("advisory", partner_id, request.args.get("lang", "ar"))), 302
     lang = request.args.get("lang", "ar").strip().lower()
 
     if lang not in ("ar", "en"):
@@ -4503,6 +4511,300 @@ def owner_advisory_view():
     )
 
 # ===== ALSAAB_CLIENT_PROJECT_DATA_AND_ADVISORY_V1 END =====
+
+
+
+# ===== ALSAAB_DASHBOARD_SSO_BRIDGE_V1 START =====
+
+def normalize_dashboard_partner_id(value):
+    value = str(value or "").strip()
+
+    if not value:
+        return ""
+
+    if value.lower() == "alsaab":
+        return "alsaab"
+
+    value = value.upper()
+
+    if value.startswith("ALS-P"):
+        return value
+
+    return ""
+
+
+def get_dashboard_sso_secret():
+    return os.environ.get("DASHBOARD_SSO_SECRET", "").strip()
+
+
+def dashboard_b64url_encode(raw_bytes):
+    import base64
+    return base64.urlsafe_b64encode(raw_bytes).rstrip(b"=").decode("ascii")
+
+
+def dashboard_b64url_decode(value):
+    import base64
+
+    value = str(value or "")
+    padding = "=" * (-len(value) % 4)
+    return base64.urlsafe_b64decode((value + padding).encode("ascii"))
+
+
+def create_dashboard_sso_token(partner_id, target="client", lang="ar", ttl_seconds=900):
+    import json
+    import time
+    import hmac
+    import hashlib
+
+    secret = get_dashboard_sso_secret()
+
+    if not secret:
+        raise ValueError("DASHBOARD_SSO_SECRET is missing")
+
+    partner_id = normalize_dashboard_partner_id(partner_id)
+
+    if not partner_id:
+        raise ValueError("partner_id is required")
+
+    target = str(target or "client").strip().lower()
+
+    if target not in ("client", "partner", "advisory"):
+        target = "client"
+
+    lang = str(lang or "ar").strip().lower()
+
+    if lang not in ("ar", "en"):
+        lang = "ar"
+
+    payload = {
+        "partner_id": partner_id,
+        "target": target,
+        "lang": lang,
+        "exp": int(time.time()) + int(ttl_seconds or 900)
+    }
+
+    payload_json = json.dumps(payload, separators=(",", ":"), ensure_ascii=False).encode("utf-8")
+    payload_part = dashboard_b64url_encode(payload_json)
+
+    signature = hmac.new(
+        secret.encode("utf-8"),
+        payload_part.encode("ascii"),
+        hashlib.sha256
+    ).digest()
+
+    signature_part = dashboard_b64url_encode(signature)
+
+    return payload_part + "." + signature_part
+
+
+def verify_dashboard_sso_token(token):
+    import json
+    import time
+    import hmac
+    import hashlib
+
+    secret = get_dashboard_sso_secret()
+
+    if not secret:
+        return None, "DASHBOARD_SSO_SECRET is missing"
+
+    token = str(token or "").strip()
+
+    if "." not in token:
+        return None, "Invalid token format"
+
+    payload_part, signature_part = token.split(".", 1)
+
+    expected_signature = hmac.new(
+        secret.encode("utf-8"),
+        payload_part.encode("ascii"),
+        hashlib.sha256
+    ).digest()
+
+    expected_signature_part = dashboard_b64url_encode(expected_signature)
+
+    if not hmac.compare_digest(expected_signature_part, signature_part):
+        return None, "Invalid token signature"
+
+    try:
+        payload = json.loads(dashboard_b64url_decode(payload_part).decode("utf-8"))
+    except Exception:
+        return None, "Invalid token payload"
+
+    if int(payload.get("exp") or 0) < int(time.time()):
+        return None, "Token expired"
+
+    partner_id = normalize_dashboard_partner_id(payload.get("partner_id", ""))
+
+    if not partner_id:
+        return None, "Invalid partner_id"
+
+    payload["partner_id"] = partner_id
+
+    target = str(payload.get("target") or "client").strip().lower()
+
+    if target not in ("client", "partner", "advisory"):
+        target = "client"
+
+    payload["target"] = target
+
+    lang = str(payload.get("lang") or "ar").strip().lower()
+
+    if lang not in ("ar", "en"):
+        lang = "ar"
+
+    payload["lang"] = lang
+
+    return payload, ""
+
+
+def is_dashboard_access_allowed(partner_id, key=""):
+    partner_id = normalize_dashboard_partner_id(partner_id)
+
+    # Internal admin bypass only. Do not use key in public/customer links.
+    if key and key == ADMIN_KEY:
+        return True
+
+    session_partner_id = normalize_dashboard_partner_id(session.get("partner_id", ""))
+
+    if session_partner_id and partner_id and session_partner_id == partner_id:
+        return True
+
+    return False
+
+
+def build_dashboard_nav_url(path, partner_id="", lang="ar", key=""):
+    from urllib.parse import urlencode
+
+    params = {
+        "lang": lang or "ar"
+    }
+
+    # If admin is testing with key, keep key and partner_id.
+    # If user came through SSO/session, never expose key.
+    if key:
+        params["key"] = key
+        if partner_id:
+            params["partner_id"] = normalize_dashboard_partner_id(partner_id)
+
+    return path + "?" + urlencode(params)
+
+
+def build_dashboard_login_redirect(target="client", partner_id="", lang="ar"):
+    from urllib.parse import urlencode
+
+    params = {
+        "target": target or "client",
+        "lang": lang or "ar"
+    }
+
+    partner_id = normalize_dashboard_partner_id(partner_id)
+
+    if partner_id:
+        params["partner_id"] = partner_id
+
+    return "/account-login-placeholder?" + urlencode(params)
+
+
+@app.route("/dashboard-sso", methods=["GET"])
+def dashboard_sso():
+    token = request.args.get("token", "").strip()
+    payload, error = verify_dashboard_sso_token(token)
+
+    if error:
+        return render_template_string(
+            """
+            <html>
+            <head><meta charset="utf-8"><title>Dashboard Login Error</title></head>
+            <body style="font-family:Arial; direction:rtl; padding:30px;">
+              <h2>تعذر الدخول إلى الداشبورد</h2>
+              <p>{{ error }}</p>
+            </body>
+            </html>
+            """,
+            error=error
+        ), 401
+
+    partner_id = payload.get("partner_id")
+    target = payload.get("target") or "client"
+    lang = payload.get("lang") or "ar"
+
+    session["partner_id"] = partner_id
+
+    if target == "partner":
+        return redirect(f"/partner-dashboard?lang={lang}")
+
+    if target == "advisory":
+        return redirect(f"/owner-advisory?lang={lang}")
+
+    return redirect(f"/client-dashboard?lang={lang}")
+
+
+@app.route("/admin/create-dashboard-sso-link", methods=["GET"])
+def admin_create_dashboard_sso_link():
+    key = request.args.get("key", "").strip()
+
+    if key != ADMIN_KEY:
+        return jsonify({"error": "Unauthorized"}), 401
+
+    partner_id = normalize_dashboard_partner_id(request.args.get("partner_id", ""))
+    target = request.args.get("target", "client").strip().lower()
+    lang = request.args.get("lang", "ar").strip().lower()
+
+    if target not in ("client", "partner", "advisory"):
+        target = "client"
+
+    if lang not in ("ar", "en"):
+        lang = "ar"
+
+    if not partner_id:
+        return jsonify({
+            "status": "error",
+            "message": "partner_id is required"
+        }), 400
+
+    try:
+        token = create_dashboard_sso_token(
+            partner_id=partner_id,
+            target=target,
+            lang=lang,
+            ttl_seconds=900
+        )
+
+        base_url = request.url_root.rstrip("/")
+        url = f"{base_url}/dashboard-sso?token={token}"
+
+        return jsonify({
+            "status": "success",
+            "partner_id": partner_id,
+            "target": target,
+            "lang": lang,
+            "url": url
+        })
+
+    except Exception as error:
+        return jsonify({
+            "status": "error",
+            "message": str(error)
+        }), 500
+
+
+@app.route("/account-login-placeholder", methods=["GET"])
+def account_login_placeholder():
+    return render_template_string(
+        """
+        <html>
+        <head><meta charset="utf-8"><title>ALSAAB AI Login</title></head>
+        <body style="font-family:Arial; direction:rtl; background:#0b0b0b; color:#f5f0df; padding:30px;">
+          <h2 style="color:#d7b85a;">تسجيل الدخول الرسمي سيتم من WordPress</h2>
+          <p>هذه الصفحة محمية. للدخول الرسمي، استخدم حسابك في موقع ALSAAB AI.</p>
+          <p>لاحقاً سيتم ربط WordPress Login بهذه الصفحة عبر SSO Token.</p>
+        </body>
+        </html>
+        """
+    )
+
+# ===== ALSAAB_DASHBOARD_SSO_BRIDGE_V1 END =====
 
 
 if __name__ == "__main__":
