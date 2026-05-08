@@ -866,7 +866,7 @@ textarea::placeholder {
 
 .send-btn:disabled {
     opacity: 0.58;
-    cursor: not-allowed;
+    cursor: pointer;
     transform: none;
 }
 
@@ -2990,6 +2990,36 @@ def partner_dashboard_view():
       margin-bottom: 18px;
     }
 
+    .status-message {
+      background: rgba(128, 226, 138, 0.08);
+      border: 1px solid rgba(128, 226, 138, 0.4);
+      color: #80e28a;
+      border-radius: 14px;
+      padding: 13px 16px;
+      margin-bottom: 18px;
+      font-weight: 700;
+    }
+
+    .small-list {
+      margin-top: 14px;
+      border-top: 1px solid rgba(255,255,255,0.08);
+      padding-top: 12px;
+    }
+
+    .small-item {
+      border: 1px solid rgba(215, 184, 90, 0.20);
+      border-radius: 12px;
+      padding: 12px;
+      margin-bottom: 10px;
+      background: rgba(255,255,255,0.02);
+    }
+
+    .small-item-title {
+      color: #d7b85a;
+      font-weight: 800;
+      margin-bottom: 6px;
+    }
+
     .section h2 {
       margin: 0 0 14px;
       color: #d7b85a;
@@ -3056,8 +3086,8 @@ def partner_dashboard_view():
       border-radius: 999px;
       text-decoration: none;
       font-weight: 700;
-      cursor: not-allowed;
-      opacity: 0.85;
+      cursor: pointer;
+      opacity: 1;
     }
 
     .info-row {
@@ -3465,6 +3495,13 @@ def client_dashboard_view():
             "payment_link": "رابط الدفع",
             "payment_description": "وصف المنتج أو العرض",
             "add_payment_link": "إضافة رابط دفع",
+            "save_image_group": "حفظ مجموعة المنتجات",
+            "save_payment_link": "حفظ رابط الدفع",
+            "image_urls": "روابط الصور",
+            "image_urls_note": "ضع روابط الصور أو روابط الكتالوجات حالياً. رفع الصور كملفات سيتم ربطه في المرحلة القادمة.",
+            "saved_success": "تم الحفظ بنجاح.",
+            "existing_image_groups": "مجموعات المنتجات المحفوظة",
+            "existing_payment_links": "روابط الدفع المحفوظة",
             "payment_note": "العميل يضيف روابط الدفع الخاصة به، وهو يستلم مبالغ عملائه بنفسه. ALSAAB AI لا يستلم مبالغ عملاء العميل.",
             "coming_soon": "قيد التجهيز في المرحلة القادمة",
             "mvp_note": "هذه نسخة MVP مبدئية. لاحقاً سيتم ربطها بتسجيل الدخول الرسمي، واستخدامها لإدارة مشروعك وموظف المبيعات الذكي."
@@ -3502,6 +3539,13 @@ def client_dashboard_view():
             "payment_link": "Payment Link",
             "payment_description": "Product or Offer Description",
             "add_payment_link": "Add Payment Link",
+            "save_image_group": "Save Product Group",
+            "save_payment_link": "Save Payment Link",
+            "image_urls": "Image URLs",
+            "image_urls_note": "Add image/catalog URLs for now. Real file upload will be connected in the next phase.",
+            "saved_success": "Saved successfully.",
+            "existing_image_groups": "Saved Product Groups",
+            "existing_payment_links": "Saved Payment Links",
             "payment_note": "The client adds their own payment links and receives their customer payments directly. ALSAAB AI does not collect the client's customer payments.",
             "coming_soon": "Coming in the next phase",
             "mvp_note": "This is an early MVP. Later it will be connected to the official login and used to manage your project and Smart Sales Employee."
@@ -3542,7 +3586,23 @@ def client_dashboard_view():
         profile = result.get("partner_profile") or {}
         level = result.get("level") or {}
 
-        client_id = profile.get("client_id") or ""
+        client_dashboard_result = post_to_google_sheet_json(
+            {
+                "token": google_sheet_token,
+                "action": "client_dashboard_data",
+                "partner_id": partner_id
+            },
+            label="client_dashboard_data_page"
+        )
+
+        if not isinstance(client_dashboard_result, dict):
+            client_dashboard_result = {}
+
+        product_groups = client_dashboard_result.get("product_image_groups") or []
+        client_payment_links = client_dashboard_result.get("client_payment_links") or []
+        saved_message = request.args.get("saved", "").strip()
+
+        client_id = profile.get("client_id") or partner_id or ""
         current_package = (level.get("current_package") or "").lower()
         subscription_status = level.get("subscription_status") or ""
 
@@ -3806,8 +3866,8 @@ def client_dashboard_view():
       border-radius: 999px;
       text-decoration: none;
       font-weight: 700;
-      cursor: not-allowed;
-      opacity: 0.85;
+      cursor: pointer;
+      opacity: 1;
     }
 
     .info-row {
@@ -3914,6 +3974,10 @@ def client_dashboard_view():
       <div class="info-row"><div class="label">{{ t.features }}</div><div class="value">{{ t.coming_soon }}</div></div>
     </div>
 
+    {% if saved_message %}
+    <div class="status-message">{{ t.saved_success }}</div>
+    {% endif %}
+
     <div class="section">
       <h2>{{ t.owner_advisory }}</h2>
       <div class="sub">{{ t.owner_advisory_desc }}</div>
@@ -3930,49 +3994,108 @@ def client_dashboard_view():
       <h2>{{ t.image_groups }}</h2>
       <div class="sub">{{ t.image_group_notes }}</div>
 
-      <div class="form-grid">
-        <div class="field">
-          <label>{{ t.image_group_title }}</label>
-          <input type="text" placeholder="{{ t.image_group_title }}" disabled>
+      <form method="POST" action="/client-dashboard/save-image-group">
+        <input type="hidden" name="key" value="{{ key }}">
+        <input type="hidden" name="partner_id" value="{{ partner_id }}">
+        <input type="hidden" name="client_id" value="{{ client_id }}">
+        <input type="hidden" name="lang" value="{{ lang }}">
+
+        <div class="form-grid">
+          <div class="field">
+            <label>{{ t.image_group_title }}</label>
+            <input type="text" name="group_title" placeholder="{{ t.image_group_title }}" required>
+          </div>
+
+          <div class="field">
+            <label>{{ t.image_urls }}</label>
+            <textarea name="image_urls" placeholder="https://example.com/catalog-1.jpg"></textarea>
+          </div>
+
+          <div class="field full">
+            <label>{{ t.image_group_description }}</label>
+            <textarea name="group_description" placeholder="{{ t.image_group_description }}" required></textarea>
+          </div>
+
+          <div class="field full">
+            <label>{{ t.image_group_notes }}</label>
+            <textarea name="sales_instructions" placeholder="{{ t.image_group_notes }}"></textarea>
+          </div>
         </div>
 
-        <div class="field">
-          <label>{{ t.upload_images }}</label>
-          <input type="file" multiple disabled>
-        </div>
+        <button class="primary-btn" type="submit">{{ t.save_image_group }}</button>
+      </form>
 
-        <div class="field full">
-          <label>{{ t.image_group_description }}</label>
-          <textarea placeholder="{{ t.image_group_description }}" disabled></textarea>
+      <div class="upload-box">{{ t.image_urls_note }}</div>
+
+      <div class="small-list">
+        <h3 style="color:#d7b85a;">{{ t.existing_image_groups }}</h3>
+
+        {% for group in product_groups[:8] %}
+        <div class="small-item">
+          <div class="small-item-title">{{ group["Group Title"] or "-" }}</div>
+          <div class="muted">{{ group["Group Description"] or "-" }}</div>
+          <div class="muted">Status: {{ group["Status"] or "-" }}</div>
         </div>
+        {% else %}
+        <div class="muted">{{ t.coming_soon }}</div>
+        {% endfor %}
       </div>
-
-      <div class="upload-box">{{ t.upload_note }}</div>
     </div>
 
     <div class="section">
       <h2>{{ t.payment_links }}</h2>
       <div class="sub">{{ t.payment_note }}</div>
 
-      <div class="form-grid">
-        <div class="field">
-          <label>{{ t.product_name }}</label>
-          <input type="text" placeholder="{{ t.product_name }}" disabled>
+      <form method="POST" action="/client-dashboard/save-payment-link">
+        <input type="hidden" name="key" value="{{ key }}">
+        <input type="hidden" name="partner_id" value="{{ partner_id }}">
+        <input type="hidden" name="client_id" value="{{ client_id }}">
+        <input type="hidden" name="lang" value="{{ lang }}">
+
+        <div class="form-grid">
+          <div class="field">
+            <label>{{ t.product_name }}</label>
+            <input type="text" name="product_name" placeholder="{{ t.product_name }}" required>
+          </div>
+
+          <div class="field">
+            <label>{{ t.payment_link }}</label>
+            <input type="url" name="payment_link" placeholder="https://..." required>
+          </div>
+
+          <div class="field">
+            <label>{{ t.amount }}</label>
+            <input type="number" step="0.01" name="amount" placeholder="499">
+          </div>
+
+          <div class="field">
+            <label>Currency</label>
+            <input type="text" name="currency" value="AED">
+          </div>
+
+          <div class="field full">
+            <label>{{ t.payment_description }}</label>
+            <textarea name="description" placeholder="{{ t.payment_description }}"></textarea>
+          </div>
         </div>
 
-        <div class="field">
-          <label>{{ t.payment_link }}</label>
-          <input type="url" placeholder="https://..." disabled>
-        </div>
+        <button class="primary-btn" type="submit">{{ t.save_payment_link }}</button>
+      </form>
 
-        <div class="field full">
-          <label>{{ t.payment_description }}</label>
-          <textarea placeholder="{{ t.payment_description }}" disabled></textarea>
+      <div class="small-list">
+        <h3 style="color:#d7b85a;">{{ t.existing_payment_links }}</h3>
+
+        {% for link in client_payment_links[:8] %}
+        <div class="small-item">
+          <div class="small-item-title">{{ link["Product Name"] or "-" }}</div>
+          <div><a href="{{ link["Payment Link"] }}" target="_blank">{{ link["Payment Link"] }}</a></div>
+          <div class="muted">{{ link["Amount"] or "-" }} {{ link["Currency"] or "" }}</div>
+          <div class="muted">{{ link["Description"] or "-" }}</div>
         </div>
+        {% else %}
+        <div class="muted">{{ t.coming_soon }}</div>
+        {% endfor %}
       </div>
-
-      <a class="primary-btn" href="javascript:void(0)">{{ t.add_payment_link }}</a>
-      <div class="muted">{{ t.coming_soon }}</div>
     </div>
 
     <div class="section">
@@ -3995,13 +4118,17 @@ def client_dashboard_view():
             language_url=language_url,
             partner_dashboard_url=partner_dashboard_url,
             client_dashboard_url=client_dashboard_url,
+            key=key,
             partner_id=partner_id,
             client_id=client_id,
             current_package=current_package,
             subscription_status=subscription_status,
             customer_limit=customer_limit,
             advisory_limit=advisory_limit,
-            channels=channels
+            channels=channels,
+            product_groups=product_groups,
+            client_payment_links=client_payment_links,
+            saved_message=saved_message
         )
 
     except Exception as error:
@@ -4024,6 +4151,110 @@ def client_dashboard_view():
         ), 500
 
 # ===== ALSAAB_CLIENT_DASHBOARD_UI_MVP_V1 END =====
+
+
+
+# ===== ALSAAB_CLIENT_DASHBOARD_SAVE_ROUTES_V1 START =====
+
+@app.route("/client-dashboard/save-image-group", methods=["POST"])
+def client_dashboard_save_image_group():
+    import os
+    from urllib.parse import quote
+
+    key = request.form.get("key", "").strip()
+
+    if key != ADMIN_KEY:
+        return "Unauthorized", 401
+
+    partner_id = request.form.get("partner_id", "").strip()
+    client_id = request.form.get("client_id", "").strip() or partner_id
+    lang = request.form.get("lang", "ar").strip().lower()
+
+    if lang not in ("ar", "en"):
+        lang = "ar"
+
+    try:
+        from database import post_to_google_sheet_json
+
+        google_sheet_token = os.getenv("GOOGLE_SHEET_TOKEN", "")
+
+        payload = {
+            "token": google_sheet_token,
+            "action": "product_image_group",
+            "partner_id": partner_id,
+            "client_id": client_id,
+            "group_title": request.form.get("group_title", "").strip(),
+            "group_description": request.form.get("group_description", "").strip(),
+            "sales_instructions": request.form.get("sales_instructions", "").strip(),
+            "image_urls": request.form.get("image_urls", "").strip(),
+            "notes": "Saved from Client Dashboard MVP"
+        }
+
+        result = post_to_google_sheet_json(payload, label="client_dashboard_save_image_group")
+        status = "image_group_saved" if isinstance(result, dict) and result.get("status") == "success" else "image_group_error"
+
+        return redirect(
+            f"/client-dashboard?key={quote(key)}&partner_id={quote(partner_id)}&lang={quote(lang)}&saved={quote(status)}"
+        )
+
+    except Exception as error:
+        print(f"CLIENT DASHBOARD SAVE IMAGE GROUP ERROR ❌ {error}", flush=True)
+
+        return redirect(
+            f"/client-dashboard?key={quote(key)}&partner_id={quote(partner_id)}&lang={quote(lang)}&saved=image_group_error"
+        )
+
+
+@app.route("/client-dashboard/save-payment-link", methods=["POST"])
+def client_dashboard_save_payment_link():
+    import os
+    from urllib.parse import quote
+
+    key = request.form.get("key", "").strip()
+
+    if key != ADMIN_KEY:
+        return "Unauthorized", 401
+
+    partner_id = request.form.get("partner_id", "").strip()
+    client_id = request.form.get("client_id", "").strip() or partner_id
+    lang = request.form.get("lang", "ar").strip().lower()
+
+    if lang not in ("ar", "en"):
+        lang = "ar"
+
+    try:
+        from database import post_to_google_sheet_json
+
+        google_sheet_token = os.getenv("GOOGLE_SHEET_TOKEN", "")
+
+        payload = {
+            "token": google_sheet_token,
+            "action": "client_payment_link",
+            "partner_id": partner_id,
+            "client_id": client_id,
+            "product_name": request.form.get("product_name", "").strip(),
+            "payment_link": request.form.get("payment_link", "").strip(),
+            "amount": request.form.get("amount", "").strip(),
+            "currency": request.form.get("currency", "AED").strip() or "AED",
+            "description": request.form.get("description", "").strip(),
+            "notes": "Saved from Client Dashboard MVP"
+        }
+
+        result = post_to_google_sheet_json(payload, label="client_dashboard_save_payment_link")
+        status = "payment_link_saved" if isinstance(result, dict) and result.get("status") == "success" else "payment_link_error"
+
+        return redirect(
+            f"/client-dashboard?key={quote(key)}&partner_id={quote(partner_id)}&lang={quote(lang)}&saved={quote(status)}"
+        )
+
+    except Exception as error:
+        print(f"CLIENT DASHBOARD SAVE PAYMENT LINK ERROR ❌ {error}", flush=True)
+
+        return redirect(
+            f"/client-dashboard?key={quote(key)}&partner_id={quote(partner_id)}&lang={quote(lang)}&saved=payment_link_error"
+        )
+
+# ===== ALSAAB_CLIENT_DASHBOARD_SAVE_ROUTES_V1 END =====
 
 
 if __name__ == "__main__":
