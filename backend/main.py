@@ -2610,6 +2610,7 @@ def partner_dashboard_view():
     - Later this will use logged-in WordPress/user session.
     """
     import os
+    from urllib.parse import quote
 
     key = request.args.get("key", "").strip()
 
@@ -2620,6 +2621,125 @@ def partner_dashboard_view():
 
     if not partner_id:
         return "partner_id is required", 400
+
+    lang = request.args.get("lang", "ar").strip().lower()
+
+    if lang not in ("ar", "en"):
+        lang = "ar"
+
+    is_ar = lang == "ar"
+    direction = "rtl" if is_ar else "ltr"
+    text_align = "right" if is_ar else "left"
+
+    try:
+        from config import WEBSITE_URL
+    except Exception:
+        WEBSITE_URL = "https://alsaab.io"
+
+    t = {
+        "ar": {
+            "page_title": "ALSAAB AI - لوحة الشريك",
+            "dashboard_title": "Partner Dashboard",
+            "intro": "لوحة الشريك الرسمية في ALSAAB AI. هنا تشوف رابطك، مستواك، عملاءك، عمولاتك، ومتطلبات الترقية.",
+            "back_site": "العودة إلى موقع ALSAAB AI",
+            "language": "English",
+            "partner_id": "Partner ID",
+            "current_level": "المستوى الحالي",
+            "next": "التالي",
+            "active_direct_customers": "العملاء المباشرين النشطين",
+            "all_direct": "إجمالي المباشرين",
+            "pending_commissions": "العمولات المعلقة",
+            "commission_count": "عددها",
+            "partner_info": "بيانات الشريك",
+            "name": "الاسم",
+            "status": "الحالة",
+            "sponsor": "Sponsor",
+            "referral_link": "Referral Link",
+            "level_progress": "المستوى والترقية",
+            "completed_sales": "Completed Sales",
+            "required_sales": "Required Sales",
+            "current_package": "Current Package",
+            "subscription_status": "Subscription Status",
+            "commission_eligible": "Commission Eligible",
+            "required_course": "Required Course",
+            "missing_requirements": "Missing Requirements",
+            "network": "الشبكة",
+            "direct": "المباشرين",
+            "level_2": "المستوى الثاني",
+            "level_3": "المستوى الثالث",
+            "total_network": "إجمالي الشبكة",
+            "commission_summary": "ملخص العمولات",
+            "recent_commissions": "آخر العمولات",
+            "date": "التاريخ",
+            "depth": "العمق",
+            "package": "الباقة",
+            "percent": "النسبة",
+            "amount": "المبلغ",
+            "direct_customers": "العملاء المباشرين",
+            "client_id": "Client ID",
+            "courses": "الكورسات والمتطلبات",
+            "course": "الكورس",
+            "code": "الكود",
+            "paid_at": "تاريخ الدفع",
+            "no_commissions": "لا توجد عمولات حتى الآن.",
+            "no_customers": "لا يوجد عملاء مباشرين حتى الآن.",
+            "no_courses": "لا توجد كورسات مسجلة حتى الآن.",
+            "mvp_note_title": "ملاحظة",
+            "mvp_note": "هذه نسخة MVP تجريبية من Partner Dashboard. لاحقاً سيتم ربطها بتسجيل الدخول الرسمي، وإخفاء مفتاح الإدارة، وتحسين التصميم والصلاحيات.",
+            "logo_note": "سيتم استبدال هذا المكان بشعار الشركة الرسمي لاحقاً."
+        },
+        "en": {
+            "page_title": "ALSAAB AI - Partner Dashboard",
+            "dashboard_title": "Partner Dashboard",
+            "intro": "The official ALSAAB AI partner dashboard. View your referral link, level, customers, commissions, and upgrade requirements.",
+            "back_site": "Back to ALSAAB AI Website",
+            "language": "العربية",
+            "partner_id": "Partner ID",
+            "current_level": "Current Level",
+            "next": "Next",
+            "active_direct_customers": "Active Direct Customers",
+            "all_direct": "All Direct Customers",
+            "pending_commissions": "Pending Commissions",
+            "commission_count": "Count",
+            "partner_info": "Partner Information",
+            "name": "Name",
+            "status": "Status",
+            "sponsor": "Sponsor",
+            "referral_link": "Referral Link",
+            "level_progress": "Level & Progress",
+            "completed_sales": "Completed Sales",
+            "required_sales": "Required Sales",
+            "current_package": "Current Package",
+            "subscription_status": "Subscription Status",
+            "commission_eligible": "Commission Eligible",
+            "required_course": "Required Course",
+            "missing_requirements": "Missing Requirements",
+            "network": "Network",
+            "direct": "Direct",
+            "level_2": "Level 2",
+            "level_3": "Level 3",
+            "total_network": "Total Network",
+            "commission_summary": "Commission Summary",
+            "recent_commissions": "Recent Commissions",
+            "date": "Date",
+            "depth": "Depth",
+            "package": "Package",
+            "percent": "Percent",
+            "amount": "Amount",
+            "direct_customers": "Direct Customers",
+            "client_id": "Client ID",
+            "courses": "Courses & Requirements",
+            "course": "Course",
+            "code": "Code",
+            "paid_at": "Paid At",
+            "no_commissions": "No commissions yet.",
+            "no_customers": "No direct customers yet.",
+            "no_courses": "No courses recorded yet.",
+            "mvp_note_title": "Note",
+            "mvp_note": "This is an MVP version of the Partner Dashboard. Later it will be connected to the official login system, admin key will be removed, and permissions/design will be improved.",
+            "logo_note": "This area will be replaced with the official company logo later."
+        }
+    }[lang]
 
     try:
         from database import post_to_google_sheet_json
@@ -2666,6 +2786,11 @@ def partner_dashboard_view():
         purchased_courses = courses.get("purchased_courses") or []
         depth_counts = tree.get("depth_counts") or {}
 
+        ar_url = f"/partner-dashboard?key={quote(key)}&partner_id={quote(partner_id)}&lang=ar"
+        en_url = f"/partner-dashboard?key={quote(key)}&partner_id={quote(partner_id)}&lang=en"
+
+        language_url = en_url if is_ar else ar_url
+
         def money(value):
             try:
                 return f"{float(value or 0):,.2f} AED"
@@ -2674,10 +2799,10 @@ def partner_dashboard_view():
 
         html = """
 <!DOCTYPE html>
-<html lang="ar" dir="rtl">
+<html lang="{{ lang }}" dir="{{ direction }}">
 <head>
   <meta charset="utf-8">
-  <title>ALSAAB AI - Partner Dashboard</title>
+  <title>{{ t.page_title }}</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <style>
     body {
@@ -2685,12 +2810,80 @@ def partner_dashboard_view():
       background: #0b0b0b;
       color: #f5f0df;
       font-family: Arial, Tahoma, sans-serif;
+      direction: {{ direction }};
+      text-align: {{ text_align }};
     }
 
     .page {
       max-width: 1200px;
       margin: 0 auto;
       padding: 28px;
+    }
+
+    .topbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 14px;
+      margin-bottom: 16px;
+      flex-wrap: wrap;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .logo-mark {
+      width: 54px;
+      height: 54px;
+      border-radius: 16px;
+      border: 1px solid #c8a84b;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #d7b85a;
+      font-weight: 800;
+      letter-spacing: 1px;
+      background: linear-gradient(135deg, #111, #211c0f);
+      box-shadow: 0 0 18px rgba(200, 168, 75, 0.2);
+      font-size: 12px;
+    }
+
+    .brand-title {
+      color: #d7b85a;
+      font-size: 19px;
+      font-weight: 800;
+    }
+
+    .brand-note {
+      color: #9f967b;
+      font-size: 12px;
+      margin-top: 3px;
+    }
+
+    .actions {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .action-btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      border: 1px solid rgba(215, 184, 90, 0.5);
+      color: #f0cc68;
+      background: #111;
+      padding: 10px 14px;
+      border-radius: 999px;
+      text-decoration: none;
+      font-size: 14px;
+    }
+
+    .action-btn:hover {
+      background: #1a160d;
     }
 
     .header {
@@ -2792,7 +2985,7 @@ def partner_dashboard_view():
     th, td {
       padding: 11px;
       border-bottom: 1px solid rgba(255,255,255,0.08);
-      text-align: right;
+      text-align: {{ text_align }};
       font-size: 14px;
     }
 
@@ -2812,18 +3005,6 @@ def partner_dashboard_view():
       border: 1px solid rgba(215, 184, 90, 0.45);
       color: #f0cc68;
       font-size: 13px;
-    }
-
-    .ok {
-      color: #80e28a;
-    }
-
-    .warn {
-      color: #ffcf66;
-    }
-
-    .danger {
-      color: #ff7a7a;
     }
 
     pre {
@@ -2860,93 +3041,106 @@ def partner_dashboard_view():
 </head>
 <body>
   <div class="page">
-    <div class="header">
-      <h1>Partner Dashboard</h1>
-      <div class="sub">
-        لوحة الشريك الرسمية في ALSAAB AI.  
-        هنا تشوف رابطك، مستواك، مبيعاتك، عمولاتك، ومتطلبات الترقية.
+
+    <div class="topbar">
+      <div class="brand">
+        <div class="logo-mark">ALSAAB</div>
+        <div>
+          <div class="brand-title">ALSAAB AI</div>
+          <div class="brand-note">{{ t.logo_note }}</div>
+        </div>
       </div>
+
+      <div class="actions">
+        <a class="action-btn" href="{{ website_url }}">{{ t.back_site }}</a>
+        <a class="action-btn" href="{{ language_url }}">{{ t.language }}</a>
+      </div>
+    </div>
+
+    <div class="header">
+      <h1>{{ t.dashboard_title }}</h1>
+      <div class="sub">{{ t.intro }}</div>
     </div>
 
     <div class="grid">
       <div class="card">
-        <h3>Partner ID</h3>
+        <h3>{{ t.partner_id }}</h3>
         <div class="big">{{ profile.partner_id }}</div>
         <div class="muted">{{ profile.partner_name or "Partner" }}</div>
       </div>
 
       <div class="card">
-        <h3>المستوى الحالي</h3>
+        <h3>{{ t.current_level }}</h3>
         <div class="big">{{ level.current_level or level.partner_rank or "Level 1" }}</div>
-        <div class="muted">التالي: {{ level.next_rank or "لا يوجد" }}</div>
+        <div class="muted">{{ t.next }}: {{ level.next_rank or "-" }}</div>
       </div>
 
       <div class="card">
-        <h3>العملاء المباشرين النشطين</h3>
+        <h3>{{ t.active_direct_customers }}</h3>
         <div class="big">{{ customers.active_direct_paid_count or 0 }}</div>
-        <div class="muted">إجمالي المباشرين: {{ customers.all_direct_count or 0 }}</div>
+        <div class="muted">{{ t.all_direct }}: {{ customers.all_direct_count or 0 }}</div>
       </div>
 
       <div class="card">
-        <h3>العمولات المعلقة</h3>
+        <h3>{{ t.pending_commissions }}</h3>
         <div class="big">{{ money(totals.pending) }}</div>
-        <div class="muted">عددها: {{ counts.pending or 0 }}</div>
+        <div class="muted">{{ t.commission_count }}: {{ counts.pending or 0 }}</div>
       </div>
     </div>
 
     <div class="section">
-      <h2>بيانات الشريك</h2>
-      <div class="info-row"><div class="label">Partner ID</div><div class="value">{{ profile.partner_id }}</div></div>
-      <div class="info-row"><div class="label">الاسم</div><div class="value">{{ profile.partner_name or "-" }}</div></div>
-      <div class="info-row"><div class="label">الحالة</div><div class="value"><span class="badge">{{ profile.status or "-" }}</span></div></div>
-      <div class="info-row"><div class="label">Sponsor</div><div class="value">{{ profile.sponsor_partner_id or "-" }}</div></div>
-      <div class="info-row"><div class="label">Referral Link</div><div class="value"><a href="{{ profile.referral_link }}" target="_blank">{{ profile.referral_link }}</a></div></div>
+      <h2>{{ t.partner_info }}</h2>
+      <div class="info-row"><div class="label">{{ t.partner_id }}</div><div class="value">{{ profile.partner_id }}</div></div>
+      <div class="info-row"><div class="label">{{ t.name }}</div><div class="value">{{ profile.partner_name or "-" }}</div></div>
+      <div class="info-row"><div class="label">{{ t.status }}</div><div class="value"><span class="badge">{{ profile.status or "-" }}</span></div></div>
+      <div class="info-row"><div class="label">{{ t.sponsor }}</div><div class="value">{{ profile.sponsor_partner_id or "-" }}</div></div>
+      <div class="info-row"><div class="label">{{ t.referral_link }}</div><div class="value"><a href="{{ profile.referral_link }}" target="_blank">{{ profile.referral_link }}</a></div></div>
     </div>
 
     <div class="section">
-      <h2>المستوى والترقية</h2>
-      <div class="info-row"><div class="label">Current Level</div><div class="value">{{ level.current_level or level.partner_rank or "-" }}</div></div>
-      <div class="info-row"><div class="label">Next Level</div><div class="value">{{ level.next_rank or "-" }}</div></div>
-      <div class="info-row"><div class="label">Completed Sales</div><div class="value">{{ level.completed_sales or "0" }}</div></div>
-      <div class="info-row"><div class="label">Required Sales</div><div class="value">{{ level.required_sales or "-" }}</div></div>
-      <div class="info-row"><div class="label">Current Package</div><div class="value">{{ level.current_package or "-" }}</div></div>
-      <div class="info-row"><div class="label">Subscription Status</div><div class="value">{{ level.subscription_status or "-" }}</div></div>
-      <div class="info-row"><div class="label">Commission Eligible</div><div class="value">{{ level.commission_eligible or "-" }}</div></div>
-      <div class="info-row"><div class="label">Required Course</div><div class="value">{{ level.required_course_workshop or "-" }}</div></div>
-      <div class="info-row"><div class="label">Missing Requirements</div><div class="value"><pre>{{ level.missing_requirements or "-" }}</pre></div></div>
+      <h2>{{ t.level_progress }}</h2>
+      <div class="info-row"><div class="label">{{ t.current_level }}</div><div class="value">{{ level.current_level or level.partner_rank or "-" }}</div></div>
+      <div class="info-row"><div class="label">{{ t.next }}</div><div class="value">{{ level.next_rank or "-" }}</div></div>
+      <div class="info-row"><div class="label">{{ t.completed_sales }}</div><div class="value">{{ level.completed_sales or "0" }}</div></div>
+      <div class="info-row"><div class="label">{{ t.required_sales }}</div><div class="value">{{ level.required_sales or "-" }}</div></div>
+      <div class="info-row"><div class="label">{{ t.current_package }}</div><div class="value">{{ level.current_package or "-" }}</div></div>
+      <div class="info-row"><div class="label">{{ t.subscription_status }}</div><div class="value">{{ level.subscription_status or "-" }}</div></div>
+      <div class="info-row"><div class="label">{{ t.commission_eligible }}</div><div class="value">{{ level.commission_eligible or "-" }}</div></div>
+      <div class="info-row"><div class="label">{{ t.required_course }}</div><div class="value">{{ level.required_course_workshop or "-" }}</div></div>
+      <div class="info-row"><div class="label">{{ t.missing_requirements }}</div><div class="value"><pre>{{ level.missing_requirements or "-" }}</pre></div></div>
     </div>
 
     <div class="section">
-      <h2>الشبكة</h2>
+      <h2>{{ t.network }}</h2>
       <div class="grid">
-        <div class="card"><h3>المباشرين</h3><div class="big">{{ depth_counts.get("1", 0) }}</div></div>
-        <div class="card"><h3>المستوى الثاني</h3><div class="big">{{ depth_counts.get("2", 0) }}</div></div>
-        <div class="card"><h3>المستوى الثالث</h3><div class="big">{{ depth_counts.get("3", 0) }}</div></div>
-        <div class="card"><h3>إجمالي الشبكة</h3><div class="big">{{ tree.downline_count or 0 }}</div></div>
+        <div class="card"><h3>{{ t.direct }}</h3><div class="big">{{ depth_counts.get("1", 0) }}</div></div>
+        <div class="card"><h3>{{ t.level_2 }}</h3><div class="big">{{ depth_counts.get("2", 0) }}</div></div>
+        <div class="card"><h3>{{ t.level_3 }}</h3><div class="big">{{ depth_counts.get("3", 0) }}</div></div>
+        <div class="card"><h3>{{ t.total_network }}</h3><div class="big">{{ tree.downline_count or 0 }}</div></div>
       </div>
     </div>
 
     <div class="section">
-      <h2>ملخص العمولات</h2>
+      <h2>{{ t.commission_summary }}</h2>
       <div class="grid">
-        <div class="card"><h3>Pending</h3><div class="big">{{ money(totals.pending) }}</div><div class="muted">{{ counts.pending or 0 }} عمولة</div></div>
-        <div class="card"><h3>Approved</h3><div class="big">{{ money(totals.approved) }}</div><div class="muted">{{ counts.approved or 0 }} عمولة</div></div>
-        <div class="card"><h3>Paid</h3><div class="big">{{ money(totals.paid) }}</div><div class="muted">{{ counts.paid or 0 }} عمولة</div></div>
-        <div class="card"><h3>Total</h3><div class="big">{{ money(totals.all) }}</div><div class="muted">{{ counts.all or 0 }} عمولة</div></div>
+        <div class="card"><h3>Pending</h3><div class="big">{{ money(totals.pending) }}</div><div class="muted">{{ counts.pending or 0 }}</div></div>
+        <div class="card"><h3>Approved</h3><div class="big">{{ money(totals.approved) }}</div><div class="muted">{{ counts.approved or 0 }}</div></div>
+        <div class="card"><h3>Paid</h3><div class="big">{{ money(totals.paid) }}</div><div class="muted">{{ counts.paid or 0 }}</div></div>
+        <div class="card"><h3>Total</h3><div class="big">{{ money(totals.all) }}</div><div class="muted">{{ counts.all or 0 }}</div></div>
       </div>
     </div>
 
     <div class="section">
-      <h2>آخر العمولات</h2>
+      <h2>{{ t.recent_commissions }}</h2>
       <table>
         <thead>
           <tr>
-            <th>التاريخ</th>
-            <th>العمق</th>
-            <th>الباقة</th>
-            <th>النسبة</th>
-            <th>المبلغ</th>
-            <th>الحالة</th>
+            <th>{{ t.date }}</th>
+            <th>{{ t.depth }}</th>
+            <th>{{ t.package }}</th>
+            <th>{{ t.percent }}</th>
+            <th>{{ t.amount }}</th>
+            <th>{{ t.status }}</th>
           </tr>
         </thead>
         <tbody>
@@ -2960,22 +3154,22 @@ def partner_dashboard_view():
             <td><span class="badge">{{ c.status or "-" }}</span></td>
           </tr>
           {% else %}
-          <tr><td colspan="6">لا توجد عمولات حتى الآن.</td></tr>
+          <tr><td colspan="6">{{ t.no_commissions }}</td></tr>
           {% endfor %}
         </tbody>
       </table>
     </div>
 
     <div class="section">
-      <h2>العملاء المباشرين</h2>
+      <h2>{{ t.direct_customers }}</h2>
       <table>
         <thead>
           <tr>
-            <th>التاريخ</th>
-            <th>Client ID</th>
-            <th>الباقة</th>
-            <th>المبلغ</th>
-            <th>الحالة</th>
+            <th>{{ t.date }}</th>
+            <th>{{ t.client_id }}</th>
+            <th>{{ t.package }}</th>
+            <th>{{ t.amount }}</th>
+            <th>{{ t.status }}</th>
           </tr>
         </thead>
         <tbody>
@@ -2988,22 +3182,22 @@ def partner_dashboard_view():
             <td><span class="badge">{{ customer.subscription_status or "-" }}</span></td>
           </tr>
           {% else %}
-          <tr><td colspan="5">لا يوجد عملاء مباشرين حتى الآن.</td></tr>
+          <tr><td colspan="5">{{ t.no_customers }}</td></tr>
           {% endfor %}
         </tbody>
       </table>
     </div>
 
     <div class="section">
-      <h2>الكورسات والمتطلبات</h2>
+      <h2>{{ t.courses }}</h2>
       <table>
         <thead>
           <tr>
-            <th>الكورس</th>
-            <th>الكود</th>
-            <th>المبلغ</th>
-            <th>الحالة</th>
-            <th>تاريخ الدفع</th>
+            <th>{{ t.course }}</th>
+            <th>{{ t.code }}</th>
+            <th>{{ t.amount }}</th>
+            <th>{{ t.status }}</th>
+            <th>{{ t.paid_at }}</th>
           </tr>
         </thead>
         <tbody>
@@ -3016,17 +3210,15 @@ def partner_dashboard_view():
             <td>{{ course.paid_at or course.date or "-" }}</td>
           </tr>
           {% else %}
-          <tr><td colspan="5">لا توجد كورسات مسجلة حتى الآن.</td></tr>
+          <tr><td colspan="5">{{ t.no_courses }}</td></tr>
           {% endfor %}
         </tbody>
       </table>
     </div>
 
     <div class="section">
-      <h2>ملاحظة</h2>
-      <div class="sub">
-        هذه نسخة MVP تجريبية من Partner Dashboard. لاحقاً سيتم ربطها بتسجيل الدخول الرسمي، وإخفاء مفتاح الإدارة، وتحسين التصميم والصلاحيات.
-      </div>
+      <h2>{{ t.mvp_note_title }}</h2>
+      <div class="sub">{{ t.mvp_note }}</div>
     </div>
   </div>
 </body>
@@ -3035,6 +3227,12 @@ def partner_dashboard_view():
 
         return render_template_string(
             html,
+            lang=lang,
+            direction=direction,
+            text_align=text_align,
+            t=t,
+            website_url=WEBSITE_URL,
+            language_url=language_url,
             data=result,
             profile=profile,
             level=level,
