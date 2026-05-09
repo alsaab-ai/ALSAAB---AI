@@ -5656,7 +5656,39 @@ def admin_dashboard_view():
           </div>
         </div>
 
-        <div class="small-box">
+        
+        <!-- ALSAAB_PARTNER_STATUS_ACTION_PANEL_V2 START -->
+        <div class="small-box" style="margin-top:14px;">
+          <h3>إدارة حالة الشريك</h3>
+          <div class="muted">
+            هذه الأزرار خاصة بالأدمن فقط. تعليق الشريك يوقف أهليته مؤقتاً، والتفعيل يرجعه active مع إعادة حساب مستواه.
+          </div>
+
+          <div class="disabled-actions" style="margin-top:14px;">
+            <form method="POST" action="/admin/update-partner-status" style="display:inline-block;">
+              <input type="hidden" name="key" value="{{ admin_key }}">
+              <input type="hidden" name="partner_id" value="{{ search_profile.get("partner_id") or search_lookup.get("partner_id") }}">
+              <input type="hidden" name="new_status" value="suspended">
+              <input type="hidden" name="reason" value="Manual suspend from Admin Dashboard">
+              <button type="submit" onclick="return confirm('تأكيد تعليق هذا الشريك؟')" style="border:1px solid rgba(255,122,122,.6); color:#ff7a7a; background:#111; padding:10px 13px; border-radius:999px; cursor:pointer;">
+                Suspend Partner
+              </button>
+            </form>
+
+            <form method="POST" action="/admin/update-partner-status" style="display:inline-block;">
+              <input type="hidden" name="key" value="{{ admin_key }}">
+              <input type="hidden" name="partner_id" value="{{ search_profile.get("partner_id") or search_lookup.get("partner_id") }}">
+              <input type="hidden" name="new_status" value="active">
+              <input type="hidden" name="reason" value="Manual activate from Admin Dashboard">
+              <button type="submit" onclick="return confirm('تأكيد تفعيل هذا الشريك؟')" style="border:1px solid rgba(128,226,138,.6); color:#80e28a; background:#111; padding:10px 13px; border-radius:999px; cursor:pointer;">
+                Activate Partner
+              </button>
+            </form>
+          </div>
+        </div>
+        <!-- ALSAAB_PARTNER_STATUS_ACTION_PANEL_V2 END -->
+
+<div class="small-box">
           <h3>إجراءات إدارية لاحقة</h3>
           <div class="muted">
             هذه الأزرار مكانها هنا، لكنها غير مفعلة الآن حتى نبني الـ audit log والصلاحيات.
@@ -6514,6 +6546,134 @@ def admin_bulk_update_commission_status():
         )
 
 # ===== ALSAAB_ADMIN_BULK_COMMISSION_ACTIONS_RENDER_V1 END =====
+
+
+
+# ===== ALSAAB_ADMIN_PARTNER_STATUS_ACTIONS_RENDER_V2 START =====
+
+@app.route("/admin/update-partner-status", methods=["POST"])
+def admin_update_partner_status():
+    """
+    Owner/Admin action:
+    Suspend or activate partner.
+
+    Security:
+    - Requires ADMIN_KEY.
+    - Owner-level admin action.
+    - Apps Script logs action in AuditLogs.
+    """
+    import os
+    from urllib.parse import quote
+
+    payload = get_admin_payload()
+    key = get_admin_key(payload)
+
+    if key != ADMIN_KEY:
+        return jsonify({"error": "Unauthorized"}), 401
+
+    partner_id = (
+        get_payload_value(payload, "partner_id", default="")
+        or request.form.get("partner_id", "").strip()
+    )
+
+    new_status = (
+        get_payload_value(payload, "new_status", default="")
+        or request.form.get("new_status", "").strip()
+    ).lower().strip()
+
+    reason = (
+        get_payload_value(payload, "reason", default="")
+        or request.form.get("reason", "").strip()
+        or "Admin partner status update"
+    )
+
+    partner_id = str(partner_id or "").strip().upper()
+
+    if not partner_id:
+        return jsonify({
+            "status": "error",
+            "message": "partner_id is required"
+        }), 400
+
+    if new_status not in ("active", "suspended"):
+        return jsonify({
+            "status": "error",
+            "message": "Invalid new_status"
+        }), 400
+
+    try:
+        from database import post_to_google_sheet_json, normalize_partner_id
+
+        partner_id = normalize_partner_id(partner_id)
+
+        google_sheet_token = os.getenv("GOOGLE_SHEET_TOKEN", "")
+
+        if not google_sheet_token:
+            return jsonify({
+                "status": "error",
+                "message": "GOOGLE_SHEET_TOKEN is missing"
+            }), 500
+
+        result = post_to_google_sheet_json(
+            {
+                "token": google_sheet_token,
+                "action": "admin_update_partner_status",
+                "partner_id": partner_id,
+                "new_status": new_status,
+                "reason": reason,
+                "actor": "owner_admin",
+                "source": "admin_dashboard"
+            },
+            label="admin_update_partner_status"
+        )
+
+        recalculate_result = {}
+
+        if new_status == "active":
+            try:
+                from database import sync_partner_level_progress_to_google_sheet
+                recalculate_result = sync_partner_level_progress_to_google_sheet(partner_id)
+            except Exception as recalc_error:
+                recalculate_result = {
+                    "status": "error",
+                    "message": str(recalc_error)
+                }
+
+        print(
+            f"ADMIN UPDATE PARTNER STATUS ✅ partner_id={partner_id} new_status={new_status} result={result} recalc={recalculate_result}",
+            flush=True
+        )
+
+        if request.is_json:
+            return jsonify({
+                "status": "success",
+                "partner_id": partner_id,
+                "new_status": new_status,
+                "result": result,
+                "recalculate_result": recalculate_result
+            })
+
+        return redirect(
+            f"/admin-dashboard?key={quote(key)}&partner_id={quote(partner_id)}&admin_action=partner_{quote(new_status)}"
+        )
+
+    except Exception as error:
+        print(
+            f"ADMIN UPDATE PARTNER STATUS ERROR ❌ partner_id={partner_id} status={new_status} error={error}",
+            flush=True
+        )
+
+        if request.is_json:
+            return jsonify({
+                "status": "error",
+                "message": str(error)
+            }), 500
+
+        return redirect(
+            f"/admin-dashboard?key={quote(key)}&partner_id={quote(partner_id)}&admin_action=partner_status_error"
+        )
+
+# ===== ALSAAB_ADMIN_PARTNER_STATUS_ACTIONS_RENDER_V2 END =====
 
 
 if __name__ == "__main__":
