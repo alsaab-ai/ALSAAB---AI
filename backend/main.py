@@ -5088,6 +5088,13 @@ def admin_dashboard_view():
         search_commission_totals = {}
         search_commission_counts = {}
 
+        # ===== ALSAAB_ADMIN_PARTNER_COMMISSION_SUMMARY_V1 START =====
+        search_unpaid_total = 0
+        search_payable_now = 0
+        search_rejected_hold_total = 0
+        search_paid_total = 0
+        # ===== ALSAAB_ADMIN_PARTNER_COMMISSION_SUMMARY_V1 END =====
+
         if search_query:
             search_lookup = post_to_google_sheet_json(
                 {
@@ -5127,6 +5134,28 @@ def admin_dashboard_view():
 
                     search_commission_totals = search_commissions.get("totals") or {}
                     search_commission_counts = search_commissions.get("counts") or {}
+
+                    def _admin_float(value):
+                        try:
+                            return float(value or 0)
+                        except Exception:
+                            return 0
+
+                    pending_amount = _admin_float(search_commission_totals.get("pending"))
+                    approved_amount = _admin_float(search_commission_totals.get("approved"))
+                    paid_amount = _admin_float(search_commission_totals.get("paid"))
+                    rejected_amount = _admin_float(search_commission_totals.get("rejected"))
+                    hold_amount = _admin_float(search_commission_totals.get("hold"))
+
+                    # غير مدفوع = pending + approved
+                    search_unpaid_total = pending_amount + approved_amount
+
+                    # جاهز للدفع الآن = approved فقط
+                    # pending يحتاج موافقة أولاً
+                    search_payable_now = approved_amount
+
+                    search_paid_total = paid_amount
+                    search_rejected_hold_total = rejected_amount + hold_amount
         # ===== ALSAAB_ADMIN_DASHBOARD_SEARCH_V1 END =====
 
         def money(value):
@@ -5512,6 +5541,72 @@ def admin_dashboard_view():
           </div>
         </div>
 
+        <div class="section" style="margin-top:18px;">
+          <h2>حالة عمولات هذا الشريك</h2>
+
+          <div class="grid">
+            <div class="card">
+              <h3>إجمالي العمولات</h3>
+              <div class="big">{{ money(search_commission_totals.get("all")) }}</div>
+              <div class="muted">عدد العمولات: {{ search_commission_counts.get("all") or 0 }}</div>
+            </div>
+
+            <div class="card">
+              <h3>Pending</h3>
+              <div class="big">{{ money(search_commission_totals.get("pending")) }}</div>
+              <div class="muted">تحتاج مراجعة / موافقة: {{ search_commission_counts.get("pending") or 0 }}</div>
+            </div>
+
+            <div class="card">
+              <h3>Approved</h3>
+              <div class="big">{{ money(search_commission_totals.get("approved")) }}</div>
+              <div class="muted">جاهزة للدفع: {{ search_commission_counts.get("approved") or 0 }}</div>
+            </div>
+
+            <div class="card">
+              <h3>Paid</h3>
+              <div class="big">{{ money(search_paid_total) }}</div>
+              <div class="muted">اندفعت للشريك: {{ search_commission_counts.get("paid") or 0 }}</div>
+            </div>
+
+            <div class="card">
+              <h3>غير مدفوع</h3>
+              <div class="big">{{ money(search_unpaid_total) }}</div>
+              <div class="muted">Pending + Approved</div>
+            </div>
+
+            <div class="card">
+              <h3>المستحق للدفع الآن</h3>
+              <div class="big">{{ money(search_payable_now) }}</div>
+              <div class="muted">Approved فقط</div>
+            </div>
+
+            <div class="card">
+              <h3>Rejected / Hold</h3>
+              <div class="big">{{ money(search_rejected_hold_total) }}</div>
+              <div class="muted">
+                Rejected: {{ search_commission_counts.get("rejected") or 0 }}
+                /
+                Hold: {{ search_commission_counts.get("hold") or 0 }}
+              </div>
+            </div>
+
+            <div class="card">
+              <h3>حالة الدفع</h3>
+              <div class="big">
+                {% if search_payable_now and search_payable_now > 0 %}
+                  يحتاج دفع
+                {% elif search_unpaid_total and search_unpaid_total > 0 %}
+                  يحتاج موافقة
+                {% else %}
+                  لا يوجد مستحق
+                {% endif %}
+              </div>
+              <div class="muted">ملخص سريع لحالة عمولات الشريك</div>
+            </div>
+          </div>
+        </div>
+
         <div class="small-box">
           <h3>إجراءات إدارية لاحقة</h3>
           <div class="muted">
@@ -5893,6 +5988,10 @@ def admin_dashboard_view():
             search_purchased_courses=search_purchased_courses,
             search_commission_totals=search_commission_totals,
             search_commission_counts=search_commission_counts,
+            search_unpaid_total=search_unpaid_total,
+            search_payable_now=search_payable_now,
+            search_rejected_hold_total=search_rejected_hold_total,
+            search_paid_total=search_paid_total,
             partner_summary=partner_summary,
             subscription_summary=subscription_summary,
             commission_totals=commission_totals,
