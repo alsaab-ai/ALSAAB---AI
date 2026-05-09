@@ -4948,6 +4948,682 @@ def build_dashboard_return_url(path, key="", partner_id="", lang="ar", saved="")
 # ===== ALSAAB_DASHBOARD_RETURN_URL_V1 END =====
 
 
+
+# ===== ALSAAB_ADMIN_DASHBOARD_MVP_V1 START =====
+
+@app.route("/admin-dashboard-data", methods=["GET"])
+def admin_dashboard_data():
+    """
+    Admin Dashboard Data API.
+
+    Internal MVP security:
+    - Requires ADMIN_KEY.
+    - Later this can be connected to WordPress admin SSO/session.
+    """
+    import os
+
+    key = request.args.get("key", "").strip()
+
+    if key != ADMIN_KEY:
+        return jsonify({"error": "Unauthorized"}), 401
+
+    try:
+        from database import post_to_google_sheet_json
+
+        google_sheet_token = os.getenv("GOOGLE_SHEET_TOKEN", "")
+
+        if not google_sheet_token:
+            return jsonify({
+                "status": "error",
+                "message": "GOOGLE_SHEET_TOKEN is missing"
+            }), 500
+
+        result = post_to_google_sheet_json(
+            {
+                "token": google_sheet_token,
+                "action": "admin_dashboard_data"
+            },
+            label="admin_dashboard_data"
+        )
+
+        return jsonify(result)
+
+    except Exception as error:
+        print(f"ADMIN DASHBOARD DATA ERROR ❌ {error}", flush=True)
+
+        return jsonify({
+            "status": "error",
+            "message": str(error)
+        }), 500
+
+
+@app.route("/admin-dashboard", methods=["GET"])
+def admin_dashboard_view():
+    """
+    Admin Dashboard MVP page.
+
+    Internal MVP security:
+    - Requires ADMIN_KEY.
+    - Do not expose this link publicly.
+    """
+    import os
+    from urllib.parse import quote
+
+    key = request.args.get("key", "").strip()
+
+    if key != ADMIN_KEY:
+        return "Unauthorized", 401
+
+    try:
+        from database import post_to_google_sheet_json
+
+        google_sheet_token = os.getenv("GOOGLE_SHEET_TOKEN", "")
+
+        if not google_sheet_token:
+            return "GOOGLE_SHEET_TOKEN is missing", 500
+
+        result = post_to_google_sheet_json(
+            {
+                "token": google_sheet_token,
+                "action": "admin_dashboard_data"
+            },
+            label="admin_dashboard_page"
+        )
+
+        if not isinstance(result, dict) or result.get("status") != "success":
+            return render_template_string(
+                """
+                <html>
+                <head><meta charset="utf-8"><title>Admin Dashboard Error</title></head>
+                <body style="font-family:Arial; direction:rtl; padding:30px;">
+                  <h2>حدث خطأ في تحميل Admin Dashboard</h2>
+                  <pre>{{ result }}</pre>
+                </body>
+                </html>
+                """,
+                result=result
+            ), 500
+
+        partners = result.get("partners") or {}
+        subscriptions = result.get("subscriptions") or {}
+        commissions = result.get("commissions") or {}
+        levels = result.get("levels") or {}
+        courses = result.get("courses") or {}
+
+        partner_summary = partners.get("summary") or {}
+        subscription_summary = subscriptions.get("summary") or {}
+        commission_totals = commissions.get("totals") or {}
+        commission_counts = commissions.get("counts") or {}
+        course_summary = courses.get("summary") or {}
+        level_counts = levels.get("level_counts") or {}
+        eligible_counts = levels.get("eligible_counts") or {}
+
+        recent_partners = partners.get("recent") or []
+        recent_subscriptions = subscriptions.get("recent") or []
+        recent_commissions = commissions.get("recent") or []
+        recent_levels = levels.get("recent") or []
+        recent_courses = courses.get("recent") or []
+
+        def money(value):
+            try:
+                return f"{float(value or 0):,.2f} AED"
+            except Exception:
+                return f"{value or 0} AED"
+
+        encoded_key = quote(key)
+
+        html = """
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="utf-8">
+  <title>ALSAAB AI - Admin Dashboard</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <style>
+    body {
+      margin: 0;
+      background: #0b0b0b;
+      color: #f5f0df;
+      font-family: Arial, Tahoma, sans-serif;
+      direction: rtl;
+    }
+
+    .page {
+      max-width: 1320px;
+      margin: 0 auto;
+      padding: 28px;
+    }
+
+    .topbar {
+      display: flex;
+      justify-content: space-between;
+      gap: 14px;
+      align-items: center;
+      margin-bottom: 18px;
+      flex-wrap: wrap;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .logo {
+      width: 56px;
+      height: 56px;
+      border-radius: 16px;
+      border: 1px solid #c8a84b;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #d7b85a;
+      font-weight: 900;
+      background: linear-gradient(135deg, #111, #211c0f);
+      font-size: 12px;
+    }
+
+    .brand-title {
+      color: #d7b85a;
+      font-size: 23px;
+      font-weight: 900;
+    }
+
+    .brand-sub {
+      color: #a99d7b;
+      font-size: 13px;
+      margin-top: 4px;
+    }
+
+    .action-btn {
+      border: 1px solid rgba(215, 184, 90, 0.55);
+      color: #f0cc68;
+      background: #111;
+      padding: 10px 14px;
+      border-radius: 999px;
+      text-decoration: none;
+      font-weight: 700;
+      display: inline-block;
+    }
+
+    .header {
+      background: linear-gradient(135deg, #111, #1d1a10);
+      border: 1px solid #c8a84b;
+      border-radius: 20px;
+      padding: 24px;
+      margin-bottom: 20px;
+      box-shadow: 0 0 25px rgba(200, 168, 75, 0.12);
+    }
+
+    .header h1 {
+      margin: 0 0 8px;
+      color: #d7b85a;
+      font-size: 30px;
+    }
+
+    .sub {
+      color: #cfc7ad;
+      line-height: 1.7;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 14px;
+      margin-bottom: 20px;
+    }
+
+    .card {
+      background: #121212;
+      border: 1px solid rgba(215, 184, 90, 0.35);
+      border-radius: 16px;
+      padding: 18px;
+      min-height: 104px;
+    }
+
+    .card h3 {
+      margin: 0 0 10px;
+      color: #d7b85a;
+      font-size: 16px;
+    }
+
+    .big {
+      color: #fff;
+      font-size: 27px;
+      font-weight: 900;
+      word-break: break-word;
+    }
+
+    .muted {
+      color: #aaa;
+      font-size: 13px;
+      margin-top: 6px;
+      line-height: 1.5;
+    }
+
+    .section {
+      background: #111;
+      border: 1px solid rgba(215, 184, 90, 0.25);
+      border-radius: 18px;
+      padding: 20px;
+      margin-bottom: 18px;
+    }
+
+    .section h2 {
+      margin: 0 0 14px;
+      color: #d7b85a;
+      font-size: 22px;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 12px;
+      overflow: hidden;
+      border-radius: 12px;
+    }
+
+    th, td {
+      padding: 11px;
+      border-bottom: 1px solid rgba(255,255,255,0.08);
+      text-align: right;
+      font-size: 13px;
+      vertical-align: top;
+    }
+
+    th {
+      color: #d7b85a;
+      background: #181818;
+      white-space: nowrap;
+    }
+
+    td {
+      color: #f5f0df;
+    }
+
+    .badge {
+      display: inline-block;
+      padding: 5px 10px;
+      border-radius: 999px;
+      border: 1px solid rgba(215, 184, 90, 0.45);
+      color: #f0cc68;
+      font-size: 12px;
+      white-space: nowrap;
+    }
+
+    .table-wrap {
+      overflow-x: auto;
+    }
+
+    .two-col {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 14px;
+      margin-bottom: 18px;
+    }
+
+    .small-box {
+      background: #121212;
+      border: 1px solid rgba(215, 184, 90, 0.25);
+      border-radius: 16px;
+      padding: 16px;
+    }
+
+    .small-box h3 {
+      margin: 0 0 10px;
+      color: #d7b85a;
+    }
+
+    .kv {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 7px 0;
+      border-bottom: 1px solid rgba(255,255,255,0.06);
+      color: #f5f0df;
+    }
+
+    .kv span:first-child {
+      color: #c8a84b;
+    }
+
+    @media (max-width: 1000px) {
+      .grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+
+      .two-col {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    @media (max-width: 600px) {
+      .page {
+        padding: 16px;
+      }
+
+      .grid {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <div class="page">
+
+    <div class="topbar">
+      <div class="brand">
+        <div class="logo">ALSAAB</div>
+        <div>
+          <div class="brand-title">ALSAAB AI Admin Dashboard</div>
+          <div class="brand-sub">لوحة إدارة داخلية مؤقتة - MVP</div>
+        </div>
+      </div>
+
+      <div>
+        <a class="action-btn" href="/admin-dashboard?key={{ encoded_key }}">تحديث البيانات</a>
+      </div>
+    </div>
+
+    <div class="header">
+      <h1>Admin Dashboard</h1>
+      <div class="sub">
+        هذه نسخة MVP لعرض بيانات الإدارة من Google Sheets. لاحقاً نضيف أزرار الموافقة على العمولات، الدفع، تعديل الشركاء، وإعادة حساب المستويات.
+      </div>
+    </div>
+
+    <div class="grid">
+      <div class="card">
+        <h3>إجمالي الشركاء</h3>
+        <div class="big">{{ partner_summary.total or 0 }}</div>
+        <div class="muted">Active: {{ partner_summary.active or 0 }} / Suspended: {{ partner_summary.suspended or 0 }}</div>
+      </div>
+
+      <div class="card">
+        <h3>الاشتراكات النشطة</h3>
+        <div class="big">{{ subscription_summary.active or 0 }}</div>
+        <div class="muted">Total: {{ subscription_summary.total or 0 }} / Failed: {{ subscription_summary.payment_failed or 0 }}</div>
+      </div>
+
+      <div class="card">
+        <h3>العمولات المعلقة</h3>
+        <div class="big">{{ money(commission_totals.pending) }}</div>
+        <div class="muted">Count: {{ commission_counts.pending or 0 }}</div>
+      </div>
+
+      <div class="card">
+        <h3>إجمالي العمولات</h3>
+        <div class="big">{{ money(commission_totals.all) }}</div>
+        <div class="muted">All count: {{ commission_counts.all or 0 }}</div>
+      </div>
+
+      <div class="card">
+        <h3>إجمالي الاشتراكات</h3>
+        <div class="big">{{ money(subscription_summary.total_amount) }}</div>
+        <div class="muted">حسب بيانات Subscriptions</div>
+      </div>
+
+      <div class="card">
+        <h3>الكورسات المدفوعة</h3>
+        <div class="big">{{ course_summary.paid or 0 }}</div>
+        <div class="muted">Total courses: {{ course_summary.total or 0 }}</div>
+      </div>
+
+      <div class="card">
+        <h3>Commission Eligible</h3>
+        <div class="big">{{ eligible_counts.yes or 0 }}</div>
+        <div class="muted">Not eligible: {{ eligible_counts.no or 0 }}</div>
+      </div>
+
+      <div class="card">
+        <h3>Payment Failed</h3>
+        <div class="big">{{ subscription_summary.payment_failed or 0 }}</div>
+        <div class="muted">Cancelled: {{ subscription_summary.cancelled or 0 }}</div>
+      </div>
+    </div>
+
+    <div class="two-col">
+      <div class="small-box">
+        <h3>توزيع المستويات</h3>
+        {% for level, count in level_counts.items() %}
+        <div class="kv"><span>{{ level }}</span><strong>{{ count }}</strong></div>
+        {% else %}
+        <div class="muted">لا توجد بيانات مستويات.</div>
+        {% endfor %}
+      </div>
+
+      <div class="small-box">
+        <h3>Plan Counts</h3>
+        {% for plan, count in (subscriptions.plan_counts or {}).items() %}
+        <div class="kv"><span>{{ plan }}</span><strong>{{ count }}</strong></div>
+        {% else %}
+        <div class="muted">لا توجد بيانات باقات.</div>
+        {% endfor %}
+      </div>
+    </div>
+
+    <div class="section">
+      <h2>آخر الشركاء</h2>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Partner ID</th>
+              <th>الاسم</th>
+              <th>Sponsor</th>
+              <th>Rank</th>
+              <th>Status</th>
+              <th>Email</th>
+              <th>Referral Link</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for p in recent_partners %}
+            <tr>
+              <td>{{ p.partner_id or "-" }}</td>
+              <td>{{ p.partner_name or "-" }}</td>
+              <td>{{ p.sponsor_partner_id or "-" }}</td>
+              <td>{{ p.partner_rank or "-" }}</td>
+              <td><span class="badge">{{ p.status or "-" }}</span></td>
+              <td>{{ p.email or "-" }}</td>
+              <td>{{ p.referral_link or "-" }}</td>
+            </tr>
+            {% else %}
+            <tr><td colspan="7">لا توجد بيانات.</td></tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="section">
+      <h2>آخر الاشتراكات</h2>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Client ID</th>
+              <th>Session ID</th>
+              <th>Source Partner</th>
+              <th>Plan</th>
+              <th>Amount</th>
+              <th>Status</th>
+              <th>Stripe Sub</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for s in recent_subscriptions %}
+            <tr>
+              <td>{{ s.client_id or "-" }}</td>
+              <td>{{ s.session_id or "-" }}</td>
+              <td>{{ s.source_partner_id or "-" }}</td>
+              <td>{{ s.plan_name or "-" }}</td>
+              <td>{{ money(s.package_amount) }}</td>
+              <td><span class="badge">{{ s.subscription_status or "-" }}</span></td>
+              <td>{{ s.stripe_subscription_id or "-" }}</td>
+            </tr>
+            {% else %}
+            <tr><td colspan="7">لا توجد بيانات.</td></tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="section">
+      <h2>آخر العمولات</h2>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Beneficiary</th>
+              <th>Source</th>
+              <th>Depth</th>
+              <th>Rank</th>
+              <th>Package</th>
+              <th>%</th>
+              <th>Amount</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for c in recent_commissions %}
+            <tr>
+              <td>{{ c.beneficiary_partner_id or "-" }}</td>
+              <td>{{ c.source_partner_id or "-" }}</td>
+              <td>{{ c.commission_depth or "-" }}</td>
+              <td>{{ c.partner_rank or "-" }}</td>
+              <td>{{ c.package or "-" }}</td>
+              <td>{{ c.commission_percent or "-" }}</td>
+              <td>{{ money(c.commission_amount) }}</td>
+              <td><span class="badge">{{ c.status or "-" }}</span></td>
+            </tr>
+            {% else %}
+            <tr><td colspan="8">لا توجد بيانات.</td></tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="section">
+      <h2>تقدم المستويات</h2>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Partner ID</th>
+              <th>Rank</th>
+              <th>Completed</th>
+              <th>Required</th>
+              <th>Next</th>
+              <th>Package</th>
+              <th>Sub Status</th>
+              <th>Eligible</th>
+              <th>Missing</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for l in recent_levels %}
+            <tr>
+              <td>{{ l.partner_id or "-" }}</td>
+              <td>{{ l.partner_rank or "-" }}</td>
+              <td>{{ l.completed_sales or "-" }}</td>
+              <td>{{ l.required_sales or "-" }}</td>
+              <td>{{ l.next_rank or "-" }}</td>
+              <td>{{ l.current_package or "-" }}</td>
+              <td>{{ l.subscription_status or "-" }}</td>
+              <td><span class="badge">{{ l.commission_eligible or "-" }}</span></td>
+              <td>{{ l.missing_requirements or "-" }}</td>
+            </tr>
+            {% else %}
+            <tr><td colspan="9">لا توجد بيانات.</td></tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="section">
+      <h2>آخر مشتريات الكورسات</h2>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Partner ID</th>
+              <th>Course Code</th>
+              <th>Course Name</th>
+              <th>Amount</th>
+              <th>Status</th>
+              <th>Stripe Payment</th>
+              <th>Paid At</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for course in recent_courses %}
+            <tr>
+              <td>{{ course.partner_id or "-" }}</td>
+              <td>{{ course.course_code or "-" }}</td>
+              <td>{{ course.course_name or "-" }}</td>
+              <td>{{ money(course.amount) }}</td>
+              <td><span class="badge">{{ course.status or "-" }}</span></td>
+              <td>{{ course.stripe_payment_id or "-" }}</td>
+              <td>{{ course.paid_at or "-" }}</td>
+            </tr>
+            {% else %}
+            <tr><td colspan="7">لا توجد بيانات.</td></tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+  </div>
+</body>
+</html>
+        """
+
+        return render_template_string(
+            html,
+            encoded_key=encoded_key,
+            partner_summary=partner_summary,
+            subscription_summary=subscription_summary,
+            commission_totals=commission_totals,
+            commission_counts=commission_counts,
+            course_summary=course_summary,
+            level_counts=level_counts,
+            eligible_counts=eligible_counts,
+            partners=partners,
+            subscriptions=subscriptions,
+            recent_partners=recent_partners,
+            recent_subscriptions=recent_subscriptions,
+            recent_commissions=recent_commissions,
+            recent_levels=recent_levels,
+            recent_courses=recent_courses,
+            money=money
+        )
+
+    except Exception as error:
+        print(f"ADMIN DASHBOARD VIEW ERROR ❌ {error}", flush=True)
+
+        return render_template_string(
+            """
+            <html>
+            <head><meta charset="utf-8"><title>Admin Dashboard Error</title></head>
+            <body style="font-family:Arial; direction:rtl; padding:30px;">
+              <h2>حدث خطأ في عرض Admin Dashboard</h2>
+              <p>{{ error }}</p>
+            </body>
+            </html>
+            """,
+            error=str(error)
+        ), 500
+
+# ===== ALSAAB_ADMIN_DASHBOARD_MVP_V1 END =====
+
+
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 10000))
     app.run(host="0.0.0.0", port=port, debug=False)
