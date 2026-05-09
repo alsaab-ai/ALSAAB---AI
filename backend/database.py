@@ -1619,6 +1619,24 @@ def ensure_paid_client_is_partner(
 
         print(f"AUTO PARTNER CREATE RESULT {result}", flush=True)
 
+        try:
+            auto_partner_id = extract_partner_id_from_google_sheet_result(result)
+
+            wordpress_link_result = send_wordpress_account_link(
+                email=final_email,
+                partner_id=auto_partner_id,
+                client_id=client_id,
+                plan_name=plan_name,
+                subscription_status="active",
+                name=final_partner_name,
+            )
+
+            print(f"AUTO WORDPRESS ACCOUNT LINK RESULT {wordpress_link_result}", flush=True)
+
+        except Exception as wordpress_link_error:
+            print(f"AUTO WORDPRESS ACCOUNT LINK ERROR ❌ {wordpress_link_error}", flush=True)
+
+
         return result
 
     except Exception as error:
@@ -3641,3 +3659,136 @@ def sync_partner_level_progress_to_google_sheet(partner_id):
             "partner_id": partner_id,
             "message": str(error),
         }
+
+
+# ===== ALSAAB_WORDPRESS_ACCOUNT_LINK_V1 START =====
+
+def send_wordpress_account_link(
+    email="",
+    partner_id="",
+    client_id="",
+    plan_name="",
+    subscription_status="active",
+    name="",
+):
+    """
+    يربط أو ينشئ WordPress user تلقائياً بعد الدفع.
+    يستخدم نفس DASHBOARD_SSO_SECRET للتوقيع بين Render و WordPress.
+    """
+    import os
+    import json
+    import time
+    import hmac
+    import hashlib
+    import urllib.request
+    import urllib.error
+
+    email = str(email or "").strip()
+    partner_id = normalize_partner_id(partner_id)
+    client_id = str(client_id or partner_id or "").strip()
+
+    if not email:
+        return {
+            "status": "skipped",
+            "message": "email is missing",
+            "partner_id": partner_id,
+            "client_id": client_id,
+        }
+
+    if not partner_id or str(partner_id).lower() == str(COMPANY_OWNER_PARTNER_ID).lower():
+        return {
+            "status": "skipped",
+            "message": "regular partner_id is missing",
+            "partner_id": partner_id,
+            "client_id": client_id,
+        }
+
+    secret = os.getenv("DASHBOARD_SSO_SECRET", "").strip()
+
+    if not secret:
+        return {
+            "status": "skipped",
+            "message": "DASHBOARD_SSO_SECRET is missing",
+            "partner_id": partner_id,
+            "client_id": client_id,
+        }
+
+    wordpress_base_url = os.getenv("WORDPRESS_BASE_URL", "https://alsaab.io").strip().rstrip("/")
+    endpoint = f"{wordpress_base_url}/wp-json/alsaab/v1/link-account"
+
+    payload = {
+        "email": email,
+        "partner_id": partner_id,
+        "client_id": client_id,
+        "plan_name": str(plan_name or "").strip(),
+        "subscription_status": str(subscription_status or "active").strip(),
+        "name": str(name or "").strip(),
+    }
+
+    body = json.dumps(payload, ensure_ascii=False, separators=(",", ":")).encode("utf-8")
+    timestamp = str(int(time.time()))
+    signature_base = (timestamp + ".").encode("utf-8") + body
+
+    signature = hmac.new(
+        secret.encode("utf-8"),
+        signature_base,
+        hashlib.sha256
+    ).hexdigest()
+
+    request = urllib.request.Request(
+        endpoint,
+        data=body,
+        headers={
+            "Content-Type": "application/json",
+            "X-ALSAAB-Timestamp": timestamp,
+            "X-ALSAAB-Signature": signature,
+        },
+        method="POST"
+    )
+
+    try:
+        with urllib.request.urlopen(request, timeout=30) as response:
+            raw = response.read().decode("utf-8", errors="replace")
+
+        try:
+            result = json.loads(raw)
+        except Exception:
+            result = {
+                "status": "unknown",
+                "raw": raw,
+            }
+
+        return {
+            "status": "success",
+            "endpoint": endpoint,
+            "partner_id": partner_id,
+            "client_id": client_id,
+            "email": email,
+            "wordpress_result": result,
+        }
+
+    except urllib.error.HTTPError as error:
+        raw = error.read().decode("utf-8", errors="replace")
+
+        return {
+            "status": "error",
+            "message": f"WordPress HTTP error {error.code}",
+            "raw": raw,
+            "endpoint": endpoint,
+            "partner_id": partner_id,
+            "client_id": client_id,
+            "email": email,
+        }
+
+    except Exception as error:
+        return {
+            "status": "error",
+            "message": str(error),
+            "endpoint": endpoint,
+            "partner_id": partner_id,
+            "client_id": client_id,
+            "email": email,
+        }
+
+# ===== ALSAAB_WORDPRESS_ACCOUNT_LINK_V1 END =====
+
