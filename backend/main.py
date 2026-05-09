@@ -5164,6 +5164,15 @@ def admin_dashboard_view():
             except Exception:
                 return f"{value or 0} AED"
 
+        action_status = request.args.get("admin_action", "").strip()
+
+        admin_action_message = ""
+
+        if action_status == "recalculated":
+            admin_action_message = "تمت إعادة حساب مستوى الشريك وتسجيل العملية في AuditLogs."
+        elif action_status == "recalculate_error":
+            admin_action_message = "حدث خطأ أثناء إعادة حساب مستوى الشريك."
+
         encoded_key = quote(key)
 
         html = """
@@ -5472,6 +5481,12 @@ def admin_dashboard_view():
       </div>
     </div>
 
+    {% if admin_action_message %}
+    <div style="background:rgba(128,226,138,.08); border:1px solid rgba(128,226,138,.4); color:#80e28a; border-radius:14px; padding:13px 16px; margin-bottom:18px; font-weight:700;">
+      {{ admin_action_message }}
+    </div>
+    {% endif %}
+
     <div class="search-panel">
       <h2 style="color:#d7b85a; margin:0;">بحث شريك / عميل</h2>
       <div class="sub">
@@ -5613,7 +5628,15 @@ def admin_dashboard_view():
             هذه الأزرار مكانها هنا، لكنها غير مفعلة الآن حتى نبني الـ audit log والصلاحيات.
           </div>
           <div class="disabled-actions">
-            <button disabled>Recalculate Level</button>
+            
+            <form method="POST" action="/admin/recalculate-partner-level" style="display:inline-block;">
+              <input type="hidden" name="key" value="{{ admin_key }}">
+              <input type="hidden" name="partner_id" value="{{ search_profile.get("partner_id") or search_lookup.get("partner_id") }}">
+              <input type="hidden" name="reason" value="Manual recalculate from Admin Dashboard search result">
+              <button type="submit" style="border:1px solid rgba(215,184,90,.55); color:#f0cc68; background:#111; padding:10px 13px; border-radius:999px; cursor:pointer;">
+                Recalculate Level
+              </button>
+            </form>
             <button disabled>Suspend Partner</button>
             <button disabled>Activate Partner</button>
             <button disabled>Transfer Downline to alsaab</button>
@@ -5974,6 +5997,7 @@ def admin_dashboard_view():
             html,
             encoded_key=encoded_key,
             admin_key=key,
+            admin_action_message=admin_action_message,
             search_query=search_query,
             search_lookup=search_lookup,
             search_result=search_result,
@@ -6026,6 +6050,121 @@ def admin_dashboard_view():
         ), 500
 
 # ===== ALSAAB_ADMIN_DASHBOARD_MVP_V1 END =====
+
+
+
+# ===== ALSAAB_ADMIN_RECALCULATE_LEVEL_V1 START =====
+
+@app.route("/admin/recalculate-partner-level", methods=["POST"])
+def admin_recalculate_partner_level():
+    """
+    Owner/Admin action:
+    Recalculate partner level and sync result to Google Sheets.
+
+    Security:
+    - Requires ADMIN_KEY.
+    - This is an owner-level admin action.
+    - Every action is logged in AuditLogs.
+    """
+    import os
+    import json
+    from urllib.parse import quote
+
+    payload = get_admin_payload()
+    key = get_admin_key(payload)
+
+    if key != ADMIN_KEY:
+        return jsonify({"error": "Unauthorized"}), 401
+
+    partner_id = (
+        get_payload_value(payload, "partner_id", default="")
+        or request.form.get("partner_id", "").strip()
+    )
+
+    reason = (
+        get_payload_value(payload, "reason", default="")
+        or request.form.get("reason", "").strip()
+        or "Manual admin recalculate from Admin Dashboard"
+    )
+
+    partner_id = str(partner_id or "").strip().upper()
+
+    if not partner_id:
+        return jsonify({
+            "status": "error",
+            "message": "partner_id is required"
+        }), 400
+
+    try:
+        from database import (
+            normalize_partner_id,
+            sync_partner_level_progress_to_google_sheet,
+            post_to_google_sheet_json,
+        )
+
+        partner_id = normalize_partner_id(partner_id)
+
+        result = sync_partner_level_progress_to_google_sheet(partner_id)
+
+        google_sheet_token = os.getenv("GOOGLE_SHEET_TOKEN", "")
+
+        audit_result = {}
+
+        if google_sheet_token:
+            audit_result = post_to_google_sheet_json(
+                {
+                    "token": google_sheet_token,
+                    "action": "admin_audit_log",
+                    "actor": "owner_admin",
+                    "action_type": "recalculate_partner_level",
+                    "target_type": "partner",
+                    "target_id": partner_id,
+                    "partner_id": partner_id,
+                    "before_json": "",
+                    "after_json": json.dumps(result, ensure_ascii=False),
+                    "reason": reason,
+                    "source": "admin_dashboard",
+                    "status": result.get("status", "success") if isinstance(result, dict) else "success",
+                    "notes": "Admin manual level recalculation"
+                },
+                label="admin_audit_log_recalculate_level"
+            )
+
+        print(
+            f"ADMIN RECALCULATE LEVEL ✅ partner_id={partner_id} result={result} audit={audit_result}",
+            flush=True
+        )
+
+        if request.is_json:
+            return jsonify({
+                "status": "success",
+                "partner_id": partner_id,
+                "result": result,
+                "audit_result": audit_result
+            })
+
+        return redirect(
+            f"/admin-dashboard?key={quote(key)}&partner_id={quote(partner_id)}&admin_action=recalculated"
+        )
+
+    except Exception as error:
+        print(
+            f"ADMIN RECALCULATE LEVEL ERROR ❌ partner_id={partner_id} error={error}",
+            flush=True
+        )
+
+        if request.is_json:
+            return jsonify({
+                "status": "error",
+                "partner_id": partner_id,
+                "message": str(error)
+            }), 500
+
+        return redirect(
+            f"/admin-dashboard?key={quote(key)}&partner_id={quote(partner_id)}&admin_action=recalculate_error"
+        )
+
+# ===== ALSAAB_ADMIN_RECALCULATE_LEVEL_V1 END =====
 
 
 if __name__ == "__main__":
