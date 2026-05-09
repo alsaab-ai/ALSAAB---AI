@@ -5294,6 +5294,40 @@ def admin_dashboard_view():
       opacity: 0.75;
     }
 
+    .bulk-panel {
+      border: 1px solid rgba(215,184,90,.25);
+      background: rgba(255,255,255,.025);
+      border-radius: 14px;
+      padding: 12px;
+      margin-bottom: 12px;
+      display: grid;
+      grid-template-columns: minmax(150px, 220px) 1fr auto;
+      gap: 10px;
+      align-items: center;
+    }
+
+    .bulk-panel select,
+    .bulk-panel input {
+      width: 100%;
+      box-sizing: border-box;
+      background: #0b0b0b;
+      color: #fff;
+      border: 1px solid rgba(215,184,90,.35);
+      border-radius: 12px;
+      padding: 10px;
+      outline: none;
+    }
+
+    .bulk-panel button {
+      border: 1px solid rgba(215,184,90,.6);
+      color: #f0cc68;
+      background: #111;
+      border-radius: 999px;
+      padding: 10px 14px;
+      cursor: pointer;
+      font-weight: 700;
+    }
+
     .header {
       background: linear-gradient(135deg, #111, #1d1a10);
       border: 1px solid #c8a84b;
@@ -5647,10 +5681,35 @@ def admin_dashboard_view():
 
         <div class="section" style="margin-top:18px;">
           <h2>آخر عمولات هذا الشريك</h2>
+
+          <form id="bulkCommissionForm" class="bulk-panel" method="POST" action="/admin/bulk-update-commission-status">
+            <input type="hidden" name="key" value="{{ admin_key }}">
+            <input type="hidden" name="partner_id" value="{{ search_profile.get("partner_id") or search_lookup.get("partner_id") }}">
+
+            <select name="new_status" required>
+              <option value="">Bulk Action</option>
+              <option value="approved">Approve Selected</option>
+              <option value="hold">Hold Selected</option>
+              <option value="rejected">Reject Selected</option>
+              <option value="paid">Mark Selected as Paid</option>
+            </select>
+
+            <input name="reason" placeholder="سبب الإجراء / ملاحظة الإدارة" required>
+
+            <button type="submit" onclick="return confirm('تأكيد تنفيذ الإجراء الجماعي على العمولات المحددة؟')">
+              تنفيذ
+            </button>
+          </form>
+
+          <div class="muted" style="margin-bottom:10px;">
+            ملاحظة: Mark as Paid في الإجراء الجماعي يطبق فقط على العمولات approved، ويتجاهل العمولات pending لحماية الدفع.
+          </div>
+
           <div class="table-wrap">
             <table>
               <thead>
                 <tr>
+                  <th><input type="checkbox" onclick="toggleCommissionSelection(this)"></th>
                   <th>Source</th>
                   <th>Depth</th>
                   <th>Package</th>
@@ -5663,6 +5722,14 @@ def admin_dashboard_view():
               <tbody>
                 {% for c in search_recent_commissions[:10] %}
                 <tr>
+                  <td>
+                    <input
+                      type="checkbox"
+                      name="commission_ids"
+                      form="bulkCommissionForm"
+                      value="{{ c.commission_id }}"
+                    >
+                  </td>
                   <td>{{ c.source_partner_id or "-" }}</td>
                   <td>{{ c.commission_depth or "-" }}</td>
                   <td>{{ c.package or "-" }}</td>
@@ -5710,7 +5777,7 @@ def admin_dashboard_view():
                   </td>
                 </tr>
                 {% else %}
-                <tr><td colspan="6">لا توجد عمولات لهذا الشريك.</td></tr>
+                <tr><td colspan="8">لا توجد عمولات لهذا الشريك.</td></tr>
                 {% endfor %}
               </tbody>
             </table>
@@ -6316,6 +6383,137 @@ def admin_update_commission_status():
         )
 
 # ===== ALSAAB_ADMIN_COMMISSION_ACTIONS_RENDER_V1 END =====
+
+
+
+# ===== ALSAAB_ADMIN_BULK_COMMISSION_ACTIONS_RENDER_V1 START =====
+
+@app.route("/admin/bulk-update-commission-status", methods=["POST"])
+def admin_bulk_update_commission_status():
+    """
+    Owner/Admin action:
+    Bulk update commission status.
+
+    Safety:
+    - Requires ADMIN_KEY.
+    - Mark Paid is handled safely by Apps Script and skips non-approved commissions.
+    - Every updated commission is logged in AuditLogs.
+    """
+    import os
+    from urllib.parse import quote
+
+    payload = get_admin_payload()
+    key = get_admin_key(payload)
+
+    if key != ADMIN_KEY:
+        return jsonify({"error": "Unauthorized"}), 401
+
+    partner_id = (
+        get_payload_value(payload, "partner_id", default="")
+        or request.form.get("partner_id", "").strip()
+    )
+
+    new_status = (
+        get_payload_value(payload, "new_status", default="")
+        or request.form.get("new_status", "").strip()
+    ).lower().strip()
+
+    reason = (
+        get_payload_value(payload, "reason", default="")
+        or request.form.get("reason", "").strip()
+        or "Bulk commission action from Admin Dashboard"
+    )
+
+    commission_ids = []
+
+    if request.is_json:
+        raw_ids = payload.get("commission_ids") or []
+        if isinstance(raw_ids, list):
+            commission_ids = [str(x).strip() for x in raw_ids if str(x).strip()]
+        else:
+            commission_ids = [x.strip() for x in str(raw_ids).replace("\n", ",").split(",") if x.strip()]
+    else:
+        commission_ids = request.form.getlist("commission_ids")
+        commission_ids = [str(x).strip() for x in commission_ids if str(x).strip()]
+
+    if new_status not in ("approved", "hold", "rejected", "paid"):
+        return jsonify({
+            "status": "error",
+            "message": "Invalid new_status"
+        }), 400
+
+    if not commission_ids:
+        if request.is_json:
+            return jsonify({
+                "status": "error",
+                "message": "No commissions selected"
+            }), 400
+
+        return redirect(
+            f"/admin-dashboard?key={quote(key)}&partner_id={quote(partner_id)}&admin_action=bulk_no_selection"
+        )
+
+    try:
+        from database import post_to_google_sheet_json
+
+        google_sheet_token = os.getenv("GOOGLE_SHEET_TOKEN", "")
+
+        if not google_sheet_token:
+            return jsonify({
+                "status": "error",
+                "message": "GOOGLE_SHEET_TOKEN is missing"
+            }), 500
+
+        result = post_to_google_sheet_json(
+            {
+                "token": google_sheet_token,
+                "action": "admin_bulk_update_commission_status",
+                "commission_ids": commission_ids,
+                "partner_id": partner_id,
+                "new_status": new_status,
+                "reason": reason,
+                "actor": "owner_admin",
+                "source": "admin_dashboard_bulk"
+            },
+            label="admin_bulk_update_commission_status"
+        )
+
+        print(
+            f"ADMIN BULK UPDATE COMMISSION STATUS ✅ partner_id={partner_id} new_status={new_status} count={len(commission_ids)} result={result}",
+            flush=True
+        )
+
+        if request.is_json:
+            return jsonify(result)
+
+        updated_count = 0
+        skipped_count = 0
+
+        if isinstance(result, dict):
+            updated_count = int(result.get("updated_count") or 0)
+            skipped_count = int(result.get("skipped_count") or 0)
+
+        return redirect(
+            f"/admin-dashboard?key={quote(key)}&partner_id={quote(partner_id)}&admin_action=bulk_commission_{quote(new_status)}&updated={updated_count}&skipped={skipped_count}"
+        )
+
+    except Exception as error:
+        print(
+            f"ADMIN BULK UPDATE COMMISSION STATUS ERROR ❌ partner_id={partner_id} status={new_status} error={error}",
+            flush=True
+        )
+
+        if request.is_json:
+            return jsonify({
+                "status": "error",
+                "message": str(error)
+            }), 500
+
+        return redirect(
+            f"/admin-dashboard?key={quote(key)}&partner_id={quote(partner_id)}&admin_action=bulk_commission_error"
+        )
+
+# ===== ALSAAB_ADMIN_BULK_COMMISSION_ACTIONS_RENDER_V1 END =====
 
 
 if __name__ == "__main__":
