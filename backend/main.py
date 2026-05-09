@@ -5657,6 +5657,7 @@ def admin_dashboard_view():
                   <th>%</th>
                   <th>Amount</th>
                   <th>Status</th>
+                  <th>Actions</th>
                 </tr>
               </thead>
               <tbody>
@@ -5668,6 +5669,45 @@ def admin_dashboard_view():
                   <td>{{ c.commission_percent or "-" }}</td>
                   <td>{{ money(c.commission_amount) }}</td>
                   <td><span class="badge">{{ c.status or "-" }}</span></td>
+                  <td>
+                    <div style="display:flex; gap:6px; flex-wrap:wrap;">
+                      <form method="POST" action="/admin/update-commission-status">
+                        <input type="hidden" name="key" value="{{ admin_key }}">
+                        <input type="hidden" name="partner_id" value="{{ search_profile.get("partner_id") or search_lookup.get("partner_id") }}">
+                        <input type="hidden" name="commission_id" value="{{ c.commission_id }}">
+                        <input type="hidden" name="new_status" value="approved">
+                        <input type="hidden" name="reason" value="Approved from Admin Dashboard">
+                        <button type="submit" style="border:1px solid rgba(128,226,138,.6); color:#80e28a; background:#111; border-radius:999px; padding:6px 9px; cursor:pointer;">Approve</button>
+                      </form>
+
+                      <form method="POST" action="/admin/update-commission-status">
+                        <input type="hidden" name="key" value="{{ admin_key }}">
+                        <input type="hidden" name="partner_id" value="{{ search_profile.get("partner_id") or search_lookup.get("partner_id") }}">
+                        <input type="hidden" name="commission_id" value="{{ c.commission_id }}">
+                        <input type="hidden" name="new_status" value="hold">
+                        <input type="hidden" name="reason" value="Hold from Admin Dashboard">
+                        <button type="submit" style="border:1px solid rgba(255,207,102,.6); color:#ffcf66; background:#111; border-radius:999px; padding:6px 9px; cursor:pointer;">Hold</button>
+                      </form>
+
+                      <form method="POST" action="/admin/update-commission-status">
+                        <input type="hidden" name="key" value="{{ admin_key }}">
+                        <input type="hidden" name="partner_id" value="{{ search_profile.get("partner_id") or search_lookup.get("partner_id") }}">
+                        <input type="hidden" name="commission_id" value="{{ c.commission_id }}">
+                        <input type="hidden" name="new_status" value="rejected">
+                        <input type="hidden" name="reason" value="Rejected from Admin Dashboard">
+                        <button type="submit" style="border:1px solid rgba(255,122,122,.6); color:#ff7a7a; background:#111; border-radius:999px; padding:6px 9px; cursor:pointer;">Reject</button>
+                      </form>
+
+                      <form method="POST" action="/admin/update-commission-status">
+                        <input type="hidden" name="key" value="{{ admin_key }}">
+                        <input type="hidden" name="partner_id" value="{{ search_profile.get("partner_id") or search_lookup.get("partner_id") }}">
+                        <input type="hidden" name="commission_id" value="{{ c.commission_id }}">
+                        <input type="hidden" name="new_status" value="paid">
+                        <input type="hidden" name="reason" value="Marked paid from Admin Dashboard">
+                        <button type="submit" style="border:1px solid rgba(215,184,90,.65); color:#f0cc68; background:#111; border-radius:999px; padding:6px 9px; cursor:pointer;">Mark Paid</button>
+                      </form>
+                    </div>
+                  </td>
                 </tr>
                 {% else %}
                 <tr><td colspan="6">لا توجد عمولات لهذا الشريك.</td></tr>
@@ -6165,6 +6205,117 @@ def admin_recalculate_partner_level():
         )
 
 # ===== ALSAAB_ADMIN_RECALCULATE_LEVEL_V1 END =====
+
+
+
+# ===== ALSAAB_ADMIN_COMMISSION_ACTIONS_RENDER_V1 START =====
+
+@app.route("/admin/update-commission-status", methods=["POST"])
+def admin_update_commission_status():
+    """
+    Owner/Admin action:
+    Update commission status: approved / hold / rejected / paid.
+
+    Security:
+    - Requires ADMIN_KEY.
+    - Every change is logged in Apps Script AuditLogs.
+    """
+    import os
+    from urllib.parse import quote
+
+    payload = get_admin_payload()
+    key = get_admin_key(payload)
+
+    if key != ADMIN_KEY:
+        return jsonify({"error": "Unauthorized"}), 401
+
+    commission_id = (
+        get_payload_value(payload, "commission_id", default="")
+        or request.form.get("commission_id", "").strip()
+    )
+
+    partner_id = (
+        get_payload_value(payload, "partner_id", default="")
+        or request.form.get("partner_id", "").strip()
+    )
+
+    new_status = (
+        get_payload_value(payload, "new_status", default="")
+        or request.form.get("new_status", "").strip()
+    ).lower().strip()
+
+    reason = (
+        get_payload_value(payload, "reason", default="")
+        or request.form.get("reason", "").strip()
+        or "Admin commission status update"
+    )
+
+    if new_status not in ("approved", "hold", "rejected", "paid", "pending"):
+        return jsonify({
+            "status": "error",
+            "message": "Invalid new_status"
+        }), 400
+
+    if not commission_id:
+        return jsonify({
+            "status": "error",
+            "message": "commission_id is required"
+        }), 400
+
+    try:
+        from database import post_to_google_sheet_json
+
+        google_sheet_token = os.getenv("GOOGLE_SHEET_TOKEN", "")
+
+        if not google_sheet_token:
+            return jsonify({
+                "status": "error",
+                "message": "GOOGLE_SHEET_TOKEN is missing"
+            }), 500
+
+        result = post_to_google_sheet_json(
+            {
+                "token": google_sheet_token,
+                "action": "admin_update_commission_status",
+                "commission_id": commission_id,
+                "partner_id": partner_id,
+                "new_status": new_status,
+                "reason": reason,
+                "actor": "owner_admin",
+                "source": "admin_dashboard"
+            },
+            label="admin_update_commission_status"
+        )
+
+        print(
+            f"ADMIN UPDATE COMMISSION STATUS ✅ commission_id={commission_id} new_status={new_status} result={result}",
+            flush=True
+        )
+
+        if request.is_json:
+            return jsonify(result)
+
+        return redirect(
+            f"/admin-dashboard?key={quote(key)}&partner_id={quote(partner_id)}&admin_action=commission_{quote(new_status)}"
+        )
+
+    except Exception as error:
+        print(
+            f"ADMIN UPDATE COMMISSION STATUS ERROR ❌ commission_id={commission_id} status={new_status} error={error}",
+            flush=True
+        )
+
+        if request.is_json:
+            return jsonify({
+                "status": "error",
+                "message": str(error)
+            }), 500
+
+        return redirect(
+            f"/admin-dashboard?key={quote(key)}&partner_id={quote(partner_id)}&admin_action=commission_error"
+        )
+
+# ===== ALSAAB_ADMIN_COMMISSION_ACTIONS_RENDER_V1 END =====
 
 
 if __name__ == "__main__":
