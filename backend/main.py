@@ -5064,6 +5064,71 @@ def admin_dashboard_view():
         recent_levels = levels.get("recent") or []
         recent_courses = courses.get("recent") or []
 
+        # ===== ALSAAB_ADMIN_DASHBOARD_SEARCH_V1 START =====
+        search_query = (
+            request.args.get("partner_id", "")
+            or request.args.get("search", "")
+            or request.args.get("q", "")
+        ).strip()
+
+        search_lookup = {}
+        search_result = {}
+
+        search_profile = {}
+        search_level = {}
+        search_customers = {}
+        search_commissions = {}
+        search_courses = {}
+        search_tree = {}
+
+        search_recent_commissions = []
+        search_recent_customers = []
+        search_purchased_courses = []
+
+        search_commission_totals = {}
+        search_commission_counts = {}
+
+        if search_query:
+            search_lookup = post_to_google_sheet_json(
+                {
+                    "token": google_sheet_token,
+                    "action": "admin_partner_lookup",
+                    "query": search_query
+                },
+                label="admin_partner_lookup"
+            )
+
+            found_partner_id = ""
+
+            if isinstance(search_lookup, dict) and search_lookup.get("status") == "success":
+                found_partner_id = str(search_lookup.get("partner_id") or "").strip()
+
+            if found_partner_id:
+                search_result = post_to_google_sheet_json(
+                    {
+                        "token": google_sheet_token,
+                        "action": "partner_dashboard_data",
+                        "partner_id": found_partner_id
+                    },
+                    label="admin_partner_detail"
+                )
+
+                if isinstance(search_result, dict) and search_result.get("status") == "success":
+                    search_profile = search_result.get("partner_profile") or {}
+                    search_level = search_result.get("level") or {}
+                    search_customers = search_result.get("customers") or {}
+                    search_commissions = search_result.get("commissions") or {}
+                    search_courses = search_result.get("courses") or {}
+                    search_tree = search_result.get("tree") or {}
+
+                    search_recent_commissions = search_commissions.get("recent") or []
+                    search_recent_customers = search_customers.get("recent") or []
+                    search_purchased_courses = search_courses.get("purchased_courses") or []
+
+                    search_commission_totals = search_commissions.get("totals") or {}
+                    search_commission_counts = search_commissions.get("counts") or {}
+        # ===== ALSAAB_ADMIN_DASHBOARD_SEARCH_V1 END =====
+
         def money(value):
             try:
                 return f"{float(value or 0):,.2f} AED"
@@ -5145,6 +5210,50 @@ def admin_dashboard_view():
       text-decoration: none;
       font-weight: 700;
       display: inline-block;
+    }
+
+    .search-panel {
+      background: #111;
+      border: 1px solid rgba(215, 184, 90, 0.35);
+      border-radius: 18px;
+      padding: 18px;
+      margin-bottom: 18px;
+    }
+
+    .search-form {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 10px;
+      margin-top: 12px;
+    }
+
+    .search-input {
+      width: 100%;
+      box-sizing: border-box;
+      background: #0b0b0b;
+      color: #fff;
+      border: 1px solid rgba(215, 184, 90, 0.4);
+      border-radius: 14px;
+      padding: 13px;
+      font-size: 15px;
+      outline: none;
+    }
+
+    .disabled-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 14px;
+    }
+
+    .disabled-actions button {
+      border: 1px solid rgba(215, 184, 90, 0.25);
+      color: #9f967b;
+      background: #0b0b0b;
+      padding: 10px 13px;
+      border-radius: 999px;
+      cursor: not-allowed;
+      opacity: 0.75;
     }
 
     .header {
@@ -5333,6 +5442,187 @@ def admin_dashboard_view():
         هذه نسخة MVP لعرض بيانات الإدارة من Google Sheets. لاحقاً نضيف أزرار الموافقة على العمولات، الدفع، تعديل الشركاء، وإعادة حساب المستويات.
       </div>
     </div>
+
+    <div class="search-panel">
+      <h2 style="color:#d7b85a; margin:0;">بحث شريك / عميل</h2>
+      <div class="sub">
+        ابحث بالـ Partner ID أو الاسم أو الإيميل أو رقم الهاتف. البحث يعرض ملف الشريك التفصيلي من النظام الرسمي.
+      </div>
+
+      <form class="search-form" method="GET" action="/admin-dashboard">
+        <input type="hidden" name="key" value="{{ admin_key }}">
+        <input
+          class="search-input"
+          name="partner_id"
+          value="{{ search_query }}"
+          placeholder="مثال: ALS-P00009 أو email أو phone أو name"
+        >
+        <button class="action-btn" type="submit">بحث</button>
+      </form>
+    </div>
+
+    {% if search_query %}
+    <div class="section">
+      <h2>نتيجة البحث</h2>
+
+      {% if search_lookup and search_lookup.get("found") %}
+        <div class="grid">
+          <div class="card">
+            <h3>Partner ID</h3>
+            <div class="big">{{ search_profile.get("partner_id") or search_lookup.get("partner_id") or "-" }}</div>
+            <div class="muted">{{ search_profile.get("partner_name") or "-" }}</div>
+          </div>
+
+          <div class="card">
+            <h3>المستوى الحالي</h3>
+            <div class="big">{{ search_level.get("current_level") or search_level.get("partner_rank") or "-" }}</div>
+            <div class="muted">التالي: {{ search_level.get("next_rank") or "-" }}</div>
+          </div>
+
+          <div class="card">
+            <h3>العملاء المباشرين النشطين</h3>
+            <div class="big">{{ search_customers.get("active_direct_paid_count") or 0 }}</div>
+            <div class="muted">إجمالي المباشرين: {{ search_customers.get("all_direct_count") or 0 }}</div>
+          </div>
+
+          <div class="card">
+            <h3>العمولات المعلقة</h3>
+            <div class="big">{{ money(search_commission_totals.get("pending")) }}</div>
+            <div class="muted">عددها: {{ search_commission_counts.get("pending") or 0 }}</div>
+          </div>
+        </div>
+
+        <div class="two-col">
+          <div class="small-box">
+            <h3>بيانات الشريك</h3>
+            <div class="kv"><span>الاسم</span><strong>{{ search_profile.get("partner_name") or "-" }}</strong></div>
+            <div class="kv"><span>Status</span><strong>{{ search_profile.get("status") or "-" }}</strong></div>
+            <div class="kv"><span>Sponsor</span><strong>{{ search_profile.get("sponsor_partner_id") or "-" }}</strong></div>
+            <div class="kv"><span>Referral Link</span><strong style="word-break:break-all;">{{ search_profile.get("referral_link") or "-" }}</strong></div>
+            <div class="kv"><span>Downline Count</span><strong>{{ search_tree.get("downline_count") or 0 }}</strong></div>
+          </div>
+
+          <div class="small-box">
+            <h3>المستوى والترقية</h3>
+            <div class="kv"><span>Completed Sales</span><strong>{{ search_level.get("completed_sales") or "-" }}</strong></div>
+            <div class="kv"><span>Required Sales</span><strong>{{ search_level.get("required_sales") or "-" }}</strong></div>
+            <div class="kv"><span>Current Package</span><strong>{{ search_level.get("current_package") or "-" }}</strong></div>
+            <div class="kv"><span>Subscription Status</span><strong>{{ search_level.get("subscription_status") or "-" }}</strong></div>
+            <div class="kv"><span>Commission Eligible</span><strong>{{ search_level.get("commission_eligible") or "-" }}</strong></div>
+          </div>
+        </div>
+
+        <div class="small-box">
+          <h3>إجراءات إدارية لاحقة</h3>
+          <div class="muted">
+            هذه الأزرار مكانها هنا، لكنها غير مفعلة الآن حتى نبني الـ audit log والصلاحيات.
+          </div>
+          <div class="disabled-actions">
+            <button disabled>Recalculate Level</button>
+            <button disabled>Suspend Partner</button>
+            <button disabled>Activate Partner</button>
+            <button disabled>Transfer Downline to alsaab</button>
+            <button disabled>Approve Commissions</button>
+            <button disabled>Mark Commissions Paid</button>
+          </div>
+        </div>
+
+        <div class="section" style="margin-top:18px;">
+          <h2>آخر عمولات هذا الشريك</h2>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Source</th>
+                  <th>Depth</th>
+                  <th>Package</th>
+                  <th>%</th>
+                  <th>Amount</th>
+                  <th>Status</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for c in search_recent_commissions[:10] %}
+                <tr>
+                  <td>{{ c.source_partner_id or "-" }}</td>
+                  <td>{{ c.commission_depth or "-" }}</td>
+                  <td>{{ c.package or "-" }}</td>
+                  <td>{{ c.commission_percent or "-" }}</td>
+                  <td>{{ money(c.commission_amount) }}</td>
+                  <td><span class="badge">{{ c.status or "-" }}</span></td>
+                </tr>
+                {% else %}
+                <tr><td colspan="6">لا توجد عمولات لهذا الشريك.</td></tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <div class="section">
+          <h2>العملاء المباشرين لهذا الشريك</h2>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Client ID</th>
+                  <th>Plan</th>
+                  <th>Amount</th>
+                  <th>Status</th>
+                  <th>Date</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for customer in search_recent_customers[:10] %}
+                <tr>
+                  <td>{{ customer.client_id or customer.session_id or "-" }}</td>
+                  <td>{{ customer.plan_name or "-" }}</td>
+                  <td>{{ money(customer.package_amount) }}</td>
+                  <td><span class="badge">{{ customer.subscription_status or "-" }}</span></td>
+                  <td>{{ customer.date or "-" }}</td>
+                </tr>
+                {% else %}
+                <tr><td colspan="5">لا توجد بيانات عملاء مباشرين.</td></tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+      {% else %}
+        <div class="muted">
+          لم يتم العثور على شريك مطابق للبحث: {{ search_query }}
+        </div>
+
+        {% if search_lookup and search_lookup.get("matches") %}
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Partner ID</th>
+                <th>Name</th>
+                <th>Email</th>
+                <th>Phone</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for m in search_lookup.get("matches") %}
+              <tr>
+                <td>{{ m.partner_id or "-" }}</td>
+                <td>{{ m.partner_name or "-" }}</td>
+                <td>{{ m.email or "-" }}</td>
+                <td>{{ m.phone or "-" }}</td>
+                <td>{{ m.status or "-" }}</td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+        {% endif %}
+      {% endif %}
+    </div>
+    {% endif %}
 
     <div class="grid">
       <div class="card">
@@ -5588,6 +5878,21 @@ def admin_dashboard_view():
         return render_template_string(
             html,
             encoded_key=encoded_key,
+            admin_key=key,
+            search_query=search_query,
+            search_lookup=search_lookup,
+            search_result=search_result,
+            search_profile=search_profile,
+            search_level=search_level,
+            search_customers=search_customers,
+            search_commissions=search_commissions,
+            search_courses=search_courses,
+            search_tree=search_tree,
+            search_recent_commissions=search_recent_commissions,
+            search_recent_customers=search_recent_customers,
+            search_purchased_courses=search_purchased_courses,
+            search_commission_totals=search_commission_totals,
+            search_commission_counts=search_commission_counts,
             partner_summary=partner_summary,
             subscription_summary=subscription_summary,
             commission_totals=commission_totals,
