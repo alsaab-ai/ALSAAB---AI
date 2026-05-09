@@ -5705,7 +5705,13 @@ def admin_dashboard_view():
             </form>
             <button disabled>Suspend Partner</button>
             <button disabled>Activate Partner</button>
-            <button disabled>Transfer Downline to alsaab</button>
+            
+            <a
+              href="/admin/downline-transfer-preview?key={{ admin_key }}&partner_id={{ search_profile.get("partner_id") or search_lookup.get("partner_id") }}"
+              style="border:1px solid rgba(255,207,102,.6); color:#ffcf66; background:#111; padding:10px 13px; border-radius:999px; text-decoration:none; display:inline-block;"
+            >
+              Preview Transfer Downline to alsaab
+            </a>
             <button disabled>Approve Commissions</button>
             <button disabled>Mark Commissions Paid</button>
           </div>
@@ -6674,6 +6680,342 @@ def admin_update_partner_status():
         )
 
 # ===== ALSAAB_ADMIN_PARTNER_STATUS_ACTIONS_RENDER_V2 END =====
+
+
+
+# ===== ALSAAB_DOWNLINE_TRANSFER_PREVIEW_RENDER_V1 START =====
+
+@app.route("/admin/downline-transfer-preview", methods=["GET"])
+def admin_downline_transfer_preview():
+    """
+    Owner/Admin preview only:
+    Shows what would be affected if partner direct downline is transferred to alsaab.
+
+    No changes are made here.
+    """
+    import os
+    from urllib.parse import quote
+
+    key = request.args.get("key", "").strip()
+
+    if key != ADMIN_KEY:
+        return "Unauthorized", 401
+
+    partner_id = request.args.get("partner_id", "").strip().upper()
+
+    if not partner_id:
+        return "partner_id is required", 400
+
+    try:
+        from database import post_to_google_sheet_json, normalize_partner_id
+
+        partner_id = normalize_partner_id(partner_id)
+        google_sheet_token = os.getenv("GOOGLE_SHEET_TOKEN", "")
+
+        if not google_sheet_token:
+            return "GOOGLE_SHEET_TOKEN is missing", 500
+
+        preview = post_to_google_sheet_json(
+            {
+                "token": google_sheet_token,
+                "action": "admin_downline_transfer_preview",
+                "partner_id": partner_id
+            },
+            label="admin_downline_transfer_preview"
+        )
+
+        if not isinstance(preview, dict) or preview.get("status") != "success":
+            return render_template_string(
+                """
+                <html>
+                <head><meta charset="utf-8"><title>Transfer Preview Error</title></head>
+                <body style="font-family:Arial; direction:rtl; padding:30px;">
+                  <h2>حدث خطأ في معاينة النقل</h2>
+                  <pre>{{ preview }}</pre>
+                  <a href="/admin-dashboard?key={{ encoded_key }}&partner_id={{ partner_id }}">رجوع</a>
+                </body>
+                </html>
+                """,
+                preview=preview,
+                encoded_key=quote(key),
+                partner_id=partner_id
+            ), 500
+
+        target_partner = preview.get("target_partner") or {}
+        direct_children = preview.get("direct_children") or []
+        network_rows = preview.get("network_rows") or []
+        depth_counts = preview.get("depth_counts") or {}
+
+        html = """
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="utf-8">
+  <title>معاينة نقل الشبكة إلى alsaab</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <style>
+    body {
+      margin: 0;
+      background: #0b0b0b;
+      color: #f5f0df;
+      font-family: Arial, Tahoma, sans-serif;
+      direction: rtl;
+    }
+
+    .page {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 28px;
+    }
+
+    .header, .section, .card {
+      background: #111;
+      border: 1px solid rgba(215,184,90,.35);
+      border-radius: 18px;
+      padding: 20px;
+      margin-bottom: 18px;
+    }
+
+    h1, h2, h3 {
+      color: #d7b85a;
+      margin-top: 0;
+    }
+
+    .sub {
+      color: #cfc7ad;
+      line-height: 1.7;
+    }
+
+    .warning {
+      background: rgba(255,207,102,.08);
+      border: 1px solid rgba(255,207,102,.45);
+      color: #ffcf66;
+      border-radius: 14px;
+      padding: 14px;
+      margin-bottom: 18px;
+      font-weight: 700;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 14px;
+      margin-bottom: 18px;
+    }
+
+    .big {
+      font-size: 28px;
+      font-weight: 900;
+      color: #fff;
+    }
+
+    .muted {
+      color: #aaa;
+      font-size: 13px;
+      margin-top: 6px;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 12px;
+    }
+
+    th, td {
+      padding: 10px;
+      border-bottom: 1px solid rgba(255,255,255,.08);
+      text-align: right;
+      font-size: 13px;
+    }
+
+    th {
+      color: #d7b85a;
+      background: #181818;
+    }
+
+    .table-wrap {
+      overflow-x: auto;
+    }
+
+    .action-btn {
+      display: inline-block;
+      border: 1px solid rgba(215,184,90,.55);
+      color: #f0cc68;
+      background: #111;
+      padding: 10px 14px;
+      border-radius: 999px;
+      text-decoration: none;
+      font-weight: 700;
+    }
+
+    @media (max-width: 900px) {
+      .grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+    }
+
+    @media (max-width: 600px) {
+      .grid {
+        grid-template-columns: 1fr;
+      }
+
+      .page {
+        padding: 16px;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <div class="page">
+    <div class="header">
+      <h1>معاينة نقل الشبكة إلى alsaab</h1>
+      <div class="sub">
+        هذه الصفحة للمعاينة فقط. لم يتم نقل أي شريك أو عميل. الهدف معرفة من سيتأثر قبل تفعيل النقل الحقيقي.
+      </div>
+    </div>
+
+    <div class="warning">
+      تنبيه: النقل الفعلي غير مفعّل هنا. هذه معاينة فقط قبل بناء زر Transfer Downline to alsaab.
+    </div>
+
+    <div class="grid">
+      <div class="card">
+        <h3>الشريك المستهدف</h3>
+        <div class="big">{{ partner_id }}</div>
+        <div class="muted">{{ target_partner.get("partner_name") or "-" }}</div>
+      </div>
+
+      <div class="card">
+        <h3>الحالة الحالية</h3>
+        <div class="big">{{ target_partner.get("status") or "-" }}</div>
+        <div class="muted">Rank: {{ target_partner.get("partner_rank") or "-" }}</div>
+      </div>
+
+      <div class="card">
+        <h3>المباشرين تحته</h3>
+        <div class="big">{{ preview.get("direct_children_count") or 0 }}</div>
+        <div class="muted">سيتم مراجعتهم كمرشحين للنقل إلى alsaab</div>
+      </div>
+
+      <div class="card">
+        <h3>إجمالي الشبكة</h3>
+        <div class="big">{{ preview.get("network_count") or 0 }}</div>
+        <div class="muted">كل المستويات أسفل هذا الشريك</div>
+      </div>
+    </div>
+
+    <div class="section">
+      <h2>توزيع الشبكة حسب العمق</h2>
+      <div class="grid">
+        <div class="card"><h3>Depth 1</h3><div class="big">{{ depth_counts.get("1", 0) or depth_counts.get(1, 0) }}</div></div>
+        <div class="card"><h3>Depth 2</h3><div class="big">{{ depth_counts.get("2", 0) or depth_counts.get(2, 0) }}</div></div>
+        <div class="card"><h3>Depth 3</h3><div class="big">{{ depth_counts.get("3", 0) or depth_counts.get(3, 0) }}</div></div>
+        <div class="card"><h3>Depth 4/5</h3><div class="big">{{ (depth_counts.get("4", 0) or depth_counts.get(4, 0)) + (depth_counts.get("5", 0) or depth_counts.get(5, 0)) }}</div></div>
+      </div>
+    </div>
+
+    <div class="section">
+      <h2>الشركاء المباشرين الذين سيتم مراجعتهم للنقل</h2>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Partner ID</th>
+              <th>الاسم</th>
+              <th>Current Sponsor</th>
+              <th>Current Parent</th>
+              <th>Status</th>
+              <th>Rank</th>
+              <th>Email</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for child in direct_children %}
+            <tr>
+              <td>{{ child.partner_id or "-" }}</td>
+              <td>{{ child.partner_name or "-" }}</td>
+              <td>{{ child.current_sponsor_partner_id or "-" }}</td>
+              <td>{{ child.current_parent_partner_id or "-" }}</td>
+              <td>{{ child.status or "-" }}</td>
+              <td>{{ child.partner_rank or "-" }}</td>
+              <td>{{ child.email or "-" }}</td>
+            </tr>
+            {% else %}
+            <tr><td colspan="7">لا يوجد direct downline لهذا الشريك.</td></tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="section">
+      <h2>عينة من الشبكة الكاملة أسفل الشريك</h2>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Descendant Partner ID</th>
+              <th>Depth</th>
+              <th>Line Owner</th>
+              <th>الاسم</th>
+              <th>Status</th>
+              <th>Rank</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for row in network_rows[:50] %}
+            <tr>
+              <td>{{ row.descendant_partner_id or "-" }}</td>
+              <td>{{ row.depth or "-" }}</td>
+              <td>{{ row.line_owner_partner_id or "-" }}</td>
+              <td>{{ row.partner_name or "-" }}</td>
+              <td>{{ row.status or "-" }}</td>
+              <td>{{ row.partner_rank or "-" }}</td>
+            </tr>
+            {% else %}
+            <tr><td colspan="6">لا توجد شبكة أسفل هذا الشريك.</td></tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <a class="action-btn" href="/admin-dashboard?key={{ encoded_key }}&partner_id={{ partner_id }}">رجوع إلى Admin Dashboard</a>
+  </div>
+</body>
+</html>
+        """
+
+        return render_template_string(
+            html,
+            encoded_key=quote(key),
+            partner_id=partner_id,
+            preview=preview,
+            target_partner=target_partner,
+            direct_children=direct_children,
+            network_rows=network_rows,
+            depth_counts=depth_counts
+        )
+
+    except Exception as error:
+        print(f"DOWNLINE TRANSFER PREVIEW ERROR ❌ partner_id={partner_id} error={error}", flush=True)
+
+        return render_template_string(
+            """
+            <html>
+            <head><meta charset="utf-8"><title>Transfer Preview Error</title></head>
+            <body style="font-family:Arial; direction:rtl; padding:30px;">
+              <h2>حدث خطأ في عرض معاينة النقل</h2>
+              <p>{{ error }}</p>
+            </body>
+            </html>
+            """,
+            error=str(error)
+        ), 500
+
+# ===== ALSAAB_DOWNLINE_TRANSFER_PREVIEW_RENDER_V1 END =====
 
 
 if __name__ == "__main__":
