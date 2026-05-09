@@ -2621,10 +2621,26 @@ def partner_dashboard_view():
     from urllib.parse import quote
 
     key = request.args.get("key", "").strip()
-    partner_id = request.args.get("partner_id", "").strip() or session.get("partner_id", "")
+    sso_token = request.args.get("sso", "").strip() or request.args.get("token", "").strip()
+    sso_payload = None
+
+    if sso_token:
+        sso_payload, sso_error = verify_dashboard_sso_token(sso_token)
+
+        if sso_error:
+            return redirect(build_dashboard_login_redirect("partner", "", request.args.get("lang", "ar"))), 302
+
+    partner_id = (
+        request.args.get("partner_id", "").strip()
+        or (sso_payload.get("partner_id", "") if sso_payload else "")
+        or session.get("partner_id", "")
+    )
+
     partner_id = normalize_dashboard_partner_id(partner_id)
 
-    if not is_dashboard_access_allowed(partner_id, key):
+    if sso_payload:
+        session["partner_id"] = partner_id
+    elif not is_dashboard_access_allowed(partner_id, key):
         return redirect(build_dashboard_login_redirect("partner", partner_id, request.args.get("lang", "ar"))), 302
 
     if not partner_id:
@@ -3460,10 +3476,26 @@ def client_dashboard_view():
     from urllib.parse import quote
 
     key = request.args.get("key", "").strip()
-    partner_id = request.args.get("partner_id", "").strip() or session.get("partner_id", "")
+    sso_token = request.args.get("sso", "").strip() or request.args.get("token", "").strip()
+    sso_payload = None
+
+    if sso_token:
+        sso_payload, sso_error = verify_dashboard_sso_token(sso_token)
+
+        if sso_error:
+            return redirect(build_dashboard_login_redirect("client", "", request.args.get("lang", "ar"))), 302
+
+    partner_id = (
+        request.args.get("partner_id", "").strip()
+        or (sso_payload.get("partner_id", "") if sso_payload else "")
+        or session.get("partner_id", "")
+    )
+
     partner_id = normalize_dashboard_partner_id(partner_id)
 
-    if not is_dashboard_access_allowed(partner_id, key):
+    if sso_payload:
+        session["partner_id"] = partner_id
+    elif not is_dashboard_access_allowed(partner_id, key):
         return redirect(build_dashboard_login_redirect("client", partner_id, request.args.get("lang", "ar"))), 302
 
     if not partner_id:
@@ -3945,6 +3977,7 @@ def client_dashboard_view():
 
       <form method="POST" action="/client-dashboard/save-project-data">
         <input type="hidden" name="key" value="{{ key }}">
+        <input type="hidden" name="sso" value="{{ sso_token }}">
         <input type="hidden" name="partner_id" value="{{ partner_id }}">
         <input type="hidden" name="client_id" value="{{ client_id }}">
         <input type="hidden" name="lang" value="{{ lang }}">
@@ -3980,6 +4013,7 @@ def client_dashboard_view():
 
       <form method="POST" action="/client-dashboard/save-image-group" enctype="multipart/form-data">
         <input type="hidden" name="key" value="{{ key }}">
+        <input type="hidden" name="sso" value="{{ sso_token }}">
         <input type="hidden" name="partner_id" value="{{ partner_id }}">
         <input type="hidden" name="client_id" value="{{ client_id }}">
         <input type="hidden" name="lang" value="{{ lang }}">
@@ -4028,6 +4062,7 @@ def client_dashboard_view():
 
       <form method="POST" action="/client-dashboard/save-payment-link">
         <input type="hidden" name="key" value="{{ key }}">
+        <input type="hidden" name="sso" value="{{ sso_token }}">
         <input type="hidden" name="partner_id" value="{{ partner_id }}">
         <input type="hidden" name="client_id" value="{{ client_id }}">
         <input type="hidden" name="lang" value="{{ lang }}">
@@ -4117,6 +4152,7 @@ def client_dashboard_view():
             client_dashboard_url=client_dashboard_url,
             owner_advisory_url=owner_advisory_url,
             key=key,
+            sso_token=sso_token,
             partner_id=partner_id,
             account_id=account_id,
             client_id=client_id,
@@ -4162,10 +4198,26 @@ def client_dashboard_save_image_group():
     from urllib.parse import quote
 
     key = request.form.get("key", "").strip()
-    partner_id = request.form.get("partner_id", "").strip() or session.get("partner_id", "")
+    sso_token = request.form.get("sso", "").strip()
+    sso_payload = None
+
+    if sso_token:
+        sso_payload, sso_error = verify_dashboard_sso_token(sso_token)
+
+        if sso_error:
+            return redirect(build_dashboard_login_redirect("client", "", request.form.get("lang", "ar"))), 302
+
+    partner_id = (
+        request.form.get("partner_id", "").strip()
+        or (sso_payload.get("partner_id", "") if sso_payload else "")
+        or session.get("partner_id", "")
+    )
+
     partner_id = normalize_dashboard_partner_id(partner_id)
 
-    if not is_dashboard_access_allowed(partner_id, key):
+    if sso_payload:
+        session["partner_id"] = partner_id
+    elif not is_dashboard_access_allowed(partner_id, key):
         return redirect(build_dashboard_login_redirect("client", partner_id, request.form.get("lang", "ar"))), 302
     client_id = request.form.get("client_id", "").strip() or partner_id
     lang = request.form.get("lang", "ar").strip().lower()
@@ -4215,16 +4267,12 @@ def client_dashboard_save_image_group():
         result = post_to_google_sheet_json(payload, label="client_dashboard_save_image_group")
         status = "image_group_saved" if isinstance(result, dict) and result.get("status") == "success" else "image_group_error"
 
-        return redirect(
-            f"/client-dashboard?key={quote(key)}&partner_id={quote(partner_id)}&lang={quote(lang)}&saved={quote(status)}"
-        )
+        return redirect(build_dashboard_return_url("/client-dashboard", key, partner_id, lang, status))
 
     except Exception as error:
         print(f"CLIENT DASHBOARD SAVE IMAGE GROUP ERROR ❌ {error}", flush=True)
 
-        return redirect(
-            f"/client-dashboard?key={quote(key)}&partner_id={quote(partner_id)}&lang={quote(lang)}&saved=image_group_error"
-        )
+        return redirect(build_dashboard_return_url("/client-dashboard", key, partner_id, lang, "image_group_error"))
 
 
 @app.route("/client-dashboard/save-payment-link", methods=["POST"])
@@ -4233,10 +4281,26 @@ def client_dashboard_save_payment_link():
     from urllib.parse import quote
 
     key = request.form.get("key", "").strip()
-    partner_id = request.form.get("partner_id", "").strip() or session.get("partner_id", "")
+    sso_token = request.form.get("sso", "").strip()
+    sso_payload = None
+
+    if sso_token:
+        sso_payload, sso_error = verify_dashboard_sso_token(sso_token)
+
+        if sso_error:
+            return redirect(build_dashboard_login_redirect("client", "", request.form.get("lang", "ar"))), 302
+
+    partner_id = (
+        request.form.get("partner_id", "").strip()
+        or (sso_payload.get("partner_id", "") if sso_payload else "")
+        or session.get("partner_id", "")
+    )
+
     partner_id = normalize_dashboard_partner_id(partner_id)
 
-    if not is_dashboard_access_allowed(partner_id, key):
+    if sso_payload:
+        session["partner_id"] = partner_id
+    elif not is_dashboard_access_allowed(partner_id, key):
         return redirect(build_dashboard_login_redirect("client", partner_id, request.form.get("lang", "ar"))), 302
     client_id = request.form.get("client_id", "").strip() or partner_id
     lang = request.form.get("lang", "ar").strip().lower()
@@ -4288,16 +4352,12 @@ def client_dashboard_save_payment_link():
 
         status = "payment_link_saved" if saved_count > 0 else "payment_link_error"
 
-        return redirect(
-            f"/client-dashboard?key={quote(key)}&partner_id={quote(partner_id)}&lang={quote(lang)}&saved={quote(status)}"
-        )
+        return redirect(build_dashboard_return_url("/client-dashboard", key, partner_id, lang, status))
 
     except Exception as error:
         print(f"CLIENT DASHBOARD SAVE PAYMENT LINK ERROR ❌ {error}", flush=True)
 
-        return redirect(
-            f"/client-dashboard?key={quote(key)}&partner_id={quote(partner_id)}&lang={quote(lang)}&saved=payment_link_error"
-        )
+        return redirect(build_dashboard_return_url("/client-dashboard", key, partner_id, lang, "payment_link_error"))
 
 # ===== ALSAAB_CLIENT_DASHBOARD_SAVE_ROUTES_V1 END =====
 
@@ -4312,10 +4372,26 @@ def client_dashboard_save_project_data():
     from urllib.parse import quote
 
     key = request.form.get("key", "").strip()
-    partner_id = request.form.get("partner_id", "").strip() or session.get("partner_id", "")
+    sso_token = request.form.get("sso", "").strip()
+    sso_payload = None
+
+    if sso_token:
+        sso_payload, sso_error = verify_dashboard_sso_token(sso_token)
+
+        if sso_error:
+            return redirect(build_dashboard_login_redirect("client", "", request.form.get("lang", "ar"))), 302
+
+    partner_id = (
+        request.form.get("partner_id", "").strip()
+        or (sso_payload.get("partner_id", "") if sso_payload else "")
+        or session.get("partner_id", "")
+    )
+
     partner_id = normalize_dashboard_partner_id(partner_id)
 
-    if not is_dashboard_access_allowed(partner_id, key):
+    if sso_payload:
+        session["partner_id"] = partner_id
+    elif not is_dashboard_access_allowed(partner_id, key):
         return redirect(build_dashboard_login_redirect("client", partner_id, request.form.get("lang", "ar"))), 302
     client_id = request.form.get("client_id", "").strip() or partner_id
     lang = request.form.get("lang", "ar").strip().lower()
@@ -4344,16 +4420,12 @@ def client_dashboard_save_project_data():
         result = post_to_google_sheet_json(payload, label="client_dashboard_save_project_data")
         status = "project_data_saved" if isinstance(result, dict) and result.get("status") == "success" else "project_data_error"
 
-        return redirect(
-            f"/client-dashboard?key={quote(key)}&partner_id={quote(partner_id)}&lang={quote(lang)}&saved={quote(status)}"
-        )
+        return redirect(build_dashboard_return_url("/client-dashboard", key, partner_id, lang, status))
 
     except Exception as error:
         print(f"CLIENT DASHBOARD SAVE PROJECT DATA ERROR ❌ {error}", flush=True)
 
-        return redirect(
-            f"/client-dashboard?key={quote(key)}&partner_id={quote(partner_id)}&lang={quote(lang)}&saved=project_data_error"
-        )
+        return redirect(build_dashboard_return_url("/client-dashboard", key, partner_id, lang, "project_data_error"))
 
 
 @app.route("/owner-advisory", methods=["GET"])
@@ -4362,10 +4434,26 @@ def owner_advisory_view():
     from urllib.parse import quote
 
     key = request.args.get("key", "").strip()
-    partner_id = request.args.get("partner_id", "").strip() or session.get("partner_id", "")
+    sso_token = request.args.get("sso", "").strip() or request.args.get("token", "").strip()
+    sso_payload = None
+
+    if sso_token:
+        sso_payload, sso_error = verify_dashboard_sso_token(sso_token)
+
+        if sso_error:
+            return redirect(build_dashboard_login_redirect("advisory", "", request.args.get("lang", "ar"))), 302
+
+    partner_id = (
+        request.args.get("partner_id", "").strip()
+        or (sso_payload.get("partner_id", "") if sso_payload else "")
+        or session.get("partner_id", "")
+    )
+
     partner_id = normalize_dashboard_partner_id(partner_id)
 
-    if not is_dashboard_access_allowed(partner_id, key):
+    if sso_payload:
+        session["partner_id"] = partner_id
+    elif not is_dashboard_access_allowed(partner_id, key):
         return redirect(build_dashboard_login_redirect("advisory", partner_id, request.args.get("lang", "ar"))), 302
     lang = request.args.get("lang", "ar").strip().lower()
 
@@ -4680,10 +4768,22 @@ def build_dashboard_nav_url(path, partner_id="", lang="ar", key=""):
         "lang": lang or "ar"
     }
 
-    # If admin is testing with key, keep key and partner_id.
-    # If user came through SSO/session, never expose key.
-    if key:
+    current_sso = ""
+
+    try:
+        current_sso = (
+            request.args.get("sso", "").strip()
+            or request.form.get("sso", "").strip()
+            or request.args.get("token", "").strip()
+        )
+    except Exception:
+        current_sso = ""
+
+    if current_sso:
+        params["sso"] = current_sso
+    elif key:
         params["key"] = key
+
         if partner_id:
             params["partner_id"] = normalize_dashboard_partner_id(partner_id)
 
@@ -4708,6 +4808,8 @@ def build_dashboard_login_redirect(target="client", partner_id="", lang="ar"):
 
 @app.route("/dashboard-sso", methods=["GET"])
 def dashboard_sso():
+    from urllib.parse import quote
+
     token = request.args.get("token", "").strip()
     payload, error = verify_dashboard_sso_token(token)
 
@@ -4731,13 +4833,15 @@ def dashboard_sso():
 
     session["partner_id"] = partner_id
 
+    encoded_token = quote(token)
+
     if target == "partner":
-        return redirect(f"/partner-dashboard?lang={lang}")
+        return redirect(f"/partner-dashboard?lang={lang}&sso={encoded_token}")
 
     if target == "advisory":
-        return redirect(f"/owner-advisory?lang={lang}")
+        return redirect(f"/owner-advisory?lang={lang}&sso={encoded_token}")
 
-    return redirect(f"/client-dashboard?lang={lang}")
+    return redirect(f"/client-dashboard?lang={lang}&sso={encoded_token}")
 
 
 @app.route("/admin/create-dashboard-sso-link", methods=["GET"])
@@ -4805,6 +4909,43 @@ def account_login_placeholder():
     )
 
 # ===== ALSAAB_DASHBOARD_SSO_BRIDGE_V1 END =====
+
+
+
+# ===== ALSAAB_DASHBOARD_RETURN_URL_V1 START =====
+
+def build_dashboard_return_url(path, key="", partner_id="", lang="ar", saved=""):
+    from urllib.parse import urlencode
+
+    params = {
+        "lang": lang or "ar"
+    }
+
+    current_sso = ""
+
+    try:
+        current_sso = (
+            request.form.get("sso", "").strip()
+            or request.args.get("sso", "").strip()
+            or request.args.get("token", "").strip()
+        )
+    except Exception:
+        current_sso = ""
+
+    if current_sso:
+        params["sso"] = current_sso
+    elif key:
+        params["key"] = key
+
+        if partner_id:
+            params["partner_id"] = normalize_dashboard_partner_id(partner_id)
+
+    if saved:
+        params["saved"] = saved
+
+    return path + "?" + urlencode(params)
+
+# ===== ALSAAB_DASHBOARD_RETURN_URL_V1 END =====
 
 
 if __name__ == "__main__":
