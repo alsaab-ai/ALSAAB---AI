@@ -7018,6 +7018,127 @@ def admin_downline_transfer_preview():
 # ===== ALSAAB_DOWNLINE_TRANSFER_PREVIEW_RENDER_V1 END =====
 
 
+
+# ===== ALSAAB_DOWNLINE_TRANSFER_EXECUTE_RENDER_V1 START =====
+
+@app.route("/admin/transfer-downline-to-alsaab", methods=["POST"])
+def admin_transfer_downline_to_alsaab():
+    """
+    Owner/Admin action:
+    Transfer direct downline of a partner to alsaab.
+
+    Security:
+    - Requires ADMIN_KEY.
+    - Requires reason.
+    - Requires confirm_text = TRANSFER_TO_ALSAAB.
+    - Apps Script logs AuditLogs and rebuilds PartnerTree.
+    """
+    import os
+    from urllib.parse import quote
+
+    payload = get_admin_payload()
+    key = get_admin_key(payload)
+
+    if key != ADMIN_KEY:
+        return jsonify({"error": "Unauthorized"}), 401
+
+    partner_id = (
+        get_payload_value(payload, "partner_id", default="")
+        or request.form.get("partner_id", "").strip()
+    )
+
+    reason = (
+        get_payload_value(payload, "reason", default="")
+        or request.form.get("reason", "").strip()
+    )
+
+    confirm_text = (
+        get_payload_value(payload, "confirm_text", default="")
+        or request.form.get("confirm_text", "").strip()
+    )
+
+    partner_id = str(partner_id or "").strip().upper()
+
+    if not partner_id:
+        return jsonify({
+            "status": "error",
+            "message": "partner_id is required"
+        }), 400
+
+    if not reason:
+        return jsonify({
+            "status": "error",
+            "message": "reason is required"
+        }), 400
+
+    if confirm_text != "TRANSFER_TO_ALSAAB":
+        return jsonify({
+            "status": "error",
+            "message": "confirm_text must be TRANSFER_TO_ALSAAB"
+        }), 400
+
+    try:
+        from database import post_to_google_sheet_json, normalize_partner_id
+
+        partner_id = normalize_partner_id(partner_id)
+
+        google_sheet_token = os.getenv("GOOGLE_SHEET_TOKEN", "")
+
+        if not google_sheet_token:
+            return jsonify({
+                "status": "error",
+                "message": "GOOGLE_SHEET_TOKEN is missing"
+            }), 500
+
+        result = post_to_google_sheet_json(
+            {
+                "token": google_sheet_token,
+                "action": "admin_transfer_downline_to_alsaab",
+                "partner_id": partner_id,
+                "reason": reason,
+                "confirm_text": confirm_text,
+                "actor": "owner_admin",
+                "source": "admin_dashboard"
+            },
+            label="admin_transfer_downline_to_alsaab"
+        )
+
+        print(
+            f"ADMIN TRANSFER DOWNLINE TO ALSAAB ✅ partner_id={partner_id} result={result}",
+            flush=True
+        )
+
+        if request.is_json:
+            return jsonify(result)
+
+        transferred_count = 0
+
+        if isinstance(result, dict):
+            transferred_count = int(result.get("transferred_count") or 0)
+
+        return redirect(
+            f"/admin-dashboard?key={quote(key)}&partner_id={quote(partner_id)}&admin_action=downline_transferred&transferred={transferred_count}"
+        )
+
+    except Exception as error:
+        print(
+            f"ADMIN TRANSFER DOWNLINE ERROR ❌ partner_id={partner_id} error={error}",
+            flush=True
+        )
+
+        if request.is_json:
+            return jsonify({
+                "status": "error",
+                "message": str(error)
+            }), 500
+
+        return redirect(
+            f"/admin-dashboard?key={quote(key)}&partner_id={quote(partner_id)}&admin_action=downline_transfer_error"
+        )
+
+# ===== ALSAAB_DOWNLINE_TRANSFER_EXECUTE_RENDER_V1 END =====
+
+
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 10000))
     app.run(host="0.0.0.0", port=port, debug=False)
