@@ -5688,6 +5688,30 @@ def admin_dashboard_view():
         </div>
         <!-- ALSAAB_PARTNER_STATUS_ACTION_PANEL_V2 END -->
 
+
+        <!-- ALSAAB_AUTO_APPROVE_PENDING_BUTTON_V1 START -->
+        <div class="section" style="margin-top:18px;">
+          <h2>اعتماد العمولات القديمة تلقائياً</h2>
+          <div class="muted">
+            النظام الجديد يعتمد العمولات الصحيحة تلقائياً. هذا الزر فقط لتحويل العمولات القديمة pending لهذا الشريك إلى approved.
+          </div>
+
+          <form method="POST" action="/admin/auto-approve-pending-commissions" style="margin-top:14px;">
+            <input type="hidden" name="key" value="{{ admin_key }}">
+            <input type="hidden" name="partner_id" value="{{ search_profile.get("partner_id") or search_lookup.get("partner_id") }}">
+            <input type="hidden" name="reason" value="Convert old pending commissions to approved for this partner">
+
+            <button
+              type="submit"
+              onclick="return confirm('تأكيد تحويل العمولات القديمة pending لهذا الشريك إلى approved؟')"
+              style="border:1px solid rgba(128,226,138,.6); color:#80e28a; background:#111; padding:12px 16px; border-radius:999px; font-weight:900; cursor:pointer;"
+            >
+              Auto Approve Old Pending
+            </button>
+          </form>
+        </div>
+        <!-- ALSAAB_AUTO_APPROVE_PENDING_BUTTON_V1 END -->
+
 <div class="small-box">
           <h3>إجراءات إدارية لاحقة</h3>
           <div class="muted">
@@ -7177,6 +7201,99 @@ def admin_transfer_downline_to_alsaab():
         )
 
 # ===== ALSAAB_DOWNLINE_TRANSFER_EXECUTE_RENDER_V1 END =====
+
+
+
+# ===== ALSAAB_AUTO_APPROVE_PENDING_RENDER_V1 START =====
+
+@app.route("/admin/auto-approve-pending-commissions", methods=["POST"])
+def admin_auto_approve_pending_commissions():
+    """
+    Owner/Admin action:
+    Convert old pending commissions to approved.
+
+    This is for legacy pending data only.
+    New valid commissions are auto-approved by Apps Script.
+    """
+    import os
+    from urllib.parse import quote
+
+    payload = get_admin_payload()
+    key = get_admin_key(payload)
+
+    if key != ADMIN_KEY:
+        return jsonify({"error": "Unauthorized"}), 401
+
+    partner_id = (
+        get_payload_value(payload, "partner_id", default="")
+        or request.form.get("partner_id", "").strip()
+    )
+
+    reason = (
+        get_payload_value(payload, "reason", default="")
+        or request.form.get("reason", "").strip()
+        or "Convert old pending commissions to approved"
+    )
+
+    try:
+        from database import post_to_google_sheet_json, normalize_partner_id
+
+        partner_id = normalize_partner_id(partner_id) if partner_id else ""
+
+        google_sheet_token = os.getenv("GOOGLE_SHEET_TOKEN", "")
+
+        if not google_sheet_token:
+            return jsonify({
+                "status": "error",
+                "message": "GOOGLE_SHEET_TOKEN is missing"
+            }), 500
+
+        result = post_to_google_sheet_json(
+            {
+                "token": google_sheet_token,
+                "action": "admin_auto_approve_pending_commissions",
+                "partner_id": partner_id,
+                "reason": reason,
+                "actor": "owner_admin",
+                "source": "admin_dashboard"
+            },
+            label="admin_auto_approve_pending_commissions"
+        )
+
+        print(
+            f"ADMIN AUTO APPROVE PENDING COMMISSIONS ✅ partner_id={partner_id} result={result}",
+            flush=True
+        )
+
+        if request.is_json:
+            return jsonify(result)
+
+        action = "auto_approved_pending"
+
+        if isinstance(result, dict) and result.get("status") != "success":
+            action = "auto_approve_pending_error"
+
+        return redirect(
+            f"/admin-dashboard?key={quote(key)}&partner_id={quote(partner_id)}&admin_action={quote(action)}"
+        )
+
+    except Exception as error:
+        print(
+            f"ADMIN AUTO APPROVE PENDING ERROR ❌ partner_id={partner_id} error={error}",
+            flush=True
+        )
+
+        if request.is_json:
+            return jsonify({
+                "status": "error",
+                "message": str(error)
+            }), 500
+
+        return redirect(
+            f"/admin-dashboard?key={quote(key)}&partner_id={quote(partner_id)}&admin_action=auto_approve_pending_error"
+        )
+
+# ===== ALSAAB_AUTO_APPROVE_PENDING_RENDER_V1 END =====
 
 
 if __name__ == "__main__":
