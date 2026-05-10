@@ -6982,7 +6982,46 @@ def admin_downline_transfer_preview():
       </div>
     </div>
 
-    <a class="action-btn" href="/admin-dashboard?key={{ encoded_key }}&partner_id={{ partner_id }}">رجوع إلى Admin Dashboard</a>
+    
+    <!-- ALSAAB_DOWNLINE_TRANSFER_EXECUTION_FORM_FORCE_V1 START -->
+    <div class="section">
+      <h2>تنفيذ النقل الفعلي</h2>
+      <div class="warning">
+        هذا الإجراء سيغير Sponsor / Parent للشركاء المباشرين تحت هذا الشريك إلى alsaab، وسيعيد بناء PartnerTree. لا تستخدمه إلا بعد التأكد من المعاينة.
+      </div>
+
+      <form method="POST" action="/admin/transfer-downline-to-alsaab">
+        <input type="hidden" name="key" value="{{ raw_admin_key or encoded_key }}">
+        <input type="hidden" name="partner_id" value="{{ partner_id }}">
+
+        <label style="display:block; color:#d7b85a; font-weight:700; margin-bottom:8px;">سبب النقل</label>
+        <textarea
+          name="reason"
+          required
+          placeholder="مثال: الشريك ألغى اشتراكه نهائياً، وبقرار إداري تم نقل الشبكة إلى alsaab."
+          style="width:100%; min-height:90px; box-sizing:border-box; background:#0b0b0b; color:#fff; border:1px solid rgba(215,184,90,.35); border-radius:12px; padding:12px; margin-bottom:12px;"
+        ></textarea>
+
+        <label style="display:block; color:#d7b85a; font-weight:700; margin-bottom:8px;">اكتب هذا النص للتأكيد</label>
+        <input
+          name="confirm_text"
+          required
+          placeholder="TRANSFER_TO_ALSAAB"
+          style="width:100%; box-sizing:border-box; background:#0b0b0b; color:#fff; border:1px solid rgba(215,184,90,.35); border-radius:12px; padding:12px; margin-bottom:12px;"
+        >
+
+        <button
+          type="submit"
+          onclick="return confirm('تأكيد نهائي: هل تريد نقل الـ direct downline إلى alsaab؟')"
+          style="border:1px solid rgba(255,122,122,.7); color:#ff7a7a; background:#111; padding:12px 16px; border-radius:999px; font-weight:900; cursor:pointer;"
+        >
+          Transfer Downline to alsaab
+        </button>
+      </form>
+    </div>
+    <!-- ALSAAB_DOWNLINE_TRANSFER_EXECUTION_FORM_FORCE_V1 END -->
+
+<a class="action-btn" href="/admin-dashboard?key={{ encoded_key }}&partner_id={{ partner_id }}">رجوع إلى Admin Dashboard</a>
   </div>
 </body>
 </html>
@@ -6991,6 +7030,7 @@ def admin_downline_transfer_preview():
         return render_template_string(
             html,
             encoded_key=quote(key),
+            raw_admin_key=key,
             partner_id=partner_id,
             preview=preview,
             target_partner=target_partner,
