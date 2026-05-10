@@ -2783,7 +2783,122 @@ def partner_dashboard_view():
         )
 
         if not isinstance(result, dict) or result.get("status") != "success":
-            return render_template_string(
+    
+        # ===== ALSAAB_PARTNER_PAYOUT_HISTORY_DISPLAY_V1 START =====
+        try:
+            import os
+            from markupsafe import escape
+            from database import post_to_google_sheet_json
+
+            payout_history_result = {}
+            payout_summary = {}
+            recent_payouts = []
+
+            google_sheet_token_for_payouts = os.getenv("GOOGLE_SHEET_TOKEN", "")
+
+            if google_sheet_token_for_payouts and partner_id:
+                payout_history_result = post_to_google_sheet_json(
+                    {
+                        "token": google_sheet_token_for_payouts,
+                        "action": "admin_partner_payout_history",
+                        "partner_id": partner_id
+                    },
+                    label="partner_dashboard_payout_history"
+                )
+
+                if isinstance(payout_history_result, dict) and payout_history_result.get("status") == "success":
+                    payout_summary = payout_history_result.get("summary") or {}
+                    recent_payouts = payout_history_result.get("recent") or []
+
+            def _partner_money(value):
+                try:
+                    return f"{float(value or 0):,.2f} AED"
+                except Exception:
+                    return f"{value or 0} AED"
+
+            def _partner_safe(value):
+                return str(escape(str(value or "")))
+
+            payout_rows_html = ""
+
+            for payout in recent_payouts[:10]:
+                payout_rows_html += f"""
+                <tr>
+                  <td>{_partner_safe(payout.get("payout_id") or "-")}</td>
+                  <td>{_partner_money(payout.get("total_amount"))}</td>
+                  <td>{_partner_safe(payout.get("commission_count") or 0)}</td>
+                  <td>{_partner_safe(payout.get("payment_method") or "-")}</td>
+                  <td><span class="badge">{_partner_safe(payout.get("status") or "-")}</span></td>
+                  <td>{_partner_safe(payout.get("paid_date") or "-")}</td>
+                </tr>
+                """
+
+            if not payout_rows_html:
+                payout_rows_html = """
+                <tr>
+                  <td colspan="6">لا توجد دفعات مسجلة حتى الآن.</td>
+                </tr>
+                """
+
+            partner_payout_history_html = f"""
+            <div class="section" style="margin-top:18px;">
+              <h2>سجل الدفعات</h2>
+
+              <div class="grid">
+                <div class="card">
+                  <h3>إجمالي المدفوع</h3>
+                  <div class="big">{_partner_money(payout_summary.get("total_paid"))}</div>
+                  <div class="muted">كل الدفعات المسجلة لك</div>
+                </div>
+
+                <div class="card">
+                  <h3>عدد الدفعات</h3>
+                  <div class="big">{_partner_safe(payout_summary.get("payout_count") or 0)}</div>
+                  <div class="muted">عدد مرات الدفع</div>
+                </div>
+
+                <div class="card">
+                  <h3>عمولات مدفوعة</h3>
+                  <div class="big">{_partner_safe(payout_summary.get("total_commissions_paid") or 0)}</div>
+                  <div class="muted">عدد العمولات التي تم دفعها</div>
+                </div>
+
+                <div class="card">
+                  <h3>آخر دفعة</h3>
+                  <div class="big" style="font-size:18px;">{_partner_safe(payout_summary.get("last_paid_date") or "-")}</div>
+                  <div class="muted">آخر تاريخ دفع</div>
+                </div>
+              </div>
+
+              <div class="table-wrap">
+                <table>
+                  <thead>
+                    <tr>
+                      <th>Payout ID</th>
+                      <th>Amount</th>
+                      <th>Commission Count</th>
+                      <th>Method</th>
+                      <th>Status</th>
+                      <th>Paid Date</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {payout_rows_html}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+            """
+
+            if "</body>" in html:
+                html = html.replace("</body>", partner_payout_history_html + "\n</body>", 1)
+
+        except Exception as partner_payout_history_error:
+            print(f"PARTNER PAYOUT HISTORY DISPLAY ERROR ❌ {partner_payout_history_error}", flush=True)
+        # ===== ALSAAB_PARTNER_PAYOUT_HISTORY_DISPLAY_V1 END =====
+
+
+        return render_template_string(
                 """
                 <html>
                 <head><meta charset="utf-8"><title>Partner Dashboard Error</title></head>
