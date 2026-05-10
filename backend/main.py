@@ -5154,6 +5154,27 @@ def admin_dashboard_view():
                     search_commission_totals = search_commissions.get("totals") or {}
                     search_commission_counts = search_commissions.get("counts") or {}
 
+                    try:
+                        search_payout_history = post_to_google_sheet_json(
+                            {
+                                "token": google_sheet_token,
+                                "action": "admin_partner_payout_history",
+                                "partner_id": found_partner_id
+                            },
+                            label="admin_partner_payout_history_v3"
+                        )
+
+                        if isinstance(search_payout_history, dict) and search_payout_history.get("status") == "success":
+                            search_payout_summary = search_payout_history.get("summary") or {}
+                            search_recent_payouts = search_payout_history.get("recent") or []
+                    except Exception as payout_history_error:
+                        search_payout_history = {
+                            "status": "error",
+                            "message": str(payout_history_error)
+                        }
+                        search_payout_summary = {}
+                        search_recent_payouts = []
+
                     def _admin_float(value):
                         try:
                             return float(value or 0)
@@ -5794,7 +5815,71 @@ def admin_dashboard_view():
           </div>
         </div>
 
-        <!-- ALSAAB_MARK_PARTNER_PAID_BUTTON_V1 START -->
+        
+        <!-- ALSAAB_PAYOUT_HISTORY_VISIBLE_SECTION_V3 START -->
+        <div class="section" style="margin-top:18px;">
+          <h2>سجل دفعات هذا الشريك</h2>
+
+          <div class="grid">
+            <div class="card">
+              <h3>إجمالي المدفوع</h3>
+              <div class="big">{{ money(search_payout_summary.get("total_paid")) }}</div>
+              <div class="muted">كل الدفعات المسجلة في PayoutHistory</div>
+            </div>
+
+            <div class="card">
+              <h3>عدد الدفعات</h3>
+              <div class="big">{{ search_payout_summary.get("payout_count") or 0 }}</div>
+              <div class="muted">عدد مرات الدفع للشريك</div>
+            </div>
+
+            <div class="card">
+              <h3>عمولات مدفوعة</h3>
+              <div class="big">{{ search_payout_summary.get("total_commissions_paid") or 0 }}</div>
+              <div class="muted">عدد العمولات المدفوعة ضمن الدفعات</div>
+            </div>
+
+            <div class="card">
+              <h3>آخر دفعة</h3>
+              <div class="big" style="font-size:18px;">{{ search_payout_summary.get("last_paid_date") or "-" }}</div>
+              <div class="muted">آخر تاريخ دفع مسجل</div>
+            </div>
+          </div>
+
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Payout ID</th>
+                  <th>Amount</th>
+                  <th>Commission Count</th>
+                  <th>Method</th>
+                  <th>Status</th>
+                  <th>Paid Date</th>
+                  <th>Reason</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for payout in search_recent_payouts[:10] %}
+                <tr>
+                  <td>{{ payout.payout_id or "-" }}</td>
+                  <td>{{ money(payout.total_amount) }}</td>
+                  <td>{{ payout.commission_count or 0 }}</td>
+                  <td>{{ payout.payment_method or "-" }}</td>
+                  <td><span class="badge">{{ payout.status or "-" }}</span></td>
+                  <td>{{ payout.paid_date or "-" }}</td>
+                  <td>{{ payout.reason or "-" }}</td>
+                </tr>
+                {% else %}
+                <tr><td colspan="7">لا توجد دفعات مسجلة لهذا الشريك بعد.</td></tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        </div>
+        <!-- ALSAAB_PAYOUT_HISTORY_VISIBLE_SECTION_V3 END -->
+
+<!-- ALSAAB_MARK_PARTNER_PAID_BUTTON_V1 START -->
         <div class="section" style="margin-top:18px;">
           <h2>تسجيل دفع عمولة الشريك</h2>
           <div class="muted">
