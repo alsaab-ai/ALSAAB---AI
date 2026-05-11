@@ -8673,13 +8673,13 @@ def admin_update_whatsapp_setup_request_route():
 
 
 
-# ===== ALSAAB_ADMIN_WHATSAPP_REQUESTS_BUTTON_V1 START =====
+
+# ===== ALSAAB_ADMIN_WHATSAPP_REQUESTS_BUTTON_V2 START =====
 
 @app.after_request
 def inject_admin_whatsapp_requests_button(response):
     """
-    Adds a visible WhatsApp setup requests button inside Admin Dashboard.
-    Safe UI injection only. Does not affect data or actions.
+    Adds a normal non-floating WhatsApp setup requests button inside Admin Dashboard.
     """
     try:
         if request.path != "/admin-dashboard":
@@ -8692,45 +8692,67 @@ def inject_admin_whatsapp_requests_button(response):
 
         html = response.get_data(as_text=True)
 
-        if "ALSAAB_ADMIN_WHATSAPP_REQUESTS_BUTTON_V1_HTML" in html:
+        if "ALSAAB_ADMIN_WHATSAPP_REQUESTS_BUTTON_V2_HTML" in html:
             return response
 
         snippet = """
-<!-- ALSAAB_ADMIN_WHATSAPP_REQUESTS_BUTTON_V1_HTML START -->
-<a
-  id="alsaab-wa-requests-admin-btn"
-  href="/admin/whatsapp-setup-requests"
-  style="
-    position: fixed;
-    top: 18px;
-    left: 18px;
-    z-index: 99999;
-    background: #0b0b0b;
-    color: #d7b85a;
-    border: 1px solid rgba(215,184,90,.75);
-    border-radius: 999px;
-    padding: 11px 16px;
-    font-family: Arial, Tahoma, sans-serif;
-    font-weight: 900;
-    text-decoration: none;
-    box-shadow: 0 8px 25px rgba(0,0,0,.35);
-  "
->
-  طلبات ربط WhatsApp
-</a>
-
+<!-- ALSAAB_ADMIN_WHATSAPP_REQUESTS_BUTTON_V2_HTML START -->
 <script>
 (function () {
+  if (document.getElementById("alsaab-wa-requests-admin-box")) {
+    return;
+  }
+
   var params = new URLSearchParams(window.location.search);
   var key = params.get("key") || "";
-  var btn = document.getElementById("alsaab-wa-requests-admin-btn");
+  var href = "/admin/whatsapp-setup-requests?key=" + encodeURIComponent(key);
 
-  if (btn) {
-    btn.href = "/admin/whatsapp-setup-requests?key=" + encodeURIComponent(key);
+  var box = document.createElement("div");
+  box.id = "alsaab-wa-requests-admin-box";
+  box.style.cssText = [
+    "background:#111",
+    "border:1px solid rgba(215,184,90,.35)",
+    "border-radius:18px",
+    "padding:16px 18px",
+    "margin:18px 0",
+    "display:flex",
+    "align-items:center",
+    "justify-content:space-between",
+    "gap:12px",
+    "flex-wrap:wrap",
+    "box-shadow:0 8px 25px rgba(0,0,0,.20)"
+  ].join(";");
+
+  box.innerHTML =
+    '<div>' +
+      '<div style="color:#d7b85a;font-size:20px;font-weight:900;margin-bottom:4px;">طلبات ربط WhatsApp</div>' +
+      '<div style="color:#cfc7ad;font-size:13px;line-height:1.7;">إدارة طلبات ربط أرقام WhatsApp الحالية للعملاء وتحديث حالة الربط.</div>' +
+    '</div>' +
+    '<a href="' + href + '" style="' +
+      'border:1px solid rgba(215,184,90,.75);' +
+      'color:#d7b85a;' +
+      'background:#0b0b0b;' +
+      'border-radius:999px;' +
+      'padding:11px 16px;' +
+      'font-family:Arial,Tahoma,sans-serif;' +
+      'font-weight:900;' +
+      'text-decoration:none;' +
+      'display:inline-block;' +
+    '">فتح طلبات ربط WhatsApp</a>';
+
+  var header = document.querySelector(".header");
+  var page = document.querySelector(".page") || document.body;
+
+  if (header && header.parentNode) {
+    header.parentNode.insertBefore(box, header.nextSibling);
+  } else if (page && page.firstChild) {
+    page.insertBefore(box, page.firstChild);
+  } else {
+    document.body.insertBefore(box, document.body.firstChild);
   }
 })();
 </script>
-<!-- ALSAAB_ADMIN_WHATSAPP_REQUESTS_BUTTON_V1_HTML END -->
+<!-- ALSAAB_ADMIN_WHATSAPP_REQUESTS_BUTTON_V2_HTML END -->
 """
 
         if "</body>" in html:
@@ -8745,7 +8767,8 @@ def inject_admin_whatsapp_requests_button(response):
 
     return response
 
-# ===== ALSAAB_ADMIN_WHATSAPP_REQUESTS_BUTTON_V1 END =====
+# ===== ALSAAB_ADMIN_WHATSAPP_REQUESTS_BUTTON_V2 END =====
+
 
 
 if __name__ == "__main__":
