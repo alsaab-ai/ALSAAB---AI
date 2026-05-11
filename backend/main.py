@@ -8299,6 +8299,379 @@ def client_dashboard_save_whatsapp_setup():
 # ===== ALSAAB_CLIENT_WHATSAPP_SETUP_ROUTE_V1 END =====
 
 
+
+# ===== ALSAAB_ADMIN_WHATSAPP_SETUP_REQUESTS_PAGE_V1 START =====
+
+@app.route("/admin/whatsapp-setup-requests", methods=["GET"])
+def admin_whatsapp_setup_requests_page():
+    """
+    Owner/Admin page:
+    View WhatsApp setup requests from Client Dashboard.
+    """
+    import os
+    from urllib.parse import quote
+
+    key = request.args.get("key", "").strip()
+
+    if key != ADMIN_KEY:
+        return "Unauthorized", 401
+
+    status_filter = request.args.get("status", "").strip()
+    partner_id_filter = request.args.get("partner_id", "").strip()
+
+    try:
+        from database import post_to_google_sheet_json
+
+        google_sheet_token = os.getenv("GOOGLE_SHEET_TOKEN", "")
+
+        if not google_sheet_token:
+            return "GOOGLE_SHEET_TOKEN missing", 500
+
+        result = post_to_google_sheet_json(
+            {
+                "token": google_sheet_token,
+                "action": "admin_whatsapp_setup_requests",
+                "connection_status": status_filter,
+                "partner_id": partner_id_filter
+            },
+            label="admin_whatsapp_setup_requests"
+        )
+
+        requests_list = []
+        count = 0
+
+        if isinstance(result, dict) and result.get("status") == "success":
+            requests_list = result.get("requests") or []
+            count = result.get("count") or len(requests_list)
+
+        html = """
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="utf-8">
+  <title>WhatsApp Setup Requests</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <style>
+    body {
+      margin: 0;
+      background: #0b0b0b;
+      color: #f5f0df;
+      font-family: Arial, Tahoma, sans-serif;
+      direction: rtl;
+    }
+
+    .page {
+      max-width: 1400px;
+      margin: 0 auto;
+      padding: 24px;
+    }
+
+    .header, .section {
+      background: #111;
+      border: 1px solid rgba(215,184,90,.35);
+      border-radius: 18px;
+      padding: 20px;
+      margin-bottom: 18px;
+    }
+
+    h1, h2, h3 {
+      color: #d7b85a;
+      margin-top: 0;
+    }
+
+    .muted {
+      color: #cfc7ad;
+      line-height: 1.7;
+    }
+
+    .filters {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-top: 14px;
+    }
+
+    input, select, textarea {
+      background: #0b0b0b;
+      color: #fff;
+      border: 1px solid rgba(215,184,90,.35);
+      border-radius: 12px;
+      padding: 10px;
+      box-sizing: border-box;
+    }
+
+    button, .btn {
+      border: 1px solid rgba(215,184,90,.65);
+      background: #111;
+      color: #f0cc68;
+      border-radius: 999px;
+      padding: 10px 14px;
+      font-weight: 800;
+      cursor: pointer;
+      text-decoration: none;
+      display: inline-block;
+    }
+
+    .btn-green {
+      border-color: rgba(128,226,138,.65);
+      color: #80e28a;
+    }
+
+    .table-wrap {
+      overflow-x: auto;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      min-width: 1100px;
+    }
+
+    th, td {
+      padding: 10px;
+      border-bottom: 1px solid rgba(255,255,255,.08);
+      vertical-align: top;
+      font-size: 13px;
+      text-align: right;
+    }
+
+    th {
+      color: #d7b85a;
+      background: #181818;
+      position: sticky;
+      top: 0;
+      z-index: 1;
+    }
+
+    .badge {
+      display: inline-block;
+      padding: 5px 9px;
+      border-radius: 999px;
+      border: 1px solid rgba(215,184,90,.45);
+      color: #f0cc68;
+      font-weight: 700;
+      font-size: 12px;
+    }
+
+    .small {
+      font-size: 12px;
+      color: #aaa;
+    }
+
+    textarea {
+      width: 220px;
+      min-height: 70px;
+    }
+
+    .update-form {
+      min-width: 270px;
+    }
+
+    .update-form input,
+    .update-form select,
+    .update-form textarea {
+      width: 100%;
+      margin-bottom: 8px;
+    }
+
+    @media (max-width: 700px) {
+      .page {
+        padding: 14px;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <div class="page">
+    <div class="header">
+      <h1>طلبات ربط WhatsApp</h1>
+      <div class="muted">
+        هذه الطلبات تأتي من Client Dashboard عندما يطلب العميل ربط رقم WhatsApp Business الحالي بنظام ALSAAB AI.
+      </div>
+
+      <form method="GET" action="/admin/whatsapp-setup-requests" class="filters">
+        <input type="hidden" name="key" value="{{ key }}">
+        <input name="partner_id" placeholder="Partner ID" value="{{ partner_id_filter }}">
+        <select name="status">
+          <option value="">كل الحالات</option>
+          {% for status in ["pending_setup", "under_review", "connected", "testing", "live", "rejected"] %}
+            <option value="{{ status }}" {% if status_filter == status %}selected{% endif %}>{{ status }}</option>
+          {% endfor %}
+        </select>
+        <button type="submit">بحث</button>
+        <a class="btn" href="/admin-dashboard?key={{ encoded_key }}">رجوع إلى Admin Dashboard</a>
+      </form>
+    </div>
+
+    <div class="section">
+      <h2>الطلبات: {{ count }}</h2>
+
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Request ID</th>
+              <th>Partner / Client</th>
+              <th>Business</th>
+              <th>WhatsApp Number</th>
+              <th>Setup Type</th>
+              <th>Status</th>
+              <th>Customer Notes</th>
+              <th>Meta IDs</th>
+              <th>Admin Update</th>
+            </tr>
+          </thead>
+
+          <tbody>
+            {% for item in requests_list %}
+            <tr>
+              <td>
+                <strong>{{ item.request_id or "-" }}</strong>
+                <div class="small">{{ item.date or "" }}</div>
+                <div class="small">Updated: {{ item.updated_at or "-" }}</div>
+              </td>
+
+              <td>
+                <div><strong>Partner:</strong> {{ item.partner_id or "-" }}</div>
+                <div><strong>Client:</strong> {{ item.client_id or "-" }}</div>
+              </td>
+
+              <td>
+                <strong>{{ item.business_name or "-" }}</strong>
+                <div class="small">Lang: {{ item.preferred_language or "-" }}</div>
+                <div class="small">Handoff: {{ item.human_handoff or "-" }}</div>
+              </td>
+
+              <td>{{ item.whatsapp_number or "-" }}</td>
+
+              <td>{{ item.setup_type or "-" }}</td>
+
+              <td><span class="badge">{{ item.connection_status or "-" }}</span></td>
+
+              <td>
+                <div>{{ item.customer_notes or "-" }}</div>
+                {% if item.admin_notes %}
+                  <hr style="border-color:rgba(255,255,255,.08);">
+                  <div class="small"><strong>Admin:</strong> {{ item.admin_notes }}</div>
+                {% endif %}
+              </td>
+
+              <td>
+                <div><strong>Phone Number ID:</strong> {{ item.phone_number_id or "-" }}</div>
+                <div><strong>WABA ID:</strong> {{ item.waba_id or "-" }}</div>
+                <div><strong>Provider:</strong> {{ item.provider or "-" }}</div>
+              </td>
+
+              <td>
+                <form method="POST" action="/admin/update-whatsapp-setup-request" class="update-form">
+                  <input type="hidden" name="key" value="{{ key }}">
+                  <input type="hidden" name="request_id" value="{{ item.request_id }}">
+
+                  <select name="connection_status">
+                    {% for status in ["pending_setup", "under_review", "connected", "testing", "live", "rejected"] %}
+                      <option value="{{ status }}" {% if item.connection_status == status %}selected{% endif %}>{{ status }}</option>
+                    {% endfor %}
+                  </select>
+
+                  <input name="phone_number_id" placeholder="Phone Number ID" value="{{ item.phone_number_id or "" }}">
+                  <input name="waba_id" placeholder="WABA ID" value="{{ item.waba_id or "" }}">
+                  <input name="provider" placeholder="Provider" value="{{ item.provider or "" }}">
+
+                  <textarea name="admin_notes" placeholder="Admin notes">{{ item.admin_notes or "" }}</textarea>
+
+                  <button class="btn-green" type="submit">تحديث</button>
+                </form>
+              </td>
+            </tr>
+            {% else %}
+            <tr>
+              <td colspan="9">لا توجد طلبات WhatsApp حالياً.</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</body>
+</html>
+        """
+
+        return render_template_string(
+            html,
+            key=key,
+            encoded_key=quote(key),
+            status_filter=status_filter,
+            partner_id_filter=partner_id_filter,
+            result=result,
+            requests_list=requests_list,
+            count=count
+        )
+
+    except Exception as error:
+        print(f"ADMIN WHATSAPP SETUP REQUESTS PAGE ERROR ❌ {error}", flush=True)
+        return f"Error loading WhatsApp setup requests: {error}", 500
+
+
+@app.route("/admin/update-whatsapp-setup-request", methods=["POST"])
+def admin_update_whatsapp_setup_request_route():
+    """
+    Owner/Admin action:
+    Update WhatsApp setup request status and Meta IDs.
+    """
+    import os
+    from urllib.parse import quote
+
+    key = request.form.get("key", "").strip()
+
+    if key != ADMIN_KEY:
+        return "Unauthorized", 401
+
+    request_id = request.form.get("request_id", "").strip()
+    connection_status = request.form.get("connection_status", "").strip()
+    admin_notes = request.form.get("admin_notes", "").strip()
+    phone_number_id = request.form.get("phone_number_id", "").strip()
+    waba_id = request.form.get("waba_id", "").strip()
+    provider = request.form.get("provider", "").strip()
+
+    try:
+        from database import post_to_google_sheet_json
+
+        google_sheet_token = os.getenv("GOOGLE_SHEET_TOKEN", "")
+
+        if not google_sheet_token:
+            return "GOOGLE_SHEET_TOKEN missing", 500
+
+        result = post_to_google_sheet_json(
+            {
+                "token": google_sheet_token,
+                "action": "admin_update_whatsapp_setup_request",
+                "request_id": request_id,
+                "connection_status": connection_status,
+                "admin_notes": admin_notes,
+                "phone_number_id": phone_number_id,
+                "waba_id": waba_id,
+                "provider": provider,
+                "actor": "owner_admin",
+                "source": "admin_whatsapp_setup_requests_page",
+                "reason": "Admin updated WhatsApp setup request"
+            },
+            label="admin_update_whatsapp_setup_request"
+        )
+
+        print(f"ADMIN UPDATE WHATSAPP SETUP REQUEST ✅ request_id={request_id} result={result}", flush=True)
+
+        return redirect(f"/admin/whatsapp-setup-requests?key={quote(key)}")
+
+    except Exception as error:
+        print(f"ADMIN UPDATE WHATSAPP SETUP REQUEST ERROR ❌ request_id={request_id} error={error}", flush=True)
+        return redirect(f"/admin/whatsapp-setup-requests?key={quote(key)}")
+
+# ===== ALSAAB_ADMIN_WHATSAPP_SETUP_REQUESTS_PAGE_V1 END =====
+
+
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 10000))
     app.run(host="0.0.0.0", port=port, debug=False)
