@@ -2783,6 +2783,92 @@ def partner_dashboard_view():
         )
 
         if not isinstance(result, dict) or result.get("status") != "success":
+
+            # ===== ALSAAB_FORCE_WHATSAPP_FORM_IN_CLIENT_PAGES_V3 START =====
+            try:
+                if isinstance(html, str) and "ALSAAB_CLIENT_WHATSAPP_SETUP_FORM_VISIBLE_V3" not in html:
+                    html = html.replace("</body>", r"""
+        <!-- ALSAAB_CLIENT_WHATSAPP_SETUP_FORM_VISIBLE_V3 START -->
+        <div class="section" style="margin-top:18px;">
+          <h2>إعداد WhatsApp</h2>
+          <div class="muted">
+            أرسل طلب ربط موظف المبيعات الذكي على رقم WhatsApp Business الحالي الخاص بمشروعك.
+          </div>
+
+          {% if request.args.get("saved") == "whatsapp_setup_saved" %}
+          <div style="background:rgba(128,226,138,.08); border:1px solid rgba(128,226,138,.4); color:#80e28a; border-radius:14px; padding:13px 16px; margin:14px 0; font-weight:700;">
+            تم إرسال طلب ربط WhatsApp بنجاح.
+          </div>
+          {% elif request.args.get("saved") == "whatsapp_setup_error" %}
+          <div style="background:rgba(255,122,122,.08); border:1px solid rgba(255,122,122,.4); color:#ff7a7a; border-radius:14px; padding:13px 16px; margin:14px 0; font-weight:700;">
+            حدث خطأ أثناء حفظ طلب WhatsApp.
+          </div>
+          {% endif %}
+
+          <form method="POST" action="/client-dashboard/save-whatsapp-setup" style="margin-top:14px;">
+            <input type="hidden" name="key" value="{{ request.args.get('key', '') }}">
+            <input type="hidden" name="sso" value="{{ request.args.get('sso', '') or request.args.get('token', '') }}">
+            <input type="hidden" name="partner_id" value="{{ partner_id if partner_id is defined else request.args.get('partner_id', '') }}">
+            <input type="hidden" name="lang" value="{{ request.args.get('lang', 'ar') }}">
+
+            <label style="display:block; color:#d7b85a; font-weight:700; margin-bottom:8px;">
+              اسم النشاط / الشركة
+            </label>
+            <input
+              name="business_name"
+              placeholder="مثال: Alsaab Projects Management"
+              style="width:100%; box-sizing:border-box; background:#0b0b0b; color:#fff; border:1px solid rgba(215,184,90,.35); border-radius:12px; padding:12px; margin-bottom:12px;"
+            >
+
+            <label style="display:block; color:#d7b85a; font-weight:700; margin-bottom:8px;">
+              رقم WhatsApp Business الحالي
+            </label>
+            <input
+              name="whatsapp_number"
+              required
+              placeholder="+971..."
+              style="width:100%; box-sizing:border-box; background:#0b0b0b; color:#fff; border:1px solid rgba(215,184,90,.35); border-radius:12px; padding:12px; margin-bottom:12px;"
+            >
+
+            <label style="display:block; color:#d7b85a; font-weight:700; margin-bottom:8px;">
+              لغة الرد الأساسية
+            </label>
+            <select
+              name="preferred_language"
+              style="width:100%; box-sizing:border-box; background:#0b0b0b; color:#fff; border:1px solid rgba(215,184,90,.35); border-radius:12px; padding:12px; margin-bottom:12px;"
+            >
+              <option value="ar">العربية</option>
+              <option value="en">English</option>
+              <option value="both">Arabic + English</option>
+            </select>
+
+            <label style="display:block; color:#d7b85a; font-weight:700; margin-bottom:8px;">
+              ملاحظات للربط
+            </label>
+            <textarea
+              name="customer_notes"
+              placeholder="مثال: هذا الرقم مستخدم حالياً في WhatsApp Business، ونريد ربط النظام عليه."
+              style="width:100%; min-height:90px; box-sizing:border-box; background:#0b0b0b; color:#fff; border:1px solid rgba(215,184,90,.35); border-radius:12px; padding:12px; margin-bottom:12px;"
+            ></textarea>
+
+            <button
+              type="submit"
+              style="border:1px solid rgba(215,184,90,.75); color:#0b0b0b; background:linear-gradient(135deg,#d7b85a,#a88425); padding:12px 18px; border-radius:999px; font-weight:900; cursor:pointer;"
+            >
+              إرسال طلب ربط WhatsApp
+            </button>
+          </form>
+
+          <div class="muted" style="margin-top:10px;">
+            بعد الإرسال، تظهر الحالة عند الإدارة للمراجعة والربط.
+          </div>
+        </div>
+        <!-- ALSAAB_CLIENT_WHATSAPP_SETUP_FORM_VISIBLE_V3 END -->
+""" + "\n</body>", 1)
+            except Exception as whatsapp_form_error:
+                print(f"CLIENT WHATSAPP FORM INJECTION ERROR ❌ {whatsapp_form_error}", flush=True)
+            # ===== ALSAAB_FORCE_WHATSAPP_FORM_IN_CLIENT_PAGES_V3 END =====
+
             return render_template_string(
                 """
                 <html>
@@ -3419,6 +3505,99 @@ def partner_dashboard_view():
 </html>
         """
 
+
+        # ===== ALSAAB_FORCE_WHATSAPP_FORM_IN_CLIENT_PAGES_V3 START =====
+
+        try:
+
+            if isinstance(html, str) and "ALSAAB_CLIENT_WHATSAPP_SETUP_FORM_VISIBLE_V3" not in html:
+
+                html = html.replace("</body>", r"""
+        <!-- ALSAAB_CLIENT_WHATSAPP_SETUP_FORM_VISIBLE_V3 START -->
+        <div class="section" style="margin-top:18px;">
+          <h2>إعداد WhatsApp</h2>
+          <div class="muted">
+            أرسل طلب ربط موظف المبيعات الذكي على رقم WhatsApp Business الحالي الخاص بمشروعك.
+          </div>
+
+          {% if request.args.get("saved") == "whatsapp_setup_saved" %}
+          <div style="background:rgba(128,226,138,.08); border:1px solid rgba(128,226,138,.4); color:#80e28a; border-radius:14px; padding:13px 16px; margin:14px 0; font-weight:700;">
+            تم إرسال طلب ربط WhatsApp بنجاح.
+          </div>
+          {% elif request.args.get("saved") == "whatsapp_setup_error" %}
+          <div style="background:rgba(255,122,122,.08); border:1px solid rgba(255,122,122,.4); color:#ff7a7a; border-radius:14px; padding:13px 16px; margin:14px 0; font-weight:700;">
+            حدث خطأ أثناء حفظ طلب WhatsApp.
+          </div>
+          {% endif %}
+
+          <form method="POST" action="/client-dashboard/save-whatsapp-setup" style="margin-top:14px;">
+            <input type="hidden" name="key" value="{{ request.args.get('key', '') }}">
+            <input type="hidden" name="sso" value="{{ request.args.get('sso', '') or request.args.get('token', '') }}">
+            <input type="hidden" name="partner_id" value="{{ partner_id if partner_id is defined else request.args.get('partner_id', '') }}">
+            <input type="hidden" name="lang" value="{{ request.args.get('lang', 'ar') }}">
+
+            <label style="display:block; color:#d7b85a; font-weight:700; margin-bottom:8px;">
+              اسم النشاط / الشركة
+            </label>
+            <input
+              name="business_name"
+              placeholder="مثال: Alsaab Projects Management"
+              style="width:100%; box-sizing:border-box; background:#0b0b0b; color:#fff; border:1px solid rgba(215,184,90,.35); border-radius:12px; padding:12px; margin-bottom:12px;"
+            >
+
+            <label style="display:block; color:#d7b85a; font-weight:700; margin-bottom:8px;">
+              رقم WhatsApp Business الحالي
+            </label>
+            <input
+              name="whatsapp_number"
+              required
+              placeholder="+971..."
+              style="width:100%; box-sizing:border-box; background:#0b0b0b; color:#fff; border:1px solid rgba(215,184,90,.35); border-radius:12px; padding:12px; margin-bottom:12px;"
+            >
+
+            <label style="display:block; color:#d7b85a; font-weight:700; margin-bottom:8px;">
+              لغة الرد الأساسية
+            </label>
+            <select
+              name="preferred_language"
+              style="width:100%; box-sizing:border-box; background:#0b0b0b; color:#fff; border:1px solid rgba(215,184,90,.35); border-radius:12px; padding:12px; margin-bottom:12px;"
+            >
+              <option value="ar">العربية</option>
+              <option value="en">English</option>
+              <option value="both">Arabic + English</option>
+            </select>
+
+            <label style="display:block; color:#d7b85a; font-weight:700; margin-bottom:8px;">
+              ملاحظات للربط
+            </label>
+            <textarea
+              name="customer_notes"
+              placeholder="مثال: هذا الرقم مستخدم حالياً في WhatsApp Business، ونريد ربط النظام عليه."
+              style="width:100%; min-height:90px; box-sizing:border-box; background:#0b0b0b; color:#fff; border:1px solid rgba(215,184,90,.35); border-radius:12px; padding:12px; margin-bottom:12px;"
+            ></textarea>
+
+            <button
+              type="submit"
+              style="border:1px solid rgba(215,184,90,.75); color:#0b0b0b; background:linear-gradient(135deg,#d7b85a,#a88425); padding:12px 18px; border-radius:999px; font-weight:900; cursor:pointer;"
+            >
+              إرسال طلب ربط WhatsApp
+            </button>
+          </form>
+
+          <div class="muted" style="margin-top:10px;">
+            بعد الإرسال، تظهر الحالة عند الإدارة للمراجعة والربط.
+          </div>
+        </div>
+        <!-- ALSAAB_CLIENT_WHATSAPP_SETUP_FORM_VISIBLE_V3 END -->
+""" + "\n</body>", 1)
+
+        except Exception as whatsapp_form_error:
+
+            print(f"CLIENT WHATSAPP FORM INJECTION ERROR ❌ {whatsapp_form_error}", flush=True)
+
+        # ===== ALSAAB_FORCE_WHATSAPP_FORM_IN_CLIENT_PAGES_V3 END =====
+
+
         return render_template_string(
             html,
             lang=lang,
@@ -3630,86 +3809,6 @@ def client_dashboard_view():
                 <body style="font-family:Arial; direction:rtl; padding:30px;">
                   <h2>حدث خطأ في تحميل بيانات العميل</h2>
                   <pre>{{ result }}</pre>
-                
-        <!-- ALSAAB_CLIENT_WHATSAPP_SETUP_FORM_V1 START -->
-        <div class="section" style="margin-top:18px;">
-          <h2>إعداد WhatsApp</h2>
-          <div class="muted">
-            هذا القسم مخصص لطلب ربط موظف المبيعات الذكي على رقم WhatsApp Business الحالي الخاص بمشروعك.
-          </div>
-
-          {% if request.args.get("saved") == "whatsapp_setup_saved" %}
-          <div style="background:rgba(128,226,138,.08); border:1px solid rgba(128,226,138,.4); color:#80e28a; border-radius:14px; padding:13px 16px; margin:14px 0; font-weight:700;">
-            تم إرسال طلب ربط WhatsApp بنجاح. بنراجع الطلب ونحدث حالة الربط.
-          </div>
-          {% elif request.args.get("saved") == "whatsapp_setup_error" %}
-          <div style="background:rgba(255,122,122,.08); border:1px solid rgba(255,122,122,.4); color:#ff7a7a; border-radius:14px; padding:13px 16px; margin:14px 0; font-weight:700;">
-            حدث خطأ أثناء حفظ طلب WhatsApp. تأكد من إدخال الرقم وحاول مرة ثانية.
-          </div>
-          {% endif %}
-
-          <form method="POST" action="/client-dashboard/save-whatsapp-setup" style="margin-top:14px;">
-            <input type="hidden" name="key" value="{{ key }}">
-            <input type="hidden" name="sso" value="{{ sso_token }}">
-            <input type="hidden" name="partner_id" value="{{ partner_id }}">
-            <input type="hidden" name="lang" value="{{ request.args.get('lang', 'ar') }}">
-
-            <label style="display:block; color:#d7b85a; font-weight:700; margin-bottom:8px;">
-              اسم النشاط / الشركة
-            </label>
-            <input
-              name="business_name"
-              placeholder="مثال: Alsaab Projects Management"
-              style="width:100%; box-sizing:border-box; background:#0b0b0b; color:#fff; border:1px solid rgba(215,184,90,.35); border-radius:12px; padding:12px; margin-bottom:12px;"
-            >
-
-            <label style="display:block; color:#d7b85a; font-weight:700; margin-bottom:8px;">
-              رقم WhatsApp Business الحالي
-            </label>
-            <input
-              name="whatsapp_number"
-              required
-              placeholder="+971..."
-              style="width:100%; box-sizing:border-box; background:#0b0b0b; color:#fff; border:1px solid rgba(215,184,90,.35); border-radius:12px; padding:12px; margin-bottom:12px;"
-            >
-
-            <label style="display:block; color:#d7b85a; font-weight:700; margin-bottom:8px;">
-              لغة الرد الأساسية
-            </label>
-            <select
-              name="preferred_language"
-              style="width:100%; box-sizing:border-box; background:#0b0b0b; color:#fff; border:1px solid rgba(215,184,90,.35); border-radius:12px; padding:12px; margin-bottom:12px;"
-            >
-              <option value="ar">العربية</option>
-              <option value="en">English</option>
-              <option value="both">Arabic + English</option>
-            </select>
-
-            <label style="display:block; color:#d7b85a; font-weight:700; margin-bottom:8px;">
-              ملاحظات للربط
-            </label>
-            <textarea
-              name="customer_notes"
-              placeholder="مثال: هذا الرقم مستخدم حالياً في WhatsApp Business، ونريد ربط النظام عليه."
-              style="width:100%; min-height:90px; box-sizing:border-box; background:#0b0b0b; color:#fff; border:1px solid rgba(215,184,90,.35); border-radius:12px; padding:12px; margin-bottom:12px;"
-            ></textarea>
-
-            <input type="hidden" name="human_handoff" value="yes">
-
-            <button
-              type="submit"
-              style="border:1px solid rgba(215,184,90,.75); color:#0b0b0b; background:linear-gradient(135deg,#d7b85a,#a88425); padding:12px 18px; border-radius:999px; font-weight:900; cursor:pointer;"
-            >
-              إرسال طلب ربط WhatsApp
-            </button>
-          </form>
-
-          <div class="muted" style="margin-top:10px;">
-            الحالة الافتراضية بعد الإرسال: pending_setup. الإدارة ستراجع الطلب وتحدث حالة الربط.
-          </div>
-        </div>
-        <!-- ALSAAB_CLIENT_WHATSAPP_SETUP_FORM_V1 END -->
-
 </body>
                 </html>
                 """,
@@ -4220,6 +4319,99 @@ def client_dashboard_view():
 </html>
         """
 
+
+        # ===== ALSAAB_FORCE_WHATSAPP_FORM_IN_CLIENT_PAGES_V3 START =====
+
+        try:
+
+            if isinstance(html, str) and "ALSAAB_CLIENT_WHATSAPP_SETUP_FORM_VISIBLE_V3" not in html:
+
+                html = html.replace("</body>", r"""
+        <!-- ALSAAB_CLIENT_WHATSAPP_SETUP_FORM_VISIBLE_V3 START -->
+        <div class="section" style="margin-top:18px;">
+          <h2>إعداد WhatsApp</h2>
+          <div class="muted">
+            أرسل طلب ربط موظف المبيعات الذكي على رقم WhatsApp Business الحالي الخاص بمشروعك.
+          </div>
+
+          {% if request.args.get("saved") == "whatsapp_setup_saved" %}
+          <div style="background:rgba(128,226,138,.08); border:1px solid rgba(128,226,138,.4); color:#80e28a; border-radius:14px; padding:13px 16px; margin:14px 0; font-weight:700;">
+            تم إرسال طلب ربط WhatsApp بنجاح.
+          </div>
+          {% elif request.args.get("saved") == "whatsapp_setup_error" %}
+          <div style="background:rgba(255,122,122,.08); border:1px solid rgba(255,122,122,.4); color:#ff7a7a; border-radius:14px; padding:13px 16px; margin:14px 0; font-weight:700;">
+            حدث خطأ أثناء حفظ طلب WhatsApp.
+          </div>
+          {% endif %}
+
+          <form method="POST" action="/client-dashboard/save-whatsapp-setup" style="margin-top:14px;">
+            <input type="hidden" name="key" value="{{ request.args.get('key', '') }}">
+            <input type="hidden" name="sso" value="{{ request.args.get('sso', '') or request.args.get('token', '') }}">
+            <input type="hidden" name="partner_id" value="{{ partner_id if partner_id is defined else request.args.get('partner_id', '') }}">
+            <input type="hidden" name="lang" value="{{ request.args.get('lang', 'ar') }}">
+
+            <label style="display:block; color:#d7b85a; font-weight:700; margin-bottom:8px;">
+              اسم النشاط / الشركة
+            </label>
+            <input
+              name="business_name"
+              placeholder="مثال: Alsaab Projects Management"
+              style="width:100%; box-sizing:border-box; background:#0b0b0b; color:#fff; border:1px solid rgba(215,184,90,.35); border-radius:12px; padding:12px; margin-bottom:12px;"
+            >
+
+            <label style="display:block; color:#d7b85a; font-weight:700; margin-bottom:8px;">
+              رقم WhatsApp Business الحالي
+            </label>
+            <input
+              name="whatsapp_number"
+              required
+              placeholder="+971..."
+              style="width:100%; box-sizing:border-box; background:#0b0b0b; color:#fff; border:1px solid rgba(215,184,90,.35); border-radius:12px; padding:12px; margin-bottom:12px;"
+            >
+
+            <label style="display:block; color:#d7b85a; font-weight:700; margin-bottom:8px;">
+              لغة الرد الأساسية
+            </label>
+            <select
+              name="preferred_language"
+              style="width:100%; box-sizing:border-box; background:#0b0b0b; color:#fff; border:1px solid rgba(215,184,90,.35); border-radius:12px; padding:12px; margin-bottom:12px;"
+            >
+              <option value="ar">العربية</option>
+              <option value="en">English</option>
+              <option value="both">Arabic + English</option>
+            </select>
+
+            <label style="display:block; color:#d7b85a; font-weight:700; margin-bottom:8px;">
+              ملاحظات للربط
+            </label>
+            <textarea
+              name="customer_notes"
+              placeholder="مثال: هذا الرقم مستخدم حالياً في WhatsApp Business، ونريد ربط النظام عليه."
+              style="width:100%; min-height:90px; box-sizing:border-box; background:#0b0b0b; color:#fff; border:1px solid rgba(215,184,90,.35); border-radius:12px; padding:12px; margin-bottom:12px;"
+            ></textarea>
+
+            <button
+              type="submit"
+              style="border:1px solid rgba(215,184,90,.75); color:#0b0b0b; background:linear-gradient(135deg,#d7b85a,#a88425); padding:12px 18px; border-radius:999px; font-weight:900; cursor:pointer;"
+            >
+              إرسال طلب ربط WhatsApp
+            </button>
+          </form>
+
+          <div class="muted" style="margin-top:10px;">
+            بعد الإرسال، تظهر الحالة عند الإدارة للمراجعة والربط.
+          </div>
+        </div>
+        <!-- ALSAAB_CLIENT_WHATSAPP_SETUP_FORM_VISIBLE_V3 END -->
+""" + "\n</body>", 1)
+
+        except Exception as whatsapp_form_error:
+
+            print(f"CLIENT WHATSAPP FORM INJECTION ERROR ❌ {whatsapp_form_error}", flush=True)
+
+        # ===== ALSAAB_FORCE_WHATSAPP_FORM_IN_CLIENT_PAGES_V3 END =====
+
+
         return render_template_string(
             html,
             lang=lang,
@@ -4251,6 +4443,99 @@ def client_dashboard_view():
             f"CLIENT DASHBOARD VIEW ERROR ❌ partner_id={partner_id} error={error}",
             flush=True
         )
+
+
+        # ===== ALSAAB_FORCE_WHATSAPP_FORM_IN_CLIENT_PAGES_V3 START =====
+
+        try:
+
+            if isinstance(html, str) and "ALSAAB_CLIENT_WHATSAPP_SETUP_FORM_VISIBLE_V3" not in html:
+
+                html = html.replace("</body>", r"""
+        <!-- ALSAAB_CLIENT_WHATSAPP_SETUP_FORM_VISIBLE_V3 START -->
+        <div class="section" style="margin-top:18px;">
+          <h2>إعداد WhatsApp</h2>
+          <div class="muted">
+            أرسل طلب ربط موظف المبيعات الذكي على رقم WhatsApp Business الحالي الخاص بمشروعك.
+          </div>
+
+          {% if request.args.get("saved") == "whatsapp_setup_saved" %}
+          <div style="background:rgba(128,226,138,.08); border:1px solid rgba(128,226,138,.4); color:#80e28a; border-radius:14px; padding:13px 16px; margin:14px 0; font-weight:700;">
+            تم إرسال طلب ربط WhatsApp بنجاح.
+          </div>
+          {% elif request.args.get("saved") == "whatsapp_setup_error" %}
+          <div style="background:rgba(255,122,122,.08); border:1px solid rgba(255,122,122,.4); color:#ff7a7a; border-radius:14px; padding:13px 16px; margin:14px 0; font-weight:700;">
+            حدث خطأ أثناء حفظ طلب WhatsApp.
+          </div>
+          {% endif %}
+
+          <form method="POST" action="/client-dashboard/save-whatsapp-setup" style="margin-top:14px;">
+            <input type="hidden" name="key" value="{{ request.args.get('key', '') }}">
+            <input type="hidden" name="sso" value="{{ request.args.get('sso', '') or request.args.get('token', '') }}">
+            <input type="hidden" name="partner_id" value="{{ partner_id if partner_id is defined else request.args.get('partner_id', '') }}">
+            <input type="hidden" name="lang" value="{{ request.args.get('lang', 'ar') }}">
+
+            <label style="display:block; color:#d7b85a; font-weight:700; margin-bottom:8px;">
+              اسم النشاط / الشركة
+            </label>
+            <input
+              name="business_name"
+              placeholder="مثال: Alsaab Projects Management"
+              style="width:100%; box-sizing:border-box; background:#0b0b0b; color:#fff; border:1px solid rgba(215,184,90,.35); border-radius:12px; padding:12px; margin-bottom:12px;"
+            >
+
+            <label style="display:block; color:#d7b85a; font-weight:700; margin-bottom:8px;">
+              رقم WhatsApp Business الحالي
+            </label>
+            <input
+              name="whatsapp_number"
+              required
+              placeholder="+971..."
+              style="width:100%; box-sizing:border-box; background:#0b0b0b; color:#fff; border:1px solid rgba(215,184,90,.35); border-radius:12px; padding:12px; margin-bottom:12px;"
+            >
+
+            <label style="display:block; color:#d7b85a; font-weight:700; margin-bottom:8px;">
+              لغة الرد الأساسية
+            </label>
+            <select
+              name="preferred_language"
+              style="width:100%; box-sizing:border-box; background:#0b0b0b; color:#fff; border:1px solid rgba(215,184,90,.35); border-radius:12px; padding:12px; margin-bottom:12px;"
+            >
+              <option value="ar">العربية</option>
+              <option value="en">English</option>
+              <option value="both">Arabic + English</option>
+            </select>
+
+            <label style="display:block; color:#d7b85a; font-weight:700; margin-bottom:8px;">
+              ملاحظات للربط
+            </label>
+            <textarea
+              name="customer_notes"
+              placeholder="مثال: هذا الرقم مستخدم حالياً في WhatsApp Business، ونريد ربط النظام عليه."
+              style="width:100%; min-height:90px; box-sizing:border-box; background:#0b0b0b; color:#fff; border:1px solid rgba(215,184,90,.35); border-radius:12px; padding:12px; margin-bottom:12px;"
+            ></textarea>
+
+            <button
+              type="submit"
+              style="border:1px solid rgba(215,184,90,.75); color:#0b0b0b; background:linear-gradient(135deg,#d7b85a,#a88425); padding:12px 18px; border-radius:999px; font-weight:900; cursor:pointer;"
+            >
+              إرسال طلب ربط WhatsApp
+            </button>
+          </form>
+
+          <div class="muted" style="margin-top:10px;">
+            بعد الإرسال، تظهر الحالة عند الإدارة للمراجعة والربط.
+          </div>
+        </div>
+        <!-- ALSAAB_CLIENT_WHATSAPP_SETUP_FORM_VISIBLE_V3 END -->
+""" + "\n</body>", 1)
+
+        except Exception as whatsapp_form_error:
+
+            print(f"CLIENT WHATSAPP FORM INJECTION ERROR ❌ {whatsapp_form_error}", flush=True)
+
+        # ===== ALSAAB_FORCE_WHATSAPP_FORM_IN_CLIENT_PAGES_V3 END =====
+
 
         return render_template_string(
             """
