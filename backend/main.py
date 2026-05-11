@@ -3630,7 +3630,87 @@ def client_dashboard_view():
                 <body style="font-family:Arial; direction:rtl; padding:30px;">
                   <h2>حدث خطأ في تحميل بيانات العميل</h2>
                   <pre>{{ result }}</pre>
-                </body>
+                
+        <!-- ALSAAB_CLIENT_WHATSAPP_SETUP_FORM_V1 START -->
+        <div class="section" style="margin-top:18px;">
+          <h2>إعداد WhatsApp</h2>
+          <div class="muted">
+            هذا القسم مخصص لطلب ربط موظف المبيعات الذكي على رقم WhatsApp Business الحالي الخاص بمشروعك.
+          </div>
+
+          {% if request.args.get("saved") == "whatsapp_setup_saved" %}
+          <div style="background:rgba(128,226,138,.08); border:1px solid rgba(128,226,138,.4); color:#80e28a; border-radius:14px; padding:13px 16px; margin:14px 0; font-weight:700;">
+            تم إرسال طلب ربط WhatsApp بنجاح. بنراجع الطلب ونحدث حالة الربط.
+          </div>
+          {% elif request.args.get("saved") == "whatsapp_setup_error" %}
+          <div style="background:rgba(255,122,122,.08); border:1px solid rgba(255,122,122,.4); color:#ff7a7a; border-radius:14px; padding:13px 16px; margin:14px 0; font-weight:700;">
+            حدث خطأ أثناء حفظ طلب WhatsApp. تأكد من إدخال الرقم وحاول مرة ثانية.
+          </div>
+          {% endif %}
+
+          <form method="POST" action="/client-dashboard/save-whatsapp-setup" style="margin-top:14px;">
+            <input type="hidden" name="key" value="{{ key }}">
+            <input type="hidden" name="sso" value="{{ sso_token }}">
+            <input type="hidden" name="partner_id" value="{{ partner_id }}">
+            <input type="hidden" name="lang" value="{{ request.args.get('lang', 'ar') }}">
+
+            <label style="display:block; color:#d7b85a; font-weight:700; margin-bottom:8px;">
+              اسم النشاط / الشركة
+            </label>
+            <input
+              name="business_name"
+              placeholder="مثال: Alsaab Projects Management"
+              style="width:100%; box-sizing:border-box; background:#0b0b0b; color:#fff; border:1px solid rgba(215,184,90,.35); border-radius:12px; padding:12px; margin-bottom:12px;"
+            >
+
+            <label style="display:block; color:#d7b85a; font-weight:700; margin-bottom:8px;">
+              رقم WhatsApp Business الحالي
+            </label>
+            <input
+              name="whatsapp_number"
+              required
+              placeholder="+971..."
+              style="width:100%; box-sizing:border-box; background:#0b0b0b; color:#fff; border:1px solid rgba(215,184,90,.35); border-radius:12px; padding:12px; margin-bottom:12px;"
+            >
+
+            <label style="display:block; color:#d7b85a; font-weight:700; margin-bottom:8px;">
+              لغة الرد الأساسية
+            </label>
+            <select
+              name="preferred_language"
+              style="width:100%; box-sizing:border-box; background:#0b0b0b; color:#fff; border:1px solid rgba(215,184,90,.35); border-radius:12px; padding:12px; margin-bottom:12px;"
+            >
+              <option value="ar">العربية</option>
+              <option value="en">English</option>
+              <option value="both">Arabic + English</option>
+            </select>
+
+            <label style="display:block; color:#d7b85a; font-weight:700; margin-bottom:8px;">
+              ملاحظات للربط
+            </label>
+            <textarea
+              name="customer_notes"
+              placeholder="مثال: هذا الرقم مستخدم حالياً في WhatsApp Business، ونريد ربط النظام عليه."
+              style="width:100%; min-height:90px; box-sizing:border-box; background:#0b0b0b; color:#fff; border:1px solid rgba(215,184,90,.35); border-radius:12px; padding:12px; margin-bottom:12px;"
+            ></textarea>
+
+            <input type="hidden" name="human_handoff" value="yes">
+
+            <button
+              type="submit"
+              style="border:1px solid rgba(215,184,90,.75); color:#0b0b0b; background:linear-gradient(135deg,#d7b85a,#a88425); padding:12px 18px; border-radius:999px; font-weight:900; cursor:pointer;"
+            >
+              إرسال طلب ربط WhatsApp
+            </button>
+          </form>
+
+          <div class="muted" style="margin-top:10px;">
+            الحالة الافتراضية بعد الإرسال: pending_setup. الإدارة ستراجع الطلب وتحدث حالة الربط.
+          </div>
+        </div>
+        <!-- ALSAAB_CLIENT_WHATSAPP_SETUP_FORM_V1 END -->
+
+</body>
                 </html>
                 """,
                 result=result
@@ -7848,6 +7928,90 @@ def whatsapp_webhook():
         }), 500
 
 # ===== ALSAAB_WHATSAPP_WEBHOOK_FOUNDATION_V1 END =====
+
+
+
+# ===== ALSAAB_CLIENT_WHATSAPP_SETUP_ROUTE_V1 START =====
+
+@app.route("/client-dashboard/save-whatsapp-setup", methods=["POST"])
+def client_dashboard_save_whatsapp_setup():
+    """
+    Client Dashboard action:
+    Save WhatsApp setup request for current account.
+
+    Default setup_type:
+    existing_business_app_coexistence
+    """
+    import os
+
+    lang = request.form.get("lang", "ar").strip() or "ar"
+    key = request.form.get("key", "").strip()
+    sso_token = request.form.get("sso", "").strip()
+    sso_payload = None
+
+    if sso_token:
+        sso_payload, sso_error = verify_dashboard_sso_token(sso_token)
+
+        if sso_error:
+            return redirect(build_dashboard_login_redirect("client", "", lang)), 302
+
+    partner_id = (
+        request.form.get("partner_id", "").strip()
+        or (sso_payload.get("partner_id", "") if sso_payload else "")
+        or session.get("partner_id", "")
+    )
+
+    partner_id = normalize_dashboard_partner_id(partner_id)
+
+    if sso_payload:
+        session["partner_id"] = partner_id
+    elif not is_dashboard_access_allowed(partner_id, key):
+        return redirect(build_dashboard_login_redirect("client", partner_id, lang)), 302
+
+    business_name = request.form.get("business_name", "").strip()
+    whatsapp_number = request.form.get("whatsapp_number", "").strip()
+    preferred_language = request.form.get("preferred_language", "ar").strip() or "ar"
+    human_handoff = request.form.get("human_handoff", "yes").strip() or "yes"
+    customer_notes = request.form.get("customer_notes", "").strip()
+
+    if not whatsapp_number:
+        return redirect(build_dashboard_return_url("/client-dashboard", key, partner_id, lang, "whatsapp_setup_error"))
+
+    try:
+        from database import post_to_google_sheet_json
+
+        google_sheet_token = os.getenv("GOOGLE_SHEET_TOKEN", "")
+
+        if not google_sheet_token:
+            print("WHATSAPP SETUP REQUEST ERROR ❌ GOOGLE_SHEET_TOKEN missing", flush=True)
+            return redirect(build_dashboard_return_url("/client-dashboard", key, partner_id, lang, "whatsapp_setup_error"))
+
+        result = post_to_google_sheet_json(
+            {
+                "token": google_sheet_token,
+                "action": "whatsapp_setup_request",
+                "client_id": partner_id,
+                "partner_id": partner_id,
+                "business_name": business_name,
+                "whatsapp_number": whatsapp_number,
+                "setup_type": "existing_business_app_coexistence",
+                "connection_status": "pending_setup",
+                "preferred_language": preferred_language,
+                "human_handoff": human_handoff,
+                "customer_notes": customer_notes,
+            },
+            label="whatsapp_setup_request"
+        )
+
+        print(f"WHATSAPP SETUP REQUEST SAVED ✅ partner_id={partner_id} result={result}", flush=True)
+
+        return redirect(build_dashboard_return_url("/client-dashboard", key, partner_id, lang, "whatsapp_setup_saved"))
+
+    except Exception as error:
+        print(f"WHATSAPP SETUP REQUEST ERROR ❌ partner_id={partner_id} error={error}", flush=True)
+        return redirect(build_dashboard_return_url("/client-dashboard", key, partner_id, lang, "whatsapp_setup_error"))
+
+# ===== ALSAAB_CLIENT_WHATSAPP_SETUP_ROUTE_V1 END =====
 
 
 if __name__ == "__main__":
