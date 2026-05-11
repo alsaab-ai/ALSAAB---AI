@@ -8672,6 +8672,82 @@ def admin_update_whatsapp_setup_request_route():
 # ===== ALSAAB_ADMIN_WHATSAPP_SETUP_REQUESTS_PAGE_V1 END =====
 
 
+
+# ===== ALSAAB_ADMIN_WHATSAPP_REQUESTS_BUTTON_V1 START =====
+
+@app.after_request
+def inject_admin_whatsapp_requests_button(response):
+    """
+    Adds a visible WhatsApp setup requests button inside Admin Dashboard.
+    Safe UI injection only. Does not affect data or actions.
+    """
+    try:
+        if request.path != "/admin-dashboard":
+            return response
+
+        content_type = response.headers.get("Content-Type", "")
+
+        if "text/html" not in content_type:
+            return response
+
+        html = response.get_data(as_text=True)
+
+        if "ALSAAB_ADMIN_WHATSAPP_REQUESTS_BUTTON_V1_HTML" in html:
+            return response
+
+        snippet = """
+<!-- ALSAAB_ADMIN_WHATSAPP_REQUESTS_BUTTON_V1_HTML START -->
+<a
+  id="alsaab-wa-requests-admin-btn"
+  href="/admin/whatsapp-setup-requests"
+  style="
+    position: fixed;
+    top: 18px;
+    left: 18px;
+    z-index: 99999;
+    background: #0b0b0b;
+    color: #d7b85a;
+    border: 1px solid rgba(215,184,90,.75);
+    border-radius: 999px;
+    padding: 11px 16px;
+    font-family: Arial, Tahoma, sans-serif;
+    font-weight: 900;
+    text-decoration: none;
+    box-shadow: 0 8px 25px rgba(0,0,0,.35);
+  "
+>
+  طلبات ربط WhatsApp
+</a>
+
+<script>
+(function () {
+  var params = new URLSearchParams(window.location.search);
+  var key = params.get("key") || "";
+  var btn = document.getElementById("alsaab-wa-requests-admin-btn");
+
+  if (btn) {
+    btn.href = "/admin/whatsapp-setup-requests?key=" + encodeURIComponent(key);
+  }
+})();
+</script>
+<!-- ALSAAB_ADMIN_WHATSAPP_REQUESTS_BUTTON_V1_HTML END -->
+"""
+
+        if "</body>" in html:
+            html = html.replace("</body>", snippet + "\n</body>", 1)
+        else:
+            html = html + snippet
+
+        response.set_data(html)
+
+    except Exception as error:
+        print(f"ADMIN WHATSAPP REQUESTS BUTTON INJECTION ERROR ❌ {error}", flush=True)
+
+    return response
+
+# ===== ALSAAB_ADMIN_WHATSAPP_REQUESTS_BUTTON_V1 END =====
+
+
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 10000))
     app.run(host="0.0.0.0", port=port, debug=False)
