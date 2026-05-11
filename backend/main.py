@@ -7613,6 +7613,243 @@ def admin_mark_partner_paid():
 # ===== ALSAAB_MARK_PARTNER_PAID_BUTTON_RENDER_V1 END =====
 
 
+
+# ===== ALSAAB_WHATSAPP_WEBHOOK_FOUNDATION_V1 START =====
+
+@app.route("/whatsapp-webhook", methods=["GET", "POST"])
+def whatsapp_webhook():
+    """
+    WhatsApp Cloud API webhook foundation.
+
+    GET:
+    - Meta webhook verification.
+
+    POST:
+    - Receives WhatsApp messages/status events.
+    - Looks up phone_number_id in ClientChannels.
+    - Logs incoming messages into WhatsAppMessages.
+    - Does not send AI replies yet. Sending replies is the next step.
+    """
+    import os
+    import json
+    import hmac
+    import hashlib
+
+    # Meta webhook verification.
+    if request.method == "GET":
+        verify_token = os.getenv("WHATSAPP_VERIFY_TOKEN", "").strip()
+
+        mode = request.args.get("hub.mode", "").strip()
+        token = request.args.get("hub.verify_token", "").strip()
+        challenge = request.args.get("hub.challenge", "").strip()
+
+        if mode == "subscribe" and verify_token and token == verify_token:
+            return challenge, 200
+
+        return "Forbidden", 403
+
+    raw_body = request.get_data() or b""
+
+    # Optional signature verification.
+    # If WHATSAPP_APP_SECRET is set, we verify X-Hub-Signature-256.
+    app_secret = os.getenv("WHATSAPP_APP_SECRET", "").strip()
+
+    if app_secret:
+        received_signature = request.headers.get("X-Hub-Signature-256", "").strip()
+        expected_signature = "sha256=" + hmac.new(
+            app_secret.encode("utf-8"),
+            raw_body,
+            hashlib.sha256
+        ).hexdigest()
+
+        if not received_signature or not hmac.compare_digest(received_signature, expected_signature):
+            print("WHATSAPP WEBHOOK SIGNATURE FAILED ❌", flush=True)
+            return jsonify({"status": "error", "message": "Invalid signature"}), 403
+
+    try:
+        payload = json.loads(raw_body.decode("utf-8") or "{}")
+    except Exception:
+        payload = request.get_json(silent=True) or {}
+
+    try:
+        from database import post_to_google_sheet_json
+
+        google_sheet_token = os.getenv("GOOGLE_SHEET_TOKEN", "")
+
+        if not google_sheet_token:
+            print("WHATSAPP WEBHOOK ERROR ❌ GOOGLE_SHEET_TOKEN missing", flush=True)
+            return jsonify({
+                "status": "error",
+                "message": "GOOGLE_SHEET_TOKEN is missing"
+            }), 500
+
+        processed = []
+        status_events = []
+
+        entries = payload.get("entry", []) if isinstance(payload, dict) else []
+
+        for entry in entries:
+            changes = entry.get("changes", []) if isinstance(entry, dict) else []
+
+            for change in changes:
+                value = change.get("value", {}) if isinstance(change, dict) else {}
+
+                metadata = value.get("metadata", {}) if isinstance(value, dict) else {}
+                phone_number_id = str(metadata.get("phone_number_id", "") or "").strip()
+                display_phone_number = str(metadata.get("display_phone_number", "") or "").strip()
+
+                # Lookup channel mapping from ClientChannels.
+                lookup = {}
+
+                if phone_number_id:
+                    lookup = post_to_google_sheet_json(
+                        {
+                            "token": google_sheet_token,
+                            "action": "whatsapp_channel_lookup",
+                            "phone_number_id": phone_number_id
+                        },
+                        label="whatsapp_channel_lookup"
+                    )
+
+                found_channel = isinstance(lookup, dict) and lookup.get("found") is True
+
+                client_id = ""
+                partner_id = ""
+                business_name = ""
+
+                if found_channel:
+                    client_id = str(lookup.get("client_id", "") or "").strip()
+                    partner_id = str(lookup.get("partner_id", "") or "").strip()
+                    business_name = str(lookup.get("business_name", "") or "").strip()
+                else:
+                    # Safe fallback for company pilot until ClientChannels is mapped.
+                    client_id = os.getenv("WHATSAPP_DEFAULT_CLIENT_ID", "alsaab").strip()
+                    partner_id = os.getenv("WHATSAPP_DEFAULT_PARTNER_ID", "alsaab").strip()
+                    business_name = "ALSAAB AI"
+
+                contacts = value.get("contacts", []) if isinstance(value, dict) else []
+                contact_names = {}
+
+                for contact in contacts:
+                    wa_id = str(contact.get("wa_id", "") or "").strip()
+                    profile = contact.get("profile", {}) or {}
+                    contact_names[wa_id] = str(profile.get("name", "") or "").strip()
+
+                messages = value.get("messages", []) if isinstance(value, dict) else []
+
+                for message in messages:
+                    message_id = str(message.get("id", "") or "").strip()
+                    from_number = str(message.get("from", "") or "").strip()
+                    message_type = str(message.get("type", "") or "unknown").strip()
+
+                    text_value = ""
+
+                    if message_type == "text":
+                        text_value = str((message.get("text", {}) or {}).get("body", "") or "").strip()
+                    elif message_type == "button":
+                        text_value = str((message.get("button", {}) or {}).get("text", "") or "").strip()
+                    elif message_type == "interactive":
+                        interactive = message.get("interactive", {}) or {}
+                        button_reply = interactive.get("button_reply", {}) or {}
+                        list_reply = interactive.get("list_reply", {}) or {}
+                        text_value = (
+                            str(button_reply.get("title", "") or "").strip()
+                            or str(button_reply.get("id", "") or "").strip()
+                            or str(list_reply.get("title", "") or "").strip()
+                            or str(list_reply.get("id", "") or "").strip()
+                        )
+                    else:
+                        text_value = f"[{message_type}]"
+
+                    customer_name = contact_names.get(from_number, "")
+
+                    log_result = post_to_google_sheet_json(
+                        {
+                            "token": google_sheet_token,
+                            "action": "whatsapp_message_log",
+                            "message_id": message_id,
+                            "direction": "incoming",
+                            "client_id": client_id,
+                            "partner_id": partner_id,
+                            "phone_number_id": phone_number_id,
+                            "from": from_number,
+                            "to": display_phone_number,
+                            "customer_name": customer_name,
+                            "text": text_value,
+                            "message_type": message_type,
+                            "status": "received",
+                            "raw_json": json.dumps(message, ensure_ascii=False),
+                            "notes": (
+                                f"business_name={business_name}; "
+                                f"channel_lookup_found={str(found_channel).lower()}"
+                            )
+                        },
+                        label="whatsapp_message_log"
+                    )
+
+                    processed.append({
+                        "message_id": message_id,
+                        "from": from_number,
+                        "type": message_type,
+                        "client_id": client_id,
+                        "partner_id": partner_id,
+                        "phone_number_id": phone_number_id,
+                        "logged": log_result
+                    })
+
+                statuses = value.get("statuses", []) if isinstance(value, dict) else []
+
+                for status in statuses:
+                    status_events.append({
+                        "phone_number_id": phone_number_id,
+                        "status": status
+                    })
+
+                    # Keep status logs separate but still stored as WhatsAppMessages for now.
+                    post_to_google_sheet_json(
+                        {
+                            "token": google_sheet_token,
+                            "action": "whatsapp_message_log",
+                            "message_id": str(status.get("id", "") or "").strip(),
+                            "direction": "status",
+                            "client_id": client_id,
+                            "partner_id": partner_id,
+                            "phone_number_id": phone_number_id,
+                            "from": "",
+                            "to": display_phone_number,
+                            "customer_name": "",
+                            "text": str(status.get("status", "") or "").strip(),
+                            "message_type": "status",
+                            "status": str(status.get("status", "") or "").strip(),
+                            "raw_json": json.dumps(status, ensure_ascii=False),
+                            "notes": "WhatsApp message status event"
+                        },
+                        label="whatsapp_status_log"
+                    )
+
+        print(
+            f"WHATSAPP WEBHOOK RECEIVED ✅ processed={len(processed)} statuses={len(status_events)}",
+            flush=True
+        )
+
+        return jsonify({
+            "status": "success",
+            "processed_count": len(processed),
+            "status_count": len(status_events),
+            "processed": processed[:10]
+        }), 200
+
+    except Exception as error:
+        print(f"WHATSAPP WEBHOOK ERROR ❌ {error}", flush=True)
+
+        return jsonify({
+            "status": "error",
+            "message": str(error)
+        }), 500
+
+# ===== ALSAAB_WHATSAPP_WEBHOOK_FOUNDATION_V1 END =====
+
+
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 10000))
     app.run(host="0.0.0.0", port=port, debug=False)
