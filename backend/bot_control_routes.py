@@ -112,13 +112,107 @@ a{display:inline-block;margin-top:15px;color:#f0cc68;text-decoration:none;border
         try:
             payload = request.get_json(silent=True) or {}
 
+            message = str(
+                payload.get("message")
+                or payload.get("text")
+                or payload.get("body")
+                or ""
+            ).strip()
+
+            command = (
+                message
+                .strip()
+                .lower()
+                .replace("/", "")
+                .replace("-", "_")
+                .replace(" ", "_")
+            )
+
+            partner_id = _get_partner_id_from_payload(payload)
+
             channel = str(payload.get("channel") or "").lower()
             source = str(payload.get("source") or "").lower()
+            sender_role = str(payload.get("sender_role") or payload.get("role") or "").lower()
+            sender_type = str(payload.get("sender_type") or "").lower()
+            direction = str(payload.get("direction") or "").lower()
+
+            is_owner_context = (
+                channel in ["owner_advisory", "advisory", "whatsapp_owner", "client_owner"] or
+                source in ["owner_advisory", "advisory", "client_dashboard", "whatsapp_owner"] or
+                sender_role in ["owner", "client", "admin", "business_owner"] or
+                sender_type in ["owner", "client", "admin", "business_owner"] or
+                direction in ["owner", "outgoing", "from_me"] or
+                str(payload.get("is_owner") or "").lower() == "true" or
+                str(payload.get("from_me") or "").lower() == "true" or
+                str(payload.get("is_echo") or "").lower() == "true"
+            )
+
+            if command in ["ai_off", "aioff"]:
+                if not partner_id:
+                    return jsonify({
+                        "status": "error",
+                        "reply": "تعذر تحديد الحساب لإيقاف الموظف الذكي."
+                    }), 400
+
+                if not is_owner_context:
+                    reply = "هذا الأمر مخصص لصاحب المشروع فقط."
+                    return jsonify({
+                        "status": "owner_command_rejected",
+                        "reply": reply,
+                        "message": reply
+                    })
+
+                result = update_control(
+                    partner_id=partner_id,
+                    status="off",
+                    reason="AI_off command from owner",
+                    actor="owner",
+                    source="chat_command",
+                )
+
+                reply = "تم إيقاف موظف المبيعات الذكي مؤقتاً ✅"
+                return jsonify({
+                    "status": "success",
+                    "bot_status": "off",
+                    "result": result,
+                    "reply": reply,
+                    "message": reply
+                })
+
+            if command in ["ai_on", "aion"]:
+                if not partner_id:
+                    return jsonify({
+                        "status": "error",
+                        "reply": "تعذر تحديد الحساب لتشغيل الموظف الذكي."
+                    }), 400
+
+                if not is_owner_context:
+                    reply = "هذا الأمر مخصص لصاحب المشروع فقط."
+                    return jsonify({
+                        "status": "owner_command_rejected",
+                        "reply": reply,
+                        "message": reply
+                    })
+
+                result = update_control(
+                    partner_id=partner_id,
+                    status="on",
+                    reason="AI_on command from owner",
+                    actor="owner",
+                    source="chat_command",
+                )
+
+                reply = "تم تشغيل موظف المبيعات الذكي مرة أخرى ✅"
+                return jsonify({
+                    "status": "success",
+                    "bot_status": "on",
+                    "result": result,
+                    "reply": reply,
+                    "message": reply
+                })
 
             if channel in ["owner_advisory", "advisory"] or source in ["owner_advisory", "advisory"]:
                 return None
-
-            partner_id = _get_partner_id_from_payload(payload)
 
             if not partner_id:
                 return None
