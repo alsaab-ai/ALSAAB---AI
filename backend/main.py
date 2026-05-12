@@ -1,4 +1,4 @@
-print("ALSAAB AI is running 🔥")
+﻿print("ALSAAB AI is running 🔥")
 
 from flask import Flask, request, jsonify, render_template_string, redirect, session
 from brain import think
@@ -8771,6 +8771,14 @@ def inject_admin_whatsapp_requests_button(response):
 
 
 
+# ===== ALSAAB WEBSITE SETUP ROUTES REGISTER START =====
+try:
+    from website_setup_routes import register_website_setup_routes
+except ImportError:
+    from backend.website_setup_routes import register_website_setup_routes
+
+register_website_setup_routes(app, ADMIN_KEY)
+# ===== ALSAAB WEBSITE SETUP ROUTES REGISTER END =====
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 10000))
     app.run(host="0.0.0.0", port=port, debug=False)
