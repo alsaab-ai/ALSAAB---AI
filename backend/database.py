@@ -1,4 +1,4 @@
-# database.py
+﻿# database.py
 
 import sqlite3
 import json
@@ -24,7 +24,7 @@ except Exception:
     PACKAGES = {
         "starter": {"monthly_reply_limit": 2000},
         "growth": {"monthly_reply_limit": 6000},
-        "elite": {"monthly_reply_limit": 12000},
+        "elite": {"monthly_reply_limit": 15000},
     }
 
     USAGE_LIMIT_MESSAGES = {
@@ -3791,4 +3791,5 @@ def send_wordpress_account_link(
         }
 
 # ===== ALSAAB_WORDPRESS_ACCOUNT_LINK_V1 END =====
+
 

@@ -2265,7 +2265,7 @@ def activate_subscription():
                 "session_id": "commission-test-001",
                 "plan": "growth",
                 "source_partner_id": "ALS-P00001",
-                "package_amount": "799 AED",
+                "package_amount": "1099 AED",
                 "notes": "manual_post_activation"
             }
         )
@@ -8782,3 +8782,4 @@ register_website_setup_routes(app, ADMIN_KEY)
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 10000))
     app.run(host="0.0.0.0", port=port, debug=False)
+

@@ -1,4 +1,4 @@
-# config.py
+﻿# config.py
 
 # =========================
 # OPENAI
@@ -33,7 +33,7 @@ APP_BASE_URL = os.getenv("APP_BASE_URL", "https://alsaab-ai.onrender.com")
 PACKAGES = {
     "starter": {
         "name_ar": "باقة البداية",
-        "price_ar": "399 درهم إماراتي شهرياً",
+        "price_ar": "599 درهم إماراتي شهرياً",
         "position": "بداية الدخول للنظام",
         "best_for": "للمشاريع الصغيرة أو من يريد تجربة النظام بتكلفة أقل",
         "note": "باقة دخول أساسية، مناسبة للبداية ولا تشمل الاستشارات الخاصة أو ربط الموقع.",
@@ -84,7 +84,7 @@ PACKAGES = {
 
     "growth": {
         "name_ar": "باقة النمو",
-        "price_ar": "799 درهم إماراتي شهرياً",
+        "price_ar": "1099 درهم إماراتي شهرياً",
         "position": "الباقة الموصى بها",
         "best_for": "معظم أصحاب المشاريع والشركاء الذين يريدون بوت مبيعات + مستشار أعمال ومبيعات.",
         "note": "هذه الباقة الأفضل لمعظم المشاريع لأنها تجمع بين ردود العملاء والاستشارات الخاصة لصاحب المشروع.",
@@ -137,7 +137,7 @@ PACKAGES = {
 
     "elite": {
         "name_ar": "باقة النخبة",
-        "price_ar": "1499 درهم إماراتي شهرياً",
+        "price_ar": "2099 درهم إماراتي شهرياً",
         "position": "أقوى باقة",
         "best_for": "المشاريع الجادة والشركاء المتقدمين الذين يريدون حجم ردود أعلى وقنوات أكثر وتخصيص أقوى.",
         "note": "باقة متقدمة للمشاريع الجادة، وتشمل ردود إضافية هدية واستشارات أعمق لصاحب المشروع.",
@@ -271,7 +271,7 @@ MLM_LEVELS = {
     "level_2": {
         "name_ar": "المستوى الثاني",
         "title_ar": "شريك النمو",
-        "requirements": "الترقية إلى باقة النمو / Pro + بيع 2 عملاء مدفوعين",
+        "requirements": "الترقية إلى باقة النمو + بيع 2 عملاء مدفوعين",
         "benefits": "+5% عمولة شهرية إضافية",
         "commission_percent": 5,
         "commission_depth": 2
@@ -435,9 +435,9 @@ FOUNDER_INFO = {
 # =========================
 
 PAYMENT_LINKS = {
-    "starter": "https://buy.stripe.com/00w6oI08YctEdMW8t1aEE00",
-    "growth": "https://buy.stripe.com/6oU3cw08Yalw24eeRpaEE01",
-    "elite": "https://buy.stripe.com/28E14o3la79k7oyfVtaEE02",
+    "starter": "https://buy.stripe.com/aFa28sg7WdxIbEOeRpaEE03",
+    "growth": "https://buy.stripe.com/28E6oI9Jy3X810a6kTaEE04",
+    "elite": "https://buy.stripe.com/4gMbJ2g7Walw9wGdNlaEE05",
 }
 
 
@@ -481,7 +481,7 @@ STRIPE_PLAN_CONFIG = {
         "payment_link": PAYMENT_LINKS["starter"],
         "internal_payment_route": PAYMENT_ROUTE_LINKS["starter"],
         "monthly_reply_limit": PACKAGES["starter"]["monthly_reply_limit"],
-        "package_amount": "399 AED",
+        "package_amount": "599 AED",
         "subscription_type": "monthly",
     },
     "growth": {
@@ -489,7 +489,7 @@ STRIPE_PLAN_CONFIG = {
         "payment_link": PAYMENT_LINKS["growth"],
         "internal_payment_route": PAYMENT_ROUTE_LINKS["growth"],
         "monthly_reply_limit": PACKAGES["growth"]["monthly_reply_limit"],
-        "package_amount": "799 AED",
+        "package_amount": "1099 AED",
         "subscription_type": "monthly",
     },
     "elite": {
@@ -497,7 +497,7 @@ STRIPE_PLAN_CONFIG = {
         "payment_link": PAYMENT_LINKS["elite"],
         "internal_payment_route": PAYMENT_ROUTE_LINKS["elite"],
         "monthly_reply_limit": PACKAGES["elite"]["monthly_reply_limit"],
-        "package_amount": "1499 AED",
+        "package_amount": "2099 AED",
         "subscription_type": "monthly",
     },
 }
