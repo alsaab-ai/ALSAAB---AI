@@ -535,3 +535,117 @@ th{color:#d7b85a;background:#181818}
 
     app.after_request(website_setup_injector)
     app.after_request(website_setup_cors)
+
+    # ===== ALSAAB_ADMIN_CHANNEL_BUTTONS_FINAL_FIX START =====
+    def admin_channel_buttons_final_fix(response):
+        try:
+            import json
+
+            if request.path != "/admin-dashboard":
+                return response
+
+            if "text/html" not in response.headers.get("Content-Type", ""):
+                return response
+
+            html = response.get_data(as_text=True)
+
+            if "ALSAAB_ADMIN_CHANNEL_BUTTONS_FINAL_FIX_MARKER" in html:
+                return response
+
+            key = request.args.get("key", "").strip()
+            website_url = "/admin/website-installations?key=" + key
+
+            script = """
+<!-- ALSAAB_ADMIN_CHANNEL_BUTTONS_FINAL_FIX_MARKER START -->
+<style>
+  .alsaab-admin-channel-inline-btn {
+    display: inline-block !important;
+    margin-right: 10px !important;
+    margin-left: 10px !important;
+    border: 1px solid rgba(215,184,90,.65) !important;
+    color: #f0cc68 !important;
+    background: #111 !important;
+    border-radius: 999px !important;
+    padding: 10px 14px !important;
+    text-decoration: none !important;
+    font-weight: 900 !important;
+  }
+</style>
+
+<script>
+(function () {
+  var websiteUrl = __WEBSITE_URL__;
+
+  function cleanAndAttach() {
+    // Hide the duplicate bottom "قنوات العملاء" block.
+    Array.prototype.slice.call(document.querySelectorAll(".section, .card, div")).forEach(function (el) {
+      var t = (el.innerText || "").replace(/\\s+/g, " ").trim();
+
+      if (
+        t.indexOf("قنوات العملاء") !== -1 &&
+        t.indexOf("تركيبات المواقع") !== -1 &&
+        t.indexOf("طلبات ربط WhatsApp") !== -1
+      ) {
+        el.style.display = "none";
+      }
+    });
+
+    if (document.getElementById("alsaabWebsiteInstallAdminBtn")) {
+      return;
+    }
+
+    var target = null;
+    var items = Array.prototype.slice.call(document.querySelectorAll("a, button"));
+
+    for (var i = 0; i < items.length; i++) {
+      var txt = (items[i].innerText || items[i].textContent || "").replace(/\\s+/g, " ").trim();
+      var href = items[i].getAttribute("href") || "";
+
+      if (
+        txt.indexOf("فتح طلبات ربط WhatsApp") !== -1 ||
+        txt.indexOf("طلبات ربط WhatsApp") !== -1 ||
+        href.indexOf("whatsapp-setup") !== -1
+      ) {
+        target = items[i];
+        break;
+      }
+    }
+
+    if (!target) {
+      return;
+    }
+
+    var link = document.createElement("a");
+    link.id = "alsaabWebsiteInstallAdminBtn";
+    link.className = "alsaab-admin-channel-inline-btn";
+    link.href = websiteUrl;
+    link.innerText = "فتح تركيبات المواقع";
+
+    target.insertAdjacentElement("afterend", link);
+  }
+
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", cleanAndAttach);
+  } else {
+    cleanAndAttach();
+  }
+
+  setTimeout(cleanAndAttach, 300);
+  setTimeout(cleanAndAttach, 900);
+})();
+</script>
+<!-- ALSAAB_ADMIN_CHANNEL_BUTTONS_FINAL_FIX_MARKER END -->
+            """.replace("__WEBSITE_URL__", json.dumps(website_url))
+
+            html = html.replace("</body>", script + "\n</body>", 1)
+            response.set_data(html)
+
+            return response
+
+        except Exception as error:
+            print(f"ADMIN CHANNEL BUTTONS FINAL FIX ERROR ❌ {error}", flush=True)
+            return response
+
+    app.after_request(admin_channel_buttons_final_fix)
+    # ===== ALSAAB_ADMIN_CHANNEL_BUTTONS_FINAL_FIX END =====
+
