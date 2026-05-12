@@ -136,6 +136,23 @@ a{display:inline-block;margin-top:15px;color:#f0cc68;text-decoration:none;border
             sender_type = str(payload.get("sender_type") or "").lower()
             direction = str(payload.get("direction") or "").lower()
 
+            sender_number = "".join(ch for ch in str(
+                payload.get("from")
+                or payload.get("phone")
+                or payload.get("customer_phone")
+                or payload.get("whatsapp_from")
+                or ""
+            ) if ch.isdigit())
+
+            owner_number = "".join(ch for ch in str(
+                payload.get("owner_whatsapp_number")
+                or payload.get("business_owner_number")
+                or payload.get("linked_owner_number")
+                or ""
+            ) if ch.isdigit())
+
+            is_owner_number_match = bool(owner_number and sender_number and sender_number.endswith(owner_number[-8:]))
+
             is_owner_context = (
                 channel in ["owner_advisory", "advisory", "whatsapp_owner", "client_owner"] or
                 source in ["owner_advisory", "advisory", "client_dashboard", "whatsapp_owner"] or
@@ -144,14 +161,46 @@ a{display:inline-block;margin-top:15px;color:#f0cc68;text-decoration:none;border
                 direction in ["owner", "outgoing", "from_me"] or
                 str(payload.get("is_owner") or "").lower() == "true" or
                 str(payload.get("from_me") or "").lower() == "true" or
-                str(payload.get("is_echo") or "").lower() == "true"
+                str(payload.get("is_echo") or "").lower() == "true" or
+                is_owner_number_match
             )
+
+            if command in ["status", "ai_status", "bot_status"]:
+                if not partner_id:
+                    reply = "تعذر تحديد الحساب لمعرفة حالة موظف المبيعات الذكي."
+                    return jsonify({
+                        "status": "error",
+                        "reply": reply,
+                        "message": reply
+                    }), 400
+
+                if not is_owner_context:
+                    reply = "هذا الأمر مخصص لصاحب المشروع فقط."
+                    return jsonify({
+                        "status": "owner_command_rejected",
+                        "reply": reply,
+                        "message": reply
+                    })
+
+                control = get_control(partner_id)
+                bot_status = str(control.get("bot_status") or "on").lower()
+
+                reply = f"حالة موظف المبيعات الذكي حالياً: {bot_status}"
+                return jsonify({
+                    "status": "success",
+                    "partner_id": partner_id,
+                    "bot_status": bot_status,
+                    "reply": reply,
+                    "message": reply
+                })
 
             if command in ["ai_off", "aioff"]:
                 if not partner_id:
+                    reply = "تعذر تحديد الحساب لإيقاف موظف المبيعات الذكي."
                     return jsonify({
                         "status": "error",
-                        "reply": "تعذر تحديد الحساب لإيقاف الموظف الذكي."
+                        "reply": reply,
+                        "message": reply
                     }), 400
 
                 if not is_owner_context:
@@ -165,9 +214,9 @@ a{display:inline-block;margin-top:15px;color:#f0cc68;text-decoration:none;border
                 result = update_control(
                     partner_id=partner_id,
                     status="off",
-                    reason="AI_off command from owner",
+                    reason="AI_off command from linked owner number",
                     actor="owner",
-                    source="chat_command",
+                    source="linked_owner_number_command",
                 )
 
                 reply = "تم إيقاف موظف المبيعات الذكي مؤقتاً ✅"
@@ -181,9 +230,11 @@ a{display:inline-block;margin-top:15px;color:#f0cc68;text-decoration:none;border
 
             if command in ["ai_on", "aion"]:
                 if not partner_id:
+                    reply = "تعذر تحديد الحساب لتشغيل موظف المبيعات الذكي."
                     return jsonify({
                         "status": "error",
-                        "reply": "تعذر تحديد الحساب لتشغيل الموظف الذكي."
+                        "reply": reply,
+                        "message": reply
                     }), 400
 
                 if not is_owner_context:
@@ -197,9 +248,9 @@ a{display:inline-block;margin-top:15px;color:#f0cc68;text-decoration:none;border
                 result = update_control(
                     partner_id=partner_id,
                     status="on",
-                    reason="AI_on command from owner",
+                    reason="AI_on command from linked owner number",
                     actor="owner",
-                    source="chat_command",
+                    source="linked_owner_number_command",
                 )
 
                 reply = "تم تشغيل موظف المبيعات الذكي مرة أخرى ✅"
@@ -259,6 +310,17 @@ a{display:inline-block;margin-top:15px;color:#f0cc68;text-decoration:none;border
   <p>
     يمكنك تشغيل أو إيقاف الموظف الذكي مؤقتاً. عند اختيار التحويل البشري، سيتوقف الرد التلقائي حتى تعيد تشغيله.
   </p>
+
+  
+  <!-- ALSAAB_OWNER_NUMBER_COMMAND_HELP_V2 START -->
+  <div style="margin:14px 0;padding:14px;border:1px solid rgba(215,184,90,.25);border-radius:14px;background:#0b0b0b;color:#e8dfc2;line-height:1.8;">
+    <strong style="color:#d7b85a;">أوامر التحكم عبر WhatsApp:</strong><br>
+    إذا كنت ترد من رقم صاحب المشروع أو الرقم المشبوك، اكتب <strong>AI_off</strong> لإيقاف موظف المبيعات الذكي مؤقتاً.<br>
+    واكتب <strong>AI_on</strong> لتشغيله مرة أخرى.<br>
+    واكتب <strong>status</strong> لمعرفة الحالة الحالية.<br>
+    ملاحظة: هذه الأوامر لا تعمل للعملاء العاديين، فقط من رقم صاحب المشروع أو من رسالة outgoing/from_me.
+  </div>
+  <!-- ALSAAB_OWNER_NUMBER_COMMAND_HELP_V2 END -->
 
   <div id="alsaabBotCurrentStatus" class="alsaab-bot-status">الحالة الحالية: جاري التحميل...</div>
 
