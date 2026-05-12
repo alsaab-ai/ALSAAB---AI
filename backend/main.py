@@ -8779,7 +8779,16 @@ except ImportError:
 
 register_website_setup_routes(app, ADMIN_KEY)
 # ===== ALSAAB WEBSITE SETUP ROUTES REGISTER END =====
+# ===== ALSAAB BOT CONTROL ROUTES REGISTER START =====
+try:
+    from bot_control_routes import register_bot_control_routes
+except ImportError:
+    from backend.bot_control_routes import register_bot_control_routes
+
+register_bot_control_routes(app)
+# ===== ALSAAB BOT CONTROL ROUTES REGISTER END =====
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 10000))
     app.run(host="0.0.0.0", port=port, debug=False)
+
 
