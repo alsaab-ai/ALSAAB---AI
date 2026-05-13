@@ -8787,8 +8787,17 @@ except ImportError:
 
 register_bot_control_routes(app)
 # ===== ALSAAB BOT CONTROL ROUTES REGISTER END =====
+# ===== ALSAAB UPGRADE ROUTES REGISTER START =====
+try:
+    from upgrade_routes import register_upgrade_routes
+except ImportError:
+    from backend.upgrade_routes import register_upgrade_routes
+
+register_upgrade_routes(app, ADMIN_KEY)
+# ===== ALSAAB UPGRADE ROUTES REGISTER END =====
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 10000))
     app.run(host="0.0.0.0", port=port, debug=False)
+
 
 
