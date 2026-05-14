@@ -2,6 +2,15 @@
 from urllib.parse import quote
 import os
 
+# ===== ALSAAB_UPGRADE_SCHEDULE_STRIPE_V1 START =====
+UPGRADE_PRICE_IDS = {
+    "starter": "price_1TWEwPJbltD9Bsg8SH2xMao1",
+    "growth": "price_1TWFRJJbltD9Bsg8vgUXA1WD",
+    "elite": "price_1TWFUhJbltD9Bsg848phcf6P",
+}
+# ===== ALSAAB_UPGRADE_SCHEDULE_STRIPE_V1 END =====
+
+
 
 def _db():
     try:
@@ -241,6 +250,14 @@ textarea{min-height:60px}
                 <textarea name="admin_notes" placeholder="Admin notes"></textarea>
                 <button type="submit">تحديث</button>
               </form>
+
+              <form method="POST" action="/admin/schedule-upgrade-at-period-end" style="margin-top:8px;">
+                <input type="hidden" name="key" value="{{ admin_key }}">
+                <input type="hidden" name="request_id" value="{{ item.request_id }}">
+                <input type="hidden" name="partner_id" value="{{ item.partner_id }}">
+                <input type="hidden" name="target_plan" value="{{ item.target_plan }}">
+                <button type="submit">جدولة الترقية لنهاية الدورة</button>
+              </form>
             </td>
           </tr>
           {% else %}
@@ -317,6 +334,198 @@ textarea{min-height:60px}
         except Exception as error:
             print(f"ADMIN UPDATE UPGRADE REQUEST ERROR ❌ {error}", flush=True)
             return str(error), 500
+
+
+    def admin_schedule_upgrade_at_period_end():
+        key = request.form.get("key", "").strip()
+
+        if key != ADMIN_KEY:
+            return "Unauthorized", 401
+
+        request_id = request.form.get("request_id", "").strip()
+        partner_id = request.form.get("partner_id", "").strip().upper()
+        target_plan = request.form.get("target_plan", "").strip().lower()
+
+        if not request_id:
+            return "request_id is required", 400
+
+        if not partner_id:
+            return "partner_id is required", 400
+
+        if target_plan not in UPGRADE_PRICE_IDS:
+            return f"Invalid target plan: {target_plan}", 400
+
+        try:
+            import stripe
+
+            stripe_key = (
+                os.getenv("STRIPE_SECRET_KEY")
+                or os.getenv("STRIPE_API_KEY")
+                or os.getenv("STRIPE_KEY")
+                or ""
+            )
+
+            if not stripe_key:
+                return "STRIPE_SECRET_KEY is missing in Render environment", 500
+
+            stripe.api_key = stripe_key
+
+            database = _db()
+            partner_id = database.normalize_partner_id(partner_id)
+
+            lookup = database.post_to_google_sheet_json(
+                {
+                    "token": os.getenv("GOOGLE_SHEET_TOKEN", ""),
+                    "action": "upgrade_subscription_lookup",
+                    "partner_id": partner_id,
+                    "client_id": partner_id,
+                },
+                label="upgrade_subscription_lookup",
+            )
+
+            if not isinstance(lookup, dict) or lookup.get("status") != "success":
+                return render_template_string(
+                    """
+                    <html lang="ar" dir="rtl">
+                    <head><meta charset="utf-8"><title>تعذر إيجاد الاشتراك</title></head>
+                    <body style="background:#0b0b0b;color:#fff;font-family:Arial;padding:30px;">
+                    <div style="max-width:820px;margin:auto;background:#111;border:1px solid #d7b85a;border-radius:18px;padding:22px;">
+                      <h2 style="color:#d7b85a;">تعذر إيجاد اشتراك Stripe لهذا الحساب</h2>
+                      <pre style="direction:ltr;white-space:pre-wrap;background:#000;padding:12px;border-radius:12px;">{{ lookup }}</pre>
+                      <a href="/admin/upgrade-requests?key={{ key }}" style="color:#f0cc68;">رجوع</a>
+                    </div>
+                    </body>
+                    </html>
+                    """,
+                    lookup=lookup,
+                    key=key,
+                ), 500
+
+            subscription_data = lookup.get("subscription") or {}
+            stripe_subscription_id = str(subscription_data.get("stripe_subscription_id") or "").strip()
+
+            if not stripe_subscription_id:
+                return "Stripe Subscription ID is empty for this client", 500
+
+            target_price_id = UPGRADE_PRICE_IDS[target_plan]
+
+            subscription = stripe.Subscription.retrieve(
+                stripe_subscription_id,
+                expand=["items.data.price"],
+            )
+
+            items = subscription["items"]["data"]
+
+            if not items:
+                return "Stripe subscription has no items", 500
+
+            current_items = []
+            target_items = []
+
+            for index, item in enumerate(items):
+                current_price = item["price"]["id"]
+                quantity = item.get("quantity") or 1
+
+                current_items.append({
+                    "price": current_price,
+                    "quantity": quantity,
+                })
+
+                if index == 0:
+                    target_items.append({
+                        "price": target_price_id,
+                        "quantity": quantity,
+                    })
+                else:
+                    target_items.append({
+                        "price": current_price,
+                        "quantity": quantity,
+                    })
+
+            current_period_start = subscription.get("current_period_start")
+            current_period_end = subscription.get("current_period_end")
+
+            if not current_period_start or not current_period_end:
+                return "Stripe subscription period dates missing", 500
+
+            existing_schedule_id = subscription.get("schedule")
+
+            if existing_schedule_id:
+                schedule = stripe.SubscriptionSchedule.retrieve(existing_schedule_id)
+            else:
+                schedule = stripe.SubscriptionSchedule.create(
+                    from_subscription=stripe_subscription_id
+                )
+
+            start_date = (
+                (schedule.get("current_phase") or {}).get("start_date")
+                or current_period_start
+            )
+
+            updated_schedule = stripe.SubscriptionSchedule.modify(
+                schedule["id"],
+                end_behavior="release",
+                phases=[
+                    {
+                        "items": current_items,
+                        "start_date": start_date,
+                        "end_date": current_period_end,
+                    },
+                    {
+                        "items": target_items,
+                        "start_date": current_period_end,
+                    },
+                ],
+            )
+
+            mark_result = database.post_to_google_sheet_json(
+                {
+                    "token": os.getenv("GOOGLE_SHEET_TOKEN", ""),
+                    "action": "upgrade_request_mark_scheduled",
+                    "request_id": request_id,
+                    "stripe_subscription_id": stripe_subscription_id,
+                    "stripe_schedule_id": updated_schedule["id"],
+                    "admin_notes": f"Scheduled upgrade to {target_plan} at period end",
+                    "actor": "owner_admin",
+                    "source": "admin_dashboard",
+                },
+                label="upgrade_request_mark_scheduled",
+            )
+
+            return render_template_string(
+                """
+                <html lang="ar" dir="rtl">
+                <head><meta charset="utf-8"><title>تمت جدولة الترقية</title></head>
+                <body style="background:#0b0b0b;color:#fff;font-family:Arial;padding:30px;">
+                <div style="max-width:820px;margin:auto;background:#111;border:1px solid #d7b85a;border-radius:18px;padding:22px;">
+                  <h2 style="color:#d7b85a;">تمت جدولة الترقية لنهاية الدورة ✅</h2>
+                  <p>لن تتغير الباقة الآن. سيتم تطبيق الترقية عند بداية دورة الاشتراك القادمة.</p>
+                  <div style="background:#000;padding:12px;border-radius:12px;direction:ltr;white-space:pre-wrap;">
+Request ID: {{ request_id }}
+Partner ID: {{ partner_id }}
+Target Plan: {{ target_plan }}
+Stripe Subscription: {{ stripe_subscription_id }}
+Stripe Schedule: {{ schedule_id }}
+                  </div>
+                  <pre style="direction:ltr;white-space:pre-wrap;background:#000;padding:12px;border-radius:12px;">{{ mark_result }}</pre>
+                  <a href="/admin/upgrade-requests?key={{ key }}" style="color:#f0cc68;">رجوع إلى طلبات الترقية</a>
+                </div>
+                </body>
+                </html>
+                """,
+                key=key,
+                request_id=request_id,
+                partner_id=partner_id,
+                target_plan=target_plan,
+                stripe_subscription_id=stripe_subscription_id,
+                schedule_id=updated_schedule["id"],
+                mark_result=mark_result,
+            )
+
+        except Exception as error:
+            print(f"SCHEDULE UPGRADE AT PERIOD END ERROR ❌ {error}", flush=True)
+            return str(error), 500
+
 
     def upgrade_injector(response):
         try:
@@ -437,6 +646,14 @@ textarea{min-height:60px}
             "/admin/update-upgrade-request",
             "admin_update_upgrade_request",
             admin_update_upgrade_request,
+            methods=["POST"],
+        )
+
+    if "/admin/schedule-upgrade-at-period-end" not in existing_rules:
+        app.add_url_rule(
+            "/admin/schedule-upgrade-at-period-end",
+            "admin_schedule_upgrade_at_period_end",
+            admin_schedule_upgrade_at_period_end,
             methods=["POST"],
         )
 
