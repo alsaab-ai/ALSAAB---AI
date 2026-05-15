@@ -168,36 +168,54 @@ SMART_LINK_JS = r"""
     }
 
     function shouldOpenSmartChat(ref) {
-      /* ALSAAB_SMART_CHAT_DASHBOARD_EXCLUDE_V1 START */
+      /* ALSAAB_SMART_CHAT_UNIFIED_DASHBOARD_EXCLUDE_V2 START */
+
       if (!ref) return false;
 
-      var path = String(window.location.pathname || "").toLowerCase();
+      var params = new URLSearchParams(window.location.search || "");
+      var path = "";
+      var fullUrl = "";
 
-      var blockedPaths = [
+      try {
+        path = decodeURIComponent(String(window.location.pathname || "")).toLowerCase();
+        fullUrl = decodeURIComponent(String(window.location.href || "")).toLowerCase();
+      } catch (e) {
+        path = String(window.location.pathname || "").toLowerCase();
+        fullUrl = String(window.location.href || "").toLowerCase();
+      }
+
+      // بوابة الحساب واحدة: عميل + شريك.
+      // ممنوع فتح شات المبيعات داخل أي صفحة داشبورد أو بوابة حساب.
+      var blockedTerms = [
+        "dashboard",
         "client-dashboard",
         "partner-dashboard",
         "admin-dashboard",
+        "بوابة",
+        "لوحة",
+        "الشركاء",
+        "العميل",
+        "حسابي",
+        "wp-admin",
         "/admin/",
         "/client/",
-        "/partner/",
-        "dashboard"
+        "/partner/"
       ];
 
-      for (var i = 0; i < blockedPaths.length; i++) {
-        if (path.indexOf(blockedPaths[i]) !== -1) {
+      for (var i = 0; i < blockedTerms.length; i++) {
+        if (path.indexOf(blockedTerms[i]) !== -1 || fullUrl.indexOf(blockedTerms[i]) !== -1) {
           return false;
         }
       }
 
-      var params = new URLSearchParams(window.location.search || "");
-
-      // Smart sales chat opens only from the public smart link.
-      // Dashboard links use partner_id/client_id and must NOT open the sales chat.
+      // شات المبيعات يفتح فقط من رابط البيع العام.
+      // لا نستخدم partner_id أو client_id هنا لأنها تخص بوابة الحساب.
       return Boolean(
         params.get("ref") ||
         params.get("aid")
       );
-      /* ALSAAB_SMART_CHAT_DASHBOARD_EXCLUDE_V1 END */
+
+      /* ALSAAB_SMART_CHAT_UNIFIED_DASHBOARD_EXCLUDE_V2 END */
     }
 
     function addMessage(container, who, text) {
