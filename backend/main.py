@@ -8803,9 +8803,18 @@ except ImportError:
 
 register_smart_link_routes(app)
 # ===== ALSAAB SMART LINK ROUTES REGISTER END =====
+# ===== ALSAAB SMART LINK DASHBOARD ROUTES REGISTER START =====
+try:
+    from smart_link_dashboard_routes import register_smart_link_dashboard_routes
+except ImportError:
+    from backend.smart_link_dashboard_routes import register_smart_link_dashboard_routes
+
+register_smart_link_dashboard_routes(app)
+# ===== ALSAAB SMART LINK DASHBOARD ROUTES REGISTER END =====
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 10000))
     app.run(host="0.0.0.0", port=port, debug=False)
+
 
 
 
