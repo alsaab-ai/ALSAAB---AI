@@ -8827,9 +8827,18 @@ except ImportError:
 
 register_smart_link_analytics_routes(app)
 # ===== ALSAAB SMART LINK ANALYTICS ROUTES REGISTER END =====
+# ===== ALSAAB SMART LINK PROTECTION ROUTES REGISTER START =====
+try:
+    from smart_link_protection_routes import register_smart_link_protection_routes
+except ImportError:
+    from backend.smart_link_protection_routes import register_smart_link_protection_routes
+
+register_smart_link_protection_routes(app)
+# ===== ALSAAB SMART LINK PROTECTION ROUTES REGISTER END =====
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 10000))
     app.run(host="0.0.0.0", port=port, debug=False)
+
 
 
 
