@@ -8811,9 +8811,18 @@ except ImportError:
 
 register_smart_link_dashboard_routes(app)
 # ===== ALSAAB SMART LINK DASHBOARD ROUTES REGISTER END =====
+# ===== ALSAAB CLIENT DASHBOARD CLEANUP ROUTES REGISTER START =====
+try:
+    from client_dashboard_cleanup_routes import register_client_dashboard_cleanup_routes
+except ImportError:
+    from backend.client_dashboard_cleanup_routes import register_client_dashboard_cleanup_routes
+
+register_client_dashboard_cleanup_routes(app)
+# ===== ALSAAB CLIENT DASHBOARD CLEANUP ROUTES REGISTER END =====
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 10000))
     app.run(host="0.0.0.0", port=port, debug=False)
+
 
 
 
