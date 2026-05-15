@@ -240,6 +240,16 @@ textarea{min-height:60px}
                 <textarea name="admin_notes" placeholder="Admin notes"></textarea>
                 <button type="submit">تحديث</button>
               </form>
+
+              <form method="POST" action="/admin/schedule-cancellation-at-period-end" style="margin-top:8px;">
+                <input type="hidden" name="key" value="{{ admin_key }}">
+                <input type="hidden" name="request_id" value="{{ item.request_id }}">
+                <input type="hidden" name="partner_id" value="{{ item.partner_id }}">
+                <input type="hidden" name="stripe_subscription_id" value="{{ item.stripe_subscription_id }}">
+                <button type="submit" style="border-color:rgba(255,120,120,.65);color:#ffb5b5;">
+                  جدولة الإلغاء لنهاية الدورة
+                </button>
+              </form>
             </td>
           </tr>
           {% else %}
@@ -316,6 +326,120 @@ textarea{min-height:60px}
         except Exception as error:
             print(f"ADMIN UPDATE CANCELLATION REQUEST ERROR ❌ {error}", flush=True)
             return str(error), 500
+
+
+    # ===== ALSAAB_SCHEDULE_CANCELLATION_STRIPE_V1 START =====
+    def admin_schedule_cancellation_at_period_end():
+        key = request.form.get("key", "").strip()
+
+        if key != ADMIN_KEY:
+            return "Unauthorized", 401
+
+        request_id = request.form.get("request_id", "").strip()
+        partner_id = request.form.get("partner_id", "").strip()
+        stripe_subscription_id = request.form.get("stripe_subscription_id", "").strip()
+
+        if not request_id:
+            return "request_id is required", 400
+
+        if not stripe_subscription_id:
+            return render_template_string(
+                """
+                <html lang="ar" dir="rtl">
+                <head><meta charset="utf-8"><title>لا يوجد اشتراك Stripe</title></head>
+                <body style="background:#0b0b0b;color:#fff;font-family:Arial;padding:30px;">
+                <div style="max-width:820px;margin:auto;background:#111;border:1px solid #d7b85a;border-radius:18px;padding:22px;">
+                  <h2 style="color:#d7b85a;">لا يمكن جدولة الإلغاء</h2>
+                  <p>طلب الإلغاء لا يحتوي على Stripe Subscription ID. هذا طبيعي إذا كان الطلب تجريبياً أو الاشتراك غير مربوط بـ Stripe.</p>
+                  <a href="/admin/cancellation-requests?key={{ key }}" style="color:#f0cc68;">رجوع إلى طلبات الإلغاء</a>
+                </div>
+                </body>
+                </html>
+                """,
+                key=key,
+            ), 400
+
+        try:
+            import stripe
+
+            stripe_key = (
+                os.getenv("STRIPE_SECRET_KEY")
+                or os.getenv("STRIPE_API_KEY")
+                or os.getenv("STRIPE_KEY")
+                or ""
+            )
+
+            if not stripe_key:
+                return "STRIPE_SECRET_KEY is missing in Render environment", 500
+
+            stripe.api_key = stripe_key
+
+            subscription = stripe.Subscription.modify(
+                stripe_subscription_id,
+                cancel_at_period_end=True,
+            )
+
+            current_period_end = subscription.get("current_period_end", "")
+
+            database = _db()
+            update_result = database.post_to_google_sheet_json(
+                {
+                    "token": os.getenv("GOOGLE_SHEET_TOKEN", ""),
+                    "action": "admin_cancellation_request_update",
+                    "request_id": request_id,
+                    "status": "approved_period_end",
+                    "admin_decision": "approved",
+                    "admin_notes": (
+                        "Stripe cancellation scheduled at period end. "
+                        + "Subscription: "
+                        + stripe_subscription_id
+                        + " | Current period end: "
+                        + str(current_period_end)
+                    ),
+                    "actor": "owner_admin",
+                    "source": "admin_dashboard",
+                },
+                label="admin_cancellation_request_update",
+            )
+
+            return render_template_string(
+                """
+                <html lang="ar" dir="rtl">
+                <head><meta charset="utf-8"><title>تمت جدولة الإلغاء</title></head>
+                <body style="background:#0b0b0b;color:#fff;font-family:Arial;padding:30px;">
+                <div style="max-width:820px;margin:auto;background:#111;border:1px solid #d7b85a;border-radius:18px;padding:22px;">
+                  <h2 style="color:#d7b85a;">تمت جدولة الإلغاء لنهاية الدورة ✅</h2>
+                  <p>لن يتم إلغاء الخدمة فوراً. ستستمر إلى نهاية الفترة الشهرية المدفوعة، ثم يتوقف التجديد.</p>
+
+                  <div style="background:#000;padding:12px;border-radius:12px;direction:ltr;white-space:pre-wrap;">
+Request ID: {{ request_id }}
+Partner ID: {{ partner_id }}
+Stripe Subscription: {{ stripe_subscription_id }}
+Cancel at period end: true
+Current period end: {{ current_period_end }}
+                  </div>
+
+                  <pre style="direction:ltr;white-space:pre-wrap;background:#000;padding:12px;border-radius:12px;">{{ update_result }}</pre>
+
+                  <a href="/admin/cancellation-requests?key={{ key }}" style="color:#f0cc68;">رجوع إلى طلبات الإلغاء</a>
+                </div>
+                </body>
+                </html>
+                """,
+                key=key,
+                request_id=request_id,
+                partner_id=partner_id,
+                stripe_subscription_id=stripe_subscription_id,
+                current_period_end=current_period_end,
+                update_result=update_result,
+            )
+
+        except Exception as error:
+            print(f"SCHEDULE CANCELLATION AT PERIOD END ERROR ❌ {error}", flush=True)
+            return str(error), 500
+
+    # ===== ALSAAB_SCHEDULE_CANCELLATION_STRIPE_V1 END =====
+
 
     def cancellation_dashboard_injector(response):
         try:
@@ -482,6 +606,14 @@ textarea{min-height:60px}
             "/admin/update-cancellation-request",
             "admin_update_cancellation_request",
             admin_update_cancellation_request,
+            methods=["POST"],
+        )
+
+    if "/admin/schedule-cancellation-at-period-end" not in existing_rules:
+        app.add_url_rule(
+            "/admin/schedule-cancellation-at-period-end",
+            "admin_schedule_cancellation_at_period_end",
+            admin_schedule_cancellation_at_period_end,
             methods=["POST"],
         )
 
