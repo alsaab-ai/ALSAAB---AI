@@ -168,15 +168,36 @@ SMART_LINK_JS = r"""
     }
 
     function shouldOpenSmartChat(ref) {
+      /* ALSAAB_SMART_CHAT_DASHBOARD_EXCLUDE_V1 START */
       if (!ref) return false;
 
+      var path = String(window.location.pathname || "").toLowerCase();
+
+      var blockedPaths = [
+        "client-dashboard",
+        "partner-dashboard",
+        "admin-dashboard",
+        "/admin/",
+        "/client/",
+        "/partner/",
+        "dashboard"
+      ];
+
+      for (var i = 0; i < blockedPaths.length; i++) {
+        if (path.indexOf(blockedPaths[i]) !== -1) {
+          return false;
+        }
+      }
+
       var params = new URLSearchParams(window.location.search || "");
+
+      // Smart sales chat opens only from the public smart link.
+      // Dashboard links use partner_id/client_id and must NOT open the sales chat.
       return Boolean(
         params.get("ref") ||
-        params.get("aid") ||
-        params.get("client_id") ||
-        params.get("partner_id")
+        params.get("aid")
       );
+      /* ALSAAB_SMART_CHAT_DASHBOARD_EXCLUDE_V1 END */
     }
 
     function addMessage(container, who, text) {
