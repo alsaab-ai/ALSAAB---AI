@@ -8835,9 +8835,18 @@ except ImportError:
 
 register_smart_link_protection_routes(app)
 # ===== ALSAAB SMART LINK PROTECTION ROUTES REGISTER END =====
+# ===== ALSAAB CANCELLATION ROUTES REGISTER START =====
+try:
+    from cancellation_routes import register_cancellation_routes
+except ImportError:
+    from backend.cancellation_routes import register_cancellation_routes
+
+register_cancellation_routes(app, ADMIN_KEY)
+# ===== ALSAAB CANCELLATION ROUTES REGISTER END =====
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 10000))
     app.run(host="0.0.0.0", port=port, debug=False)
+
 
 
 
