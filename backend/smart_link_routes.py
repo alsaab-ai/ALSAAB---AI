@@ -124,6 +124,363 @@ SMART_LINK_JS = r"""
     }
   } catch (e) {}
 })();
+
+/* ALSAAB_SMART_CHAT_UI_V1 START */
+(function () {
+  try {
+    if (window.__ALSAAB_SMART_CHAT_UI_V1__) return;
+    window.__ALSAAB_SMART_CHAT_UI_V1__ = true;
+
+    function onReady(fn) {
+      if (document.readyState === "loading") {
+        document.addEventListener("DOMContentLoaded", fn);
+      } else {
+        fn();
+      }
+    }
+
+    function getSmartRef() {
+      try {
+        var data = window.ALSAAB_SMART_LINK || {};
+        return data.ref || sessionStorage.getItem("alsaab_smart_ref") || localStorage.getItem("alsaab_smart_ref") || "";
+      } catch (e) {
+        return "";
+      }
+    }
+
+    function getSmartSource() {
+      try {
+        var data = window.ALSAAB_SMART_LINK || {};
+        return data.source || sessionStorage.getItem("alsaab_smart_source") || localStorage.getItem("alsaab_smart_source") || "smart_link";
+      } catch (e) {
+        return "smart_link";
+      }
+    }
+
+    function makeSessionId(ref) {
+      var key = "alsaab_smart_chat_session_" + ref;
+      var existing = localStorage.getItem(key);
+      if (existing) return existing;
+
+      var id = "smart_" + ref + "_" + Date.now() + "_" + Math.random().toString(16).slice(2);
+      localStorage.setItem(key, id);
+      return id;
+    }
+
+    function shouldOpenSmartChat(ref) {
+      if (!ref) return false;
+
+      var params = new URLSearchParams(window.location.search || "");
+      return Boolean(
+        params.get("ref") ||
+        params.get("aid") ||
+        params.get("client_id") ||
+        params.get("partner_id")
+      );
+    }
+
+    function addMessage(container, who, text) {
+      var item = document.createElement("div");
+      item.className = "alsaab-smart-msg " + (who === "user" ? "user" : "bot");
+      item.innerHTML = String(text || "").replace(/\n/g, "<br>");
+      container.appendChild(item);
+      container.scrollTop = container.scrollHeight;
+      return item;
+    }
+
+    function createSmartChat() {
+      var ref = getSmartRef();
+      if (!shouldOpenSmartChat(ref)) return;
+      if (document.getElementById("alsaabSmartChatOverlay")) return;
+
+      var source = getSmartSource();
+      if (source === "wa" || source === "whatsapp") source = "whatsapp_redirect";
+
+      var sessionId = makeSessionId(ref);
+      var chatEndpoint = window.location.hostname.indexOf("onrender.com") !== -1
+        ? "/chat"
+        : "https://alsaab-ai.onrender.com/chat";
+
+      var overlay = document.createElement("div");
+      overlay.id = "alsaabSmartChatOverlay";
+      overlay.dir = "rtl";
+      overlay.innerHTML = `
+        <div class="alsaab-smart-shell">
+          <div class="alsaab-smart-card">
+            <div class="alsaab-smart-head">
+              <div>
+                <div class="alsaab-smart-title">موظف المبيعات الذكي</div>
+                <div class="alsaab-smart-subtitle">مرحباً بك، اكتب طلبك أو اختر من الخيارات السريعة.</div>
+              </div>
+              <button type="button" class="alsaab-smart-back" id="alsaabSmartBackBtn">الرجوع إلى واتساب</button>
+            </div>
+
+            <div class="alsaab-smart-quick">
+              <button type="button" data-msg="أريد معرفة الأسعار">أريد معرفة الأسعار</button>
+              <button type="button" data-msg="أريد المنتج أو الخدمة الأنسب لي">أريد الأنسب لي</button>
+              <button type="button" data-msg="أريد رابط الدفع">أريد رابط الدفع</button>
+              <button type="button" data-msg="أريد فرصة دخل إضافي">أريد فرصة دخل إضافي</button>
+              <button type="button" data-msg="أريد التحدث مع شخص">أريد التحدث مع شخص</button>
+            </div>
+
+            <div class="alsaab-smart-messages" id="alsaabSmartMessages"></div>
+
+            <form class="alsaab-smart-form" id="alsaabSmartForm">
+              <input id="alsaabSmartInput" autocomplete="off" placeholder="اكتب رسالتك هنا..." />
+              <button type="submit">إرسال</button>
+            </form>
+          </div>
+        </div>
+      `;
+
+      var style = document.createElement("style");
+      style.innerHTML = `
+        #alsaabSmartChatOverlay{
+          position:fixed;
+          inset:0;
+          z-index:2147483000;
+          background:rgba(5,5,5,.78);
+          backdrop-filter:blur(8px);
+          display:flex;
+          align-items:center;
+          justify-content:center;
+          padding:18px;
+          box-sizing:border-box;
+          font-family:Arial,Tahoma,sans-serif;
+        }
+
+        .alsaab-smart-shell{
+          width:min(980px,96vw);
+          height:min(760px,92vh);
+          display:flex;
+        }
+
+        .alsaab-smart-card{
+          width:100%;
+          height:100%;
+          background:#0b0b0b;
+          color:#fff;
+          border:1px solid rgba(215,184,90,.55);
+          border-radius:26px;
+          box-shadow:0 22px 80px rgba(0,0,0,.55);
+          display:flex;
+          flex-direction:column;
+          overflow:hidden;
+        }
+
+        .alsaab-smart-head{
+          padding:20px 22px;
+          border-bottom:1px solid rgba(215,184,90,.25);
+          display:flex;
+          align-items:center;
+          justify-content:space-between;
+          gap:12px;
+          background:linear-gradient(135deg,#111,#15110a);
+        }
+
+        .alsaab-smart-title{
+          color:#d7b85a;
+          font-size:28px;
+          font-weight:900;
+        }
+
+        .alsaab-smart-subtitle{
+          color:#d9cfaa;
+          margin-top:6px;
+          font-size:15px;
+          line-height:1.6;
+        }
+
+        .alsaab-smart-back{
+          border:1px solid rgba(215,184,90,.55);
+          color:#f0cc68;
+          background:#111;
+          border-radius:999px;
+          padding:10px 14px;
+          font-weight:800;
+          cursor:pointer;
+          white-space:nowrap;
+        }
+
+        .alsaab-smart-quick{
+          display:flex;
+          gap:10px;
+          flex-wrap:wrap;
+          padding:14px 18px;
+          border-bottom:1px solid rgba(255,255,255,.07);
+          background:#0f0f0f;
+        }
+
+        .alsaab-smart-quick button{
+          border:1px solid rgba(215,184,90,.42);
+          color:#f0cc68;
+          background:#111;
+          border-radius:999px;
+          padding:10px 13px;
+          font-weight:800;
+          cursor:pointer;
+        }
+
+        .alsaab-smart-messages{
+          flex:1;
+          overflow:auto;
+          padding:18px;
+          display:flex;
+          flex-direction:column;
+          gap:12px;
+        }
+
+        .alsaab-smart-msg{
+          max-width:78%;
+          padding:13px 15px;
+          border-radius:18px;
+          line-height:1.75;
+          font-size:16px;
+          white-space:normal;
+        }
+
+        .alsaab-smart-msg.bot{
+          align-self:flex-start;
+          background:#151515;
+          border:1px solid rgba(215,184,90,.22);
+          color:#f7f1df;
+        }
+
+        .alsaab-smart-msg.user{
+          align-self:flex-end;
+          background:linear-gradient(135deg,#d7b85a,#aa842a);
+          color:#111;
+          font-weight:800;
+        }
+
+        .alsaab-smart-form{
+          display:flex;
+          gap:10px;
+          padding:16px;
+          border-top:1px solid rgba(215,184,90,.25);
+          background:#0f0f0f;
+        }
+
+        .alsaab-smart-form input{
+          flex:1;
+          background:#050505;
+          border:1px solid rgba(215,184,90,.35);
+          color:#fff;
+          border-radius:16px;
+          padding:14px;
+          font-size:16px;
+          outline:none;
+        }
+
+        .alsaab-smart-form button{
+          background:linear-gradient(135deg,#d7b85a,#aa842a);
+          color:#111;
+          border:0;
+          border-radius:16px;
+          padding:0 22px;
+          font-weight:900;
+          cursor:pointer;
+        }
+
+        @media(max-width:720px){
+          #alsaabSmartChatOverlay{padding:0;}
+          .alsaab-smart-shell{width:100vw;height:100vh;}
+          .alsaab-smart-card{border-radius:0;border:0;}
+          .alsaab-smart-head{align-items:flex-start;flex-direction:column;}
+          .alsaab-smart-title{font-size:23px;}
+          .alsaab-smart-msg{max-width:92%;font-size:15px;}
+          .alsaab-smart-form{padding-bottom:22px;}
+        }
+
+        /* Wider existing widget fallback */
+        .alsaab-chat-widget,
+        .chat-widget,
+        #chat-widget,
+        #chatContainer,
+        .chat-container{
+          max-width:920px!important;
+        }
+      `;
+
+      document.head.appendChild(style);
+      document.body.appendChild(overlay);
+
+      var messages = document.getElementById("alsaabSmartMessages");
+      var form = document.getElementById("alsaabSmartForm");
+      var input = document.getElementById("alsaabSmartInput");
+      var backBtn = document.getElementById("alsaabSmartBackBtn");
+
+      addMessage(messages, "bot", "هلا وسهلاً 👋\nأنا موظف المبيعات الذكي. أقدر أساعدك في معرفة التفاصيل، اختيار الأنسب، أو إرسال رابط الدفع.");
+
+      backBtn.addEventListener("click", function () {
+        try {
+          if (document.referrer && document.referrer.indexOf("whatsapp") !== -1) {
+            history.back();
+          } else {
+            addMessage(messages, "bot", "إذا تحب ترجع لواتساب، ارجع من زر الرجوع في المتصفح أو اطلب التحدث مع شخص وسأساعدك.");
+          }
+        } catch (e) {
+          history.back();
+        }
+      });
+
+      function send(text) {
+        text = String(text || "").trim();
+        if (!text) return;
+
+        addMessage(messages, "user", text);
+        input.value = "";
+
+        var typing = addMessage(messages, "bot", "جاري التفكير...");
+
+        fetch(chatEndpoint, {
+          method: "POST",
+          headers: {"Content-Type": "application/json"},
+          body: JSON.stringify({
+            message: text,
+            session_id: sessionId,
+            smart_link_ref: ref,
+            context_partner_id: ref,
+            client_context_id: ref,
+            source_partner_id: ref,
+            ref: ref,
+            source: source || "smart_link",
+            entry_source: source || "smart_link",
+            channel: "smart_link",
+            page_url: window.location.href,
+            referrer_url: document.referrer || ""
+          })
+        })
+        .then(function (r) { return r.json(); })
+        .then(function (data) {
+          var reply = data.reply || data.response || data.message || "تم استلام رسالتك.";
+          typing.innerHTML = String(reply).replace(/\n/g, "<br>");
+          messages.scrollTop = messages.scrollHeight;
+        })
+        .catch(function () {
+          typing.innerHTML = "صار خطأ مؤقت. جرّب مرة ثانية أو اطلب التحدث مع شخص.";
+        });
+      }
+
+      form.addEventListener("submit", function (e) {
+        e.preventDefault();
+        send(input.value);
+      });
+
+      Array.prototype.slice.call(overlay.querySelectorAll(".alsaab-smart-quick button")).forEach(function (btn) {
+        btn.addEventListener("click", function () {
+          send(btn.getAttribute("data-msg") || btn.innerText);
+        });
+      });
+
+      setTimeout(function(){ input.focus(); }, 350);
+    }
+
+    onReady(createSmartChat);
+  } catch (e) {}
+})();
+/* ALSAAB_SMART_CHAT_UI_V1 END */
+
 /* ALSAAB_SMART_LINK_CAPTURE_V1 END */
 """
 
