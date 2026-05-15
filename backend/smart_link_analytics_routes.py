@@ -362,9 +362,7 @@ def register_smart_link_analytics_routes(app):
     <div class="alsaab-smart-summary-card"><span id="smartMessages">-</span><small>رسائل</small></div>
   </div>
 
-  <div id="alsaabSmartLatestEvents" class="alsaab-smart-latest-events">
-    جاري تحميل آخر الأحداث...
-  </div>
+  <div id="alsaabSmartLatestEvents" class="alsaab-smart-latest-events" style="display:none!important;"></div>
 </div>
 
 <style>
@@ -458,6 +456,17 @@ def register_smart_link_analytics_routes(app):
           document.getElementById("smartHumanRequests").innerText = summary.human_requests || 0;
           document.getElementById("smartIncomeRequests").innerText = summary.income_requests || 0;
           document.getElementById("smartMessages").innerText = summary.messages || 0;
+
+          // ALSAAB_HIDE_RAW_VISIT_EVENTS_V1 START
+          // لا نعرض الأحداث الخام مثل visit للعميل.
+          // الأرقام تكفي في لوحة العميل، والتفاصيل تبقى داخل الشيت/الأدمن.
+          var latestBox = document.getElementById("alsaabSmartLatestEvents");
+          if(latestBox){
+            latestBox.style.display = "none";
+            latestBox.innerHTML = "";
+          }
+          return;
+          // ALSAAB_HIDE_RAW_VISIT_EVENTS_V1 END
 
           var latestBox = document.getElementById("alsaabSmartLatestEvents");
           var latest = summary.latest_events || [];
