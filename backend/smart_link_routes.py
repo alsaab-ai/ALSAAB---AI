@@ -756,6 +756,61 @@ def register_smart_link_routes(app):
             "Sales Instructions",
         ])
 
+        owner_whatsapp_phone = _first_value(profile, [
+            "whatsapp_number",
+            "whatsapp_phone",
+            "whatsapp",
+            "phone",
+            "phone_number",
+            "mobile",
+            "business_phone",
+            "owner_phone",
+            "client_phone",
+            "contact_phone",
+            "Client Phone",
+            "Phone",
+            "WhatsApp Number",
+            "Business WhatsApp",
+        ])
+
+        if not owner_whatsapp_phone:
+            phone_candidates = _find_dicts(
+                result,
+                [
+                    "whatsapp_number",
+                    "whatsapp_phone",
+                    "phone",
+                    "phone_number",
+                    "mobile",
+                    "owner_phone",
+                    "client_phone",
+                    "contact_phone",
+                ],
+                max_items=12,
+            )
+
+            for phone_item in phone_candidates:
+                owner_whatsapp_phone = _first_value(phone_item, [
+                    "whatsapp_number",
+                    "whatsapp_phone",
+                    "whatsapp",
+                    "phone",
+                    "phone_number",
+                    "mobile",
+                    "business_phone",
+                    "owner_phone",
+                    "client_phone",
+                    "contact_phone",
+                    "Client Phone",
+                    "Phone",
+                    "WhatsApp Number",
+                    "Business WhatsApp",
+                ])
+
+                if owner_whatsapp_phone:
+                    break
+
+
         payment_link_items = _find_dicts(
             result,
             ["payment_url", "payment_link", "link_url", "url"],
@@ -820,6 +875,9 @@ def register_smart_link_routes(app):
         if sales_instructions:
             context_lines.append(f"تعليمات البيع الخاصة بالمشروع: {_short_text(sales_instructions, 900)}")
 
+        if owner_whatsapp_phone:
+            context_lines.append(f"رقم واتساب صاحب المشروع للرد البشري: {_short_text(owner_whatsapp_phone, 80)}")
+
         if plan_name or subscription_status:
             context_lines.append(f"حالة حساب صاحب الرابط: الخطة {plan_name or '-'} / الحالة {subscription_status or '-'}")
 
@@ -841,6 +899,7 @@ def register_smart_link_routes(app):
             "plan_name": str(plan_name or "").strip(),
             "subscription_status": str(subscription_status or "").strip(),
             "context_text": "\n".join(context_lines),
+            "owner_whatsapp_phone": str(owner_whatsapp_phone or "").strip(),
             "payment_links_count": len(payment_lines),
             "product_groups_count": len(product_lines),
         }
@@ -918,6 +977,7 @@ def register_smart_link_routes(app):
             "project_name": data.get("project_name", ""),
             "plan_name": data.get("plan_name", ""),
             "subscription_status": data.get("subscription_status", ""),
+            "owner_whatsapp_phone": data.get("owner_whatsapp_phone", ""),
             "payment_links_count": data.get("payment_links_count", 0),
             "product_groups_count": data.get("product_groups_count", 0),
         })
@@ -1164,6 +1224,229 @@ def register_smart_link_routes(app):
     # ===== ALSAAB_SMART_PROJECT_CONTEXT_V1 END =====
 
 
+
+    # ===== ALSAAB_SMART_WHATSAPP_HANDOFF_V1 START =====
+    def smart_whatsapp_handoff_ui_injector(response):
+        try:
+            if response.direct_passthrough:
+                return response
+
+            content_type = response.headers.get("Content-Type", "")
+
+            if "text/html" not in content_type and "javascript" not in content_type and request.path != "/widget.js":
+                return response
+
+            body = response.get_data(as_text=True)
+
+            if not body or "ALSAAB_SMART_WHATSAPP_HANDOFF_CLIENT_V1" in body:
+                return response
+
+            js = r"""
+/* ALSAAB_SMART_WHATSAPP_HANDOFF_CLIENT_V1 START */
+(function(){
+  try{
+    if(window.__ALSAAB_SMART_WHATSAPP_HANDOFF_CLIENT_V1__) return;
+    window.__ALSAAB_SMART_WHATSAPP_HANDOFF_CLIENT_V1__ = true;
+
+    function getParam(name){
+      try{
+        return new URLSearchParams(location.search || "").get(name) || "";
+      }catch(e){
+        return "";
+      }
+    }
+
+    function cleanRef(value){
+      value = String(value || "").trim().replace(/[^a-zA-Z0-9_\-]/g, "");
+      if(value.toLowerCase() === "alsaab") return "alsaab";
+      return value.toUpperCase();
+    }
+
+    function getRef(){
+      var ref = cleanRef(getParam("ref") || getParam("aid") || getParam("client_id") || getParam("partner_id") || "");
+
+      if(ref) return ref;
+
+      try{
+        return cleanRef(sessionStorage.getItem("alsaab_smart_ref") || localStorage.getItem("alsaab_smart_ref") || "");
+      }catch(e){
+        return "";
+      }
+    }
+
+    function contextEndpoint(ref){
+      if(location.hostname.indexOf("onrender.com") !== -1){
+        return "/smart-link-context?ref=" + encodeURIComponent(ref);
+      }
+
+      return "https://alsaab-ai.onrender.com/smart-link-context?ref=" + encodeURIComponent(ref);
+    }
+
+    function normalizePhone(phone){
+      phone = String(phone || "").trim();
+
+      if(!phone) return "";
+
+      phone = phone.replace(/[^\d+]/g, "");
+
+      if(phone.indexOf("+") === 0){
+        phone = phone.slice(1);
+      }
+
+      if(phone.indexOf("00") === 0){
+        phone = phone.slice(2);
+      }
+
+      if(phone.indexOf("0") === 0 && phone.length === 10){
+        phone = "971" + phone.slice(1);
+      }
+
+      return phone;
+    }
+
+    function getSessionId(ref){
+      try{
+        var key = "alsaab_smart_analytics_session_" + ref;
+        return sessionStorage.getItem(key) || localStorage.getItem(key) || "";
+      }catch(e){
+        return "";
+      }
+    }
+
+    function logHumanRequest(ref, message){
+      try{
+        var endpoint = location.hostname.indexOf("onrender.com") !== -1
+          ? "/smart-link-event"
+          : "https://alsaab-ai.onrender.com/smart-link-event";
+
+        fetch(endpoint, {
+          method:"POST",
+          headers:{"Content-Type":"application/json"},
+          body:JSON.stringify({
+            smart_ref: ref,
+            ref: ref,
+            partner_id: ref,
+            client_id: ref,
+            event_type: "human_request",
+            source: "smart_link",
+            session_id: getSessionId(ref),
+            page_url: location.href,
+            referrer_url: document.referrer || "",
+            message: message || "طلب الرجوع إلى واتساب أو التحدث مع شخص"
+          }),
+          keepalive:true
+        }).catch(function(){});
+      }catch(e){}
+    }
+
+    function addBotNotice(text){
+      try{
+        var messages = document.getElementById("alsaabSmartMessages");
+        if(!messages) return;
+
+        var item = document.createElement("div");
+        item.className = "alsaab-smart-msg bot";
+        item.innerHTML = String(text || "").replace(/\n/g, "<br>");
+        messages.appendChild(item);
+        messages.scrollTop = messages.scrollHeight;
+      }catch(e){}
+    }
+
+    function openWhatsApp(phone, ref){
+      var normalized = normalizePhone(phone);
+
+      if(!normalized){
+        addBotNotice("رقم واتساب صاحب المشروع غير مخزن حالياً. اطلب من صاحب المشروع إضافة رقم واتساب في بيانات المشروع حتى يعمل زر الرجوع إلى واتساب.");
+        return;
+      }
+
+      var text = "هلا، وصلتني المحادثة من موظف المبيعات الذكي وأريد التحدث مع شخص.";
+      var url = "https://wa.me/" + normalized + "?text=" + encodeURIComponent(text);
+
+      logHumanRequest(ref, text);
+
+      window.open(url, "_blank");
+    }
+
+    function replaceClick(el, handler){
+      if(!el) return;
+
+      var clone = el.cloneNode(true);
+      el.parentNode.replaceChild(clone, el);
+      clone.addEventListener("click", handler);
+      return clone;
+    }
+
+    function apply(data){
+      var ref = getRef();
+
+      if(!ref) return;
+
+      var ownerPhone = data && data.owner_whatsapp_phone ? data.owner_whatsapp_phone : "";
+
+      window.ALSAAB_SMART_OWNER_WHATSAPP = ownerPhone || "";
+
+      var backBtn = document.getElementById("alsaabSmartBackBtn");
+
+      replaceClick(backBtn, function(){
+        openWhatsApp(ownerPhone, ref);
+      });
+
+      var quickButtons = Array.prototype.slice.call(document.querySelectorAll(".alsaab-smart-quick button"));
+
+      quickButtons.forEach(function(btn){
+        var text = (btn.innerText || btn.getAttribute("data-msg") || "").trim();
+
+        if(text.indexOf("التحدث مع شخص") !== -1 || text.indexOf("تحدث مع شخص") !== -1 || text.indexOf("شخص") !== -1){
+          replaceClick(btn, function(){
+            openWhatsApp(ownerPhone, ref);
+          });
+        }
+      });
+    }
+
+    function load(){
+      var ref = getRef();
+
+      if(!ref || ref === "alsaab") return;
+
+      fetch(contextEndpoint(ref))
+        .then(function(r){ return r.json(); })
+        .then(function(data){
+          setTimeout(function(){ apply(data); }, 400);
+          setTimeout(function(){ apply(data); }, 1200);
+        })
+        .catch(function(){});
+    }
+
+    if(document.readyState === "loading"){
+      document.addEventListener("DOMContentLoaded", load);
+    }else{
+      load();
+    }
+  }catch(e){}
+})();
+/* ALSAAB_SMART_WHATSAPP_HANDOFF_CLIENT_V1 END */
+"""
+
+            if "text/html" in content_type and "</body>" in body:
+                body = body.replace("</body>", "<script>\n" + js + "\n</script>\n</body>", 1)
+                response.set_data(body)
+                return response
+
+            if "javascript" in content_type or request.path == "/widget.js":
+                body = body + "\n\n" + js + "\n"
+                response.set_data(body)
+                return response
+
+            return response
+
+        except Exception as error:
+            print(f"SMART WHATSAPP HANDOFF UI ERROR ❌ {error}", flush=True)
+            return response
+    # ===== ALSAAB_SMART_WHATSAPP_HANDOFF_V1 END =====
+
+
     existing_rules = {str(rule.rule) for rule in app.url_map.iter_rules()}
 
     if "/smart-link-debug" not in existing_rules:
@@ -1186,3 +1469,4 @@ def register_smart_link_routes(app):
     app.before_request(smart_project_context_guard)
     app.after_request(smart_link_injector)
     app.after_request(smart_project_context_ui_injector)
+    app.after_request(smart_whatsapp_handoff_ui_injector)
