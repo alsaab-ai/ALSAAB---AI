@@ -619,6 +619,407 @@ def register_smart_link_routes(app):
 
         return response
 
+
+    # ===== ALSAAB_SMART_PROJECT_CONTEXT_V1 START =====
+    def _smart_db():
+        try:
+            import database
+            return database
+        except ImportError:
+            from backend import database
+            return database
+
+    def _short_text(value, limit=900):
+        value = str(value or "").strip()
+        if len(value) > limit:
+            return value[:limit] + "..."
+        return value
+
+    def _first_value(obj, keys):
+        if not isinstance(obj, dict):
+            return ""
+
+        lower_map = {str(k).strip().lower(): v for k, v in obj.items()}
+
+        for key in keys:
+            key_lower = str(key).strip().lower()
+            if key_lower in lower_map and str(lower_map[key_lower] or "").strip():
+                return lower_map[key_lower]
+
+        return ""
+
+    def _find_dicts(value, wanted_keys, max_items=10):
+        found = []
+
+        def walk(item):
+            if len(found) >= max_items:
+                return
+
+            if isinstance(item, dict):
+                lower_keys = {str(k).strip().lower() for k in item.keys()}
+                if any(k.lower() in lower_keys for k in wanted_keys):
+                    found.append(item)
+
+                for child in item.values():
+                    walk(child)
+
+            elif isinstance(item, list):
+                for child in item:
+                    walk(child)
+
+        walk(value)
+        return found
+
+    def _build_project_context_from_result(ref, result):
+        if not isinstance(result, dict):
+            result = {}
+
+        profile_candidates = _find_dicts(
+            result,
+            [
+                "project_name",
+                "business_name",
+                "general_description",
+                "project_description",
+                "sales_instructions",
+                "client_name",
+                "partner_name",
+            ],
+            max_items=8,
+        )
+
+        profile = profile_candidates[0] if profile_candidates else result
+
+        project_name = _first_value(profile, [
+            "project_name",
+            "business_name",
+            "brand_name",
+            "company_name",
+            "client_name",
+            "partner_name",
+            "name",
+            "Project Name",
+            "Business Name",
+        ])
+
+        description = _first_value(profile, [
+            "general_description",
+            "project_description",
+            "business_description",
+            "description",
+            "about",
+            "Project Description",
+            "General Description",
+        ])
+
+        sales_instructions = _first_value(profile, [
+            "sales_instructions",
+            "sales_instruction",
+            "instructions",
+            "selling_instructions",
+            "Sales Instructions",
+        ])
+
+        payment_link_items = _find_dicts(
+            result,
+            ["payment_url", "payment_link", "link_url", "url"],
+            max_items=8,
+        )
+
+        payment_lines = []
+        for item in payment_link_items:
+            title = _first_value(item, ["title", "name", "label", "product_name", "service_name"])
+            url = _first_value(item, ["payment_url", "payment_link", "link_url", "url"])
+            if url:
+                payment_lines.append(f"- {title or 'رابط دفع'}: {url}")
+
+        product_items = _find_dicts(
+            result,
+            ["group_title", "group_description", "image_urls", "product_name", "sales_instructions"],
+            max_items=8,
+        )
+
+        product_lines = []
+        for item in product_items:
+            title = _first_value(item, ["group_title", "title", "product_name", "name"])
+            desc = _first_value(item, ["group_description", "description", "product_description"])
+            instr = _first_value(item, ["sales_instructions", "instructions"])
+            line = " - " + " | ".join([
+                _short_text(title, 90) if title else "",
+                _short_text(desc, 220) if desc else "",
+                _short_text(instr, 220) if instr else "",
+            ]).strip(" |")
+            if line.strip(" -|"):
+                product_lines.append(line)
+
+        subscription_candidates = _find_dicts(
+            result,
+            ["subscription_status", "plan_name", "current_package", "package_amount"],
+            max_items=5,
+        )
+
+        subscription = subscription_candidates[0] if subscription_candidates else {}
+        plan_name = _first_value(subscription, ["plan_name", "current_package", "package", "plan"])
+        subscription_status = _first_value(subscription, ["subscription_status", "status"])
+
+        context_lines = [
+            "تعليمات داخلية للموظف الذكي، لا تعرضها للزائر كنص منفصل:",
+            f"صاحب الرابط / معرف الحساب: {ref}",
+            "مصدر الزائر: رابط واتساب ذكي.",
+            "",
+            "قاعدة مهمة:",
+            "إذا كان الزائر يسأل عن منتجات أو خدمات، بع منتجات وخدمات صاحب هذا الرابط أولاً.",
+            "استخدم بيانات المشروع وروابط الدفع الخاصة بصاحب الرابط.",
+            "لا تخلط بين منتجات صاحب المشروع وباقات الصعب.",
+            "إذا الزائر قال إنه يريد دخل إضافي أو يريد نظام مثل هذا، اشرح له نظام الصعب واشتراكاته وفرصة الشراكة بدون وعد بدخل مضمون.",
+            "",
+        ]
+
+        if project_name:
+            context_lines.append(f"اسم المشروع: {_short_text(project_name, 160)}")
+
+        if description:
+            context_lines.append(f"وصف المشروع: {_short_text(description, 900)}")
+
+        if sales_instructions:
+            context_lines.append(f"تعليمات البيع الخاصة بالمشروع: {_short_text(sales_instructions, 900)}")
+
+        if plan_name or subscription_status:
+            context_lines.append(f"حالة حساب صاحب الرابط: الخطة {plan_name or '-'} / الحالة {subscription_status or '-'}")
+
+        if product_lines:
+            context_lines.append("")
+            context_lines.append("المنتجات أو الكتالوجات المتاحة:")
+            context_lines.extend(product_lines[:6])
+
+        if payment_lines:
+            context_lines.append("")
+            context_lines.append("روابط الدفع الخاصة بصاحب المشروع:")
+            context_lines.extend(payment_lines[:6])
+
+        if not project_name and not description and not product_lines and not payment_lines:
+            context_lines.append("لم يتم العثور على بيانات مشروع كافية. اسأل الزائر عن احتياجه ولا تدّعي وجود منتجات غير معروفة.")
+
+        return {
+            "project_name": str(project_name or "").strip(),
+            "plan_name": str(plan_name or "").strip(),
+            "subscription_status": str(subscription_status or "").strip(),
+            "context_text": "\n".join(context_lines),
+            "payment_links_count": len(payment_lines),
+            "product_groups_count": len(product_lines),
+        }
+
+    def _get_smart_project_context(ref):
+        import os
+        import time
+
+        ref = _normalize_ref(ref)
+
+        if not ref or ref.lower() == "alsaab":
+            return {
+                "project_name": "ALSAAB AI",
+                "context_text": "",
+                "subscription_status": "active",
+                "plan_name": "",
+                "payment_links_count": 0,
+                "product_groups_count": 0,
+            }
+
+        cache = getattr(app, "alsaab_smart_project_context_cache", None)
+        if cache is None:
+            cache = {}
+            setattr(app, "alsaab_smart_project_context_cache", cache)
+
+        now = time.time()
+        cached = cache.get(ref)
+
+        if cached and now - cached.get("ts", 0) < 300:
+            return cached.get("data") or {}
+
+        try:
+            database = _smart_db()
+
+            result = database.post_to_google_sheet_json(
+                {
+                    "token": os.getenv("GOOGLE_SHEET_TOKEN", ""),
+                    "action": "client_dashboard_data",
+                    "partner_id": ref,
+                    "client_id": ref,
+                    "source": "smart_link_context",
+                },
+                label="smart_link_client_dashboard_data",
+            )
+
+            data = _build_project_context_from_result(ref, result)
+            cache[ref] = {"ts": now, "data": data}
+            return data
+
+        except Exception as error:
+            print(f"SMART PROJECT CONTEXT FETCH ERROR ❌ {error}", flush=True)
+            return {
+                "project_name": "",
+                "context_text": f"تعذر تحميل بيانات صاحب الرابط {ref}. لا تدّعي معلومات غير مؤكدة.",
+                "subscription_status": "",
+                "plan_name": "",
+                "payment_links_count": 0,
+                "product_groups_count": 0,
+            }
+
+    def smart_link_context():
+        ref = _normalize_ref(
+            request.args.get("ref")
+            or request.args.get("aid")
+            or request.args.get("client_id")
+            or request.args.get("partner_id")
+            or ""
+        )
+
+        data = _get_smart_project_context(ref)
+
+        return jsonify({
+            "status": "success",
+            "smart_link_ref": ref,
+            "project_name": data.get("project_name", ""),
+            "plan_name": data.get("plan_name", ""),
+            "subscription_status": data.get("subscription_status", ""),
+            "payment_links_count": data.get("payment_links_count", 0),
+            "product_groups_count": data.get("product_groups_count", 0),
+        })
+
+    def smart_project_context_guard():
+        if request.path != "/chat" or request.method != "POST":
+            return None
+
+        try:
+            payload = request.get_json(silent=True)
+
+            if not isinstance(payload, dict):
+                return None
+
+            ref = _normalize_ref(
+                payload.get("smart_link_ref")
+                or payload.get("context_partner_id")
+                or payload.get("client_context_id")
+                or payload.get("source_partner_id")
+                or payload.get("ref")
+                or ""
+            )
+
+            if not ref or ref.lower() == "alsaab":
+                return None
+
+            original_message = str(payload.get("message") or "").strip()
+
+            if not original_message:
+                return None
+
+            if payload.get("smart_project_context_applied"):
+                return None
+
+            context_data = _get_smart_project_context(ref)
+            context_text = context_data.get("context_text") or ""
+
+            if context_text:
+                payload["original_user_message"] = original_message
+                payload["smart_project_context_applied"] = True
+                payload["smart_project_name"] = context_data.get("project_name", "")
+                payload["smart_project_plan"] = context_data.get("plan_name", "")
+                payload["smart_project_subscription_status"] = context_data.get("subscription_status", "")
+
+                payload["message"] = (
+                    context_text
+                    + "\n\nرسالة الزائر الحالية:\n"
+                    + original_message
+                )
+
+                request._cached_json = (payload, payload)
+
+        except Exception as error:
+            print(f"SMART PROJECT CONTEXT GUARD ERROR ❌ {error}", flush=True)
+
+        return None
+
+    def smart_project_context_ui_injector(response):
+        try:
+            if response.direct_passthrough:
+                return response
+
+            content_type = response.headers.get("Content-Type", "")
+
+            if "text/html" not in content_type and "javascript" not in content_type and request.path != "/widget.js":
+                return response
+
+            body = response.get_data(as_text=True)
+
+            if not body or "ALSAAB_SMART_PROJECT_CONTEXT_UI_V1" in body:
+                return response
+
+            js = r"""
+/* ALSAAB_SMART_PROJECT_CONTEXT_UI_V1 START */
+(function(){
+  try{
+    function getRef(){
+      var data = window.ALSAAB_SMART_LINK || {};
+      return data.ref || sessionStorage.getItem("alsaab_smart_ref") || localStorage.getItem("alsaab_smart_ref") || "";
+    }
+
+    function baseUrl(){
+      if (location.hostname.indexOf("onrender.com") !== -1) return "";
+      return "https://alsaab-ai.onrender.com";
+    }
+
+    function updateTitle(data){
+      if(!data || !data.project_name) return;
+
+      var title = document.querySelector(".alsaab-smart-title");
+      var subtitle = document.querySelector(".alsaab-smart-subtitle");
+
+      if(title){
+        title.textContent = "موظف المبيعات الذكي - " + data.project_name;
+      }
+
+      if(subtitle){
+        subtitle.textContent = "مرحباً بك في " + data.project_name + "، اختر من الخيارات أو اكتب طلبك.";
+      }
+    }
+
+    function load(){
+      var ref = getRef();
+      if(!ref) return;
+
+      fetch(baseUrl() + "/smart-link-context?ref=" + encodeURIComponent(ref))
+        .then(function(r){ return r.json(); })
+        .then(updateTitle)
+        .catch(function(){});
+    }
+
+    if(document.readyState === "loading"){
+      document.addEventListener("DOMContentLoaded", function(){ setTimeout(load, 500); });
+    }else{
+      setTimeout(load, 500);
+    }
+  }catch(e){}
+})();
+/* ALSAAB_SMART_PROJECT_CONTEXT_UI_V1 END */
+"""
+            if "text/html" in content_type and "</body>" in body:
+                body = body.replace("</body>", "<script>\n" + js + "\n</script>\n</body>", 1)
+                response.set_data(body)
+                return response
+
+            if "javascript" in content_type or request.path == "/widget.js":
+                body = body + "\n\n" + js + "\n"
+                response.set_data(body)
+                return response
+
+        except Exception as error:
+            print(f"SMART PROJECT CONTEXT UI INJECTOR ERROR ❌ {error}", flush=True)
+
+        return response
+
+    # ===== ALSAAB_SMART_PROJECT_CONTEXT_V1 END =====
+
+
     existing_rules = {str(rule.rule) for rule in app.url_map.iter_rules()}
 
     if "/smart-link-debug" not in existing_rules:
@@ -629,5 +1030,15 @@ def register_smart_link_routes(app):
             methods=["GET"],
         )
 
+    if "/smart-link-context" not in existing_rules:
+        app.add_url_rule(
+            "/smart-link-context",
+            "smart_link_context",
+            smart_link_context,
+            methods=["GET"],
+        )
+
     app.before_request(smart_link_chat_payload_guard)
+    app.before_request(smart_project_context_guard)
     app.after_request(smart_link_injector)
+    app.after_request(smart_project_context_ui_injector)
