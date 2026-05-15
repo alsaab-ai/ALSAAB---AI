@@ -212,14 +212,16 @@ SMART_LINK_JS = r"""
                 <div class="alsaab-smart-title">موظف المبيعات الذكي</div>
                 <div class="alsaab-smart-subtitle">مرحباً بك، اكتب طلبك أو اختر من الخيارات السريعة.</div>
               </div>
-              <button type="button" class="alsaab-smart-back" id="alsaabSmartBackBtn">الرجوع إلى واتساب</button>
+              <div class="alsaab-smart-top-actions">
+                <button type="button" class="alsaab-smart-money" id="alsaabSmartIncomeBtn">💰 أريد فرصة دخل إضافي</button>
+                <button type="button" class="alsaab-smart-back" id="alsaabSmartBackBtn">الرجوع إلى واتساب</button>
+              </div>
             </div>
 
             <div class="alsaab-smart-quick">
               <button type="button" data-msg="أريد معرفة الأسعار">أريد معرفة الأسعار</button>
               <button type="button" data-msg="أريد المنتج أو الخدمة الأنسب لي">أريد الأنسب لي</button>
               <button type="button" data-msg="أريد رابط الدفع">أريد رابط الدفع</button>
-              <button type="button" data-msg="أريد فرصة دخل إضافي">أريد فرصة دخل إضافي</button>
               <button type="button" data-msg="أريد التحدث مع شخص">أريد التحدث مع شخص</button>
             </div>
 
@@ -301,6 +303,33 @@ SMART_LINK_JS = r"""
           cursor:pointer;
           white-space:nowrap;
         }
+
+        /* ALSAAB_SMART_INCOME_BUTTON_TOP_V2 START */
+        .alsaab-smart-top-actions{
+          display:flex;
+          flex-direction:column;
+          align-items:flex-start;
+          gap:9px;
+          min-width:190px;
+        }
+
+        .alsaab-smart-money{
+          border:1px solid rgba(64,220,120,.85)!important;
+          color:#061b0e!important;
+          background:linear-gradient(135deg,#43e97b,#168a45)!important;
+          border-radius:999px;
+          padding:11px 15px;
+          font-weight:950;
+          cursor:pointer;
+          white-space:nowrap;
+          box-shadow:0 0 22px rgba(67,233,123,.25);
+        }
+
+        .alsaab-smart-money:hover{
+          transform:translateY(-1px);
+          box-shadow:0 0 28px rgba(67,233,123,.38);
+        }
+        /* ALSAAB_SMART_INCOME_BUTTON_TOP_V2 END */
 
         .alsaab-smart-quick{
           display:flex;
@@ -459,6 +488,13 @@ SMART_LINK_JS = r"""
         })
         .catch(function () {
           typing.innerHTML = "صار خطأ مؤقت. جرّب مرة ثانية أو اطلب التحدث مع شخص.";
+        });
+      }
+
+      var incomeBtn = document.getElementById("alsaabSmartIncomeBtn");
+      if (incomeBtn) {
+        incomeBtn.addEventListener("click", function () {
+          send("أريد فرصة دخل إضافي");
         });
       }
 
