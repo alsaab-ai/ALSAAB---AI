@@ -8795,9 +8795,18 @@ except ImportError:
 
 register_upgrade_routes(app, ADMIN_KEY)
 # ===== ALSAAB UPGRADE ROUTES REGISTER END =====
+# ===== ALSAAB SMART LINK ROUTES REGISTER START =====
+try:
+    from smart_link_routes import register_smart_link_routes
+except ImportError:
+    from backend.smart_link_routes import register_smart_link_routes
+
+register_smart_link_routes(app)
+# ===== ALSAAB SMART LINK ROUTES REGISTER END =====
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 10000))
     app.run(host="0.0.0.0", port=port, debug=False)
+
 
 
 
