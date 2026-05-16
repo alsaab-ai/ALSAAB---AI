@@ -22,7 +22,8 @@ try:
     from config import PACKAGES, USAGE_LIMIT_MESSAGES
 except Exception:
     PACKAGES = {
-        "starter": {"monthly_reply_limit": 2000},
+        "entry": {"monthly_reply_limit": 500},
+    "starter": {"monthly_reply_limit": 2000},
         "growth": {"monthly_reply_limit": 6000},
         "elite": {"monthly_reply_limit": 15000},
     }
@@ -518,7 +519,7 @@ def post_to_google_sheet(payload, label="unknown"):
 def post_to_google_sheet_json(payload, label="unknown"):
     """
     نفس فكرة post_to_google_sheet، لكن يرجع JSON كامل.
-    نحتاجه في MLM عشان نستلم partner_id و referral_link من Google Apps Script.
+    نحتاجه في التسويق بالعمولة متعدد المستويات عشان نستلم partner_id و referral_link من Google Apps Script.
     """
     print(f"GOOGLE SHEET JSON SEND START ✅ label={label}", flush=True)
 
@@ -1167,6 +1168,10 @@ def normalize_plan_name(plan_name):
     plan_name = str(plan_name).lower().strip()
 
     aliases = {
+        "entry": "entry",
+        "دخول": "entry",
+        "الدخول": "entry",
+        "باقة الدخول": "entry",
         "start": "starter",
         "basic": "starter",
         "beginner": "starter",
@@ -1222,6 +1227,9 @@ def get_plan_reply_limit(plan_name, custom_reply_limit=None):
 
     except Exception as error:
         print(f"GET PLAN REPLY LIMIT CONFIG ERROR ⚠️ {error}", flush=True)
+
+    if plan == "entry":
+        return 500
 
     if plan == "starter":
         return 2000
@@ -2358,7 +2366,7 @@ def export_subscriptions_for_google_sheets():
 
 
 # =========================
-# MLM / PARTNER GOOGLE SHEETS SYSTEM
+# التسويق بالعمولة متعدد المستويات / PARTNER GOOGLE SHEETS SYSTEM
 # =========================
 
 def send_partner_to_google_sheet(
@@ -2733,7 +2741,7 @@ def send_mlm_level_to_google_sheet(
     last_updated=""
 ):
     """
-    يسجل أو يحدث مستوى الشريك في Google Sheet صفحة MLMLevels.
+    يسجل أو يحدث مستوى الشريك في Google Sheet صفحة التسويق بالعمولة متعدد المستوياتLevels.
     يدعم الأعمدة الجديدة:
     Current Package, Subscription Status, Commission Eligible, Missing Requirements, Last Updated
     """
@@ -3570,7 +3578,7 @@ def _build_required_course_text(required_courses):
 
 def sync_partner_level_progress_to_google_sheet(partner_id):
     """
-    يحسب مستوى الشريك الحقيقي من قاعدة البيانات ثم يرسله إلى Google Sheets / MLMLevels.
+    يحسب مستوى الشريك الحقيقي من قاعدة البيانات ثم يرسله إلى Google Sheets / التسويق بالعمولة متعدد المستوياتLevels.
     هذا لا يدفع عمولات. فقط يحدّث حالة المستوى والتقدم.
     """
     partner_id = normalize_partner_id(partner_id)
@@ -3584,7 +3592,7 @@ def sync_partner_level_progress_to_google_sheet(partner_id):
     if str(partner_id).lower() == str(COMPANY_OWNER_PARTNER_ID).lower():
         return {
             "status": "skipped",
-            "message": "company owner does not need MLM level sync",
+            "message": "company owner does not need التسويق بالعمولة متعدد المستويات level sync",
             "partner_id": partner_id
         }
 

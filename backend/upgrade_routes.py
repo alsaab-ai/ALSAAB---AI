@@ -4,6 +4,7 @@ import os
 
 # ===== ALSAAB_UPGRADE_SCHEDULE_STRIPE_V1 START =====
 UPGRADE_PRICE_IDS = {
+    "entry": "price_1TXetrJbltD9Bsg8wnVMaBnZ",
     "starter": "price_1TWEwPJbltD9Bsg8SH2xMao1",
     "growth": "price_1TWFRJJbltD9Bsg8vgUXA1WD",
     "elite": "price_1TWFUhJbltD9Bsg848phcf6P",
@@ -550,6 +551,7 @@ Stripe Schedule: {{ schedule_id }}
     <label>الباقة الحالية</label>
     <select name="current_plan" required>
       <option value="">اختر الباقة الحالية</option>
+      <option value="entry">الدخول / Entry</option>
       <option value="starter">البداية / Starter</option>
       <option value="growth">النمو / Growth</option>
       <option value="elite">النخبة / Elite</option>
@@ -558,6 +560,7 @@ Stripe Schedule: {{ schedule_id }}
     <label>الباقة المطلوبة</label>
     <select name="target_plan" required>
       <option value="">اختر الباقة الجديدة</option>
+      <option value="starter">البداية / Starter — 599 AED</option>
       <option value="growth">النمو / Growth — 1099 AED</option>
       <option value="elite">النخبة / Elite — 2099 AED</option>
     </select>

@@ -31,6 +31,26 @@ APP_BASE_URL = os.getenv("APP_BASE_URL", "https://alsaab-ai.onrender.com")
 # =========================
 
 PACKAGES = {
+
+    "entry": {
+        "name_ar": "باقة الدخول",
+        "name_en": "Entry Package",
+        "price_ar": "299 درهم إماراتي شهرياً",
+        "price_en": "299 AED monthly",
+        "monthly_reply_limit": 500,
+        "customer_reply_limit": 500,
+        "owner_advisory_reply_limit": 0,
+        "max_payment_links": 1,
+        "max_product_images": 1,
+        "max_product_image_groups": 1,
+        "website_channel": False,
+        "instagram_channel": False,
+        "smart_whatsapp_entry": True,
+        "support_level": "دعم عادي",
+        "description_ar": "باقة دخول محدودة للتجربة: 500 رد شهري، رابط دفع واحد، وصورة منتج واحدة فقط.",
+        "description_en": "Limited entry package: 500 monthly replies, one payment link, and one product image only.",
+    },
+
     "starter": {
         "name_ar": "باقة البداية",
         "price_ar": "599 درهم إماراتي شهرياً",
@@ -256,10 +276,10 @@ USAGE_LIMIT_MESSAGES = {
 
 
 # =========================
-# MLM LEVELS
+# التسويق بالعمولة متعدد المستويات LEVELS
 # =========================
 
-MLM_LEVELS = {
+التسويق بالعمولة متعدد المستويات_LEVELS = {
     "level_1": {
         "name_ar": "المستوى الأول",
         "title_ar": "شريك البداية",
@@ -308,13 +328,13 @@ MLM_LEVELS = {
 
 
 # =========================
-# MLM OWNER / SPONSOR RULES
+# التسويق بالعمولة متعدد المستويات OWNER / SPONSOR RULES
 # =========================
 
 COMPANY_OWNER_PARTNER_ID = os.getenv("COMPANY_OWNER_PARTNER_ID", "alsaab")
-MLM_OWNER_PARTNER_ID = COMPANY_OWNER_PARTNER_ID
+التسويق بالعمولة متعدد المستويات_OWNER_PARTNER_ID = COMPANY_OWNER_PARTNER_ID
 
-MLM_SPONSOR_RULES = {
+التسويق بالعمولة متعدد المستويات_SPONSOR_RULES = {
     "require_sponsor_for_partner_registration": True,
     "owner_partner_id": COMPANY_OWNER_PARTNER_ID,
     "owner_id_is_company_income": True,
@@ -333,7 +353,7 @@ MLM_SPONSOR_RULES = {
 }
 
 
-MLM_SOURCE_OPTIONS = {
+التسويق بالعمولة متعدد المستويات_SOURCE_OPTIONS = {
     "direct_partner": {
         "name_ar": "عن طريق شريك",
         "requires_partner_id": True,
@@ -367,7 +387,7 @@ MLM_SOURCE_OPTIONS = {
 }
 
 
-MLM_REGISTRATION_MESSAGES = {
+التسويق بالعمولة متعدد المستويات_REGISTRATION_MESSAGES = {
     "ask_source_ar": (
         "قبل ما أكمل تسجيلك كشريك، لازم نربط تسجيلك بالشخص أو المصدر اللي عرّفك على النظام عشان نحفظ الحقوق بدقة.\n\n"
         "من وين عرفت ALSAAB AI؟\n"
@@ -476,6 +496,20 @@ PAYMENT_ROUTE_LINKS = {
 # إعدادات ربط الباقات مع Stripe Webhook.
 # Webhook سيستخدم plan_name لتفعيل الاشتراك وحد الردود.
 STRIPE_PLAN_CONFIG = {
+    "entry": {
+
+        "plan_name": "entry",
+
+        "payment_link": PAYMENT_LINKS["entry"],
+
+        "internal_payment_route": PAYMENT_ROUTE_LINKS["entry"],
+
+        "monthly_reply_limit": PACKAGES["entry"]["monthly_reply_limit"],
+
+        "package_amount": "299 AED",
+
+    },
+
     "starter": {
         "plan_name": "starter",
         "payment_link": PAYMENT_LINKS["starter"],
