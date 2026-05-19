@@ -32,6 +32,16 @@ from urllib.parse import urlencode, urlparse, urlunparse, parse_qsl
 
 app = Flask(__name__)
 
+# ===== ALSAAB SMART LINK EVENT FILTER REGISTER START =====
+try:
+    from smart_link_event_filter_routes import register_smart_link_event_filter_routes
+except ImportError:
+    from backend.smart_link_event_filter_routes import register_smart_link_event_filter_routes
+
+register_smart_link_event_filter_routes(app)
+# ===== ALSAAB SMART LINK EVENT FILTER REGISTER END =====
+
+
 # ===== ALSAAB DASHBOARD FAST MODE REGISTER START =====
 try:
     from dashboard_fast_mode_routes import register_dashboard_fast_mode_routes
@@ -8888,6 +8898,7 @@ register_smart_link_summary_cache_routes(app)
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 10000))
     app.run(host="0.0.0.0", port=port, debug=False)
+
 
 
 
