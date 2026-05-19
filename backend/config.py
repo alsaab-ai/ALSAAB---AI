@@ -1,4 +1,4 @@
-﻿# config.py
+# config.py
 
 # =========================
 # OPENAI
@@ -529,3 +529,128 @@ CLOSING_RULES = {
 
 GOOGLE_SHEET_WEBHOOK_URL = "https://script.google.com/macros/s/AKfycbyzkc4XmHk9xWXXqx1O6MERc1NGzuyB1R2txElenks7yZEJrV8c5BRI5LVGtj8mj2BcCA/exec"
 GOOGLE_SHEET_TOKEN = "alsaab_sheet_2026"
+
+
+# ===== ALSAAB_ENTRY_PACKAGE_SAFE_V2 START =====
+# Entry package is added safely at the end of config.py.
+# This block does not edit existing dictionaries manually.
+
+ENTRY_PACKAGE_PRICE_ID = "price_1TXetrJbltD9Bsg8wnVMaBnZ"
+ENTRY_PACKAGE_PAYMENT_LINK = "https://buy.stripe.com/6oU3cw3laalw7oy7oXaEE06"
+
+ENTRY_PACKAGE_CONFIG = {
+    "name_ar": "باقة الدخول",
+    "name_en": "Entry",
+    "price_ar": "299 درهم إماراتي شهرياً",
+    "price_en": "299 AED monthly",
+    "monthly_reply_limit": 500,
+    "customer_reply_limit": 500,
+    "owner_advisory_reply_limit": 0,
+    "max_payment_links": 1,
+    "max_product_images": 1,
+    "max_product_image_groups": 1,
+    "website_channel": False,
+    "instagram_channel": False,
+    "smart_whatsapp_entry": True,
+    "support_level": "دعم عادي",
+    "description_ar": "باقة دخول محدودة للتجربة: 500 رد شهري، رابط دفع واحد، وصورة منتج واحدة فقط، بدون خصائص إضافية.",
+    "description_en": "Limited entry package: 500 monthly replies, one payment link, and one product image only.",
+}
+
+try:
+    PACKAGES
+except NameError:
+    PACKAGES = {}
+
+try:
+    if isinstance(PACKAGES, dict):
+        PACKAGES["entry"] = ENTRY_PACKAGE_CONFIG
+except Exception:
+    pass
+
+try:
+    PAYMENT_LINKS
+except NameError:
+    PAYMENT_LINKS = {}
+
+try:
+    if isinstance(PAYMENT_LINKS, dict):
+        PAYMENT_LINKS["entry"] = ENTRY_PACKAGE_PAYMENT_LINK
+except Exception:
+    pass
+
+try:
+    PAYMENT_ROUTE_LINKS
+except NameError:
+    PAYMENT_ROUTE_LINKS = {}
+
+try:
+    app_base = globals().get("APP_BASE_URL", "https://alsaab-ai.onrender.com")
+    if isinstance(PAYMENT_ROUTE_LINKS, dict):
+        PAYMENT_ROUTE_LINKS["entry"] = f"{app_base}/pay/entry"
+except Exception:
+    pass
+
+for _entry_price_dict_name in [
+    "UPGRADE_PRICE_IDS",
+    "STRIPE_PRICE_IDS",
+    "PLAN_PRICE_IDS",
+    "PACKAGE_PRICE_IDS",
+]:
+    try:
+        _entry_price_dict = globals().get(_entry_price_dict_name)
+        if isinstance(_entry_price_dict, dict):
+            _entry_price_dict["entry"] = ENTRY_PACKAGE_PRICE_ID
+    except Exception:
+        pass
+
+for _entry_limit_dict_name in [
+    "PACKAGE_LIMITS",
+    "PLAN_LIMITS",
+    "USAGE_LIMITS",
+    "REPLY_LIMITS",
+]:
+    try:
+        _entry_limit_dict = globals().get(_entry_limit_dict_name)
+        if isinstance(_entry_limit_dict, dict):
+            _entry_limit_dict["entry"] = {
+                "monthly_reply_limit": 500,
+                "customer_reply_limit": 500,
+                "owner_advisory_reply_limit": 0,
+                "max_payment_links": 1,
+                "max_product_images": 1,
+                "max_product_image_groups": 1,
+            }
+    except Exception:
+        pass
+
+try:
+    PACKAGE_PAYMENT_OPTIONS
+except NameError:
+    PACKAGE_PAYMENT_OPTIONS = {}
+
+try:
+    if isinstance(PACKAGE_PAYMENT_OPTIONS, dict):
+        PACKAGE_PAYMENT_OPTIONS["entry"] = {
+            "plan_name": "entry",
+            "payment_link": ENTRY_PACKAGE_PAYMENT_LINK,
+            "internal_payment_route": PAYMENT_ROUTE_LINKS.get("entry", "https://alsaab-ai.onrender.com/pay/entry"),
+            "monthly_reply_limit": 500,
+            "package_amount": "299 AED",
+        }
+except Exception:
+    pass
+
+try:
+    PACKAGE_ORDER
+except NameError:
+    PACKAGE_ORDER = ["entry", "starter", "growth", "elite"]
+
+try:
+    if isinstance(PACKAGE_ORDER, list) and "entry" not in PACKAGE_ORDER:
+        PACKAGE_ORDER.insert(0, "entry")
+except Exception:
+    pass
+
+# ===== ALSAAB_ENTRY_PACKAGE_SAFE_V2 END =====
+
