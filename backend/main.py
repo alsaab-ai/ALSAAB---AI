@@ -8867,9 +8867,18 @@ except ImportError:
 
 register_rank_dashboard_polish_routes(app)
 # ===== ALSAAB RANK DASHBOARD POLISH ROUTES REGISTER END =====
+# ===== ALSAAB SMART LINK SUMMARY CACHE REGISTER START =====
+try:
+    from smart_link_summary_cache_routes import register_smart_link_summary_cache_routes
+except ImportError:
+    from backend.smart_link_summary_cache_routes import register_smart_link_summary_cache_routes
+
+register_smart_link_summary_cache_routes(app)
+# ===== ALSAAB SMART LINK SUMMARY CACHE REGISTER END =====
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 10000))
     app.run(host="0.0.0.0", port=port, debug=False)
+
 
 
 
