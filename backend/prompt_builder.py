@@ -1227,3 +1227,90 @@ for _prompt_const_name in [
         globals()[_prompt_const_name] = _alsaab_append_entry_emirati_prompt_v2(_prompt_const)
 
 # ===== ALSAAB_ENTRY_EMIRATI_SALES_PROMPT_V2 END =====
+
+# ===== ALSAAB_ENTRY_PAYMENT_LINK_FIX_V1 START =====
+# Fix Entry payment link behavior inside the sales prompt.
+
+ALSAAB_ENTRY_PAYMENT_LINK_FIX_PROMPT = """
+ALSAAB_ENTRY_PAYMENT_LINK_FIX_V1_ACTIVE
+
+قاعدة مهمة جداً لروابط الدفع:
+
+إذا العميل طلب رابط باقة الدخول أو Entry:
+- ممنوع ترسل رابط Starter.
+- ممنوع تستخدم /pay/starter.
+- رابط باقة الدخول الصحيح هو:
+https://alsaab-ai.onrender.com/pay/entry
+
+إذا عندك رقم جلسة أو sid، استخدم:
+https://alsaab-ai.onrender.com/pay/entry?sid=<sid>
+
+باقة الدخول:
+- السعر: 299 درهم شهرياً
+- 500 رد شهري فقط
+- رابط دفع واحد فقط
+- صورة منتج واحدة فقط
+- بدون خصائص إضافية
+- مناسبة للتجربة المحدودة فقط
+
+إذا العميل قال إن الرابط غلط، صحح فوراً وقل:
+صح، هذا رابط باقة الدخول الصحيح:
+https://alsaab-ai.onrender.com/pay/entry
+
+لا تعتذر بإطالة، صحح مباشرة.
+"""
+
+def _alsaab_append_entry_payment_link_fix(prompt_text):
+    if not isinstance(prompt_text, str):
+        return prompt_text
+
+    if "ALSAAB_ENTRY_PAYMENT_LINK_FIX_V1_ACTIVE" in prompt_text:
+        return prompt_text
+
+    return prompt_text.rstrip() + "\n\n" + ALSAAB_ENTRY_PAYMENT_LINK_FIX_PROMPT.strip() + "\n"
+
+def _alsaab_wrap_entry_payment_prompt_function(_fn):
+    if getattr(_fn, "_alsaab_entry_payment_link_wrapped", False):
+        return _fn
+
+    def _wrapped(*args, **kwargs):
+        result = _fn(*args, **kwargs)
+        if isinstance(result, str):
+            return _alsaab_append_entry_payment_link_fix(result)
+        return result
+
+    _wrapped._alsaab_entry_payment_link_wrapped = True
+    return _wrapped
+
+for _prompt_fn_name in [
+    "build_prompt",
+    "build_system_prompt",
+    "build_chat_prompt",
+    "build_sales_prompt",
+    "build_main_prompt",
+    "build_master_prompt",
+    "build_conversation_prompt",
+    "build_base_prompt",
+    "get_prompt",
+    "get_system_prompt",
+    "get_sales_prompt",
+    "create_prompt",
+    "create_system_prompt",
+]:
+    _prompt_fn = globals().get(_prompt_fn_name)
+    if callable(_prompt_fn):
+        globals()[_prompt_fn_name] = _alsaab_wrap_entry_payment_prompt_function(_prompt_fn)
+
+for _prompt_const_name in [
+    "SYSTEM_PROMPT",
+    "BASE_PROMPT",
+    "MASTER_PROMPT",
+    "DEFAULT_SYSTEM_PROMPT",
+    "SALES_SYSTEM_PROMPT",
+    "MAIN_SYSTEM_PROMPT",
+]:
+    _prompt_const = globals().get(_prompt_const_name)
+    if isinstance(_prompt_const, str):
+        globals()[_prompt_const_name] = _alsaab_append_entry_payment_link_fix(_prompt_const)
+
+# ===== ALSAAB_ENTRY_PAYMENT_LINK_FIX_V1 END =====

@@ -8843,9 +8843,18 @@ except ImportError:
 
 register_cancellation_routes(app, ADMIN_KEY)
 # ===== ALSAAB CANCELLATION ROUTES REGISTER END =====
+# ===== ALSAAB ENTRY PAYMENT ROUTES REGISTER START =====
+try:
+    from entry_payment_routes import register_entry_payment_routes
+except ImportError:
+    from backend.entry_payment_routes import register_entry_payment_routes
+
+register_entry_payment_routes(app)
+# ===== ALSAAB ENTRY PAYMENT ROUTES REGISTER END =====
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 10000))
     app.run(host="0.0.0.0", port=port, debug=False)
+
 
 
 
