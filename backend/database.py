@@ -1,4 +1,4 @@
-﻿# database.py
+# database.py
 
 import sqlite3
 import json
@@ -3792,4 +3792,181 @@ def send_wordpress_account_link(
 
 # ===== ALSAAB_WORDPRESS_ACCOUNT_LINK_V1 END =====
 
+
+# ===== ALSAAB_ENTRY_DATABASE_SAFE_V1 START =====
+# Safe Entry package support for database.py.
+# This block is additive and does not edit existing functions manually.
+
+ENTRY_PLAN_KEY = "entry"
+
+ENTRY_PLAN_ALIASES = {
+    "entry": "entry",
+    "دخول": "entry",
+    "الدخول": "entry",
+    "باقة الدخول": "entry",
+    "entry package": "entry",
+}
+
+ENTRY_PLAN_LIMITS = {
+    "monthly_reply_limit": 500,
+    "customer_reply_limit": 500,
+    "owner_advisory_reply_limit": 0,
+    "max_payment_links": 1,
+    "max_product_images": 1,
+    "max_product_image_groups": 1,
+}
+
+def _alsaab_entry_normalize_plan(value):
+    raw = str(value or "").strip()
+
+    if not raw:
+        return ""
+
+    raw_lower = raw.lower()
+
+    if raw_lower in ENTRY_PLAN_ALIASES:
+        return ENTRY_PLAN_ALIASES[raw_lower]
+
+    if raw in ENTRY_PLAN_ALIASES:
+        return ENTRY_PLAN_ALIASES[raw]
+
+    return raw_lower
+
+def _alsaab_entry_patch_known_limit_dicts():
+    dict_names = [
+        "PLAN_LIMITS",
+        "PACKAGE_LIMITS",
+        "USAGE_LIMITS",
+        "REPLY_LIMITS",
+        "MONTHLY_REPLY_LIMITS",
+        "PLAN_REPLY_LIMITS",
+        "PACKAGE_REPLY_LIMITS",
+    ]
+
+    for name in dict_names:
+        value = globals().get(name)
+
+        if not isinstance(value, dict):
+            continue
+
+        if "entry" in value:
+            continue
+
+        starter_value = value.get("starter")
+
+        if isinstance(starter_value, int):
+            value["entry"] = 500
+        elif isinstance(starter_value, dict):
+            entry_value = dict(starter_value)
+            entry_value.update(ENTRY_PLAN_LIMITS)
+            value["entry"] = entry_value
+        else:
+            value["entry"] = dict(ENTRY_PLAN_LIMITS)
+
+def _alsaab_entry_patch_known_order_lists():
+    list_names = [
+        "PLAN_ORDER",
+        "PACKAGE_ORDER",
+    ]
+
+    for name in list_names:
+        value = globals().get(name)
+
+        if isinstance(value, list) and "entry" not in value:
+            value.insert(0, "entry")
+
+def _alsaab_entry_wrap_normalizers():
+    function_names = [
+        "normalize_plan",
+        "normalize_plan_name",
+        "normalize_package",
+        "normalize_package_name",
+        "normalize_plan_key",
+        "normalize_package_key",
+    ]
+
+    for function_name in function_names:
+        old_function = globals().get(function_name)
+
+        if not callable(old_function):
+            continue
+
+        if getattr(old_function, "_alsaab_entry_wrapped", False):
+            continue
+
+        def wrapper(value=None, *args, _old_function=old_function, **kwargs):
+            normalized = _alsaab_entry_normalize_plan(value)
+
+            if normalized == "entry":
+                return "entry"
+
+            return _old_function(value, *args, **kwargs)
+
+        wrapper._alsaab_entry_wrapped = True
+        globals()[function_name] = wrapper
+
+def _alsaab_entry_wrap_limit_functions():
+    function_names = [
+        "get_plan_limits",
+        "get_package_limits",
+        "get_usage_limits",
+        "get_reply_limits",
+        "get_monthly_reply_limit",
+        "get_customer_reply_limit",
+        "get_owner_advisory_reply_limit",
+        "get_max_payment_links",
+        "get_max_product_images",
+        "get_max_product_image_groups",
+    ]
+
+    for function_name in function_names:
+        old_function = globals().get(function_name)
+
+        if not callable(old_function):
+            continue
+
+        if getattr(old_function, "_alsaab_entry_wrapped", False):
+            continue
+
+        def wrapper(plan=None, *args, _old_function=old_function, _function_name=function_name, **kwargs):
+            normalized = _alsaab_entry_normalize_plan(plan)
+
+            if normalized == "entry":
+                if "limits" in _function_name:
+                    return dict(ENTRY_PLAN_LIMITS)
+
+                if "owner_advisory" in _function_name:
+                    return 0
+
+                if "payment_links" in _function_name:
+                    return 1
+
+                if "product_image_groups" in _function_name:
+                    return 1
+
+                if "product_images" in _function_name:
+                    return 1
+
+                return 500
+
+            return _old_function(plan, *args, **kwargs)
+
+        wrapper._alsaab_entry_wrapped = True
+        globals()[function_name] = wrapper
+
+def get_entry_plan_limits():
+    return dict(ENTRY_PLAN_LIMITS)
+
+_al_saab_entry_patch_done = False
+
+try:
+    _alsaab_entry_patch_known_limit_dicts()
+    _alsaab_entry_patch_known_order_lists()
+    _alsaab_entry_wrap_normalizers()
+    _alsaab_entry_wrap_limit_functions()
+    _al_saab_entry_patch_done = True
+except Exception as _entry_database_error:
+    print(f"ENTRY DATABASE PATCH WARNING: {_entry_database_error}", flush=True)
+
+# ===== ALSAAB_ENTRY_DATABASE_SAFE_V1 END =====
 
