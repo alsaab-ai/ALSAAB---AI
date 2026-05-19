@@ -1,3 +1,4 @@
+from flask import request
 ﻿from flask import request, jsonify
 import re
 
@@ -1302,6 +1303,10 @@ def register_smart_link_routes(app):
     # ===== ALSAAB_SMART_WHATSAPP_HANDOFF_V1 START =====
     def smart_whatsapp_handoff_ui_injector(response):
         try:
+            # ALSAAB_DASHBOARD_NO_PUBLIC_SMART_SCRIPTS_V1
+            if request.path in ["/client-dashboard", "/partner-dashboard"]:
+                return response
+
             if response.direct_passthrough:
                 return response
 
