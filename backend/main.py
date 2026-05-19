@@ -8859,9 +8859,18 @@ except ImportError:
 
 register_rank_dashboard_routes(app)
 # ===== ALSAAB RANK DASHBOARD ROUTES REGISTER END =====
+# ===== ALSAAB RANK DASHBOARD POLISH ROUTES REGISTER START =====
+try:
+    from rank_dashboard_polish_routes import register_rank_dashboard_polish_routes
+except ImportError:
+    from backend.rank_dashboard_polish_routes import register_rank_dashboard_polish_routes
+
+register_rank_dashboard_polish_routes(app)
+# ===== ALSAAB RANK DASHBOARD POLISH ROUTES REGISTER END =====
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 10000))
     app.run(host="0.0.0.0", port=port, debug=False)
+
 
 
 
