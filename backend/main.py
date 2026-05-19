@@ -32,6 +32,16 @@ from urllib.parse import urlencode, urlparse, urlunparse, parse_qsl
 
 app = Flask(__name__)
 
+# ===== ALSAAB DASHBOARD FAST MODE REGISTER START =====
+try:
+    from dashboard_fast_mode_routes import register_dashboard_fast_mode_routes
+except ImportError:
+    from backend.dashboard_fast_mode_routes import register_dashboard_fast_mode_routes
+
+register_dashboard_fast_mode_routes(app)
+# ===== ALSAAB DASHBOARD FAST MODE REGISTER END =====
+
+
 
 # ===== ALSAAB_DASHBOARD_SSO_SESSION_SECRET_V1 START =====
 app.secret_key = os.environ.get(
@@ -8878,6 +8888,7 @@ register_smart_link_summary_cache_routes(app)
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 10000))
     app.run(host="0.0.0.0", port=port, debug=False)
+
 
 
 
