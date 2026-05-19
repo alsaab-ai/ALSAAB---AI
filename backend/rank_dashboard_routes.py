@@ -38,359 +38,6 @@ def _clean_client_rank_payload(value):
     return value
 
 
-def _walk(value):
-    found = []
-
-    def inner(item):
-        if isinstance(item, dict):
-            found.append(item)
-            for child in item.values():
-                inner(child)
-        elif isinstance(item, list):
-            for child in item:
-                inner(child)
-
-    inner(value)
-    return found
-
-
-def _first_value(data, keys):
-    if not isinstance(data, dict):
-        return ""
-
-    all_dicts = _walk(data)
-
-    for item in all_dicts:
-        lower = {str(k).strip().lower(): v for k, v in item.items()}
-
-        for key in keys:
-            wanted = str(key).strip().lower()
-
-            if wanted in lower and str(lower[wanted] or "").strip():
-                return lower[wanted]
-
-    return ""
-
-
-def _text(value):
-    return str(value or "").strip()
-
-
-def _number(value, default=0):
-    raw = _text(value)
-
-    if not raw:
-        return default
-
-    match = re.search(r"\d+", raw)
-
-    if not match:
-        return default
-
-    try:
-        return int(match.group(0))
-    except Exception:
-        return default
-
-
-def _normalize_plan(value):
-    raw = _text(value).lower()
-
-    mapping = {
-        "entry": "entry",
-        "دخول": "entry",
-        "الدخول": "entry",
-        "باقة الدخول": "entry",
-
-        "starter": "starter",
-        "start": "starter",
-        "بداية": "starter",
-        "البداية": "starter",
-        "باقة البداية": "starter",
-
-        "growth": "growth",
-        "grow": "growth",
-        "نمو": "growth",
-        "النمو": "growth",
-        "باقة النمو": "growth",
-
-        "elite": "elite",
-        "نخبة": "elite",
-        "النخبة": "elite",
-        "باقة النخبة": "elite",
-    }
-
-    return mapping.get(raw, raw)
-
-
-def _plan_rank(plan):
-    return {
-        "entry": 1,
-        "starter": 2,
-        "growth": 3,
-        "elite": 4,
-    }.get(_normalize_plan(plan), 0)
-
-
-def _plan_at_least(plan, minimum):
-    return _plan_rank(plan) >= _plan_rank(minimum)
-
-
-def _rank_details(level):
-    ranks = {
-        0: {
-            "level": 0,
-            "title_ar": "غير مؤهل حاليا",
-            "title_en": "Not Qualified",
-            "color_ar": "رمادي",
-            "color_hex": "#777777",
-            "commission_percent": 0,
-        },
-        1: {
-            "level": 1,
-            "title_ar": "شريك مباشر",
-            "title_en": "Direct Partner",
-            "color_ar": "برونزي",
-            "color_hex": "#CD7F32",
-            "commission_percent": 25,
-        },
-        2: {
-            "level": 2,
-            "title_ar": "شريك البداية",
-            "title_en": "Starter Partner",
-            "color_ar": "فضي",
-            "color_hex": "#C0C0C0",
-            "commission_percent": 5,
-        },
-        3: {
-            "level": 3,
-            "title_ar": "شريك متقدم",
-            "title_en": "Advanced Partner",
-            "color_ar": "ذهبي",
-            "color_hex": "#D7B85A",
-            "commission_percent": 4,
-        },
-        4: {
-            "level": 4,
-            "title_ar": "شريك النمو",
-            "title_en": "Growth Partner",
-            "color_ar": "بلاتيني",
-            "color_hex": "#E5E4E2",
-            "commission_percent": 3,
-        },
-        5: {
-            "level": 5,
-            "title_ar": "شريك النخبة",
-            "title_en": "Elite Partner",
-            "color_ar": "ماسي",
-            "color_hex": "#B9F2FF",
-            "commission_percent": 2,
-        },
-    }
-
-    return ranks.get(int(level or 0), ranks[0])
-
-
-def _req(label, done, current, required):
-    return {
-        "label": label,
-        "done": bool(done),
-        "current_value": current,
-        "required_value": required,
-    }
-
-
-def _has_course_from_payload(data, keywords):
-    raw = str(data or "").lower()
-
-    for keyword in keywords:
-        if keyword.lower() in raw:
-            return True
-
-    return False
-
-
-def _requirements(next_level, plan, direct_active, total_active, courses):
-    if next_level == 1:
-        return [
-            _req("اشتراك فعال", True, _plan_label(plan), "Entry أو أعلى"),
-        ]
-
-    if next_level == 2:
-        return [
-            _req("الباقة المطلوبة", _plan_at_least(plan, "starter"), _plan_label(plan), "باقة البداية أو أعلى"),
-            _req("الاشتراكات المباشرة الفعالة", direct_active >= 2, direct_active, 2),
-            _req("الكورس المطلوب", courses.get("marketer_mindset", False), "مكتمل" if courses.get("marketer_mindset") else "غير مكتمل", "عقلية المسوق المحترف — 69$"),
-        ]
-
-    if next_level == 3:
-        return [
-            _req("الباقة المطلوبة", _plan_at_least(plan, "starter"), _plan_label(plan), "باقة البداية أو أعلى"),
-            _req("الاشتراكات المباشرة الفعالة", direct_active >= 5, direct_active, 5),
-            _req("الكورس المطلوب", courses.get("marketer_mindset", False), "مكتمل" if courses.get("marketer_mindset") else "غير مكتمل", "عقلية المسوق المحترف — 69$"),
-        ]
-
-    if next_level == 4:
-        return [
-            _req("الباقة المطلوبة", _plan_at_least(plan, "growth"), _plan_label(plan), "باقة النمو أو أعلى"),
-            _req("إجمالي الاشتراكات الفعالة في الشبكة", total_active >= 15, total_active, 15),
-            _req("الكورس المطلوب", courses.get("sales_skills", False), "مكتمل" if courses.get("sales_skills") else "غير مكتمل", "مهارات المبيعات — 99$"),
-        ]
-
-    if next_level == 5:
-        return [
-            _req("الباقة المطلوبة", _normalize_plan(plan) == "elite", _plan_label(plan), "باقة النخبة"),
-            _req("إجمالي الاشتراكات الفعالة في الشبكة", total_active >= 30, total_active, 30),
-            _req("الكورس المطلوب", courses.get("change_journey", False), "مكتمل" if courses.get("change_journey") else "غير مكتمل", "رحلة التغيير — 299$"),
-        ]
-
-    return []
-
-
-def _plan_label(plan):
-    plan = _normalize_plan(plan)
-
-    return {
-        "entry": "باقة الدخول",
-        "starter": "باقة البداية",
-        "growth": "باقة النمو",
-        "elite": "باقة النخبة",
-    }.get(plan, plan or "-")
-
-
-def _fallback_rank_summary(partner_id, raw_data):
-    plan = _normalize_plan(
-        _first_value(
-            raw_data,
-            [
-                "plan",
-                "plan_name",
-                "current_plan",
-                "current_package",
-                "package",
-                "Current Package",
-                "Package",
-            ],
-        )
-    )
-
-    status = _text(
-        _first_value(
-            raw_data,
-            [
-                "subscription_status",
-                "Subscription Status",
-                "status",
-                "Status",
-            ],
-        )
-    ).lower()
-
-    current_level_raw = _first_value(
-        raw_data,
-        [
-            "current_level",
-            "Current Level",
-            "current_rank_level",
-            "level",
-            "Level",
-            "current_rank",
-            "Current Rank",
-        ],
-    )
-
-    current_level = _number(current_level_raw, 0)
-
-    direct_active = _number(
-        _first_value(
-            raw_data,
-            [
-                "direct_active",
-                "direct_active_customers",
-                "completed_sales",
-                "Completed Sales",
-                "active_direct",
-                "direct_sales",
-            ],
-        ),
-        0,
-    )
-
-    total_active = _number(
-        _first_value(
-            raw_data,
-            [
-                "total_active_downline",
-                "total_active",
-                "network_active",
-                "active_network",
-                "total_sales",
-                "Completed Sales",
-            ],
-        ),
-        direct_active,
-    )
-
-    raw_text = str(raw_data)
-
-    courses = {
-        "marketer_mindset": _has_course_from_payload(raw_text, ["عقلية", "عقليه", "المسوق", "marketer", "marketing mindset"]),
-        "sales_skills": _has_course_from_payload(raw_text, ["مهارات المبيعات", "sales skills"]),
-        "change_journey": _has_course_from_payload(raw_text, ["رحلة التغيير", "change journey"]),
-    }
-
-    if current_level < 1:
-        if plan or status in ["active", "trialing", "paid", "approved", "نشط", "فعال"]:
-            current_level = 1
-
-    current_level = max(0, min(5, current_level))
-
-    current_rank = _rank_details(current_level)
-    next_level = None if current_level >= 5 else max(1, current_level + 1)
-    next_rank = _rank_details(next_level) if next_level else None
-
-    next_requirements = _requirements(next_level, plan, direct_active, total_active, courses) if next_level else []
-
-    return {
-        "status": "success",
-        "action": "partner_rank_summary_2026_fallback",
-        "partner_id": partner_id,
-        "plan": plan,
-        "plan_label": _plan_label(plan),
-        "current_rank": current_rank,
-        "next_rank": next_rank,
-        "next_requirements": next_requirements,
-        "completed_requirements": [item for item in next_requirements if item.get("done")],
-        "missing_requirements": [item for item in next_requirements if not item.get("done")],
-        "direct_active": direct_active,
-        "total_active_downline": total_active,
-        "courses": courses,
-        "commission_rates": {
-            "level_1": 25,
-            "level_2": 5,
-            "level_3": 4,
-            "level_4": 3,
-            "level_5": 2,
-        },
-        "note": "لا يوجد دخل مضمون والعمولات تعتمد على الاشتراكات الفعالة واستيفاء الشروط.",
-    }
-
-
-def _has_valid_rank_payload(result):
-    if not isinstance(result, dict):
-        return False
-
-    if result.get("status") != "success":
-        return False
-
-    if not isinstance(result.get("current_rank"), dict):
-        return False
-
-    rank = result.get("current_rank") or {}
-
-    return bool(rank.get("title_ar") or rank.get("level") is not None)
-
-
 def register_rank_dashboard_routes(app):
     if getattr(app, "alsaab_rank_dashboard_registered", False):
         return
@@ -425,20 +72,6 @@ def register_rank_dashboard_routes(app):
                 label="partner_rank_summary_2026",
             )
 
-            if not _has_valid_rank_payload(result):
-                fallback_source = database.post_to_google_sheet_json(
-                    {
-                        "token": os.getenv("GOOGLE_SHEET_TOKEN", ""),
-                        "action": "client_dashboard_data",
-                        "partner_id": partner_id,
-                        "client_id": partner_id,
-                        "source": "rank_dashboard_fallback",
-                    },
-                    label="rank_dashboard_fallback_client_dashboard_data",
-                )
-
-                result = _fallback_rank_summary(partner_id, fallback_source)
-
             safe_result = _clean_client_rank_payload(copy.deepcopy(result))
             return jsonify(safe_result)
 
@@ -464,11 +97,11 @@ def register_rank_dashboard_routes(app):
 
             html = response.get_data(as_text=True)
 
-            if not html or "ALSAAB_RANK_DASHBOARD_UI_V2" in html:
+            if not html or "ALSAAB_RANK_DASHBOARD_UI_V3" in html:
                 return response
 
             section = r'''
-<!-- ALSAAB_RANK_DASHBOARD_UI_V2 START -->
+<!-- ALSAAB_RANK_DASHBOARD_UI_V3 START -->
 <div id="alsaabRankDashboardSection" class="alsaab-rank-section" dir="rtl">
   <div class="alsaab-rank-header">
     <div>
@@ -479,7 +112,7 @@ def register_rank_dashboard_routes(app):
   </div>
 
   <div class="alsaab-rank-grid">
-    <div class="alsaab-rank-card">
+    <div class="alsaab-rank-card main-rank-card">
       <span id="alsaabRankTitle">-</span>
       <small>الرتبة الحالية</small>
     </div>
@@ -530,6 +163,7 @@ def register_rank_dashboard_routes(app):
   border-radius:22px;
   color:#f5f0df;
   font-family:Arial,Tahoma,sans-serif;
+  transition:background .3s ease,border-color .3s ease,box-shadow .3s ease;
 }
 
 .alsaab-rank-header{
@@ -571,7 +205,7 @@ def register_rank_dashboard_routes(app):
 }
 
 .alsaab-rank-card{
-  background:#0b0b0b;
+  background:rgba(0,0,0,.38);
   border:1px solid rgba(215,184,90,.22);
   border-radius:16px;
   padding:16px;
@@ -589,9 +223,13 @@ def register_rank_dashboard_routes(app):
   color:#e8dfc2;
 }
 
+.main-rank-card{
+  border-width:2px;
+}
+
 .alsaab-rank-next{
   margin-top:18px;
-  background:#0b0b0b;
+  background:rgba(0,0,0,.38);
   border:1px solid rgba(255,255,255,.08);
   border-radius:16px;
   padding:16px;
@@ -657,8 +295,8 @@ def register_rank_dashboard_routes(app):
 <script>
 (function(){
   try{
-    if(window.__ALSAAB_RANK_DASHBOARD_UI_V2__) return;
-    window.__ALSAAB_RANK_DASHBOARD_UI_V2__ = true;
+    if(window.__ALSAAB_RANK_DASHBOARD_UI_V3__) return;
+    window.__ALSAAB_RANK_DASHBOARD_UI_V3__ = true;
 
     function findPartnerId(){
       var url = new URLSearchParams(window.location.search || "");
@@ -676,8 +314,176 @@ def register_rank_dashboard_routes(app):
       return v;
     }
 
-    function endpoint(partnerId){
-      return "/client/partner-rank-summary?partner_id=" + encodeURIComponent(partnerId);
+    function num(v, fallback){
+      var n = parseInt(String(v || "").replace(/[^\d]/g,""),10);
+      return isNaN(n) ? (fallback || 0) : n;
+    }
+
+    function normalizePlan(v){
+      v = String(v || "").toLowerCase().trim();
+      if(v.indexOf("entry") !== -1 || v.indexOf("دخول") !== -1) return "entry";
+      if(v.indexOf("starter") !== -1 || v.indexOf("بداية") !== -1) return "starter";
+      if(v.indexOf("growth") !== -1 || v.indexOf("نمو") !== -1) return "growth";
+      if(v.indexOf("elite") !== -1 || v.indexOf("نخبة") !== -1) return "elite";
+      return v;
+    }
+
+    function planLabel(plan){
+      plan = normalizePlan(plan);
+      if(plan === "entry") return "باقة الدخول";
+      if(plan === "starter") return "باقة البداية";
+      if(plan === "growth") return "باقة النمو";
+      if(plan === "elite") return "باقة النخبة";
+      return plan || "-";
+    }
+
+    function planRank(plan){
+      plan = normalizePlan(plan);
+      return {entry:1,starter:2,growth:3,elite:4}[plan] || 0;
+    }
+
+    function planAtLeast(plan, minPlan){
+      return planRank(plan) >= planRank(minPlan);
+    }
+
+    function rankDetails(level){
+      level = num(level, 1);
+      if(level < 1) level = 1;
+
+      var ranks = {
+        1:{level:1,title_ar:"شريك مباشر",color_ar:"برونزي",color_hex:"#CD7F32",commission_percent:25},
+        2:{level:2,title_ar:"شريك البداية",color_ar:"فضي",color_hex:"#C0C0C0",commission_percent:5},
+        3:{level:3,title_ar:"شريك متقدم",color_ar:"ذهبي",color_hex:"#D7B85A",commission_percent:4},
+        4:{level:4,title_ar:"شريك النمو",color_ar:"بلاتيني",color_hex:"#E5E4E2",commission_percent:3},
+        5:{level:5,title_ar:"شريك النخبة",color_ar:"ماسي",color_hex:"#B9F2FF",commission_percent:2}
+      };
+
+      return ranks[level] || ranks[1];
+    }
+
+    function req(label, done, current, required){
+      return {label:label, done:!!done, current_value:current, required_value:required};
+    }
+
+    function requirements(nextLevel, plan, directActive, totalActive, courses){
+      nextLevel = num(nextLevel, 2);
+      plan = normalizePlan(plan);
+      courses = courses || {};
+
+      if(nextLevel === 2){
+        return [
+          req("الباقة المطلوبة", planAtLeast(plan,"starter"), planLabel(plan), "باقة البداية أو أعلى"),
+          req("الاشتراكات المباشرة الفعالة", directActive >= 2, directActive, 2),
+          req("الكورس المطلوب", !!courses.marketer_mindset, courses.marketer_mindset ? "مكتمل" : "غير مكتمل", "عقلية المسوق المحترف — 69$")
+        ];
+      }
+
+      if(nextLevel === 3){
+        return [
+          req("الباقة المطلوبة", planAtLeast(plan,"starter"), planLabel(plan), "باقة البداية أو أعلى"),
+          req("الاشتراكات المباشرة الفعالة", directActive >= 5, directActive, 5),
+          req("الكورس المطلوب", !!courses.marketer_mindset, courses.marketer_mindset ? "مكتمل" : "غير مكتمل", "عقلية المسوق المحترف — 69$")
+        ];
+      }
+
+      if(nextLevel === 4){
+        return [
+          req("الباقة المطلوبة", planAtLeast(plan,"growth"), planLabel(plan), "باقة النمو أو أعلى"),
+          req("إجمالي الاشتراكات الفعالة في الشبكة", totalActive >= 15, totalActive, 15),
+          req("الكورس المطلوب", !!courses.sales_skills, courses.sales_skills ? "مكتمل" : "غير مكتمل", "مهارات المبيعات — 99$")
+        ];
+      }
+
+      if(nextLevel === 5){
+        return [
+          req("الباقة المطلوبة", normalizePlan(plan) === "elite", planLabel(plan), "باقة النخبة"),
+          req("إجمالي الاشتراكات الفعالة في الشبكة", totalActive >= 30, totalActive, 30),
+          req("الكورس المطلوب", !!courses.change_journey, courses.change_journey ? "مكتمل" : "غير مكتمل", "رحلة التغيير — 299$")
+        ];
+      }
+
+      return [];
+    }
+
+    function findOldRankSectionText(){
+      var candidates = Array.prototype.slice.call(document.querySelectorAll("section, article, div"));
+      var best = "";
+
+      candidates.forEach(function(el){
+        if(!el || el.id === "alsaabRankDashboardSection") return;
+
+        var t = (el.innerText || "").trim();
+
+        if(!t) return;
+
+        var looksOld =
+          t.indexOf("المستوى والترقية") !== -1 ||
+          t.indexOf("Required Sales") !== -1 ||
+          t.indexOf("Commission Eligible") !== -1 ||
+          t.indexOf("Required Course") !== -1 ||
+          t.indexOf("Missing Requirements") !== -1;
+
+        if(looksOld && t.length > best.length && t.length < 12000){
+          best = t;
+        }
+      });
+
+      return best;
+    }
+
+    function extractLegacyData(){
+      var t = findOldRankSectionText();
+      var out = {
+        level: 1,
+        plan: "",
+        direct_active: 0,
+        total_active: 0,
+        courses:{}
+      };
+
+      if(!t) return out;
+
+      var levels = [];
+      var re = /Level\s*([0-9]+)/ig;
+      var m;
+
+      while((m = re.exec(t)) !== null){
+        levels.push(num(m[1],0));
+      }
+
+      if(levels.length){
+        out.level = Math.max(1, levels[0]);
+      }
+
+      if(t.toLowerCase().indexOf("growth") !== -1 || t.indexOf("النمو") !== -1){
+        out.plan = "growth";
+      }else if(t.toLowerCase().indexOf("elite") !== -1 || t.indexOf("النخبة") !== -1){
+        out.plan = "elite";
+      }else if(t.toLowerCase().indexOf("starter") !== -1 || t.indexOf("البداية") !== -1){
+        out.plan = "starter";
+      }else if(t.toLowerCase().indexOf("entry") !== -1 || t.indexOf("الدخول") !== -1){
+        out.plan = "entry";
+      }
+
+      var completedMatch = t.match(/(\d+)\s*Completed Sales/i) || t.match(/Completed Sales\s*(\d+)/i);
+      if(completedMatch){
+        out.direct_active = num(completedMatch[1],0);
+        out.total_active = out.direct_active;
+      }
+
+      if(t.indexOf("عقلية") !== -1 || t.indexOf("المسوق") !== -1 || t.toLowerCase().indexOf("marketer") !== -1){
+        out.courses.marketer_mindset = true;
+      }
+
+      if(t.indexOf("مهارات المبيعات") !== -1 || t.toLowerCase().indexOf("sales skills") !== -1){
+        out.courses.sales_skills = true;
+      }
+
+      if(t.indexOf("رحلة التغيير") !== -1 || t.toLowerCase().indexOf("change journey") !== -1){
+        out.courses.change_journey = true;
+      }
+
+      return out;
     }
 
     function hideOldRankSection(){
@@ -694,15 +500,16 @@ def register_rank_dashboard_routes(app):
         if(!text) return;
 
         var isOld =
-          text.indexOf("المستوى والترقية") !== -1 &&
           (
+            text.indexOf("المستوى والترقية") !== -1 ||
             text.indexOf("Required Sales") !== -1 ||
             text.indexOf("Commission Eligible") !== -1 ||
             text.indexOf("Required Course") !== -1 ||
             text.indexOf("Missing Requirements") !== -1
-          );
+          ) &&
+          text.indexOf("رتبة الشريك") === -1;
 
-        if(isOld && text.length < bestLength && text.length < 9000){
+        if(isOld && text.length < bestLength && text.length < 12000){
           best = el;
           bestLength = text.length;
         }
@@ -712,6 +519,10 @@ def register_rank_dashboard_routes(app):
         best.style.display = "none";
         best.setAttribute("data-alsaab-hidden-old-rank-section", "1");
       }
+    }
+
+    function endpoint(partnerId){
+      return "/client/partner-rank-summary?partner_id=" + encodeURIComponent(partnerId);
     }
 
     function renderRequirements(items){
@@ -736,23 +547,92 @@ def register_rank_dashboard_routes(app):
       }).join("");
     }
 
-    function applyRankColor(color){
+    function hexToRgba(hex, alpha){
+      hex = String(hex || "#D7B85A").replace("#","");
+      if(hex.length === 3){
+        hex = hex.split("").map(function(x){return x+x;}).join("");
+      }
+
+      var r = parseInt(hex.substring(0,2),16);
+      var g = parseInt(hex.substring(2,4),16);
+      var b = parseInt(hex.substring(4,6),16);
+
+      if(isNaN(r) || isNaN(g) || isNaN(b)){
+        return "rgba(215,184,90," + alpha + ")";
+      }
+
+      return "rgba(" + r + "," + g + "," + b + "," + alpha + ")";
+    }
+
+    function applyRankTheme(rank){
+      var section = document.getElementById("alsaabRankDashboardSection");
       var badge = document.getElementById("alsaabRankBadge");
-      if(!badge || !color) return;
+      var mainCard = document.querySelector(".main-rank-card");
 
-      badge.style.background = color;
-      badge.style.borderColor = color;
+      var color = rank.color_hex || "#D7B85A";
 
-      var lightColors = ["#b9f2ff", "#e5e4e2", "#c0c0c0", "#d7b85a"];
+      if(section){
+        section.style.background =
+          "linear-gradient(135deg, " + hexToRgba(color,.22) + " 0%, rgba(17,17,17,.96) 35%, rgba(17,17,17,1) 100%)";
+        section.style.borderColor = color;
+        section.style.boxShadow = "0 0 28px " + hexToRgba(color,.20);
+      }
 
-      if(lightColors.indexOf(String(color).toLowerCase()) !== -1){
+      if(badge){
+        badge.style.background = color;
+        badge.style.borderColor = color;
         badge.style.color = "#111";
+      }
+
+      if(mainCard){
+        mainCard.style.borderColor = color;
+        mainCard.style.boxShadow = "0 0 18px " + hexToRgba(color,.18);
       }
     }
 
-    function load(){
-      hideOldRankSection();
+    function buildSafeRankData(data){
+      var legacy = extractLegacyData();
 
+      data = data || {};
+
+      var rank = data.current_rank || {};
+      var rankLevel = num(rank.level,0);
+
+      if(rankLevel < 1){
+        rankLevel = legacy.level || 1;
+      }
+
+      rank = rankDetails(rankLevel);
+
+      var plan = normalizePlan(data.plan || legacy.plan || "");
+      if(!plan){
+        plan = legacy.plan || "";
+      }
+
+      var directActive = num(data.direct_active, legacy.direct_active || 0);
+      var totalActive = num(data.total_active_downline, legacy.total_active || directActive);
+
+      var courses = data.courses || {};
+      courses.marketer_mindset = !!(courses.marketer_mindset || legacy.courses.marketer_mindset);
+      courses.sales_skills = !!(courses.sales_skills || legacy.courses.sales_skills);
+      courses.change_journey = !!(courses.change_journey || legacy.courses.change_journey);
+
+      var nextLevel = rankLevel >= 5 ? null : rankLevel + 1;
+      var nextRank = nextLevel ? rankDetails(nextLevel) : null;
+      var reqs = nextLevel ? requirements(nextLevel, plan, directActive, totalActive, courses) : [];
+
+      return {
+        rank: rank,
+        plan: plan,
+        plan_label: planLabel(plan),
+        direct_active: directActive,
+        total_active_downline: totalActive,
+        next_rank: nextRank,
+        next_requirements: reqs
+      };
+    }
+
+    function load(){
       var partnerId = findPartnerId();
 
       if(!partnerId) return;
@@ -760,41 +640,36 @@ def register_rank_dashboard_routes(app):
       fetch(endpoint(partnerId))
         .then(function(r){ return r.json(); })
         .then(function(data){
-          if(!data || data.status !== "success"){
-            throw new Error("rank summary failed");
-          }
+          var safeData = buildSafeRankData(data || {});
 
-          var rank = data.current_rank || {};
-          var next = data.next_rank || null;
-          var rankLevel = Number(rank.level || 0);
+          var rank = safeData.rank;
+          var next = safeData.next_rank;
 
           document.getElementById("alsaabRankTitle").innerText = safe(rank.title_ar);
           document.getElementById("alsaabRankColor").innerText = safe(rank.color_ar);
-          document.getElementById("alsaabRankLevel").innerText = rank.level !== undefined ? "Level " + rank.level : "-";
+          document.getElementById("alsaabRankLevel").innerText = "Level " + safe(rank.level, 1);
           document.getElementById("alsaabRankCommission").innerText = rank.commission_percent ? rank.commission_percent + "%" : "-";
-          document.getElementById("alsaabRankPlan").innerText = safe(data.plan_label);
-          document.getElementById("alsaabRankDirect").innerText = safe(data.direct_active, 0);
-          document.getElementById("alsaabRankTotal").innerText = safe(data.total_active_downline, 0);
+          document.getElementById("alsaabRankPlan").innerText = safe(safeData.plan_label);
+          document.getElementById("alsaabRankDirect").innerText = safe(safeData.direct_active, 0);
+          document.getElementById("alsaabRankTotal").innerText = safe(safeData.total_active_downline, 0);
 
           var badge = document.getElementById("alsaabRankBadge");
           if(badge){
             badge.innerText = safe(rank.color_ar) + " — " + safe(rank.title_ar);
           }
 
-          applyRankColor(rank.color_hex);
+          applyRankTheme(rank);
 
           var nextBox = document.getElementById("alsaabNextRank");
           if(nextBox){
             if(next && next.level){
               nextBox.innerText = "المستوى القادم: " + safe(next.title_ar) + " — العمولة: " + safe(next.commission_percent) + "%";
-            }else if(rankLevel >= 5){
-              nextBox.innerText = "أنت على أعلى مستوى حاليا.";
             }else{
-              nextBox.innerText = "نحتاج تحديث بيانات الرتبة أو الاشتراك حتى نحدد المستوى القادم.";
+              nextBox.innerText = "أنت على أعلى مستوى حاليا.";
             }
           }
 
-          renderRequirements(data.next_requirements || []);
+          renderRequirements(safeData.next_requirements || []);
 
           var smartLinkSection = document.getElementById("alsaabSmartLinkDashboardSection");
           var rankSection = document.getElementById("alsaabRankDashboardSection");
@@ -803,28 +678,44 @@ def register_rank_dashboard_routes(app):
             smartLinkSection.parentNode.insertBefore(rankSection, smartLinkSection);
           }
 
-          setTimeout(hideOldRankSection, 500);
-          setTimeout(hideOldRankSection, 1500);
+          setTimeout(hideOldRankSection, 300);
+          setTimeout(hideOldRankSection, 1000);
+          setTimeout(hideOldRankSection, 2200);
         })
         .catch(function(){
+          var legacy = buildSafeRankData({});
+          var rank = legacy.rank;
+
+          document.getElementById("alsaabRankTitle").innerText = safe(rank.title_ar);
+          document.getElementById("alsaabRankColor").innerText = safe(rank.color_ar);
+          document.getElementById("alsaabRankLevel").innerText = "Level " + safe(rank.level, 1);
+          document.getElementById("alsaabRankCommission").innerText = rank.commission_percent ? rank.commission_percent + "%" : "-";
+          document.getElementById("alsaabRankPlan").innerText = safe(legacy.plan_label);
+          document.getElementById("alsaabRankDirect").innerText = safe(legacy.direct_active, 0);
+          document.getElementById("alsaabRankTotal").innerText = safe(legacy.total_active_downline, 0);
+
           var badge = document.getElementById("alsaabRankBadge");
-          if(badge) badge.innerText = "تعذر تحميل الرتبة حاليا";
+          if(badge){
+            badge.innerText = safe(rank.color_ar) + " — " + safe(rank.title_ar);
+          }
+
+          applyRankTheme(rank);
+          renderRequirements(legacy.next_requirements || []);
+          hideOldRankSection();
         });
     }
 
     if(document.readyState === "loading"){
       document.addEventListener("DOMContentLoaded", function(){
         setTimeout(load, 500);
-        setTimeout(hideOldRankSection, 1200);
       });
     }else{
       setTimeout(load, 500);
-      setTimeout(hideOldRankSection, 1200);
     }
   }catch(e){}
 })();
 </script>
-<!-- ALSAAB_RANK_DASHBOARD_UI_V2 END -->
+<!-- ALSAAB_RANK_DASHBOARD_UI_V3 END -->
 '''
 
             if "</body>" in html:
