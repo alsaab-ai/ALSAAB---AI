@@ -530,10 +530,9 @@ CLOSING_RULES = {
 GOOGLE_SHEET_WEBHOOK_URL = "https://script.google.com/macros/s/AKfycbyzkc4XmHk9xWXXqx1O6MERc1NGzuyB1R2txElenks7yZEJrV8c5BRI5LVGtj8mj2BcCA/exec"
 GOOGLE_SHEET_TOKEN = "alsaab_sheet_2026"
 
-
-# ===== ALSAAB_ENTRY_PACKAGE_SAFE_V2 START =====
+# ===== ALSAAB_ENTRY_PACKAGE_SAFE_V3 START =====
 # Entry package is added safely at the end of config.py.
-# This block does not edit existing dictionaries manually.
+# This version avoids undefined-variable warnings in VS Code / Pylance.
 
 ENTRY_PACKAGE_PRICE_ID = "price_1TXetrJbltD9Bsg8wnVMaBnZ"
 ENTRY_PACKAGE_PAYMENT_LINK = "https://buy.stripe.com/6oU3cw3laalw7oy7oXaEE06"
@@ -557,39 +556,25 @@ ENTRY_PACKAGE_CONFIG = {
     "description_en": "Limited entry package: 500 monthly replies, one payment link, and one product image only.",
 }
 
-try:
-    PACKAGES
-except NameError:
-    PACKAGES = {}
+_packages = globals().get("PACKAGES")
+if not isinstance(_packages, dict):
+    _packages = {}
+    globals()["PACKAGES"] = _packages
+_packages["entry"] = ENTRY_PACKAGE_CONFIG
 
-try:
-    if isinstance(PACKAGES, dict):
-        PACKAGES["entry"] = ENTRY_PACKAGE_CONFIG
-except Exception:
-    pass
+_payment_links = globals().get("PAYMENT_LINKS")
+if not isinstance(_payment_links, dict):
+    _payment_links = {}
+    globals()["PAYMENT_LINKS"] = _payment_links
+_payment_links["entry"] = ENTRY_PACKAGE_PAYMENT_LINK
 
-try:
-    PAYMENT_LINKS
-except NameError:
-    PAYMENT_LINKS = {}
+_payment_route_links = globals().get("PAYMENT_ROUTE_LINKS")
+if not isinstance(_payment_route_links, dict):
+    _payment_route_links = {}
+    globals()["PAYMENT_ROUTE_LINKS"] = _payment_route_links
 
-try:
-    if isinstance(PAYMENT_LINKS, dict):
-        PAYMENT_LINKS["entry"] = ENTRY_PACKAGE_PAYMENT_LINK
-except Exception:
-    pass
-
-try:
-    PAYMENT_ROUTE_LINKS
-except NameError:
-    PAYMENT_ROUTE_LINKS = {}
-
-try:
-    app_base = globals().get("APP_BASE_URL", "https://alsaab-ai.onrender.com")
-    if isinstance(PAYMENT_ROUTE_LINKS, dict):
-        PAYMENT_ROUTE_LINKS["entry"] = f"{app_base}/pay/entry"
-except Exception:
-    pass
+_app_base = globals().get("APP_BASE_URL", "https://alsaab-ai.onrender.com")
+_payment_route_links["entry"] = f"{_app_base}/pay/entry"
 
 for _entry_price_dict_name in [
     "UPGRADE_PRICE_IDS",
@@ -597,12 +582,9 @@ for _entry_price_dict_name in [
     "PLAN_PRICE_IDS",
     "PACKAGE_PRICE_IDS",
 ]:
-    try:
-        _entry_price_dict = globals().get(_entry_price_dict_name)
-        if isinstance(_entry_price_dict, dict):
-            _entry_price_dict["entry"] = ENTRY_PACKAGE_PRICE_ID
-    except Exception:
-        pass
+    _entry_price_dict = globals().get(_entry_price_dict_name)
+    if isinstance(_entry_price_dict, dict):
+        _entry_price_dict["entry"] = ENTRY_PACKAGE_PRICE_ID
 
 for _entry_limit_dict_name in [
     "PACKAGE_LIMITS",
@@ -610,47 +592,35 @@ for _entry_limit_dict_name in [
     "USAGE_LIMITS",
     "REPLY_LIMITS",
 ]:
-    try:
-        _entry_limit_dict = globals().get(_entry_limit_dict_name)
-        if isinstance(_entry_limit_dict, dict):
-            _entry_limit_dict["entry"] = {
-                "monthly_reply_limit": 500,
-                "customer_reply_limit": 500,
-                "owner_advisory_reply_limit": 0,
-                "max_payment_links": 1,
-                "max_product_images": 1,
-                "max_product_image_groups": 1,
-            }
-    except Exception:
-        pass
-
-try:
-    PACKAGE_PAYMENT_OPTIONS
-except NameError:
-    PACKAGE_PAYMENT_OPTIONS = {}
-
-try:
-    if isinstance(PACKAGE_PAYMENT_OPTIONS, dict):
-        PACKAGE_PAYMENT_OPTIONS["entry"] = {
-            "plan_name": "entry",
-            "payment_link": ENTRY_PACKAGE_PAYMENT_LINK,
-            "internal_payment_route": PAYMENT_ROUTE_LINKS.get("entry", "https://alsaab-ai.onrender.com/pay/entry"),
+    _entry_limit_dict = globals().get(_entry_limit_dict_name)
+    if isinstance(_entry_limit_dict, dict):
+        _entry_limit_dict["entry"] = {
             "monthly_reply_limit": 500,
-            "package_amount": "299 AED",
+            "customer_reply_limit": 500,
+            "owner_advisory_reply_limit": 0,
+            "max_payment_links": 1,
+            "max_product_images": 1,
+            "max_product_image_groups": 1,
         }
-except Exception:
-    pass
 
-try:
-    PACKAGE_ORDER
-except NameError:
-    PACKAGE_ORDER = ["entry", "starter", "growth", "elite"]
+_package_payment_options = globals().get("PACKAGE_PAYMENT_OPTIONS")
+if not isinstance(_package_payment_options, dict):
+    _package_payment_options = {}
+    globals()["PACKAGE_PAYMENT_OPTIONS"] = _package_payment_options
 
-try:
-    if isinstance(PACKAGE_ORDER, list) and "entry" not in PACKAGE_ORDER:
-        PACKAGE_ORDER.insert(0, "entry")
-except Exception:
-    pass
+_package_payment_options["entry"] = {
+    "plan_name": "entry",
+    "payment_link": ENTRY_PACKAGE_PAYMENT_LINK,
+    "internal_payment_route": _payment_route_links.get("entry", "https://alsaab-ai.onrender.com/pay/entry"),
+    "monthly_reply_limit": 500,
+    "package_amount": "299 AED",
+}
 
-# ===== ALSAAB_ENTRY_PACKAGE_SAFE_V2 END =====
+_package_order = globals().get("PACKAGE_ORDER")
+if not isinstance(_package_order, list):
+    _package_order = ["entry", "starter", "growth", "elite"]
+    globals()["PACKAGE_ORDER"] = _package_order
+elif "entry" not in _package_order:
+    _package_order.insert(0, "entry")
 
+# ===== ALSAAB_ENTRY_PACKAGE_SAFE_V3 END =====
