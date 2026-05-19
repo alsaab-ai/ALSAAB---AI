@@ -1,4 +1,4 @@
-﻿from flask import request, jsonify, render_template_string
+from flask import request, jsonify, render_template_string
 from urllib.parse import quote
 import os
 
@@ -11,8 +11,71 @@ UPGRADE_PRICE_IDS = {
 # ===== ALSAAB_UPGRADE_SCHEDULE_STRIPE_V1 END =====
 
 
+# ===== ALSAAB_ENTRY_UPGRADE_SAFE_V1 START =====
+# Entry can upgrade only upward: Entry -> Starter/Growth/Elite.
+# Entry is not a downgrade target.
+
+UPGRADE_PLAN_ORDER = ["entry", "starter", "growth", "elite"]
+
+def normalize_upgrade_plan(plan):
+    value = str(plan or "").strip().lower()
+
+    aliases = {
+        "entry": "entry",
+        "دخول": "entry",
+        "الدخول": "entry",
+        "باقة الدخول": "entry",
+        "starter": "starter",
+        "start": "starter",
+        "بداية": "starter",
+        "البداية": "starter",
+        "growth": "growth",
+        "النمو": "growth",
+        "elite": "elite",
+        "النخبة": "elite",
+    }
+
+    return aliases.get(value, value)
+
+def is_valid_upgrade_path(current_plan, target_plan):
+    current_plan = normalize_upgrade_plan(current_plan)
+    target_plan = normalize_upgrade_plan(target_plan)
+
+    if current_plan not in UPGRADE_PLAN_ORDER:
+        return False
+
+    if target_plan not in UPGRADE_PLAN_ORDER:
+        return False
+
+    return UPGRADE_PLAN_ORDER.index(target_plan) > UPGRADE_PLAN_ORDER.index(current_plan)
+
+# ===== ALSAAB_ENTRY_UPGRADE_SAFE_V1 END =====
+
+
+
 
 def _db():
+
+    if current_plan and target_plan and not is_valid_upgrade_path(current_plan, target_plan):
+        return render_template_string(
+            """
+            <html lang="ar" dir="rtl">
+            <head><meta charset="utf-8"><title>طلب ترقية غير صحيح</title></head>
+            <body style="background:#0b0b0b;color:#fff;font-family:Arial;padding:30px;">
+              <div style="max-width:760px;margin:auto;background:#111;border:1px solid #d7b85a;border-radius:18px;padding:22px;">
+                <h2 style="color:#d7b85a;">طلب الترقية غير صحيح</h2>
+                <p>يمكنك الترقية فقط إلى باقة أعلى من باقتك الحالية.</p>
+                <p>الباقة الحالية: {{ current_plan }}</p>
+                <p>الباقة المطلوبة: {{ target_plan }}</p>
+                <a href="javascript:history.back()" style="color:#f0cc68;">رجوع</a>
+              </div>
+            </body>
+            </html>
+            """,
+            current_plan=current_plan,
+            target_plan=target_plan,
+        ), 400
+
     try:
         import database
         return database
@@ -29,8 +92,8 @@ def register_upgrade_routes(app, ADMIN_KEY):
 
     def client_request_upgrade():
         partner_id = (request.form.get("partner_id", "") or "").strip().upper()
-        current_plan = (request.form.get("current_plan", "") or "").strip().lower()
-        target_plan = (request.form.get("target_plan", "") or "").strip().lower()
+        current_plan = normalize_upgrade_plan((request.form.get("current_plan", "") or "").strip().lower())
+        target_plan = normalize_upgrade_plan((request.form.get("target_plan", "") or "").strip().lower())
         notes = (request.form.get("customer_notes", "") or "").strip()
 
         if not partner_id:
@@ -344,7 +407,7 @@ textarea{min-height:60px}
 
         request_id = request.form.get("request_id", "").strip()
         partner_id = request.form.get("partner_id", "").strip().upper()
-        target_plan = request.form.get("target_plan", "").strip().lower()
+        target_plan = normalize_upgrade_plan(request.form.get("target_plan", "").strip().lower())
 
         if not request_id:
             return "request_id is required", 400
@@ -550,6 +613,7 @@ Stripe Schedule: {{ schedule_id }}
     <label>الباقة الحالية</label>
     <select name="current_plan" required>
       <option value="">اختر الباقة الحالية</option>
+      <option value="entry">الدخول / Entry</option>
       <option value="starter">البداية / Starter</option>
       <option value="growth">النمو / Growth</option>
       <option value="elite">النخبة / Elite</option>
@@ -558,6 +622,7 @@ Stripe Schedule: {{ schedule_id }}
     <label>الباقة المطلوبة</label>
     <select name="target_plan" required>
       <option value="">اختر الباقة الجديدة</option>
+      <option value="starter">البداية / Starter — 599 AED</option>
       <option value="growth">النمو / Growth — 1099 AED</option>
       <option value="elite">النخبة / Elite — 2099 AED</option>
     </select>
