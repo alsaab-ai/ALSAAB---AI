@@ -2178,7 +2178,7 @@ def chat():
         save_message(session_id, "user", message)
         print("MAIN USER MESSAGE SAVED ✅", flush=True)
 
-        subscription = get_client_subscription(session_id)
+        subscription = get_client_subscription(usage_session_id)
 
         if is_training_command(message) and not is_active_subscription(subscription):
             print("TRAINING BLOCKED ❌ no active subscription", flush=True)
@@ -2232,7 +2232,7 @@ def chat():
         except TypeError as type_error:
             if "source_partner_id" in str(type_error) or "unexpected keyword argument" in str(type_error):
                 print("THINK FALLBACK ⚠️ brain.py does not accept source_partner_id yet", flush=True)
-                reply = think(message, session_id)
+                reply = think(brain_message, session_id)
             else:
                 raise
 
@@ -2242,7 +2242,7 @@ def chat():
         print("MAIN BOT MESSAGE SAVED ✅", flush=True)
 
         if subscription:
-            record_bot_reply_usage(session_id)
+            record_bot_reply_usage(usage_session_id)
             print("BOT REPLY USAGE RECORDED ✅", flush=True)
 
         return jsonify({
@@ -6744,7 +6744,7 @@ def admin_dashboard_view():
   <script>
     (function simplifyAdminDashboard() {
       function cleanText(value) {
-        return (value || "").replace(/\s+/g, " ").trim();
+        return (value || "").replace(/\\s+/g, " ").trim();
       }
 
       function hideElement(el) {
@@ -8898,18 +8898,4 @@ register_smart_link_summary_cache_routes(app)
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 10000))
     app.run(host="0.0.0.0", port=port, debug=False)
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 

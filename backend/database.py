@@ -1,4 +1,4 @@
-# database.py
+﻿# database.py
 
 import sqlite3
 import json
@@ -173,6 +173,7 @@ def init_db():
     add_column_if_missing(c, "client_subscriptions", "plan_name", "TEXT")
     add_column_if_missing(c, "client_subscriptions", "monthly_reply_limit", "INTEGER")
     add_column_if_missing(c, "client_subscriptions", "monthly_replies_used", "INTEGER DEFAULT 0")
+    add_column_if_missing(c, "client_subscriptions", "owner_advisory_replies_used", "INTEGER DEFAULT 0")
     add_column_if_missing(c, "client_subscriptions", "subscription_status", "TEXT DEFAULT 'inactive'")
     add_column_if_missing(c, "client_subscriptions", "billing_cycle_start", "TIMESTAMP")
     add_column_if_missing(c, "client_subscriptions", "billing_cycle_end", "TIMESTAMP")
@@ -1337,7 +1338,26 @@ def get_usage_limit_message(reason="limit_reached", subscription=None):
     )
 
 
+OWNER_ADVISORY_SESSION_PREFIX = "owner_advisory_"
+
+
+def is_owner_advisory_session(session_id):
+    return str(session_id or "").strip().startswith(OWNER_ADVISORY_SESSION_PREFIX)
+
+
+def get_owner_advisory_account_id(session_id):
+    raw_session_id = str(session_id or "").strip()
+
+    if raw_session_id.startswith(OWNER_ADVISORY_SESSION_PREFIX):
+        return raw_session_id[len(OWNER_ADVISORY_SESSION_PREFIX):].strip()
+
+    return ""
+
+
 def get_client_subscription(session_id):
+    raw_session_id = str(session_id or "").strip()
+    lookup_session_id = get_owner_advisory_account_id(raw_session_id) or raw_session_id
+
     conn = get_connection()
     c = conn.cursor()
 
@@ -1352,6 +1372,7 @@ def get_client_subscription(session_id):
             plan_name,
             monthly_reply_limit,
             monthly_replies_used,
+            owner_advisory_replies_used,
             subscription_status,
             billing_cycle_start,
             billing_cycle_end,
@@ -1363,8 +1384,23 @@ def get_client_subscription(session_id):
             updated_at
         FROM client_subscriptions
         WHERE session_id=?
+           OR client_id=?
+           OR source_partner_id=?
+        ORDER BY
+            CASE
+                WHEN session_id=? THEN 0
+                WHEN client_id=? THEN 1
+                ELSE 2
+            END
+        LIMIT 1
         """,
-        (session_id,)
+        (
+            lookup_session_id,
+            lookup_session_id,
+            lookup_session_id,
+            lookup_session_id,
+            lookup_session_id,
+        )
     )
 
     row = c.fetchone()
@@ -1382,15 +1418,16 @@ def get_client_subscription(session_id):
         "plan_name": row[5],
         "monthly_reply_limit": row[6] or 0,
         "monthly_replies_used": row[7] or 0,
-        "subscription_status": row[8],
-        "billing_cycle_start": row[9],
-        "billing_cycle_end": row[10],
-        "stripe_customer_id": row[11],
-        "stripe_subscription_id": row[12],
-        "package_amount": row[13],
-        "notes": row[14],
-        "created_at": row[15],
-        "updated_at": row[16],
+        "owner_advisory_replies_used": row[8] or 0,
+        "subscription_status": row[9],
+        "billing_cycle_start": row[10],
+        "billing_cycle_end": row[11],
+        "stripe_customer_id": row[12],
+        "stripe_subscription_id": row[13],
+        "package_amount": row[14],
+        "notes": row[15],
+        "created_at": row[16],
+        "updated_at": row[17],
     }
 
 def get_client_subscription_by_stripe_subscription_id(stripe_subscription_id):
@@ -1935,7 +1972,7 @@ def reset_subscription_usage_if_needed(session_id):
         return subscription
 
     if datetime.utcnow() >= billing_cycle_end:
-        return reset_subscription_usage(session_id)
+        return reset_subscription_usage(subscription.get("session_id") or session_id)
 
     return subscription
 
@@ -1969,6 +2006,42 @@ def can_client_use_bot(session_id):
             "subscription": subscription,
         }
 
+    if is_owner_advisory_session(session_id):
+        owner_advisory_reply_limit = int(
+            subscription.get("owner_advisory_reply_limit")
+            or get_plan_owner_advisory_reply_limit(subscription.get("plan_name"))
+            or 0
+        )
+        owner_advisory_replies_used = int(subscription.get("owner_advisory_replies_used") or 0)
+
+        if owner_advisory_reply_limit <= 0:
+            return {
+                "allowed": False,
+                "reason": "owner_advisory_not_included",
+                "message": "باقتك الحالية لا تشمل استشارات صاحب المشروع. هذه الميزة متاحة في باقة النمو والنخبة.",
+                "subscription": subscription,
+                "usage_type": "owner_advisory_reply",
+            }
+
+        if owner_advisory_replies_used >= owner_advisory_reply_limit:
+            return {
+                "allowed": False,
+                "reason": "owner_advisory_limit_reached",
+                "message": "وصلت للحد الشهري لاستشارات صاحب المشروع. تقدر ترقّي الباقة أو تنتظر بداية الدورة القادمة.",
+                "subscription": subscription,
+                "usage_type": "owner_advisory_reply",
+            }
+
+        return {
+            "allowed": True,
+            "reason": "active",
+            "message": "",
+            "subscription": subscription,
+            "usage_type": "owner_advisory_reply",
+            "usage_limit": owner_advisory_reply_limit,
+            "usage_used": owner_advisory_replies_used,
+        }
+
     monthly_reply_limit = int(subscription.get("monthly_reply_limit") or 0)
     monthly_replies_used = int(subscription.get("monthly_replies_used") or 0)
 
@@ -1978,6 +2051,7 @@ def can_client_use_bot(session_id):
             "reason": "invalid_limit",
             "message": get_usage_limit_message("invalid_limit", subscription),
             "subscription": subscription,
+            "usage_type": "bot_reply",
         }
 
     if monthly_replies_used >= monthly_reply_limit:
@@ -1986,6 +2060,7 @@ def can_client_use_bot(session_id):
             "reason": "limit_reached",
             "message": get_usage_limit_message("limit_reached", subscription),
             "subscription": subscription,
+            "usage_type": "bot_reply",
         }
 
     return {
@@ -1993,8 +2068,10 @@ def can_client_use_bot(session_id):
         "reason": "active",
         "message": "",
         "subscription": subscription,
+        "usage_type": "bot_reply",
+        "usage_limit": monthly_reply_limit,
+        "usage_used": monthly_replies_used,
     }
-
 
 def record_bot_reply_usage(session_id, replies_count=1, tokens_estimate=0):
     usage_check = can_client_use_bot(session_id)
@@ -2008,9 +2085,11 @@ def record_bot_reply_usage(session_id, replies_count=1, tokens_estimate=0):
 
     subscription = usage_check.get("subscription") or {}
 
-    client_id = subscription.get("client_id") or session_id
+    client_id = subscription.get("client_id") or subscription.get("source_partner_id") or subscription.get("session_id") or session_id
     bot_id = subscription.get("bot_id") or ""
     plan_name = subscription.get("plan_name") or ""
+    subscription_session_id = subscription.get("session_id") or session_id
+    usage_type = usage_check.get("usage_type") or "bot_reply"
 
     conn = get_connection()
     c = conn.cursor()
@@ -2034,36 +2113,53 @@ def record_bot_reply_usage(session_id, replies_count=1, tokens_estimate=0):
             client_id,
             bot_id,
             plan_name,
-            "bot_reply",
+            usage_type,
             "bot",
             replies_count,
             tokens_estimate
         )
     )
 
-    c.execute(
-        """
-        UPDATE client_subscriptions
-        SET
-            monthly_replies_used = monthly_replies_used + ?,
-            updated_at=CURRENT_TIMESTAMP
-        WHERE session_id=?
-        """,
-        (replies_count, session_id)
-    )
+    if usage_type == "owner_advisory_reply":
+        c.execute(
+            """
+            UPDATE client_subscriptions
+            SET
+                owner_advisory_replies_used = owner_advisory_replies_used + ?,
+                updated_at=CURRENT_TIMESTAMP
+            WHERE session_id=?
+            """,
+            (replies_count, subscription_session_id)
+        )
+    else:
+        c.execute(
+            """
+            UPDATE client_subscriptions
+            SET
+                monthly_replies_used = monthly_replies_used + ?,
+                updated_at=CURRENT_TIMESTAMP
+            WHERE session_id=?
+            """,
+            (replies_count, subscription_session_id)
+        )
 
     conn.commit()
     conn.close()
 
-    updated_subscription = get_client_subscription(session_id)
+    updated_subscription = get_client_subscription(subscription_session_id)
 
-    print(
-        f"USAGE RECORDED ✅ session_id={session_id} client_id={client_id} used={updated_subscription.get('monthly_replies_used')} limit={updated_subscription.get('monthly_reply_limit')}",
-        flush=True
-    )
+    if usage_type == "owner_advisory_reply":
+        print(
+            f"OWNER ADVISORY USAGE RECORDED ✅ session_id={session_id} client_id={client_id} used={updated_subscription.get('owner_advisory_replies_used')} limit={get_plan_owner_advisory_reply_limit(plan_name)}",
+            flush=True
+        )
+    else:
+        print(
+            f"USAGE RECORDED ✅ session_id={session_id} client_id={client_id} used={updated_subscription.get('monthly_replies_used')} limit={updated_subscription.get('monthly_reply_limit')}",
+            flush=True
+        )
 
     return True
-
 
 def get_usage_summary(session_id):
     subscription = reset_subscription_usage_if_needed(session_id)
@@ -3969,4 +4065,3 @@ except Exception as _entry_database_error:
     print(f"ENTRY DATABASE PATCH WARNING: {_entry_database_error}", flush=True)
 
 # ===== ALSAAB_ENTRY_DATABASE_SAFE_V1 END =====
-
