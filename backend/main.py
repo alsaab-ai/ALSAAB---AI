@@ -1,4 +1,4 @@
-﻿print("ALSAAB AI is running 🔥")
+print("ALSAAB AI is running 🔥")
 
 from flask import Flask, request, jsonify, render_template_string, redirect, session
 from brain import think
@@ -8898,4 +8898,3 @@ register_smart_link_summary_cache_routes(app)
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 10000))
     app.run(host="0.0.0.0", port=port, debug=False)
-
