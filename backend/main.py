@@ -1014,7 +1014,7 @@ textarea::placeholder {
 
         <aside class="sidebar">
             <div class="brand-block">
-                
+                <div class="logo-mark"><span>A</span></div>
                 <div class="brand-text">
                     <h1>ALSAAB AI</h1>
                     <p>Smart Sales Assistant</p>
@@ -3334,7 +3334,7 @@ def partner_dashboard_view():
 
     <div class="topbar">
       <div class="brand">
-        
+        <div class="logo-mark">ALSAAB</div>
         <div>
           <div class="brand-title">ALSAAB AI</div>
           <div class="brand-note">{{ t.logo_note }}</div>
@@ -4104,7 +4104,7 @@ def client_dashboard_view():
 
     <div class="topbar">
       <div class="brand">
-        
+        <div class="logo-mark">ALSAAB</div>
         <div>
           <div class="brand-title">ALSAAB AI</div>
           <div class="brand-note">Official account dashboard</div>
@@ -8898,5 +8898,4 @@ register_smart_link_summary_cache_routes(app)
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 10000))
     app.run(host="0.0.0.0", port=port, debug=False)
-
 
