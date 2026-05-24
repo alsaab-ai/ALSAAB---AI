@@ -3252,8 +3252,7 @@ def partner_dashboard_view():
         <div class="logo-mark">ALSAAB</div>
         <div>
           <div class="brand-title">ALSAAB AI</div>
-          <div class="brand-note">{{ t.logo_note }}</div>
-        </div>
+</div>
       </div>
 
       <div class="actions">
