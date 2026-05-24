@@ -3429,12 +3429,7 @@ def partner_dashboard_view():
         </tbody>
       </table>
     </div>
-
-    <div class="section">
-      <h2>{{ t.mvp_note_title }}</h2>
-      <div class="sub">{{ t.mvp_note }}</div>
-    </div>
-  </div>
+</div>
 </body>
 </html>
         """
