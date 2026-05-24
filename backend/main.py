@@ -1003,6 +1003,70 @@ textarea::placeholder {
         font-size: 13px;
     }
 }
+
+  /* ===== ALSAAB_WEBSITE_CHAT_VISUAL_SAFE_V1 START ===== */
+  .quick-chip {
+    background: linear-gradient(135deg, rgba(255,255,255,.05), rgba(215,184,90,.10)) !important;
+    border: 1px solid rgba(240,204,104,.58) !important;
+    color: #f0cc68 !important;
+    font-weight: 900 !important;
+    box-shadow: 0 8px 22px rgba(0,0,0,.22);
+    transition: all .18s ease;
+  }
+
+  .quick-chip:hover {
+    transform: translateY(-1px);
+    border-color: rgba(255,224,138,.92) !important;
+    box-shadow: 0 0 24px rgba(240,204,104,.24);
+  }
+
+  #msg,
+  textarea#msg {
+    background: linear-gradient(135deg, #070b12, #101827) !important;
+    color: #fffaf0 !important;
+    border: 1px solid rgba(240,204,104,.45) !important;
+    box-shadow: inset 0 1px 0 rgba(255,255,255,.04);
+  }
+
+  #msg:focus,
+  textarea#msg:focus {
+    outline: none !important;
+    border-color: rgba(255,224,138,.95) !important;
+    box-shadow: 0 0 0 3px rgba(240,204,104,.13), inset 0 1px 0 rgba(255,255,255,.06) !important;
+  }
+
+  button[type="submit"],
+  .send-btn,
+  #sendBtn {
+    background: linear-gradient(135deg, #f0cc68, #d7b85a, #aa842a) !important;
+    color: #111 !important;
+    font-weight: 950 !important;
+    box-shadow: 0 10px 24px rgba(215,184,90,.24) !important;
+  }
+
+  .side-title,
+  .chat-title,
+  h1,
+  h2 {
+    text-shadow: 0 0 18px rgba(240,204,104,.16);
+  }
+
+  .chat-card,
+  .chat-panel,
+  .side-card,
+  .message,
+  .bot,
+  .assistant {
+    border-color: rgba(240,204,104,.34) !important;
+  }
+
+  .chat-card:hover,
+  .chat-panel:hover,
+  .side-card:hover {
+    box-shadow: 0 0 28px rgba(240,204,104,.14), 0 18px 44px rgba(0,0,0,.36) !important;
+  }
+  /* ===== ALSAAB_WEBSITE_CHAT_VISUAL_SAFE_V1 END ===== */
+
 </style>
 </head>
 
@@ -1014,7 +1078,7 @@ textarea::placeholder {
 
         <aside class="sidebar">
             <div class="brand-block">
-                <div class="logo-mark"><span>A</span></div>
+                <div class="logo-mark"><span>ALSAAB</span></div>
                 <div class="brand-text">
                     <h1>ALSAAB AI</h1>
                     <p>Smart Sales Assistant</p>
@@ -1059,7 +1123,7 @@ textarea::placeholder {
         <main class="main-chat">
             <header class="chat-header">
                 <div class="header-title">
-                    <div class="header-logo"><span>A</span></div>
+                    <div class="header-logo"><span>ALSAAB</span></div>
                     <div class="header-copy">
                         <h2>ALSAAB AI</h2>
                         <p>مساعدك الذكي للمبيعات، الرد، الإقناع، والإغلاق</p>
