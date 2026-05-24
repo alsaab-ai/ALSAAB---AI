@@ -4176,7 +4176,7 @@ def client_dashboard_view():
       <option value="سبب آخر">سبب آخر</option>
     </select>
     <label style="display:block;color:#f0cc68;font-weight:900;margin-top:12px;">ملاحظات إضافية</label>
-    <textarea name="notes" placeholder="اكتب ملاحظتك هنا..." style="width:100%;box-sizing:border-box;min-height:90px;margin-top:8px;background:#0b0b0b;color:#fff;border:1px solid rgba(215,184,90,.45);border-radius:12px;padding:12px;line-height:1.8;"></textarea>
+    <textarea name="customer_notes" placeholder="اكتب ملاحظتك هنا..." style="width:100%;box-sizing:border-box;min-height:90px;margin-top:8px;background:#0b0b0b;color:#fff;border:1px solid rgba(215,184,90,.45);border-radius:12px;padding:12px;line-height:1.8;"></textarea>
     <button type="submit" style="margin-top:12px;border:1px solid rgba(255,120,120,.65);color:#fff;background:#6b1d1d;border-radius:999px;padding:10px 16px;font-weight:900;cursor:pointer;">إرسال طلب الإلغاء</button>
   </form>
   <!-- ALSAAB_CANCELLATION_UI_V1 END -->
