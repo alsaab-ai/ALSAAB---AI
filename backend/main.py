@@ -2839,6 +2839,118 @@ def partner_dashboard_view():
         client_dashboard_url = build_dashboard_nav_url("/client-dashboard", partner_id, lang, key)
         owner_advisory_url = build_dashboard_nav_url("/owner-advisory", partner_id, lang, key)
 
+        # ===== ALSAAB_PARTNER_RANK_UI_V2 START =====
+        def _rank_level_number(value):
+            import re
+            match = re.search(r"(\d+)", str(value or "Level 1"))
+            try:
+                return max(1, min(5, int(match.group(1)))) if match else 1
+            except Exception:
+                return 1
+
+        def _safe_int(value, default=0):
+            try:
+                return int(float(value or default))
+            except Exception:
+                return default
+
+        current_level_num = _rank_level_number(level.get("current_level") or level.get("partner_rank"))
+        completed_sales_count = _safe_int(level.get("completed_sales") or customers.get("active_direct_paid_count") or 0)
+
+        rank_meta = {
+            1: {"rank": "Starter Partner", "color": "#B8860B", "glow": "rgba(184,134,11,.28)"},
+            2: {"rank": "Growth Partner", "color": "#C0C0C0", "glow": "rgba(192,192,192,.25)"},
+            3: {"rank": "Sales Partner", "color": "#D7B85A", "glow": "rgba(215,184,90,.32)"},
+            4: {"rank": "Leader Partner", "color": "#F0D98A", "glow": "rgba(240,217,138,.38)"},
+            5: {"rank": "Elite Partner", "color": "#FFFFFF", "glow": "rgba(255,215,0,.42)"},
+        }
+
+        next_level_num = current_level_num + 1 if current_level_num < 5 else 5
+
+        next_requirements = {
+            2: {
+                "sales": 2,
+                "course": "-",
+                "course_token": "",
+                "text_ar": "باقة Starter أو أعلى + 2 عملاء نشطين",
+                "text_en": "Starter package or higher + 2 active customers",
+            },
+            3: {
+                "sales": 5,
+                "course": "كورس المسوق المحترف 69$",
+                "course_token": "69",
+                "text_ar": "كورس المسوق المحترف 69$ + 5 عملاء نشطين",
+                "text_en": "Professional Marketer Course $69 + 5 active customers",
+            },
+            4: {
+                "sales": 10,
+                "course": "كورس مهارات المبيعات 99$",
+                "course_token": "99",
+                "text_ar": "كورس مهارات المبيعات 99$ + 10 عملاء نشطين",
+                "text_en": "Sales Skills Course $99 + 10 active customers",
+            },
+            5: {
+                "sales": 20,
+                "course": "كورس رحلة التغيير 299$",
+                "course_token": "299",
+                "text_ar": "كورس رحلة التغيير 299$ + 20 عميل نشط",
+                "text_en": "Change Journey Course $299 + 20 active customers",
+            },
+        }
+
+        requirement = next_requirements.get(next_level_num, {})
+        required_sales_count = _safe_int(requirement.get("sales"), 0)
+
+        purchased_courses_text = str(purchased_courses or "").lower()
+        course_token = str(requirement.get("course_token") or "").lower()
+        course_done = True if not course_token else course_token in purchased_courses_text
+
+        package_value = str(level.get("current_package") or "").lower()
+        package_ok = True
+        if next_level_num == 2:
+            package_ok = package_value in ("starter", "growth", "elite")
+
+        missing_items = []
+
+        if next_level_num == 2 and not package_ok:
+            missing_items.append("الترقية إلى باقة Starter أو أعلى" if is_ar else "Upgrade to Starter package or higher")
+
+        if required_sales_count and completed_sales_count < required_sales_count:
+            missing_items.append(
+                f"تحتاج {required_sales_count - completed_sales_count} عملاء نشطين إضافيين"
+                if is_ar
+                else f"Need {required_sales_count - completed_sales_count} more active customers"
+            )
+
+        if not course_done:
+            missing_items.append(requirement.get("course") or "-")
+
+        if current_level_num >= 5:
+            missing_text = "أنت في أعلى مستوى حالياً" if is_ar else "You are currently at the highest level"
+            requirement_text = "لا توجد متطلبات ترقية حالياً" if is_ar else "No upgrade requirements at this level"
+            next_label = "أعلى مستوى" if is_ar else "Highest Level"
+        else:
+            missing_text = "مكتمل" if not missing_items else " / ".join(missing_items)
+            requirement_text = requirement.get("text_ar" if is_ar else "text_en") or "-"
+            next_label = f"Level {next_level_num}"
+
+        rank_ui = {
+            "level_num": current_level_num,
+            "level_label": f"Level {current_level_num}",
+            "rank_name": rank_meta.get(current_level_num, rank_meta[1]).get("rank"),
+            "color": rank_meta.get(current_level_num, rank_meta[1]).get("color"),
+            "glow": rank_meta.get(current_level_num, rank_meta[1]).get("glow"),
+            "next_label": next_label,
+            "completed_sales": completed_sales_count,
+            "required_sales": required_sales_count if current_level_num < 5 else "-",
+            "current_package": level.get("current_package") or "-",
+            "subscription_status": level.get("subscription_status") or "-",
+            "commission_eligible": level.get("commission_eligible") or "-",
+            "required_course": requirement.get("course") or "-",
+            "requirement_text": requirement_text,
+            "missing_text": missing_text,
+        }
+        # ===== ALSAAB_PARTNER_RANK_UI_V2 END =====
         def money(value):
             try:
                 return f"{float(value or 0):,.2f} AED"
@@ -3458,6 +3570,7 @@ def partner_dashboard_view():
             purchased_courses=purchased_courses,
             tree=tree,
             depth_counts=depth_counts,
+            rank_ui=rank_ui,
             money=money
         )
 
@@ -5267,6 +5380,118 @@ def admin_dashboard_view():
                     search_rejected_hold_total = rejected_amount + hold_amount
         # ===== ALSAAB_ADMIN_DASHBOARD_SEARCH_V1 END =====
 
+        # ===== ALSAAB_PARTNER_RANK_UI_V2 START =====
+        def _rank_level_number(value):
+            import re
+            match = re.search(r"(\d+)", str(value or "Level 1"))
+            try:
+                return max(1, min(5, int(match.group(1)))) if match else 1
+            except Exception:
+                return 1
+
+        def _safe_int(value, default=0):
+            try:
+                return int(float(value or default))
+            except Exception:
+                return default
+
+        current_level_num = _rank_level_number(level.get("current_level") or level.get("partner_rank"))
+        completed_sales_count = _safe_int(level.get("completed_sales") or customers.get("active_direct_paid_count") or 0)
+
+        rank_meta = {
+            1: {"rank": "Starter Partner", "color": "#B8860B", "glow": "rgba(184,134,11,.28)"},
+            2: {"rank": "Growth Partner", "color": "#C0C0C0", "glow": "rgba(192,192,192,.25)"},
+            3: {"rank": "Sales Partner", "color": "#D7B85A", "glow": "rgba(215,184,90,.32)"},
+            4: {"rank": "Leader Partner", "color": "#F0D98A", "glow": "rgba(240,217,138,.38)"},
+            5: {"rank": "Elite Partner", "color": "#FFFFFF", "glow": "rgba(255,215,0,.42)"},
+        }
+
+        next_level_num = current_level_num + 1 if current_level_num < 5 else 5
+
+        next_requirements = {
+            2: {
+                "sales": 2,
+                "course": "-",
+                "course_token": "",
+                "text_ar": "باقة Starter أو أعلى + 2 عملاء نشطين",
+                "text_en": "Starter package or higher + 2 active customers",
+            },
+            3: {
+                "sales": 5,
+                "course": "كورس المسوق المحترف 69$",
+                "course_token": "69",
+                "text_ar": "كورس المسوق المحترف 69$ + 5 عملاء نشطين",
+                "text_en": "Professional Marketer Course $69 + 5 active customers",
+            },
+            4: {
+                "sales": 10,
+                "course": "كورس مهارات المبيعات 99$",
+                "course_token": "99",
+                "text_ar": "كورس مهارات المبيعات 99$ + 10 عملاء نشطين",
+                "text_en": "Sales Skills Course $99 + 10 active customers",
+            },
+            5: {
+                "sales": 20,
+                "course": "كورس رحلة التغيير 299$",
+                "course_token": "299",
+                "text_ar": "كورس رحلة التغيير 299$ + 20 عميل نشط",
+                "text_en": "Change Journey Course $299 + 20 active customers",
+            },
+        }
+
+        requirement = next_requirements.get(next_level_num, {})
+        required_sales_count = _safe_int(requirement.get("sales"), 0)
+
+        purchased_courses_text = str(purchased_courses or "").lower()
+        course_token = str(requirement.get("course_token") or "").lower()
+        course_done = True if not course_token else course_token in purchased_courses_text
+
+        package_value = str(level.get("current_package") or "").lower()
+        package_ok = True
+        if next_level_num == 2:
+            package_ok = package_value in ("starter", "growth", "elite")
+
+        missing_items = []
+
+        if next_level_num == 2 and not package_ok:
+            missing_items.append("الترقية إلى باقة Starter أو أعلى" if is_ar else "Upgrade to Starter package or higher")
+
+        if required_sales_count and completed_sales_count < required_sales_count:
+            missing_items.append(
+                f"تحتاج {required_sales_count - completed_sales_count} عملاء نشطين إضافيين"
+                if is_ar
+                else f"Need {required_sales_count - completed_sales_count} more active customers"
+            )
+
+        if not course_done:
+            missing_items.append(requirement.get("course") or "-")
+
+        if current_level_num >= 5:
+            missing_text = "أنت في أعلى مستوى حالياً" if is_ar else "You are currently at the highest level"
+            requirement_text = "لا توجد متطلبات ترقية حالياً" if is_ar else "No upgrade requirements at this level"
+            next_label = "أعلى مستوى" if is_ar else "Highest Level"
+        else:
+            missing_text = "مكتمل" if not missing_items else " / ".join(missing_items)
+            requirement_text = requirement.get("text_ar" if is_ar else "text_en") or "-"
+            next_label = f"Level {next_level_num}"
+
+        rank_ui = {
+            "level_num": current_level_num,
+            "level_label": f"Level {current_level_num}",
+            "rank_name": rank_meta.get(current_level_num, rank_meta[1]).get("rank"),
+            "color": rank_meta.get(current_level_num, rank_meta[1]).get("color"),
+            "glow": rank_meta.get(current_level_num, rank_meta[1]).get("glow"),
+            "next_label": next_label,
+            "completed_sales": completed_sales_count,
+            "required_sales": required_sales_count if current_level_num < 5 else "-",
+            "current_package": level.get("current_package") or "-",
+            "subscription_status": level.get("subscription_status") or "-",
+            "commission_eligible": level.get("commission_eligible") or "-",
+            "required_course": requirement.get("course") or "-",
+            "requirement_text": requirement_text,
+            "missing_text": missing_text,
+        }
+        # ===== ALSAAB_PARTNER_RANK_UI_V2 END =====
         def money(value):
             try:
                 return f"{float(value or 0):,.2f} AED"
