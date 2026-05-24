@@ -3354,7 +3354,135 @@ def partner_dashboard_view():
         padding: 16px;
       }
     }
-  </style>
+
+    /* ===== ALSAAB_DASHBOARD_VISUAL_POLISH_V1 START ===== */
+    body {
+      background:
+        radial-gradient(circle at top right, rgba(215,184,90,.13), transparent 34%),
+        radial-gradient(circle at bottom left, rgba(192,192,192,.08), transparent 30%),
+        #0b0b0b !important;
+    }
+
+    .topbar {
+      background: linear-gradient(135deg, rgba(255,255,255,.035), rgba(215,184,90,.045));
+      border: 1px solid rgba(215,184,90,.22);
+      border-radius: 22px;
+      padding: 14px 16px;
+      box-shadow: 0 18px 45px rgba(0,0,0,.28);
+    }
+
+    .logo-mark {
+      box-shadow: 0 0 24px rgba(215,184,90,.22);
+    }
+
+    .card,
+    .section,
+    .portal-card {
+      background: linear-gradient(145deg, rgba(255,255,255,.045), rgba(18,18,18,.96)) !important;
+      box-shadow: 0 18px 42px rgba(0,0,0,.28);
+    }
+
+    .card,
+    .section {
+      border-color: rgba(215,184,90,.38) !important;
+    }
+
+    .card:hover,
+    .section:hover,
+    .portal-card:hover {
+      border-color: rgba(240,204,104,.72) !important;
+      box-shadow: 0 0 30px rgba(215,184,90,.16), 0 18px 42px rgba(0,0,0,.32);
+      transform: translateY(-1px);
+      transition: all .18s ease;
+    }
+
+    .portal-card.active {
+      background: linear-gradient(135deg, #f0cc68, #d7b85a, #8b6b21) !important;
+      box-shadow: 0 0 34px rgba(215,184,90,.35) !important;
+    }
+
+    .primary-btn {
+      background: linear-gradient(135deg, #f0cc68, #d7b85a) !important;
+      color: #111 !important;
+      border-color: rgba(255,255,255,.18) !important;
+      box-shadow: 0 8px 22px rgba(215,184,90,.18);
+    }
+
+    .primary-btn:hover {
+      filter: brightness(1.08);
+      box-shadow: 0 0 26px rgba(240,204,104,.30);
+      transform: translateY(-1px);
+    }
+
+    .action-btn {
+      box-shadow: 0 8px 22px rgba(0,0,0,.22);
+    }
+
+    .action-btn:hover {
+      border-color: rgba(240,204,104,.85) !important;
+      color: #fff7d6 !important;
+      box-shadow: 0 0 22px rgba(215,184,90,.18);
+    }
+
+    .big {
+      text-shadow: 0 0 18px rgba(215,184,90,.14);
+    }
+
+    .muted {
+      color: #cfc7ad !important;
+    }
+
+    .badge {
+      background: rgba(215,184,90,.12) !important;
+      color: #f0cc68 !important;
+      border-color: rgba(215,184,90,.48) !important;
+    }
+
+    .info-row,
+    .small-item,
+    .payment-row {
+      background: rgba(255,255,255,.028) !important;
+      border-color: rgba(215,184,90,.24) !important;
+    }
+
+    .small-item {
+      border-inline-start: 3px solid rgba(215,184,90,.65);
+    }
+
+    input,
+    textarea,
+    select {
+      transition: border-color .16s ease, box-shadow .16s ease;
+    }
+
+    input:focus,
+    textarea:focus,
+    select:focus {
+      outline: none !important;
+      border-color: rgba(240,204,104,.82) !important;
+      box-shadow: 0 0 0 3px rgba(215,184,90,.12);
+    }
+
+    button[style*="#6b1d1d"] {
+      background: linear-gradient(135deg, #9b2424, #5f1414) !important;
+      border-color: rgba(255,120,120,.82) !important;
+      color: #fff !important;
+      box-shadow: 0 0 20px rgba(255,80,80,.16);
+    }
+
+    button[style*="128,226,138"] {
+      background: linear-gradient(135deg, #14351d, #111) !important;
+      border-color: rgba(128,226,138,.76) !important;
+      color: #9dffac !important;
+      box-shadow: 0 0 20px rgba(128,226,138,.14);
+    }
+
+    a {
+      color: #f0cc68;
+    }
+    /* ===== ALSAAB_DASHBOARD_VISUAL_POLISH_V1 END ===== */
+
+</style>
 </head>
 <body>
   <div class="page">
@@ -4056,7 +4184,135 @@ def client_dashboard_view():
       .grid, .portal-switch, .form-grid { grid-template-columns: 1fr; }
       .page { padding: 16px; }
     }
-  </style>
+
+    /* ===== ALSAAB_DASHBOARD_VISUAL_POLISH_V1 START ===== */
+    body {
+      background:
+        radial-gradient(circle at top right, rgba(215,184,90,.13), transparent 34%),
+        radial-gradient(circle at bottom left, rgba(192,192,192,.08), transparent 30%),
+        #0b0b0b !important;
+    }
+
+    .topbar {
+      background: linear-gradient(135deg, rgba(255,255,255,.035), rgba(215,184,90,.045));
+      border: 1px solid rgba(215,184,90,.22);
+      border-radius: 22px;
+      padding: 14px 16px;
+      box-shadow: 0 18px 45px rgba(0,0,0,.28);
+    }
+
+    .logo-mark {
+      box-shadow: 0 0 24px rgba(215,184,90,.22);
+    }
+
+    .card,
+    .section,
+    .portal-card {
+      background: linear-gradient(145deg, rgba(255,255,255,.045), rgba(18,18,18,.96)) !important;
+      box-shadow: 0 18px 42px rgba(0,0,0,.28);
+    }
+
+    .card,
+    .section {
+      border-color: rgba(215,184,90,.38) !important;
+    }
+
+    .card:hover,
+    .section:hover,
+    .portal-card:hover {
+      border-color: rgba(240,204,104,.72) !important;
+      box-shadow: 0 0 30px rgba(215,184,90,.16), 0 18px 42px rgba(0,0,0,.32);
+      transform: translateY(-1px);
+      transition: all .18s ease;
+    }
+
+    .portal-card.active {
+      background: linear-gradient(135deg, #f0cc68, #d7b85a, #8b6b21) !important;
+      box-shadow: 0 0 34px rgba(215,184,90,.35) !important;
+    }
+
+    .primary-btn {
+      background: linear-gradient(135deg, #f0cc68, #d7b85a) !important;
+      color: #111 !important;
+      border-color: rgba(255,255,255,.18) !important;
+      box-shadow: 0 8px 22px rgba(215,184,90,.18);
+    }
+
+    .primary-btn:hover {
+      filter: brightness(1.08);
+      box-shadow: 0 0 26px rgba(240,204,104,.30);
+      transform: translateY(-1px);
+    }
+
+    .action-btn {
+      box-shadow: 0 8px 22px rgba(0,0,0,.22);
+    }
+
+    .action-btn:hover {
+      border-color: rgba(240,204,104,.85) !important;
+      color: #fff7d6 !important;
+      box-shadow: 0 0 22px rgba(215,184,90,.18);
+    }
+
+    .big {
+      text-shadow: 0 0 18px rgba(215,184,90,.14);
+    }
+
+    .muted {
+      color: #cfc7ad !important;
+    }
+
+    .badge {
+      background: rgba(215,184,90,.12) !important;
+      color: #f0cc68 !important;
+      border-color: rgba(215,184,90,.48) !important;
+    }
+
+    .info-row,
+    .small-item,
+    .payment-row {
+      background: rgba(255,255,255,.028) !important;
+      border-color: rgba(215,184,90,.24) !important;
+    }
+
+    .small-item {
+      border-inline-start: 3px solid rgba(215,184,90,.65);
+    }
+
+    input,
+    textarea,
+    select {
+      transition: border-color .16s ease, box-shadow .16s ease;
+    }
+
+    input:focus,
+    textarea:focus,
+    select:focus {
+      outline: none !important;
+      border-color: rgba(240,204,104,.82) !important;
+      box-shadow: 0 0 0 3px rgba(215,184,90,.12);
+    }
+
+    button[style*="#6b1d1d"] {
+      background: linear-gradient(135deg, #9b2424, #5f1414) !important;
+      border-color: rgba(255,120,120,.82) !important;
+      color: #fff !important;
+      box-shadow: 0 0 20px rgba(255,80,80,.16);
+    }
+
+    button[style*="128,226,138"] {
+      background: linear-gradient(135deg, #14351d, #111) !important;
+      border-color: rgba(128,226,138,.76) !important;
+      color: #9dffac !important;
+      box-shadow: 0 0 20px rgba(128,226,138,.14);
+    }
+
+    a {
+      color: #f0cc68;
+    }
+    /* ===== ALSAAB_DASHBOARD_VISUAL_POLISH_V1 END ===== */
+
+</style>
 </head>
 <body>
   <div class="page">
@@ -6004,7 +6260,7 @@ def admin_dashboard_view():
           </div>
         </div>
 
-        
+
         <!-- ALSAAB_PARTNER_STATUS_ACTION_PANEL_V2 START -->
         <div class="small-box" style="margin-top:14px;">
           <h3>إدارة حالة الشريك</h3>
@@ -6058,10 +6314,10 @@ def admin_dashboard_view():
             </button>
           </form>
         </div>
-        
 
-        
-        
+
+
+
 
 
         <!-- ALSAAB_PAYOUT_HISTORY_SINGLE_SECTION_V4 START -->
@@ -6165,7 +6421,7 @@ def admin_dashboard_view():
             هذه الأزرار مكانها هنا، لكنها غير مفعلة الآن حتى نبني الـ audit log والصلاحيات.
           </div>
           <div class="disabled-actions">
-            
+
             <form method="POST" action="/admin/recalculate-partner-level" style="display:inline-block;">
               <input type="hidden" name="key" value="{{ admin_key }}">
               <input type="hidden" name="partner_id" value="{{ search_profile.get("partner_id") or search_lookup.get("partner_id") }}">
@@ -6176,7 +6432,7 @@ def admin_dashboard_view():
             </form>
             <button disabled>Suspend Partner</button>
             <button disabled>Activate Partner</button>
-            
+
             <a
               href="/admin/downline-transfer-preview?key={{ admin_key }}&partner_id={{ search_profile.get("partner_id") or search_lookup.get("partner_id") }}"
               style="border:1px solid rgba(255,207,102,.6); color:#ffcf66; background:#111; padding:10px 13px; border-radius:999px; text-decoration:none; display:inline-block;"
@@ -6662,7 +6918,7 @@ def admin_dashboard_view():
             <body style="font-family:Arial; direction:rtl; padding:30px;">
               <h2>حدث خطأ في عرض Admin Dashboard</h2>
               <p>{{ error }}</p>
-            
+
   <!-- ALSAAB_ADMIN_UI_SIMPLIFY_V1 START -->
   <script>
     (function simplifyAdminDashboard() {
@@ -7531,7 +7787,7 @@ def admin_downline_transfer_preview():
       </div>
     </div>
 
-    
+
     <!-- ALSAAB_DOWNLINE_TRANSFER_EXECUTION_FORM_FORCE_V1 START -->
     <div class="section">
       <h2>تنفيذ النقل الفعلي</h2>
