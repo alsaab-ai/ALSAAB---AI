@@ -3355,347 +3355,124 @@ def partner_dashboard_view():
       }
     }
 
-    /* ===== ALSAAB_DASHBOARD_VISUAL_POLISH_V1 START ===== */
-    body {
+
+    /* ===== ALSAAB_DASHBOARD_VISUAL_POLISH_V4 START ===== */
+    .alsaab-skin-v4 {
       background:
-        radial-gradient(circle at top right, rgba(215,184,90,.13), transparent 34%),
-        radial-gradient(circle at bottom left, rgba(192,192,192,.08), transparent 30%),
-        #0b0b0b !important;
+        radial-gradient(circle at 85% 8%, rgba(240,204,104,.14), transparent 24%),
+        radial-gradient(circle at 12% 20%, rgba(59,130,246,.10), transparent 26%);
     }
 
-    .topbar {
-      background: linear-gradient(135deg, rgba(255,255,255,.035), rgba(215,184,90,.045));
-      border: 1px solid rgba(215,184,90,.22);
-      border-radius: 22px;
-      padding: 14px 16px;
-      box-shadow: 0 18px 45px rgba(0,0,0,.28);
-    }
-
-    .logo-mark {
-      box-shadow: 0 0 24px rgba(215,184,90,.22);
-    }
-
-    .card,
-    .section,
-    .portal-card {
-      background: linear-gradient(145deg, rgba(255,255,255,.045), rgba(18,18,18,.96)) !important;
-      box-shadow: 0 18px 42px rgba(0,0,0,.28);
-    }
-
-    .card,
-    .section {
-      border-color: rgba(215,184,90,.38) !important;
-    }
-
-    .card:hover,
-    .section:hover,
-    .portal-card:hover {
-      border-color: rgba(240,204,104,.72) !important;
-      box-shadow: 0 0 30px rgba(215,184,90,.16), 0 18px 42px rgba(0,0,0,.32);
-      transform: translateY(-1px);
-      transition: all .18s ease;
-    }
-
-    .portal-card.active {
-      background: linear-gradient(135deg, #f0cc68, #d7b85a, #8b6b21) !important;
-      box-shadow: 0 0 34px rgba(215,184,90,.35) !important;
-    }
-
-    .primary-btn {
-      background: linear-gradient(135deg, #f0cc68, #d7b85a) !important;
-      color: #111 !important;
-      border-color: rgba(255,255,255,.18) !important;
-      box-shadow: 0 8px 22px rgba(215,184,90,.18);
-    }
-
-    .primary-btn:hover {
-      filter: brightness(1.08);
-      box-shadow: 0 0 26px rgba(240,204,104,.30);
-      transform: translateY(-1px);
-    }
-
-    .action-btn {
-      box-shadow: 0 8px 22px rgba(0,0,0,.22);
-    }
-
-    .action-btn:hover {
-      border-color: rgba(240,204,104,.85) !important;
-      color: #fff7d6 !important;
-      box-shadow: 0 0 22px rgba(215,184,90,.18);
-    }
-
-    .big {
-      text-shadow: 0 0 18px rgba(215,184,90,.14);
-    }
-
-    .muted {
-      color: #cfc7ad !important;
-    }
-
-    .badge {
-      background: rgba(215,184,90,.12) !important;
-      color: #f0cc68 !important;
-      border-color: rgba(215,184,90,.48) !important;
-    }
-
-    .info-row,
-    .small-item,
-    .payment-row {
-      background: rgba(255,255,255,.028) !important;
-      border-color: rgba(215,184,90,.24) !important;
-    }
-
-    .small-item {
-      border-inline-start: 3px solid rgba(215,184,90,.65);
-    }
-
-    input,
-    textarea,
-    select {
-      transition: border-color .16s ease, box-shadow .16s ease;
-    }
-
-    input:focus,
-    textarea:focus,
-    select:focus {
-      outline: none !important;
-      border-color: rgba(240,204,104,.82) !important;
-      box-shadow: 0 0 0 3px rgba(215,184,90,.12);
-    }
-
-    button[style*="#6b1d1d"] {
-      background: linear-gradient(135deg, #9b2424, #5f1414) !important;
-      border-color: rgba(255,120,120,.82) !important;
-      color: #fff !important;
-      box-shadow: 0 0 20px rgba(255,80,80,.16);
-    }
-
-    button[style*="128,226,138"] {
-      background: linear-gradient(135deg, #14351d, #111) !important;
-      border-color: rgba(128,226,138,.76) !important;
-      color: #9dffac !important;
-      box-shadow: 0 0 20px rgba(128,226,138,.14);
-    }
-
-    a {
-      color: #f0cc68;
-    }
-    /* ===== ALSAAB_DASHBOARD_VISUAL_POLISH_V1 END ===== */
-
-    /* ===== ALSAAB_DASHBOARD_VISUAL_POLISH_V2 START ===== */
-    body {
+    .alsaab-skin-v4 .card,
+    .alsaab-skin-v4 .section,
+    .alsaab-skin-v4 .portal-card {
       background:
-        radial-gradient(circle at 88% 8%, rgba(255, 214, 102, .20), transparent 28%),
-        radial-gradient(circle at 12% 22%, rgba(130, 160, 255, .10), transparent 34%),
-        linear-gradient(180deg, #080808 0%, #10131a 48%, #080808 100%) !important;
-    }
-
-    .page {
-      position: relative;
-      isolation: isolate;
-    }
-
-    .page::before {
-      content: "";
-      position: fixed;
-      inset: auto 0 0 0;
-      height: 46%;
-      pointer-events: none;
-      background: radial-gradient(circle at center, rgba(215,184,90,.10), transparent 62%);
-      z-index: -1;
-    }
-
-    .topbar {
-      background:
-        linear-gradient(135deg, rgba(255,255,255,.055), rgba(215,184,90,.075)),
-        linear-gradient(180deg, rgba(255,255,255,.04), rgba(255,255,255,0)) !important;
+        linear-gradient(145deg, rgba(255,255,255,.05), rgba(12,15,24,.96)),
+        radial-gradient(circle at top right, rgba(215,184,90,.08), transparent 32%) !important;
       border-color: rgba(240,204,104,.38) !important;
-    }
-
-    .brand-title {
-      color: #f0cc68 !important;
-      text-shadow: 0 0 18px rgba(240,204,104,.28);
-    }
-
-    .portal-card,
-    .card,
-    .section {
-      position: relative;
-      overflow: hidden;
-    }
-
-    .portal-card::before,
-    .card::before,
-    .section::before {
-      content: "";
-      position: absolute;
-      top: 0;
-      left: 14px;
-      right: 14px;
-      height: 1px;
-      background: linear-gradient(90deg, transparent, rgba(240,204,104,.75), rgba(255,255,255,.30), transparent);
-      opacity: .9;
-      pointer-events: none;
-    }
-
-    .section {
-      background:
-        linear-gradient(145deg, rgba(255,255,255,.052), rgba(18,18,18,.98)),
-        radial-gradient(circle at top right, rgba(215,184,90,.075), transparent 38%) !important;
-      border-color: rgba(240,204,104,.44) !important;
-    }
-
-    .card {
-      background:
-        linear-gradient(145deg, rgba(255,255,255,.06), rgba(10,10,10,.96)),
-        radial-gradient(circle at top right, rgba(192,192,192,.07), transparent 35%) !important;
-      border-color: rgba(220,220,220,.26) !important;
-    }
-
-    .card h3,
-    .section h2 {
-      color: #f0cc68 !important;
-      letter-spacing: .2px;
-    }
-
-    .section h2 {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-    }
-
-    .section h2::before {
-      content: "";
-      width: 10px;
-      height: 10px;
-      border-radius: 999px;
-      background: linear-gradient(135deg, #f0cc68, #ffffff);
-      box-shadow: 0 0 18px rgba(240,204,104,.55);
-      flex: 0 0 auto;
-    }
-
-    .portal-card.active {
-      background:
-        linear-gradient(135deg, #fff0a6 0%, #f0cc68 40%, #d7b85a 70%, #9a7424 100%) !important;
-      color: #101010 !important;
       box-shadow:
-        0 0 32px rgba(240,204,104,.42),
-        inset 0 1px 0 rgba(255,255,255,.35) !important;
+        0 14px 34px rgba(0,0,0,.34),
+        inset 0 1px 0 rgba(255,255,255,.06),
+        0 0 18px rgba(215,184,90,.08) !important;
+      transition: all .20s ease !important;
     }
 
-    .portal-card.active .portal-card-title,
-    .portal-card.active .portal-card-text {
-      color: #111 !important;
-      text-shadow: none !important;
+    .alsaab-skin-v4 .card:hover,
+    .alsaab-skin-v4 .section:hover,
+    .alsaab-skin-v4 .portal-card:hover {
+      transform: translateY(-2px);
+      border-color: rgba(255,224,138,.82) !important;
+      box-shadow:
+        0 18px 44px rgba(0,0,0,.45),
+        0 0 28px rgba(240,204,104,.20) !important;
     }
 
-    .primary-btn,
-    button.primary-btn,
-    .action-btn:hover {
-      background: linear-gradient(135deg, #fff0a6, #f0cc68 45%, #d7b85a) !important;
-      color: #111 !important;
-      border-color: rgba(255,255,255,.30) !important;
-    }
-
-    .primary-btn {
+    .alsaab-skin-v4 .portal-card.active,
+    .alsaab-skin-v4 .primary-btn,
+    .alsaab-skin-v4 button.primary-btn {
+      background: linear-gradient(135deg, #6f4d13 0%, #d7b85a 44%, #f0cc68 68%, #9a6b18 100%) !important;
+      color: #fffaf0 !important;
+      text-shadow: 0 2px 4px rgba(0,0,0,.58) !important;
+      border-color: rgba(255,255,255,.25) !important;
+      box-shadow: 0 10px 26px rgba(215,184,90,.24) !important;
       font-weight: 900 !important;
     }
 
-    .big {
+    .alsaab-skin-v4 .portal-card.active .portal-card-title,
+    .alsaab-skin-v4 .portal-card.active .portal-card-text {
+      color: #fffaf0 !important;
+      text-shadow: 0 2px 4px rgba(0,0,0,.58) !important;
+    }
+
+    .alsaab-skin-v4 .section h2,
+    .alsaab-skin-v4 .card h3,
+    .alsaab-skin-v4 .portal-card-title,
+    .alsaab-skin-v4 .brand-title {
+      color: #ffe08a !important;
+      text-shadow: 0 0 16px rgba(240,204,104,.18) !important;
+    }
+
+    .alsaab-skin-v4 .big,
+    .alsaab-skin-v4 .value {
       color: #ffffff !important;
-      text-shadow:
-        0 0 18px rgba(255,255,255,.12),
-        0 0 22px rgba(240,204,104,.14);
+      text-shadow: 0 0 16px rgba(255,255,255,.08) !important;
     }
 
-    .muted,
-    .portal-card-text {
-      color: #d6d0bd !important;
+    .alsaab-skin-v4 .muted,
+    .alsaab-skin-v4 .portal-card-text {
+      color: #ddd6c4 !important;
     }
 
-    .info-row {
-      background:
-        linear-gradient(90deg, rgba(255,255,255,.035), rgba(215,184,90,.035)) !important;
-      border-color: rgba(215,184,90,.28) !important;
-    }
-
-    .label {
+    .alsaab-skin-v4 .label {
       color: #f0cc68 !important;
       font-weight: 900 !important;
     }
 
-    .value {
-      color: #ffffff !important;
-      font-weight: 800 !important;
+    .alsaab-skin-v4 .info-row,
+    .alsaab-skin-v4 .small-item,
+    .alsaab-skin-v4 .payment-row {
+      background: linear-gradient(90deg, rgba(255,255,255,.035), rgba(215,184,90,.035)) !important;
+      border-color: rgba(240,204,104,.28) !important;
     }
 
-    .badge {
-      background: linear-gradient(135deg, rgba(215,184,90,.20), rgba(255,255,255,.045)) !important;
-      color: #fff0a6 !important;
-      border-color: rgba(240,204,104,.62) !important;
+    .alsaab-skin-v4 input,
+    .alsaab-skin-v4 textarea,
+    .alsaab-skin-v4 select {
+      background: linear-gradient(135deg, #070b12, #101827) !important;
+      color: #fffaf0 !important;
+      border-color: rgba(240,204,104,.42) !important;
     }
 
-    .small-item {
-      background:
-        linear-gradient(135deg, rgba(255,255,255,.04), rgba(12,12,12,.92)) !important;
-      border-color: rgba(215,184,90,.32) !important;
-      border-inline-start: 4px solid #d7b85a !important;
-    }
-
-    table {
-      border-color: rgba(215,184,90,.26) !important;
-    }
-
-    th {
-      color: #f0cc68 !important;
-      background: rgba(215,184,90,.075) !important;
-    }
-
-    td {
-      color: #f5f0df !important;
-    }
-
-    input,
-    textarea,
-    select {
-      background: linear-gradient(135deg, #090909, #10131a) !important;
-      color: #ffffff !important;
-      border-color: rgba(215,184,90,.38) !important;
-    }
-
-    input:focus,
-    textarea:focus,
-    select:focus {
-      border-color: rgba(240,204,104,.90) !important;
-      box-shadow: 0 0 0 3px rgba(240,204,104,.13), 0 0 20px rgba(215,184,90,.14) !important;
+    .alsaab-skin-v4 input:focus,
+    .alsaab-skin-v4 textarea:focus,
+    .alsaab-skin-v4 select:focus {
       outline: none !important;
+      border-color: rgba(255,224,138,.95) !important;
+      box-shadow: 0 0 0 3px rgba(240,204,104,.12) !important;
     }
 
-    button[style*="#6b1d1d"],
-    button[style*="6b1d1d"] {
-      background: linear-gradient(135deg, #d34242, #7e1515) !important;
-      border-color: rgba(255,120,120,.9) !important;
+    .alsaab-skin-v4 button[style*="#6b1d1d"],
+    .alsaab-skin-v4 button[style*="6b1d1d"] {
+      background: linear-gradient(135deg, #ef4444, #991b1b) !important;
       color: #fff !important;
-      box-shadow: 0 0 24px rgba(255,70,70,.22) !important;
+      text-shadow: 0 1px 2px rgba(0,0,0,.45) !important;
+      border-color: rgba(255,150,150,.85) !important;
     }
 
-    button[style*="128,226,138"],
-    button[style*="#80e28a"],
-    button[style*="80e28a"] {
-      background: linear-gradient(135deg, #1f7a35, #102817) !important;
-      border-color: rgba(128,226,138,.9) !important;
-      color: #caffd1 !important;
-      box-shadow: 0 0 24px rgba(128,226,138,.20) !important;
+    .alsaab-skin-v4 button[style*="128,226,138"],
+    .alsaab-skin-v4 button[style*="#80e28a"],
+    .alsaab-skin-v4 button[style*="80e28a"] {
+      background: linear-gradient(135deg, #22c55e, #14532d) !important;
+      color: #fff !important;
+      text-shadow: 0 1px 2px rgba(0,0,0,.45) !important;
+      border-color: rgba(134,239,172,.85) !important;
     }
+    /* ===== ALSAAB_DASHBOARD_VISUAL_POLISH_V4 END ===== */
 
-    a {
-      color: #f0cc68 !important;
-    }
-    /* ===== ALSAAB_DASHBOARD_VISUAL_POLISH_V2 END ===== */
 </style>
 </head>
 <body>
-  <div class="page">
+  <div class="page alsaab-skin-v4">
 
     <div class="topbar">
       <div class="brand">
@@ -4395,347 +4172,124 @@ def client_dashboard_view():
       .page { padding: 16px; }
     }
 
-    /* ===== ALSAAB_DASHBOARD_VISUAL_POLISH_V1 START ===== */
-    body {
+
+    /* ===== ALSAAB_DASHBOARD_VISUAL_POLISH_V4 START ===== */
+    .alsaab-skin-v4 {
       background:
-        radial-gradient(circle at top right, rgba(215,184,90,.13), transparent 34%),
-        radial-gradient(circle at bottom left, rgba(192,192,192,.08), transparent 30%),
-        #0b0b0b !important;
+        radial-gradient(circle at 85% 8%, rgba(240,204,104,.14), transparent 24%),
+        radial-gradient(circle at 12% 20%, rgba(59,130,246,.10), transparent 26%);
     }
 
-    .topbar {
-      background: linear-gradient(135deg, rgba(255,255,255,.035), rgba(215,184,90,.045));
-      border: 1px solid rgba(215,184,90,.22);
-      border-radius: 22px;
-      padding: 14px 16px;
-      box-shadow: 0 18px 45px rgba(0,0,0,.28);
-    }
-
-    .logo-mark {
-      box-shadow: 0 0 24px rgba(215,184,90,.22);
-    }
-
-    .card,
-    .section,
-    .portal-card {
-      background: linear-gradient(145deg, rgba(255,255,255,.045), rgba(18,18,18,.96)) !important;
-      box-shadow: 0 18px 42px rgba(0,0,0,.28);
-    }
-
-    .card,
-    .section {
-      border-color: rgba(215,184,90,.38) !important;
-    }
-
-    .card:hover,
-    .section:hover,
-    .portal-card:hover {
-      border-color: rgba(240,204,104,.72) !important;
-      box-shadow: 0 0 30px rgba(215,184,90,.16), 0 18px 42px rgba(0,0,0,.32);
-      transform: translateY(-1px);
-      transition: all .18s ease;
-    }
-
-    .portal-card.active {
-      background: linear-gradient(135deg, #f0cc68, #d7b85a, #8b6b21) !important;
-      box-shadow: 0 0 34px rgba(215,184,90,.35) !important;
-    }
-
-    .primary-btn {
-      background: linear-gradient(135deg, #f0cc68, #d7b85a) !important;
-      color: #111 !important;
-      border-color: rgba(255,255,255,.18) !important;
-      box-shadow: 0 8px 22px rgba(215,184,90,.18);
-    }
-
-    .primary-btn:hover {
-      filter: brightness(1.08);
-      box-shadow: 0 0 26px rgba(240,204,104,.30);
-      transform: translateY(-1px);
-    }
-
-    .action-btn {
-      box-shadow: 0 8px 22px rgba(0,0,0,.22);
-    }
-
-    .action-btn:hover {
-      border-color: rgba(240,204,104,.85) !important;
-      color: #fff7d6 !important;
-      box-shadow: 0 0 22px rgba(215,184,90,.18);
-    }
-
-    .big {
-      text-shadow: 0 0 18px rgba(215,184,90,.14);
-    }
-
-    .muted {
-      color: #cfc7ad !important;
-    }
-
-    .badge {
-      background: rgba(215,184,90,.12) !important;
-      color: #f0cc68 !important;
-      border-color: rgba(215,184,90,.48) !important;
-    }
-
-    .info-row,
-    .small-item,
-    .payment-row {
-      background: rgba(255,255,255,.028) !important;
-      border-color: rgba(215,184,90,.24) !important;
-    }
-
-    .small-item {
-      border-inline-start: 3px solid rgba(215,184,90,.65);
-    }
-
-    input,
-    textarea,
-    select {
-      transition: border-color .16s ease, box-shadow .16s ease;
-    }
-
-    input:focus,
-    textarea:focus,
-    select:focus {
-      outline: none !important;
-      border-color: rgba(240,204,104,.82) !important;
-      box-shadow: 0 0 0 3px rgba(215,184,90,.12);
-    }
-
-    button[style*="#6b1d1d"] {
-      background: linear-gradient(135deg, #9b2424, #5f1414) !important;
-      border-color: rgba(255,120,120,.82) !important;
-      color: #fff !important;
-      box-shadow: 0 0 20px rgba(255,80,80,.16);
-    }
-
-    button[style*="128,226,138"] {
-      background: linear-gradient(135deg, #14351d, #111) !important;
-      border-color: rgba(128,226,138,.76) !important;
-      color: #9dffac !important;
-      box-shadow: 0 0 20px rgba(128,226,138,.14);
-    }
-
-    a {
-      color: #f0cc68;
-    }
-    /* ===== ALSAAB_DASHBOARD_VISUAL_POLISH_V1 END ===== */
-
-    /* ===== ALSAAB_DASHBOARD_VISUAL_POLISH_V2 START ===== */
-    body {
+    .alsaab-skin-v4 .card,
+    .alsaab-skin-v4 .section,
+    .alsaab-skin-v4 .portal-card {
       background:
-        radial-gradient(circle at 88% 8%, rgba(255, 214, 102, .20), transparent 28%),
-        radial-gradient(circle at 12% 22%, rgba(130, 160, 255, .10), transparent 34%),
-        linear-gradient(180deg, #080808 0%, #10131a 48%, #080808 100%) !important;
-    }
-
-    .page {
-      position: relative;
-      isolation: isolate;
-    }
-
-    .page::before {
-      content: "";
-      position: fixed;
-      inset: auto 0 0 0;
-      height: 46%;
-      pointer-events: none;
-      background: radial-gradient(circle at center, rgba(215,184,90,.10), transparent 62%);
-      z-index: -1;
-    }
-
-    .topbar {
-      background:
-        linear-gradient(135deg, rgba(255,255,255,.055), rgba(215,184,90,.075)),
-        linear-gradient(180deg, rgba(255,255,255,.04), rgba(255,255,255,0)) !important;
+        linear-gradient(145deg, rgba(255,255,255,.05), rgba(12,15,24,.96)),
+        radial-gradient(circle at top right, rgba(215,184,90,.08), transparent 32%) !important;
       border-color: rgba(240,204,104,.38) !important;
-    }
-
-    .brand-title {
-      color: #f0cc68 !important;
-      text-shadow: 0 0 18px rgba(240,204,104,.28);
-    }
-
-    .portal-card,
-    .card,
-    .section {
-      position: relative;
-      overflow: hidden;
-    }
-
-    .portal-card::before,
-    .card::before,
-    .section::before {
-      content: "";
-      position: absolute;
-      top: 0;
-      left: 14px;
-      right: 14px;
-      height: 1px;
-      background: linear-gradient(90deg, transparent, rgba(240,204,104,.75), rgba(255,255,255,.30), transparent);
-      opacity: .9;
-      pointer-events: none;
-    }
-
-    .section {
-      background:
-        linear-gradient(145deg, rgba(255,255,255,.052), rgba(18,18,18,.98)),
-        radial-gradient(circle at top right, rgba(215,184,90,.075), transparent 38%) !important;
-      border-color: rgba(240,204,104,.44) !important;
-    }
-
-    .card {
-      background:
-        linear-gradient(145deg, rgba(255,255,255,.06), rgba(10,10,10,.96)),
-        radial-gradient(circle at top right, rgba(192,192,192,.07), transparent 35%) !important;
-      border-color: rgba(220,220,220,.26) !important;
-    }
-
-    .card h3,
-    .section h2 {
-      color: #f0cc68 !important;
-      letter-spacing: .2px;
-    }
-
-    .section h2 {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-    }
-
-    .section h2::before {
-      content: "";
-      width: 10px;
-      height: 10px;
-      border-radius: 999px;
-      background: linear-gradient(135deg, #f0cc68, #ffffff);
-      box-shadow: 0 0 18px rgba(240,204,104,.55);
-      flex: 0 0 auto;
-    }
-
-    .portal-card.active {
-      background:
-        linear-gradient(135deg, #fff0a6 0%, #f0cc68 40%, #d7b85a 70%, #9a7424 100%) !important;
-      color: #101010 !important;
       box-shadow:
-        0 0 32px rgba(240,204,104,.42),
-        inset 0 1px 0 rgba(255,255,255,.35) !important;
+        0 14px 34px rgba(0,0,0,.34),
+        inset 0 1px 0 rgba(255,255,255,.06),
+        0 0 18px rgba(215,184,90,.08) !important;
+      transition: all .20s ease !important;
     }
 
-    .portal-card.active .portal-card-title,
-    .portal-card.active .portal-card-text {
-      color: #111 !important;
-      text-shadow: none !important;
+    .alsaab-skin-v4 .card:hover,
+    .alsaab-skin-v4 .section:hover,
+    .alsaab-skin-v4 .portal-card:hover {
+      transform: translateY(-2px);
+      border-color: rgba(255,224,138,.82) !important;
+      box-shadow:
+        0 18px 44px rgba(0,0,0,.45),
+        0 0 28px rgba(240,204,104,.20) !important;
     }
 
-    .primary-btn,
-    button.primary-btn,
-    .action-btn:hover {
-      background: linear-gradient(135deg, #fff0a6, #f0cc68 45%, #d7b85a) !important;
-      color: #111 !important;
-      border-color: rgba(255,255,255,.30) !important;
-    }
-
-    .primary-btn {
+    .alsaab-skin-v4 .portal-card.active,
+    .alsaab-skin-v4 .primary-btn,
+    .alsaab-skin-v4 button.primary-btn {
+      background: linear-gradient(135deg, #6f4d13 0%, #d7b85a 44%, #f0cc68 68%, #9a6b18 100%) !important;
+      color: #fffaf0 !important;
+      text-shadow: 0 2px 4px rgba(0,0,0,.58) !important;
+      border-color: rgba(255,255,255,.25) !important;
+      box-shadow: 0 10px 26px rgba(215,184,90,.24) !important;
       font-weight: 900 !important;
     }
 
-    .big {
+    .alsaab-skin-v4 .portal-card.active .portal-card-title,
+    .alsaab-skin-v4 .portal-card.active .portal-card-text {
+      color: #fffaf0 !important;
+      text-shadow: 0 2px 4px rgba(0,0,0,.58) !important;
+    }
+
+    .alsaab-skin-v4 .section h2,
+    .alsaab-skin-v4 .card h3,
+    .alsaab-skin-v4 .portal-card-title,
+    .alsaab-skin-v4 .brand-title {
+      color: #ffe08a !important;
+      text-shadow: 0 0 16px rgba(240,204,104,.18) !important;
+    }
+
+    .alsaab-skin-v4 .big,
+    .alsaab-skin-v4 .value {
       color: #ffffff !important;
-      text-shadow:
-        0 0 18px rgba(255,255,255,.12),
-        0 0 22px rgba(240,204,104,.14);
+      text-shadow: 0 0 16px rgba(255,255,255,.08) !important;
     }
 
-    .muted,
-    .portal-card-text {
-      color: #d6d0bd !important;
+    .alsaab-skin-v4 .muted,
+    .alsaab-skin-v4 .portal-card-text {
+      color: #ddd6c4 !important;
     }
 
-    .info-row {
-      background:
-        linear-gradient(90deg, rgba(255,255,255,.035), rgba(215,184,90,.035)) !important;
-      border-color: rgba(215,184,90,.28) !important;
-    }
-
-    .label {
+    .alsaab-skin-v4 .label {
       color: #f0cc68 !important;
       font-weight: 900 !important;
     }
 
-    .value {
-      color: #ffffff !important;
-      font-weight: 800 !important;
+    .alsaab-skin-v4 .info-row,
+    .alsaab-skin-v4 .small-item,
+    .alsaab-skin-v4 .payment-row {
+      background: linear-gradient(90deg, rgba(255,255,255,.035), rgba(215,184,90,.035)) !important;
+      border-color: rgba(240,204,104,.28) !important;
     }
 
-    .badge {
-      background: linear-gradient(135deg, rgba(215,184,90,.20), rgba(255,255,255,.045)) !important;
-      color: #fff0a6 !important;
-      border-color: rgba(240,204,104,.62) !important;
+    .alsaab-skin-v4 input,
+    .alsaab-skin-v4 textarea,
+    .alsaab-skin-v4 select {
+      background: linear-gradient(135deg, #070b12, #101827) !important;
+      color: #fffaf0 !important;
+      border-color: rgba(240,204,104,.42) !important;
     }
 
-    .small-item {
-      background:
-        linear-gradient(135deg, rgba(255,255,255,.04), rgba(12,12,12,.92)) !important;
-      border-color: rgba(215,184,90,.32) !important;
-      border-inline-start: 4px solid #d7b85a !important;
-    }
-
-    table {
-      border-color: rgba(215,184,90,.26) !important;
-    }
-
-    th {
-      color: #f0cc68 !important;
-      background: rgba(215,184,90,.075) !important;
-    }
-
-    td {
-      color: #f5f0df !important;
-    }
-
-    input,
-    textarea,
-    select {
-      background: linear-gradient(135deg, #090909, #10131a) !important;
-      color: #ffffff !important;
-      border-color: rgba(215,184,90,.38) !important;
-    }
-
-    input:focus,
-    textarea:focus,
-    select:focus {
-      border-color: rgba(240,204,104,.90) !important;
-      box-shadow: 0 0 0 3px rgba(240,204,104,.13), 0 0 20px rgba(215,184,90,.14) !important;
+    .alsaab-skin-v4 input:focus,
+    .alsaab-skin-v4 textarea:focus,
+    .alsaab-skin-v4 select:focus {
       outline: none !important;
+      border-color: rgba(255,224,138,.95) !important;
+      box-shadow: 0 0 0 3px rgba(240,204,104,.12) !important;
     }
 
-    button[style*="#6b1d1d"],
-    button[style*="6b1d1d"] {
-      background: linear-gradient(135deg, #d34242, #7e1515) !important;
-      border-color: rgba(255,120,120,.9) !important;
+    .alsaab-skin-v4 button[style*="#6b1d1d"],
+    .alsaab-skin-v4 button[style*="6b1d1d"] {
+      background: linear-gradient(135deg, #ef4444, #991b1b) !important;
       color: #fff !important;
-      box-shadow: 0 0 24px rgba(255,70,70,.22) !important;
+      text-shadow: 0 1px 2px rgba(0,0,0,.45) !important;
+      border-color: rgba(255,150,150,.85) !important;
     }
 
-    button[style*="128,226,138"],
-    button[style*="#80e28a"],
-    button[style*="80e28a"] {
-      background: linear-gradient(135deg, #1f7a35, #102817) !important;
-      border-color: rgba(128,226,138,.9) !important;
-      color: #caffd1 !important;
-      box-shadow: 0 0 24px rgba(128,226,138,.20) !important;
+    .alsaab-skin-v4 button[style*="128,226,138"],
+    .alsaab-skin-v4 button[style*="#80e28a"],
+    .alsaab-skin-v4 button[style*="80e28a"] {
+      background: linear-gradient(135deg, #22c55e, #14532d) !important;
+      color: #fff !important;
+      text-shadow: 0 1px 2px rgba(0,0,0,.45) !important;
+      border-color: rgba(134,239,172,.85) !important;
     }
+    /* ===== ALSAAB_DASHBOARD_VISUAL_POLISH_V4 END ===== */
 
-    a {
-      color: #f0cc68 !important;
-    }
-    /* ===== ALSAAB_DASHBOARD_VISUAL_POLISH_V2 END ===== */
 </style>
 </head>
 <body>
-  <div class="page">
+  <div class="page alsaab-skin-v4">
 
     <div class="topbar">
       <div class="brand">
