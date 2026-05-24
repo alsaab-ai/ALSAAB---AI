@@ -246,31 +246,64 @@ SMART_LINK_JS = r"""
       overlay.dir = "rtl";
       overlay.innerHTML = `
         <div class="alsaab-smart-shell">
-          <div class="alsaab-smart-card">
-            <div class="alsaab-smart-head">
-              <div>
-                <div class="alsaab-smart-title">موظف المبيعات الذكي</div>
-                <div class="alsaab-smart-subtitle">مرحباً بك، اكتب طلبك أو اختر من الخيارات السريعة.</div>
+          <div class="alsaab-smart-floating-actions">
+            <button type="button" class="alsaab-smart-money" id="alsaabSmartIncomeBtn">?? ????? ???? ??? ??????</button>
+            <button type="button" class="alsaab-smart-back" id="alsaabSmartBackBtn">?????? ??? ??????</button>
+          </div>
+
+          <div class="alsaab-smart-layout">
+            <div class="alsaab-smart-card">
+              <div class="alsaab-smart-head">
+                <div class="alsaab-smart-brand">
+                  <div class="alsaab-smart-mark">ALSAAB</div>
+                  <div>
+                    <div class="alsaab-smart-title">???? ???????? ?????</div>
+                    <div class="alsaab-smart-subtitle">?????? ?????? ????????? ???????? ?????? ?????? ?????.</div>
+                  </div>
+                </div>
+
+                <div class="alsaab-smart-status">
+                  <span class="alsaab-smart-dot"></span>
+                  Online 24/7
+                </div>
               </div>
-              <div class="alsaab-smart-top-actions">
-                <button type="button" class="alsaab-smart-money" id="alsaabSmartIncomeBtn">💰 أريد فرصة دخل إضافي</button>
-                <button type="button" class="alsaab-smart-back" id="alsaabSmartBackBtn">الرجوع إلى واتساب</button>
+
+              <div class="alsaab-smart-quick">
+                <button type="button" data-msg="???? ????? ????????">??? ???? ????????</button>
+                <button type="button" data-msg="???? ????? ??????? ???????">??? ?????</button>
+                <button type="button" data-msg="???? ???? ?????">??? ???? ?????</button>
+                <button type="button" data-msg="???? ?????? ?? ???">??? ???? ???</button>
               </div>
+
+              <div class="alsaab-smart-messages" id="alsaabSmartMessages"></div>
+
+              <form class="alsaab-smart-form" id="alsaabSmartForm">
+                <input id="alsaabSmartInput" autocomplete="off" placeholder="???? ?????? ???..." />
+                <button type="submit">?????</button>
+              </form>
             </div>
 
-            <div class="alsaab-smart-quick">
-              <button type="button" data-msg="أريد معرفة الأسعار">أريد معرفة الأسعار</button>
-              <button type="button" data-msg="أريد المنتج أو الخدمة الأنسب لي">أريد الأنسب لي</button>
-              <button type="button" data-msg="أريد رابط الدفع">أريد رابط الدفع</button>
-              <button type="button" data-msg="أريد التحدث مع شخص">أريد التحدث مع شخص</button>
-            </div>
+            <aside class="alsaab-smart-side">
+              <div class="alsaab-smart-side-brand">
+                <div class="alsaab-smart-side-title">ALSAAB AI</div>
+                <div class="alsaab-smart-side-mark">ALSAAB</div>
+              </div>
 
-            <div class="alsaab-smart-messages" id="alsaabSmartMessages"></div>
+              <div class="alsaab-smart-side-card">
+                <div class="alsaab-smart-side-kicker">????? ?????? ???</div>
+                <h2>???? ?? ????????? ???????? ?? ???? ?????</h2>
+                <p>
+                  ??? ??? ???? ?????? ?????? ????? ???????? ?????????
+                  ?????? ???? ?? ?????? ??? ?????.
+                </p>
 
-            <form class="alsaab-smart-form" id="alsaabSmartForm">
-              <input id="alsaabSmartInput" autocomplete="off" placeholder="اكتب رسالتك هنا..." />
-              <button type="submit">إرسال</button>
-            </form>
+                <div class="alsaab-smart-feature">? ???? ????? ??????</div>
+                <div class="alsaab-smart-feature">?? ?????? ?????? ??????</div>
+                <div class="alsaab-smart-feature">?? ????? ??? ??? ??????</div>
+              </div>
+
+              <div class="alsaab-smart-powered">Powered by ALSAAB AI</div>
+            </aside>
           </div>
         </div>
       `;
@@ -281,8 +314,11 @@ SMART_LINK_JS = r"""
           position:fixed;
           inset:0;
           z-index:2147483000;
-          background:rgba(5,5,5,.78);
-          backdrop-filter:blur(8px);
+          background:
+            radial-gradient(circle at 15% 18%, rgba(67,233,123,.10), transparent 26%),
+            radial-gradient(circle at 85% 12%, rgba(215,184,90,.18), transparent 28%),
+            rgba(5,5,5,.82);
+          backdrop-filter:blur(10px);
           display:flex;
           align-items:center;
           justify-content:center;
@@ -292,134 +328,202 @@ SMART_LINK_JS = r"""
         }
 
         .alsaab-smart-shell{
-          width:min(980px,96vw);
-          height:min(760px,92vh);
-          display:flex;
+          position:relative;
+          width:min(1180px,96vw);
+          height:min(760px,88vh);
+          color:#fff;
         }
 
-        .alsaab-smart-card{
+        .alsaab-smart-layout{
           width:100%;
           height:100%;
-          background:#0b0b0b;
-          color:#fff;
+          display:grid;
+          grid-template-columns:minmax(0,1fr) 330px;
+          gap:16px;
+        }
+
+        .alsaab-smart-card,
+        .alsaab-smart-side{
+          background:
+            linear-gradient(145deg, rgba(255,255,255,.055), rgba(10,12,18,.96)),
+            radial-gradient(circle at top right, rgba(215,184,90,.10), transparent 36%);
           border:1px solid rgba(215,184,90,.55);
           border-radius:26px;
-          box-shadow:0 22px 80px rgba(0,0,0,.55);
-          display:flex;
-          flex-direction:column;
+          box-shadow:0 22px 80px rgba(0,0,0,.58), inset 0 1px 0 rgba(255,255,255,.06);
           overflow:hidden;
         }
 
-        .alsaab-smart-head{
-          padding:20px 22px;
-          border-bottom:1px solid rgba(215,184,90,.25);
-          display:flex;
-          align-items:center;
-          justify-content:space-between;
-          gap:12px;
-          background:linear-gradient(135deg,#111,#15110a);
-        }
-
-        .alsaab-smart-title{
-          color:#d7b85a;
-          font-size:28px;
-          font-weight:900;
-        }
-
-        .alsaab-smart-subtitle{
-          color:#d9cfaa;
-          margin-top:6px;
-          font-size:15px;
-          line-height:1.6;
-        }
-
-        .alsaab-smart-back{
-          border:1px solid rgba(215,184,90,.55);
-          color:#f0cc68;
-          background:#111;
-          border-radius:999px;
-          padding:10px 14px;
-          font-weight:800;
-          cursor:pointer;
-          white-space:nowrap;
-        }
-
-        /* ALSAAB_SMART_INCOME_BUTTON_TOP_V2 START */
-        .alsaab-smart-top-actions{
+        .alsaab-smart-card{
           display:flex;
           flex-direction:column;
-          align-items:flex-start;
+          min-height:0;
+        }
+
+        .alsaab-smart-floating-actions{
+          position:absolute;
+          z-index:5;
+          top:18px;
+          left:18px;
+          display:flex;
+          flex-direction:column;
           gap:9px;
-          min-width:190px;
+          align-items:flex-start;
         }
 
         .alsaab-smart-money{
-          border:1px solid rgba(64,220,120,.85)!important;
-          color:#061b0e!important;
-          background:linear-gradient(135deg,#43e97b,#168a45)!important;
+          border:1px solid rgba(64,220,120,.90)!important;
+          color:#062012!important;
+          background:linear-gradient(135deg,#57ff8a,#20b85d,#11803c)!important;
           border-radius:999px;
-          padding:11px 15px;
+          padding:12px 16px;
           font-weight:950;
           cursor:pointer;
           white-space:nowrap;
-          box-shadow:0 0 22px rgba(67,233,123,.25);
+          box-shadow:0 0 26px rgba(67,233,123,.35);
         }
 
         .alsaab-smart-money:hover{
           transform:translateY(-1px);
-          box-shadow:0 0 28px rgba(67,233,123,.38);
+          box-shadow:0 0 34px rgba(67,233,123,.48);
         }
-        /* ALSAAB_SMART_INCOME_BUTTON_TOP_V2 END */
+
+        .alsaab-smart-back{
+          border:1px solid rgba(215,184,90,.65);
+          color:#f0cc68;
+          background:rgba(10,10,10,.72);
+          border-radius:999px;
+          padding:10px 14px;
+          font-weight:900;
+          cursor:pointer;
+          white-space:nowrap;
+          box-shadow:0 10px 22px rgba(0,0,0,.25);
+        }
+
+        .alsaab-smart-head{
+          padding:22px 24px;
+          border-bottom:1px solid rgba(215,184,90,.25);
+          display:flex;
+          align-items:center;
+          justify-content:space-between;
+          gap:14px;
+          background:linear-gradient(135deg,#12151f,#15110a);
+        }
+
+        .alsaab-smart-brand{
+          display:flex;
+          align-items:center;
+          gap:13px;
+        }
+
+        .alsaab-smart-mark,
+        .alsaab-smart-side-mark{
+          width:58px;
+          height:58px;
+          border-radius:18px;
+          border:1px solid rgba(215,184,90,.70);
+          display:flex;
+          align-items:center;
+          justify-content:center;
+          color:#f0cc68;
+          font-weight:950;
+          font-size:13px;
+          background:linear-gradient(135deg,#121212,#211c0f);
+          box-shadow:0 0 22px rgba(215,184,90,.18);
+        }
+
+        .alsaab-smart-title{
+          color:#f0cc68;
+          font-size:30px;
+          font-weight:950;
+          letter-spacing:.2px;
+          text-shadow:0 0 18px rgba(240,204,104,.18);
+        }
+
+        .alsaab-smart-subtitle{
+          color:#ddd6c4;
+          margin-top:7px;
+          font-size:15px;
+          line-height:1.7;
+        }
+
+        .alsaab-smart-status{
+          display:flex;
+          align-items:center;
+          gap:8px;
+          color:#b8ffcb;
+          background:rgba(34,197,94,.14);
+          border:1px solid rgba(34,197,94,.42);
+          border-radius:999px;
+          padding:9px 13px;
+          font-weight:900;
+          white-space:nowrap;
+          box-shadow:0 0 20px rgba(34,197,94,.15);
+        }
+
+        .alsaab-smart-dot{
+          width:10px;
+          height:10px;
+          border-radius:999px;
+          background:#22c55e;
+          box-shadow:0 0 14px #22c55e;
+        }
 
         .alsaab-smart-quick{
           display:flex;
           gap:10px;
           flex-wrap:wrap;
-          padding:14px 18px;
+          padding:15px 18px;
           border-bottom:1px solid rgba(255,255,255,.07);
-          background:#0f0f0f;
+          background:rgba(15,15,15,.82);
         }
 
         .alsaab-smart-quick button{
-          border:1px solid rgba(215,184,90,.42);
+          border:1px solid rgba(215,184,90,.52);
           color:#f0cc68;
-          background:#111;
+          background:linear-gradient(135deg,#111,#17130b);
           border-radius:999px;
-          padding:10px 13px;
-          font-weight:800;
+          padding:10px 14px;
+          font-weight:900;
           cursor:pointer;
+        }
+
+        .alsaab-smart-quick button:hover{
+          transform:translateY(-1px);
+          border-color:rgba(240,204,104,.9);
+          box-shadow:0 0 18px rgba(215,184,90,.18);
         }
 
         .alsaab-smart-messages{
           flex:1;
           overflow:auto;
-          padding:18px;
+          padding:20px;
           display:flex;
           flex-direction:column;
-          gap:12px;
+          gap:13px;
+          min-height:0;
         }
 
         .alsaab-smart-msg{
           max-width:78%;
-          padding:13px 15px;
+          padding:14px 16px;
           border-radius:18px;
-          line-height:1.75;
+          line-height:1.8;
           font-size:16px;
           white-space:normal;
         }
 
         .alsaab-smart-msg.bot{
           align-self:flex-start;
-          background:#151515;
-          border:1px solid rgba(215,184,90,.22);
+          background:linear-gradient(145deg,rgba(255,255,255,.06),rgba(18,18,18,.96));
+          border:1px solid rgba(215,184,90,.28);
           color:#f7f1df;
         }
 
         .alsaab-smart-msg.user{
           align-self:flex-end;
-          background:linear-gradient(135deg,#d7b85a,#aa842a);
+          background:linear-gradient(135deg,#f0cc68,#d7b85a,#aa842a);
           color:#111;
-          font-weight:800;
+          font-weight:900;
         }
 
         .alsaab-smart-form{
@@ -427,41 +531,108 @@ SMART_LINK_JS = r"""
           gap:10px;
           padding:16px;
           border-top:1px solid rgba(215,184,90,.25);
-          background:#0f0f0f;
+          background:rgba(15,15,15,.88);
         }
 
         .alsaab-smart-form input{
           flex:1;
           background:#050505;
-          border:1px solid rgba(215,184,90,.35);
+          border:1px solid rgba(215,184,90,.42);
           color:#fff;
           border-radius:16px;
-          padding:14px;
+          padding:15px;
           font-size:16px;
           outline:none;
         }
 
+        .alsaab-smart-form input:focus{
+          border-color:rgba(240,204,104,.95);
+          box-shadow:0 0 0 3px rgba(215,184,90,.13);
+        }
+
         .alsaab-smart-form button{
-          background:linear-gradient(135deg,#d7b85a,#aa842a);
+          background:linear-gradient(135deg,#f0cc68,#d7b85a,#aa842a);
           color:#111;
           border:0;
           border-radius:16px;
-          padding:0 22px;
-          font-weight:900;
+          padding:0 24px;
+          font-weight:950;
           cursor:pointer;
+          box-shadow:0 10px 24px rgba(215,184,90,.22);
         }
 
-        @media(max-width:720px){
+        .alsaab-smart-side{
+          padding:20px;
+          display:flex;
+          flex-direction:column;
+          gap:18px;
+        }
+
+        .alsaab-smart-side-brand{
+          display:flex;
+          align-items:center;
+          justify-content:space-between;
+          gap:12px;
+        }
+
+        .alsaab-smart-side-title{
+          color:#f0cc68;
+          font-size:22px;
+          font-weight:950;
+        }
+
+        .alsaab-smart-side-card{
+          border:1px solid rgba(215,184,90,.35);
+          border-radius:22px;
+          padding:20px;
+          background:linear-gradient(145deg,rgba(255,255,255,.05),rgba(20,20,20,.84));
+        }
+
+        .alsaab-smart-side-kicker{
+          color:#f0cc68;
+          font-weight:900;
+          margin-bottom:10px;
+        }
+
+        .alsaab-smart-side-card h2{
+          margin:0 0 12px;
+          color:#fffaf0;
+          font-size:25px;
+          line-height:1.35;
+        }
+
+        .alsaab-smart-side-card p{
+          color:#ddd6c4;
+          line-height:1.8;
+          margin:0 0 14px;
+        }
+
+        .alsaab-smart-feature{
+          color:#f7f1df;
+          margin-top:10px;
+          font-weight:800;
+        }
+
+        .alsaab-smart-powered{
+          margin-top:auto;
+          color:#9f967b;
+          font-size:12px;
+          text-align:center;
+        }
+
+        @media(max-width:900px){
           #alsaabSmartChatOverlay{padding:0;}
           .alsaab-smart-shell{width:100vw;height:100vh;}
+          .alsaab-smart-layout{grid-template-columns:1fr;height:100%;}
+          .alsaab-smart-side{display:none;}
           .alsaab-smart-card{border-radius:0;border:0;}
-          .alsaab-smart-head{align-items:flex-start;flex-direction:column;}
-          .alsaab-smart-title{font-size:23px;}
+          .alsaab-smart-head{padding-top:82px;align-items:flex-start;flex-direction:column;}
+          .alsaab-smart-floating-actions{top:14px;left:14px;}
+          .alsaab-smart-title{font-size:24px;}
           .alsaab-smart-msg{max-width:92%;font-size:15px;}
           .alsaab-smart-form{padding-bottom:22px;}
         }
 
-        /* Wider existing widget fallback */
         .alsaab-chat-widget,
         .chat-widget,
         #chat-widget,
@@ -1246,23 +1417,55 @@ def register_smart_link_routes(app):
       if (location.hostname.indexOf("onrender.com") !== -1) return "";
       return "https://alsaab-ai.onrender.com";
     }
+    function escapeSmartHtml(value){
+      return String(value || "").replace(/[&<>"']/g, function(c){
+        return {"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"}[c];
+      });
+    }
 
     function updateTitle(data){
       if(!data || !data.project_name) return;
 
+      var projectName = String(data.project_name || "").trim();
+      if(!projectName) return;
+
       var title = document.querySelector(".alsaab-smart-title");
       var subtitle = document.querySelector(".alsaab-smart-subtitle");
+      var sideTitle = document.querySelector(".alsaab-smart-side-title");
+      var sideCardTitle = document.querySelector(".alsaab-smart-side-card h2");
+      var sideCardText = document.querySelector(".alsaab-smart-side-card p");
+      var firstBotMsg = document.querySelector("#alsaabSmartMessages .alsaab-smart-msg.bot");
 
       if(title){
-        title.textContent = "موظف المبيعات الذكي - " + data.project_name;
+        title.textContent = "???? ???????? ?????";
       }
 
       if(subtitle){
-        subtitle.textContent = "مرحباً بك في " + data.project_name + "، اختر من الخيارات أو اكتب طلبك.";
+        subtitle.textContent = "?????? ?? ?? " + projectName + "? ???? ?? ????????? ???????? ?????? ?? ???? ?????.";
+      }
+
+      if(sideTitle){
+        sideTitle.textContent = projectName;
+      }
+
+      if(sideCardTitle){
+        sideCardTitle.textContent = "?????? ????? ?? " + projectName;
+      }
+
+      if(sideCardText){
+        sideCardText.textContent = "??? ??? ???? ?????? ?????? ????? ???????? ????????? ?????? ???? ?? ?????? ??? ?????.";
+      }
+
+      if(firstBotMsg && firstBotMsg.textContent.indexOf("???? ???????? ?????") !== -1){
+        firstBotMsg.innerHTML =
+          "??? ?????? ??<br>" +
+          "??? ???? ???????? ????? ????? ?? " + escapeSmartHtml(projectName) + ". " +
+          "???? ?????? ???? ????????? ???????? ??????? ?? ????? ????? ????? ???????.";
       }
     }
 
     function load(){
+
       var ref = getRef();
       if(!ref) return;
 
