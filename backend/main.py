@@ -1067,6 +1067,53 @@ textarea::placeholder {
   }
   /* ===== ALSAAB_WEBSITE_CHAT_VISUAL_SAFE_V1 END ===== */
 
+
+  /* ===== ALSAAB_WEBSITE_CHAT_FIX_V2 START ===== */
+  .alsaab-word-avatar-fix {
+    width: auto !important;
+    min-width: 56px !important;
+    max-width: 78px !important;
+    height: 42px !important;
+    min-height: 42px !important;
+    padding: 0 8px !important;
+    box-sizing: border-box !important;
+    border-radius: 14px !important;
+    font-size: 10px !important;
+    line-height: 1 !important;
+    letter-spacing: .2px !important;
+    white-space: nowrap !important;
+    overflow: hidden !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+  }
+
+  #msg,
+  textarea#msg {
+    min-height: 52px !important;
+    height: 52px !important;
+    max-height: 88px !important;
+    resize: none !important;
+    box-sizing: border-box !important;
+    border-radius: 18px !important;
+    padding: 12px 16px !important;
+    line-height: 1.5 !important;
+  }
+
+  button[type="submit"],
+  .send-btn,
+  #sendBtn {
+    min-height: 52px !important;
+    height: 52px !important;
+    max-height: 52px !important;
+    min-width: 58px !important;
+    border-radius: 18px !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+  }
+  /* ===== ALSAAB_WEBSITE_CHAT_FIX_V2 END ===== */
+
 </style>
 </head>
 
@@ -1422,6 +1469,26 @@ window.addEventListener("load", function() {
     scrollToBottom();
 });
 </script>
+
+<script id="alsaabWebsiteChatFixV2">
+(function(){
+  function fix(){
+    document.querySelectorAll("div,span").forEach(function(el){
+      var text = (el.textContent || "").trim();
+      if (text === "ALSAAB" && el.children.length === 0) {
+        el.classList.add("alsaab-word-avatar-fix");
+      }
+    });
+  }
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", fix);
+  } else {
+    fix();
+  }
+  setTimeout(fix, 500);
+})();
+</script>
+
 </body>
 </html>
 """
