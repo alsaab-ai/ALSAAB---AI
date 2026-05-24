@@ -3670,6 +3670,21 @@ def client_dashboard_view():
         product_groups = client_dashboard_result.get("product_image_groups") or []
         client_payment_links = client_dashboard_result.get("client_payment_links") or []
 
+        # ===== ALSAAB_CLIENT_DASHBOARD_HIDE_TEST_DATA_V1 START =====
+        def _is_launch_test_item(value):
+            text = str(value or "").lower()
+            return (
+                "test product" in text
+                or "test catalog group" in text
+                or "test drive upload group" in text
+                or "example.com/pay-test" in text
+                or "client dashboard mvp" in text
+            )
+
+        product_groups = [item for item in product_groups if not _is_launch_test_item(item)]
+        client_payment_links = [item for item in client_payment_links if not _is_launch_test_item(item)]
+        # ===== ALSAAB_CLIENT_DASHBOARD_HIDE_TEST_DATA_V1 END =====
+
         account_id = partner_id
         client_id = partner_id
 
