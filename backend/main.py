@@ -3395,10 +3395,11 @@ def partner_dashboard_view():
         <div class="muted">{{ profile.partner_name or "Partner" }}</div>
       </div>
 
-      <div class="card">
+      <div class="card" style="border-color: {{ rank_ui.color }}; box-shadow: 0 0 28px {{ rank_ui.glow }};">
         <h3>{{ t.current_level }}</h3>
-        <div class="big">{{ level.current_level or level.partner_rank or "Level 1" }}</div>
-        <div class="muted">{{ t.next }}: {{ level.next_rank or "-" }}</div>
+        <div class="big" style="color:{{ rank_ui.color }};">{{ rank_ui.level_label }}</div>
+        <div class="muted">{{ rank_ui.rank_name }}</div>
+        <div class="muted">{{ t.next }}: {{ rank_ui.next_label }}</div>
       </div>
 
       <div class="card">
@@ -3423,17 +3424,30 @@ def partner_dashboard_view():
       <div class="info-row"><div class="label">{{ t.referral_link }}</div><div class="value"><a href="{{ profile.referral_link }}" target="_blank">{{ profile.referral_link }}</a></div></div>
     </div>
 
-    <div class="section">
+    <div class="section" style="border-color: {{ rank_ui.color }}; box-shadow: 0 0 32px {{ rank_ui.glow }};">
       <h2>{{ t.level_progress }}</h2>
-      <div class="info-row"><div class="label">{{ t.current_level }}</div><div class="value">{{ level.current_level or level.partner_rank or "-" }}</div></div>
-      <div class="info-row"><div class="label">{{ t.next }}</div><div class="value">{{ level.next_rank or "-" }}</div></div>
-      <div class="info-row"><div class="label">{{ t.completed_sales }}</div><div class="value">{{ level.completed_sales or "0" }}</div></div>
-      <div class="info-row"><div class="label">{{ t.required_sales }}</div><div class="value">{{ level.required_sales or "-" }}</div></div>
-      <div class="info-row"><div class="label">{{ t.current_package }}</div><div class="value">{{ level.current_package or "-" }}</div></div>
-      <div class="info-row"><div class="label">{{ t.subscription_status }}</div><div class="value">{{ level.subscription_status or "-" }}</div></div>
-      <div class="info-row"><div class="label">{{ t.commission_eligible }}</div><div class="value">{{ level.commission_eligible or "-" }}</div></div>
-      <div class="info-row"><div class="label">{{ t.required_course }}</div><div class="value">{{ level.required_course_workshop or "-" }}</div></div>
-      <div class="info-row"><div class="label">{{ t.missing_requirements }}</div><div class="value"><pre>{{ level.missing_requirements or "-" }}</pre></div></div>
+
+      <div style="display:flex;gap:14px;flex-wrap:wrap;margin-bottom:16px;">
+        <div style="border:1px solid {{ rank_ui.color }};background:rgba(255,255,255,.035);border-radius:16px;padding:14px 16px;min-width:180px;">
+          <div class="muted">{{ t.current_level }}</div>
+          <div class="big" style="color:{{ rank_ui.color }};">{{ rank_ui.level_label }}</div>
+          <div class="muted">{{ rank_ui.rank_name }}</div>
+        </div>
+
+        <div style="border:1px solid rgba(215,184,90,.35);background:rgba(215,184,90,.06);border-radius:16px;padding:14px 16px;min-width:220px;">
+          <div class="muted">{{ t.next }}</div>
+          <div class="big">{{ rank_ui.next_label }}</div>
+          <div class="muted">{{ rank_ui.requirement_text }}</div>
+        </div>
+      </div>
+
+      <div class="info-row"><div class="label">{{ t.completed_sales }}</div><div class="value">{{ rank_ui.completed_sales }}</div></div>
+      <div class="info-row"><div class="label">{{ t.required_sales }}</div><div class="value">{{ rank_ui.required_sales }}</div></div>
+      <div class="info-row"><div class="label">{{ t.current_package }}</div><div class="value">{{ rank_ui.current_package }}</div></div>
+      <div class="info-row"><div class="label">{{ t.subscription_status }}</div><div class="value">{{ rank_ui.subscription_status }}</div></div>
+      <div class="info-row"><div class="label">{{ t.commission_eligible }}</div><div class="value">{{ rank_ui.commission_eligible }}</div></div>
+      <div class="info-row"><div class="label">{{ t.required_course }}</div><div class="value">{{ rank_ui.required_course }}</div></div>
+      <div class="info-row"><div class="label">{{ t.missing_requirements }}</div><div class="value" style="color:#f0cc68;font-weight:900;">{{ rank_ui.missing_text }}</div></div>
     </div>
 
     <div class="section">
