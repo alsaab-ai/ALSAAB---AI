@@ -4149,8 +4149,44 @@ def client_dashboard_view():
     </div>
 
   </div>
+<div class="section" id="alsaabClientSmartLinkCancel" dir="rtl">
+  <!-- ALSAAB_CLIENT_MAIN_SMART_LINK_CANCEL_V2 START -->
+  <!-- ALSAAB_SMART_LINK_CLIENT_DASHBOARD_UI_V1 START -->
+  <h2 style="color:#d7b85a;">مدخل واتساب الذكي</h2>
+  <div class="sub" style="line-height:1.8;">انسخ هذا الرابط وضعه في الرد الآلي داخل WhatsApp Business حتى يدخل الزائر على موظف المبيعات الذكي الخاص بمشروعك.</div>
+  <label style="display:block;color:#f0cc68;font-weight:900;margin-top:14px;">رابط موظف المبيعات الذكي</label>
+  <input id="alsaabSmartLinkDirect" readonly value="https://alsaab.io/?ref={{ partner_id }}" style="width:100%;box-sizing:border-box;margin-top:8px;background:#0b0b0b;color:#fff;border:1px solid rgba(215,184,90,.45);border-radius:12px;padding:12px;font-weight:800;">
+  <button class="primary-btn" type="button" onclick="copyClientDashboardText('alsaabSmartLinkDirect')">نسخ الرابط</button>
+  <label style="display:block;color:#f0cc68;font-weight:900;margin-top:18px;">رسالة واتساب جاهزة للنسخ</label>
+  <textarea id="alsaabWhatsAppMessageDirect" readonly style="width:100%;box-sizing:border-box;min-height:125px;margin-top:8px;background:#0b0b0b;color:#fff;border:1px solid rgba(215,184,90,.45);border-radius:12px;padding:12px;line-height:1.8;">هلا وسهلا 👋&#10;عشان نخدمك بسرعة، تقدر تتكلم مع موظف المبيعات الذكي من هذا الرابط:&#10;https://alsaab.io/?ref={{ partner_id }}&#10;&#10;بيفهم طلبك، يشرح لك التفاصيل، ويرسل لك رابط الدفع أو يحولك لفريق العمل إذا احتجت.</textarea>
+  <button class="primary-btn" type="button" onclick="copyClientDashboardText('alsaabWhatsAppMessageDirect')">نسخ رسالة واتساب</button>
+  <!-- ALSAAB_SMART_LINK_CLIENT_DASHBOARD_UI_V1 END -->
+  <hr style="border:0;border-top:1px solid rgba(215,184,90,.22);margin:24px 0;">
+  <!-- ALSAAB_CANCELLATION_UI_V1 START -->
+  <h2 style="color:#d7b85a;">طلب إلغاء الاشتراك</h2>
+  <div class="sub" style="line-height:1.8;">الإلغاء لا يتم تلقائياً. يمكنك إرسال طلب إلغاء، وستقوم الإدارة بمراجعته يدوياً. لا يوجد استرداد بعد الدفع، وتستمر الخدمة إلى نهاية الفترة المدفوعة.</div>
+  <form method="POST" action="/client/request-cancellation" style="margin-top:14px;">
+    <input type="hidden" name="partner_id" value="{{ partner_id }}">
+    <input type="hidden" name="key" value="{{ key }}">
+    <label style="display:block;color:#f0cc68;font-weight:900;">سبب الإلغاء</label>
+    <select name="reason" style="width:100%;box-sizing:border-box;margin-top:8px;background:#0b0b0b;color:#fff;border:1px solid rgba(215,184,90,.45);border-radius:12px;padding:12px;">
+      <option value="لا أحتاج الخدمة حالياً">لا أحتاج الخدمة حالياً</option>
+      <option value="السعر غير مناسب">السعر غير مناسب</option>
+      <option value="أحتاج مساعدة من الإدارة">أحتاج مساعدة من الإدارة</option>
+      <option value="سبب آخر">سبب آخر</option>
+    </select>
+    <label style="display:block;color:#f0cc68;font-weight:900;margin-top:12px;">ملاحظات إضافية</label>
+    <textarea name="notes" placeholder="اكتب ملاحظتك هنا..." style="width:100%;box-sizing:border-box;min-height:90px;margin-top:8px;background:#0b0b0b;color:#fff;border:1px solid rgba(215,184,90,.45);border-radius:12px;padding:12px;line-height:1.8;"></textarea>
+    <button type="submit" style="margin-top:12px;border:1px solid rgba(255,120,120,.65);color:#fff;background:#6b1d1d;border-radius:999px;padding:10px 16px;font-weight:900;cursor:pointer;">إرسال طلب الإلغاء</button>
+  </form>
+  <!-- ALSAAB_CANCELLATION_UI_V1 END -->
+  <!-- ALSAAB_CLIENT_MAIN_SMART_LINK_CANCEL_V2 END -->
+</div>
+
 
   <script>
+    function copyClientDashboardText(id) { var el = document.getElementById(id); if (!el) return; el.select(); el.setSelectionRange(0, 99999); if (navigator.clipboard) { navigator.clipboard.writeText(el.value); } else { document.execCommand("copy"); } }
+
     function addPaymentRow() {
       const container = document.getElementById("paymentRows");
       const first = container.querySelector(".payment-row");
