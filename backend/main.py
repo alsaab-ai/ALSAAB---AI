@@ -4212,7 +4212,7 @@ def client_dashboard_view():
             <body style="font-family:Arial; direction:rtl; padding:30px;">
               <h2>حدث خطأ في عرض Client Dashboard</h2>
               <p>{{ error }}</p>
-</body>
+            </body>
             </html>
             """,
             error=str(error)
