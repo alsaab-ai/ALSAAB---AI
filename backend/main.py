@@ -3482,6 +3482,216 @@ def partner_dashboard_view():
     }
     /* ===== ALSAAB_DASHBOARD_VISUAL_POLISH_V1 END ===== */
 
+    /* ===== ALSAAB_DASHBOARD_VISUAL_POLISH_V2 START ===== */
+    body {
+      background:
+        radial-gradient(circle at 88% 8%, rgba(255, 214, 102, .20), transparent 28%),
+        radial-gradient(circle at 12% 22%, rgba(130, 160, 255, .10), transparent 34%),
+        linear-gradient(180deg, #080808 0%, #10131a 48%, #080808 100%) !important;
+    }
+
+    .page {
+      position: relative;
+      isolation: isolate;
+    }
+
+    .page::before {
+      content: "";
+      position: fixed;
+      inset: auto 0 0 0;
+      height: 46%;
+      pointer-events: none;
+      background: radial-gradient(circle at center, rgba(215,184,90,.10), transparent 62%);
+      z-index: -1;
+    }
+
+    .topbar {
+      background:
+        linear-gradient(135deg, rgba(255,255,255,.055), rgba(215,184,90,.075)),
+        linear-gradient(180deg, rgba(255,255,255,.04), rgba(255,255,255,0)) !important;
+      border-color: rgba(240,204,104,.38) !important;
+    }
+
+    .brand-title {
+      color: #f0cc68 !important;
+      text-shadow: 0 0 18px rgba(240,204,104,.28);
+    }
+
+    .portal-card,
+    .card,
+    .section {
+      position: relative;
+      overflow: hidden;
+    }
+
+    .portal-card::before,
+    .card::before,
+    .section::before {
+      content: "";
+      position: absolute;
+      top: 0;
+      left: 14px;
+      right: 14px;
+      height: 1px;
+      background: linear-gradient(90deg, transparent, rgba(240,204,104,.75), rgba(255,255,255,.30), transparent);
+      opacity: .9;
+      pointer-events: none;
+    }
+
+    .section {
+      background:
+        linear-gradient(145deg, rgba(255,255,255,.052), rgba(18,18,18,.98)),
+        radial-gradient(circle at top right, rgba(215,184,90,.075), transparent 38%) !important;
+      border-color: rgba(240,204,104,.44) !important;
+    }
+
+    .card {
+      background:
+        linear-gradient(145deg, rgba(255,255,255,.06), rgba(10,10,10,.96)),
+        radial-gradient(circle at top right, rgba(192,192,192,.07), transparent 35%) !important;
+      border-color: rgba(220,220,220,.26) !important;
+    }
+
+    .card h3,
+    .section h2 {
+      color: #f0cc68 !important;
+      letter-spacing: .2px;
+    }
+
+    .section h2 {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .section h2::before {
+      content: "";
+      width: 10px;
+      height: 10px;
+      border-radius: 999px;
+      background: linear-gradient(135deg, #f0cc68, #ffffff);
+      box-shadow: 0 0 18px rgba(240,204,104,.55);
+      flex: 0 0 auto;
+    }
+
+    .portal-card.active {
+      background:
+        linear-gradient(135deg, #fff0a6 0%, #f0cc68 40%, #d7b85a 70%, #9a7424 100%) !important;
+      color: #101010 !important;
+      box-shadow:
+        0 0 32px rgba(240,204,104,.42),
+        inset 0 1px 0 rgba(255,255,255,.35) !important;
+    }
+
+    .portal-card.active .portal-card-title,
+    .portal-card.active .portal-card-text {
+      color: #111 !important;
+      text-shadow: none !important;
+    }
+
+    .primary-btn,
+    button.primary-btn,
+    .action-btn:hover {
+      background: linear-gradient(135deg, #fff0a6, #f0cc68 45%, #d7b85a) !important;
+      color: #111 !important;
+      border-color: rgba(255,255,255,.30) !important;
+    }
+
+    .primary-btn {
+      font-weight: 900 !important;
+    }
+
+    .big {
+      color: #ffffff !important;
+      text-shadow:
+        0 0 18px rgba(255,255,255,.12),
+        0 0 22px rgba(240,204,104,.14);
+    }
+
+    .muted,
+    .portal-card-text {
+      color: #d6d0bd !important;
+    }
+
+    .info-row {
+      background:
+        linear-gradient(90deg, rgba(255,255,255,.035), rgba(215,184,90,.035)) !important;
+      border-color: rgba(215,184,90,.28) !important;
+    }
+
+    .label {
+      color: #f0cc68 !important;
+      font-weight: 900 !important;
+    }
+
+    .value {
+      color: #ffffff !important;
+      font-weight: 800 !important;
+    }
+
+    .badge {
+      background: linear-gradient(135deg, rgba(215,184,90,.20), rgba(255,255,255,.045)) !important;
+      color: #fff0a6 !important;
+      border-color: rgba(240,204,104,.62) !important;
+    }
+
+    .small-item {
+      background:
+        linear-gradient(135deg, rgba(255,255,255,.04), rgba(12,12,12,.92)) !important;
+      border-color: rgba(215,184,90,.32) !important;
+      border-inline-start: 4px solid #d7b85a !important;
+    }
+
+    table {
+      border-color: rgba(215,184,90,.26) !important;
+    }
+
+    th {
+      color: #f0cc68 !important;
+      background: rgba(215,184,90,.075) !important;
+    }
+
+    td {
+      color: #f5f0df !important;
+    }
+
+    input,
+    textarea,
+    select {
+      background: linear-gradient(135deg, #090909, #10131a) !important;
+      color: #ffffff !important;
+      border-color: rgba(215,184,90,.38) !important;
+    }
+
+    input:focus,
+    textarea:focus,
+    select:focus {
+      border-color: rgba(240,204,104,.90) !important;
+      box-shadow: 0 0 0 3px rgba(240,204,104,.13), 0 0 20px rgba(215,184,90,.14) !important;
+      outline: none !important;
+    }
+
+    button[style*="#6b1d1d"],
+    button[style*="6b1d1d"] {
+      background: linear-gradient(135deg, #d34242, #7e1515) !important;
+      border-color: rgba(255,120,120,.9) !important;
+      color: #fff !important;
+      box-shadow: 0 0 24px rgba(255,70,70,.22) !important;
+    }
+
+    button[style*="128,226,138"],
+    button[style*="#80e28a"],
+    button[style*="80e28a"] {
+      background: linear-gradient(135deg, #1f7a35, #102817) !important;
+      border-color: rgba(128,226,138,.9) !important;
+      color: #caffd1 !important;
+      box-shadow: 0 0 24px rgba(128,226,138,.20) !important;
+    }
+
+    a {
+      color: #f0cc68 !important;
+    }
+    /* ===== ALSAAB_DASHBOARD_VISUAL_POLISH_V2 END ===== */
 </style>
 </head>
 <body>
@@ -4312,6 +4522,216 @@ def client_dashboard_view():
     }
     /* ===== ALSAAB_DASHBOARD_VISUAL_POLISH_V1 END ===== */
 
+    /* ===== ALSAAB_DASHBOARD_VISUAL_POLISH_V2 START ===== */
+    body {
+      background:
+        radial-gradient(circle at 88% 8%, rgba(255, 214, 102, .20), transparent 28%),
+        radial-gradient(circle at 12% 22%, rgba(130, 160, 255, .10), transparent 34%),
+        linear-gradient(180deg, #080808 0%, #10131a 48%, #080808 100%) !important;
+    }
+
+    .page {
+      position: relative;
+      isolation: isolate;
+    }
+
+    .page::before {
+      content: "";
+      position: fixed;
+      inset: auto 0 0 0;
+      height: 46%;
+      pointer-events: none;
+      background: radial-gradient(circle at center, rgba(215,184,90,.10), transparent 62%);
+      z-index: -1;
+    }
+
+    .topbar {
+      background:
+        linear-gradient(135deg, rgba(255,255,255,.055), rgba(215,184,90,.075)),
+        linear-gradient(180deg, rgba(255,255,255,.04), rgba(255,255,255,0)) !important;
+      border-color: rgba(240,204,104,.38) !important;
+    }
+
+    .brand-title {
+      color: #f0cc68 !important;
+      text-shadow: 0 0 18px rgba(240,204,104,.28);
+    }
+
+    .portal-card,
+    .card,
+    .section {
+      position: relative;
+      overflow: hidden;
+    }
+
+    .portal-card::before,
+    .card::before,
+    .section::before {
+      content: "";
+      position: absolute;
+      top: 0;
+      left: 14px;
+      right: 14px;
+      height: 1px;
+      background: linear-gradient(90deg, transparent, rgba(240,204,104,.75), rgba(255,255,255,.30), transparent);
+      opacity: .9;
+      pointer-events: none;
+    }
+
+    .section {
+      background:
+        linear-gradient(145deg, rgba(255,255,255,.052), rgba(18,18,18,.98)),
+        radial-gradient(circle at top right, rgba(215,184,90,.075), transparent 38%) !important;
+      border-color: rgba(240,204,104,.44) !important;
+    }
+
+    .card {
+      background:
+        linear-gradient(145deg, rgba(255,255,255,.06), rgba(10,10,10,.96)),
+        radial-gradient(circle at top right, rgba(192,192,192,.07), transparent 35%) !important;
+      border-color: rgba(220,220,220,.26) !important;
+    }
+
+    .card h3,
+    .section h2 {
+      color: #f0cc68 !important;
+      letter-spacing: .2px;
+    }
+
+    .section h2 {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .section h2::before {
+      content: "";
+      width: 10px;
+      height: 10px;
+      border-radius: 999px;
+      background: linear-gradient(135deg, #f0cc68, #ffffff);
+      box-shadow: 0 0 18px rgba(240,204,104,.55);
+      flex: 0 0 auto;
+    }
+
+    .portal-card.active {
+      background:
+        linear-gradient(135deg, #fff0a6 0%, #f0cc68 40%, #d7b85a 70%, #9a7424 100%) !important;
+      color: #101010 !important;
+      box-shadow:
+        0 0 32px rgba(240,204,104,.42),
+        inset 0 1px 0 rgba(255,255,255,.35) !important;
+    }
+
+    .portal-card.active .portal-card-title,
+    .portal-card.active .portal-card-text {
+      color: #111 !important;
+      text-shadow: none !important;
+    }
+
+    .primary-btn,
+    button.primary-btn,
+    .action-btn:hover {
+      background: linear-gradient(135deg, #fff0a6, #f0cc68 45%, #d7b85a) !important;
+      color: #111 !important;
+      border-color: rgba(255,255,255,.30) !important;
+    }
+
+    .primary-btn {
+      font-weight: 900 !important;
+    }
+
+    .big {
+      color: #ffffff !important;
+      text-shadow:
+        0 0 18px rgba(255,255,255,.12),
+        0 0 22px rgba(240,204,104,.14);
+    }
+
+    .muted,
+    .portal-card-text {
+      color: #d6d0bd !important;
+    }
+
+    .info-row {
+      background:
+        linear-gradient(90deg, rgba(255,255,255,.035), rgba(215,184,90,.035)) !important;
+      border-color: rgba(215,184,90,.28) !important;
+    }
+
+    .label {
+      color: #f0cc68 !important;
+      font-weight: 900 !important;
+    }
+
+    .value {
+      color: #ffffff !important;
+      font-weight: 800 !important;
+    }
+
+    .badge {
+      background: linear-gradient(135deg, rgba(215,184,90,.20), rgba(255,255,255,.045)) !important;
+      color: #fff0a6 !important;
+      border-color: rgba(240,204,104,.62) !important;
+    }
+
+    .small-item {
+      background:
+        linear-gradient(135deg, rgba(255,255,255,.04), rgba(12,12,12,.92)) !important;
+      border-color: rgba(215,184,90,.32) !important;
+      border-inline-start: 4px solid #d7b85a !important;
+    }
+
+    table {
+      border-color: rgba(215,184,90,.26) !important;
+    }
+
+    th {
+      color: #f0cc68 !important;
+      background: rgba(215,184,90,.075) !important;
+    }
+
+    td {
+      color: #f5f0df !important;
+    }
+
+    input,
+    textarea,
+    select {
+      background: linear-gradient(135deg, #090909, #10131a) !important;
+      color: #ffffff !important;
+      border-color: rgba(215,184,90,.38) !important;
+    }
+
+    input:focus,
+    textarea:focus,
+    select:focus {
+      border-color: rgba(240,204,104,.90) !important;
+      box-shadow: 0 0 0 3px rgba(240,204,104,.13), 0 0 20px rgba(215,184,90,.14) !important;
+      outline: none !important;
+    }
+
+    button[style*="#6b1d1d"],
+    button[style*="6b1d1d"] {
+      background: linear-gradient(135deg, #d34242, #7e1515) !important;
+      border-color: rgba(255,120,120,.9) !important;
+      color: #fff !important;
+      box-shadow: 0 0 24px rgba(255,70,70,.22) !important;
+    }
+
+    button[style*="128,226,138"],
+    button[style*="#80e28a"],
+    button[style*="80e28a"] {
+      background: linear-gradient(135deg, #1f7a35, #102817) !important;
+      border-color: rgba(128,226,138,.9) !important;
+      color: #caffd1 !important;
+      box-shadow: 0 0 24px rgba(128,226,138,.20) !important;
+    }
+
+    a {
+      color: #f0cc68 !important;
+    }
+    /* ===== ALSAAB_DASHBOARD_VISUAL_POLISH_V2 END ===== */
 </style>
 </head>
 <body>
