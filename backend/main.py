@@ -2305,6 +2305,9 @@ def chat():
             "source_partner_id": source_partner_id
         })
 
+    usage_session_id = session_id
+    brain_message = message
+
     try:
         save_message(session_id, "user", message)
         print("MAIN USER MESSAGE SAVED ✅", flush=True)
