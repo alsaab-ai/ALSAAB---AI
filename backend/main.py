@@ -6775,8 +6775,8 @@ def admin_dashboard_view():
     <div class="two-col">
       <div class="small-box">
         <h3>توزيع المستويات</h3>
-        {% for level, count in level_counts.items() %}
-        <div class="kv"><span>{{ level }}</span><strong>{{ count }}</strong></div>
+        {% for level_name, count in level_counts.items() %}
+        <div class="kv"><span>{{ level_name }}</span><strong>{{ count }}</strong></div>
         {% else %}
         <div class="muted">لا توجد بيانات مستويات.</div>
         {% endfor %}
