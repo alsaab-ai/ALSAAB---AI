@@ -55,27 +55,6 @@ def is_valid_upgrade_path(current_plan, target_plan):
 
 
 def _db():
-
-    if current_plan and target_plan and not is_valid_upgrade_path(current_plan, target_plan):
-        return render_template_string(
-            """
-            <html lang="ar" dir="rtl">
-            <head><meta charset="utf-8"><title>طلب ترقية غير صحيح</title></head>
-            <body style="background:#0b0b0b;color:#fff;font-family:Arial;padding:30px;">
-              <div style="max-width:760px;margin:auto;background:#111;border:1px solid #d7b85a;border-radius:18px;padding:22px;">
-                <h2 style="color:#d7b85a;">طلب الترقية غير صحيح</h2>
-                <p>يمكنك الترقية فقط إلى باقة أعلى من باقتك الحالية.</p>
-                <p>الباقة الحالية: {{ current_plan }}</p>
-                <p>الباقة المطلوبة: {{ target_plan }}</p>
-                <a href="javascript:history.back()" style="color:#f0cc68;">رجوع</a>
-              </div>
-            </body>
-            </html>
-            """,
-            current_plan=current_plan,
-            target_plan=target_plan,
-        ), 400
-
     try:
         import database
         return database
