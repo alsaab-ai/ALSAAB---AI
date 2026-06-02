@@ -5820,9 +5820,9 @@ def admin_dashboard_view():
         requirement = next_requirements.get(next_level_num, {})
         required_sales_count = _safe_int(requirement.get("sales"), 0)
 
-        purchased_courses_text = str(purchased_courses or "").lower()
+        search_purchased_courses_text = str(search_purchased_courses or "").lower()
         course_token = str(requirement.get("course_token") or "").lower()
-        course_done = True if not course_token else course_token in purchased_courses_text
+        course_done = True if not course_token else course_token in search_purchased_courses_text
 
         package_value = str(search_level.get("current_package") or "").lower()
         package_ok = True
