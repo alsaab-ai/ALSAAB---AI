@@ -2974,6 +2974,8 @@ def partner_dashboard_view():
         owner_advisory_url = build_dashboard_nav_url("/owner-advisory", partner_id, lang, key)
 
         # ===== ALSAAB_PARTNER_RANK_UI_V2 START =====
+        is_ar = True
+
         def _rank_level_number(value):
             import re
             match = re.search(r"(\d+)", str(value or "Level 1"))
