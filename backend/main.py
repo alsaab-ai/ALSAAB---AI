@@ -2988,8 +2988,8 @@ def partner_dashboard_view():
             except Exception:
                 return default
 
-        current_level_num = _rank_level_number(level.get("current_level") or level.get("partner_rank"))
-        completed_sales_count = _safe_int(level.get("completed_sales") or customers.get("active_direct_paid_count") or 0)
+        current_level_num = _rank_level_number(search_level.get("current_level") or search_level.get("partner_rank"))
+        completed_sales_count = _safe_int(search_level.get("completed_sales") or search_customers.get("active_direct_paid_count") or 0)
 
         rank_meta = {
             1: {"rank": "Starter Partner", "color": "#B8860B", "glow": "rgba(184,134,11,.28)"},
@@ -3039,7 +3039,7 @@ def partner_dashboard_view():
         course_token = str(requirement.get("course_token") or "").lower()
         course_done = True if not course_token else course_token in purchased_courses_text
 
-        package_value = str(level.get("current_package") or "").lower()
+        package_value = str(search_level.get("current_package") or "").lower()
         package_ok = True
         if next_level_num == 2:
             package_ok = package_value in ("starter", "growth", "elite")
@@ -3077,9 +3077,9 @@ def partner_dashboard_view():
             "next_label": next_label,
             "completed_sales": completed_sales_count,
             "required_sales": required_sales_count if current_level_num < 5 else "-",
-            "current_package": level.get("current_package") or "-",
-            "subscription_status": level.get("subscription_status") or "-",
-            "commission_eligible": level.get("commission_eligible") or "-",
+            "current_package": search_level.get("current_package") or "-",
+            "subscription_status": search_level.get("subscription_status") or "-",
+            "commission_eligible": search_level.get("commission_eligible") or "-",
             "required_course": requirement.get("course") or "-",
             "requirement_text": requirement_text,
             "missing_text": missing_text,
