@@ -4,24 +4,27 @@ from dataclasses import dataclass, asdict
 from typing import Any, Iterable, Optional
 
 
+PACKAGE_ENTRY = "entry"
 PACKAGE_STARTER = "starter"
 PACKAGE_GROWTH = "growth"
 PACKAGE_ELITE = "elite"
+PACKAGE_DIAMOND = "diamond"
 
 COURSE_MARKETING_FREE = "marketing_course_free"
-COURSE_SALES_99 = "sales_course_99"
-COURSE_LIFE_PHILOSOPHY_299 = "life_philosophy_workshop_299"
-COURSE_CHANGE_JOURNEY_1099 = "change_journey_course_1099"
+COURSE_PRO_MARKETER_MINDSET_69 = "pro_marketer_mindset_69"
+COURSE_SALES_SKILLS_89 = "sales_skills_89"
+COURSE_CHANGE_JOURNEY_149 = "change_journey_149"
+COURSE_LIFE_PHILOSOPHY_FREE = "life_philosophy_workshop_free"
 
 ACTIVE_SUBSCRIPTION_STATUSES = {"active", "paid", "trialing"}
 
 LEVEL_NAMES = {
     0: "Inactive / Not Qualified",
-    1: "Starter Partner",
-    2: "Growth Partner",
-    3: "Sales Partner",
-    4: "Leader Partner",
-    5: "Elite Partner",
+    1: "Entry Partner",
+    2: "Starter Partner",
+    3: "Growth Partner",
+    4: "Elite Partner",
+    5: "Diamond Partner",
 }
 
 COMMISSION_RATES_BY_DEPTH = {
@@ -46,47 +49,51 @@ class LevelRequirement:
 LEVEL_REQUIREMENTS = {
     1: LevelRequirement(
         level=1,
-        name="Starter Partner",
-        allowed_packages=(PACKAGE_STARTER, PACKAGE_GROWTH, PACKAGE_ELITE),
+        name="Entry Partner",
+        allowed_packages=(PACKAGE_ENTRY, PACKAGE_STARTER, PACKAGE_GROWTH, PACKAGE_ELITE, PACKAGE_DIAMOND),
         min_active_direct_customers=0,
         required_courses=(),
         commission_rate=25.0,
     ),
     2: LevelRequirement(
         level=2,
-        name="Growth Partner",
-        allowed_packages=(PACKAGE_GROWTH, PACKAGE_ELITE),
+        name="Starter Partner",
+        allowed_packages=(PACKAGE_STARTER, PACKAGE_GROWTH, PACKAGE_ELITE, PACKAGE_DIAMOND),
         min_active_direct_customers=2,
         required_courses=(),
         commission_rate=5.0,
     ),
     3: LevelRequirement(
         level=3,
-        name="Sales Partner",
-        allowed_packages=(PACKAGE_GROWTH, PACKAGE_ELITE),
+        name="Growth Partner",
+        allowed_packages=(PACKAGE_GROWTH, PACKAGE_ELITE, PACKAGE_DIAMOND),
         min_active_direct_customers=5,
-        required_courses=(COURSE_SALES_99,),
+        required_courses=(COURSE_PRO_MARKETER_MINDSET_69,),
         commission_rate=4.0,
     ),
     4: LevelRequirement(
         level=4,
-        name="Leader Partner",
-        allowed_packages=(PACKAGE_ELITE,),
-        min_active_direct_customers=15,
-        required_courses=(COURSE_LIFE_PHILOSOPHY_299,),
+        name="Elite Partner",
+        allowed_packages=(PACKAGE_ELITE, PACKAGE_DIAMOND),
+        min_active_direct_customers=10,
+        required_courses=(COURSE_SALES_SKILLS_89,),
         commission_rate=3.0,
     ),
     5: LevelRequirement(
         level=5,
-        name="Elite Partner",
-        allowed_packages=(PACKAGE_ELITE,),
-        min_active_direct_customers=30,
-        required_courses=(COURSE_CHANGE_JOURNEY_1099,),
+        name="Diamond Partner",
+        allowed_packages=(PACKAGE_DIAMOND,),
+        min_active_direct_customers=20,
+        required_courses=(COURSE_CHANGE_JOURNEY_149,),
         commission_rate=2.0,
     ),
 }
 
 PACKAGE_ALIASES = {
+    "entry": PACKAGE_ENTRY,
+    "دخول": PACKAGE_ENTRY,
+    "الدخول": PACKAGE_ENTRY,
+    "باقة الدخول": PACKAGE_ENTRY,
     "starter": PACKAGE_STARTER,
     "البداية": PACKAGE_STARTER,
     "بداية": PACKAGE_STARTER,
@@ -96,22 +103,39 @@ PACKAGE_ALIASES = {
     "elite": PACKAGE_ELITE,
     "النخبة": PACKAGE_ELITE,
     "باقة النخبة": PACKAGE_ELITE,
+    "diamond": PACKAGE_DIAMOND,
+    "دايموند": PACKAGE_DIAMOND,
+    "الماسية": PACKAGE_DIAMOND,
+    "باقة الماسية": PACKAGE_DIAMOND,
+    "الباقة الماسية": PACKAGE_DIAMOND,
 }
 
 COURSE_ALIASES = {
     "marketing_course_free": COURSE_MARKETING_FREE,
     "كورس التسويق": COURSE_MARKETING_FREE,
-    "sales_course_99": COURSE_SALES_99,
-    "sales": COURSE_SALES_99,
-    "كورس المبيعات": COURSE_SALES_99,
-    "life_philosophy_workshop_299": COURSE_LIFE_PHILOSOPHY_299,
-    "life_philosophy": COURSE_LIFE_PHILOSOPHY_299,
-    "ورشة فلسفة الحياة": COURSE_LIFE_PHILOSOPHY_299,
-    "فلسفة الحياة": COURSE_LIFE_PHILOSOPHY_299,
-    "change_journey_course_1099": COURSE_CHANGE_JOURNEY_1099,
-    "change_journey": COURSE_CHANGE_JOURNEY_1099,
-    "كورس رحلة التغيير": COURSE_CHANGE_JOURNEY_1099,
-    "رحلة التغيير": COURSE_CHANGE_JOURNEY_1099,
+
+    "pro_marketer_mindset_69": COURSE_PRO_MARKETER_MINDSET_69,
+    "sales_course_99": COURSE_PRO_MARKETER_MINDSET_69,
+    "sales": COURSE_PRO_MARKETER_MINDSET_69,
+    "عقلية المسوق المحترف": COURSE_PRO_MARKETER_MINDSET_69,
+    "كورس عقلية المسوق المحترف": COURSE_PRO_MARKETER_MINDSET_69,
+    "المسوق المحترف": COURSE_PRO_MARKETER_MINDSET_69,
+
+    "sales_skills_89": COURSE_SALES_SKILLS_89,
+    "مهارات المبيعات": COURSE_SALES_SKILLS_89,
+    "كورس مهارات المبيعات": COURSE_SALES_SKILLS_89,
+
+    "life_philosophy_workshop_free": COURSE_LIFE_PHILOSOPHY_FREE,
+    "life_philosophy_workshop_299": COURSE_LIFE_PHILOSOPHY_FREE,
+    "life_philosophy": COURSE_LIFE_PHILOSOPHY_FREE,
+    "ورشة فلسفة الحياة": COURSE_LIFE_PHILOSOPHY_FREE,
+    "فلسفة الحياة": COURSE_LIFE_PHILOSOPHY_FREE,
+
+    "change_journey_149": COURSE_CHANGE_JOURNEY_149,
+    "change_journey_course_1099": COURSE_CHANGE_JOURNEY_149,
+    "change_journey": COURSE_CHANGE_JOURNEY_149,
+    "كورس رحلة التغيير": COURSE_CHANGE_JOURNEY_149,
+    "رحلة التغيير": COURSE_CHANGE_JOURNEY_149,
 }
 
 
@@ -159,13 +183,13 @@ def normalize_course_code(value: Any) -> str:
         return COURSE_ALIASES[lowered]
 
     if "مبيعات" in raw:
-        return COURSE_SALES_99
+        return COURSE_PRO_MARKETER_MINDSET_69
 
     if "فلسفة" in raw:
-        return COURSE_LIFE_PHILOSOPHY_299
+        return COURSE_LIFE_PHILOSOPHY_FREE
 
     if "تغيير" in raw:
-        return COURSE_CHANGE_JOURNEY_1099
+        return COURSE_CHANGE_JOURNEY_149
 
     if "تسويق" in raw:
         return COURSE_MARKETING_FREE
@@ -369,3 +393,4 @@ def export_level_requirements() -> list[dict]:
         asdict(LEVEL_REQUIREMENTS[level])
         for level in sorted(LEVEL_REQUIREMENTS)
     ]
+

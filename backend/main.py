@@ -2419,7 +2419,7 @@ def activate_subscription():
                 "session_id": "commission-test-001",
                 "plan": "growth",
                 "source_partner_id": "ALS-P00001",
-                "package_amount": "1099 AED",
+                "package_amount": "599 AED",
                 "notes": "manual_post_activation"
             }
         )
@@ -2994,11 +2994,11 @@ def partner_dashboard_view():
         completed_sales_count = _safe_int(search_level.get("completed_sales") or search_customers.get("active_direct_paid_count") or 0)
 
         rank_meta = {
-            1: {"rank": "Starter Partner", "color": "#B8860B", "glow": "rgba(184,134,11,.28)"},
-            2: {"rank": "Growth Partner", "color": "#C0C0C0", "glow": "rgba(192,192,192,.25)"},
-            3: {"rank": "Sales Partner", "color": "#D7B85A", "glow": "rgba(215,184,90,.32)"},
-            4: {"rank": "Leader Partner", "color": "#F0D98A", "glow": "rgba(240,217,138,.38)"},
-            5: {"rank": "Elite Partner", "color": "#FFFFFF", "glow": "rgba(255,215,0,.42)"},
+            1: {"rank": "Entry Partner", "color": "#B8860B", "glow": "rgba(184,134,11,.28)"},
+            2: {"rank": "Starter Partner", "color": "#C0C0C0", "glow": "rgba(192,192,192,.25)"},
+            3: {"rank": "Growth Partner", "color": "#D7B85A", "glow": "rgba(215,184,90,.32)"},
+            4: {"rank": "Elite Partner", "color": "#F0D98A", "glow": "rgba(240,217,138,.38)"},
+            5: {"rank": "Diamond Partner", "color": "#FFFFFF", "glow": "rgba(255,215,0,.42)"},
         }
 
         next_level_num = current_level_num + 1 if current_level_num < 5 else 5
@@ -3021,16 +3021,16 @@ def partner_dashboard_view():
             4: {
                 "sales": 10,
                 "course": "كورس مهارات المبيعات 99$",
-                "course_token": "99",
-                "text_ar": "كورس مهارات المبيعات 99$ + 10 عملاء نشطين",
-                "text_en": "Sales Skills Course $99 + 10 active customers",
+                "course_token": "89",
+                "text_ar": "كورس مهارات المبيعات 89$ + 10 عملاء نشطين",
+                "text_en": "Sales Skills Course $89 + 10 active customers",
             },
             5: {
                 "sales": 20,
                 "course": "كورس رحلة التغيير 299$",
-                "course_token": "299",
-                "text_ar": "كورس رحلة التغيير 299$ + 20 عميل نشط",
-                "text_en": "Change Journey Course $299 + 20 active customers",
+                "course_token": "149",
+                "text_ar": "كورس رحلة التغيير 149$ + 20 عميل نشط",
+                "text_en": "Change Journey Course $149 + 20 active customers",
             },
         }
 
@@ -3044,7 +3044,7 @@ def partner_dashboard_view():
         package_value = str(search_level.get("current_package") or "").lower()
         package_ok = True
         if next_level_num == 2:
-            package_ok = package_value in ("starter", "growth", "elite")
+            package_ok = package_value in ("starter", "growth", "elite", "diamond")
 
         missing_items = []
 

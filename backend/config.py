@@ -481,7 +481,7 @@ STRIPE_PLAN_CONFIG = {
         "payment_link": PAYMENT_LINKS["starter"],
         "internal_payment_route": PAYMENT_ROUTE_LINKS["starter"],
         "monthly_reply_limit": PACKAGES["starter"]["monthly_reply_limit"],
-        "package_amount": "599 AED",
+        "package_amount": "299 AED",
         "subscription_type": "monthly",
     },
     "growth": {
@@ -489,7 +489,7 @@ STRIPE_PLAN_CONFIG = {
         "payment_link": PAYMENT_LINKS["growth"],
         "internal_payment_route": PAYMENT_ROUTE_LINKS["growth"],
         "monthly_reply_limit": PACKAGES["growth"]["monthly_reply_limit"],
-        "package_amount": "1099 AED",
+        "package_amount": "599 AED",
         "subscription_type": "monthly",
     },
     "elite": {
@@ -497,7 +497,7 @@ STRIPE_PLAN_CONFIG = {
         "payment_link": PAYMENT_LINKS["elite"],
         "internal_payment_route": PAYMENT_ROUTE_LINKS["elite"],
         "monthly_reply_limit": PACKAGES["elite"]["monthly_reply_limit"],
-        "package_amount": "2099 AED",
+        "package_amount": "1199 AED",
         "subscription_type": "monthly",
     },
 }
@@ -618,9 +618,152 @@ _package_payment_options["entry"] = {
 
 _package_order = globals().get("PACKAGE_ORDER")
 if not isinstance(_package_order, list):
-    _package_order = ["entry", "starter", "growth", "elite"]
+    _package_order = ["entry", "starter", "growth", "elite", "diamond"]
     globals()["PACKAGE_ORDER"] = _package_order
 elif "entry" not in _package_order:
     _package_order.insert(0, "entry")
 
 # ===== ALSAAB_ENTRY_PACKAGE_SAFE_V3 END =====
+
+# ===== ALSAAB_PACKAGES_2026_PRICE_RESET_V1 START =====
+
+# Final approved packages:
+# Entry 99 / Starter 299 / Growth 599 / Elite 1199 / Diamond 2399
+
+PACKAGES["entry"] = {
+    "name_ar": "باقة الدخول",
+    "name_en": "Entry",
+    "price_ar": "99 درهم إماراتي شهرياً",
+    "price_en": "99 AED monthly",
+    "monthly_reply_limit": 500,
+    "customer_reply_limit": 500,
+    "base_customer_reply_limit": 500,
+    "gift_reply_limit": 0,
+    "total_customer_reply_limit": 500,
+    "owner_advisory_reply_limit": 0,
+    "main_channel": "whatsapp",
+    "channels": ["whatsapp"],
+    "whatsapp_included": True,
+    "website_included": False,
+    "instagram_included": False,
+    "dashboard_advisory_enabled": False,
+    "image_catalog_enabled": False,
+    "client_payment_links_enabled": False,
+    "max_payment_links": 0,
+    "max_product_images": 0,
+    "max_product_image_groups": 0,
+    "advisor_level": "none",
+    "recommended": False,
+}
+
+PACKAGES["starter"].update({
+    "price_ar": "299 درهم إماراتي شهرياً",
+    "price_en": "299 AED monthly",
+    "monthly_reply_limit": 2000,
+    "customer_reply_limit": 2000,
+    "base_customer_reply_limit": 2000,
+    "gift_reply_limit": 0,
+    "total_customer_reply_limit": 2000,
+    "owner_advisory_reply_limit": 0,
+    "max_payment_links": 20,
+    "max_product_images": 10,
+    "max_product_image_groups": 10,
+    "client_payment_links_enabled": True,
+    "image_catalog_enabled": True,
+})
+
+PACKAGES["growth"].update({
+    "price_ar": "599 درهم إماراتي شهرياً",
+    "price_en": "599 AED monthly",
+    "monthly_reply_limit": 6000,
+    "customer_reply_limit": 6000,
+    "base_customer_reply_limit": 6000,
+    "gift_reply_limit": 0,
+    "total_customer_reply_limit": 6000,
+    "owner_advisory_reply_limit": 1000,
+    "max_payment_links": 50,
+    "max_product_images": 50,
+    "max_product_image_groups": 50,
+})
+
+PACKAGES["elite"].update({
+    "price_ar": "1199 درهم إماراتي شهرياً",
+    "price_en": "1199 AED monthly",
+    "monthly_reply_limit": 15000,
+    "customer_reply_limit": 15000,
+    "base_customer_reply_limit": 12000,
+    "gift_reply_limit": 3000,
+    "total_customer_reply_limit": 15000,
+    "owner_advisory_reply_limit": 2000,
+})
+
+PACKAGES["diamond"] = {
+    "name_ar": "الباقة الماسية",
+    "name_en": "Diamond",
+    "price_ar": "2399 درهم إماراتي شهرياً",
+    "price_en": "2399 AED monthly",
+    "monthly_reply_limit": 40000,
+    "customer_reply_limit": 40000,
+    "base_customer_reply_limit": 40000,
+    "gift_reply_limit": 0,
+    "total_customer_reply_limit": 40000,
+    "owner_advisory_reply_limit": 5000,
+    "main_channel": "whatsapp + website + instagram",
+    "channels": ["whatsapp", "website", "instagram"],
+    "whatsapp_included": True,
+    "website_included": True,
+    "instagram_included": True,
+    "dashboard_advisory_enabled": True,
+    "image_catalog_enabled": True,
+    "client_payment_links_enabled": True,
+    "advisor_level": "diamond_business_sales_advisor",
+    "recommended": False,
+}
+
+PAYMENT_LINKS.update({
+    "entry": "https://buy.stripe.com/4gMcN61d2dxI6ku10zaEE07",
+    "starter": "https://buy.stripe.com/aFa8wQ9Jy8docISeRpaEE08",
+    "growth": "https://buy.stripe.com/7sY14obRG8doaAK5gPaEE09",
+    "elite": "https://buy.stripe.com/28E9AUf3SalwbEO4cLaEE0a",
+    "diamond": "https://buy.stripe.com/aFaeVe7Bq51c4cmcJhaEE0b",
+})
+
+STRIPE_PRICE_IDS = {
+    "entry": "price_1Tj84XJbltD9Bsg8rOGTTn3D",
+    "starter": "price_1Tj8JmJbltD9Bsg81rMyR7lJ",
+    "growth": "price_1Tj8MQJbltD9Bsg8XL7xwOYe",
+    "elite": "price_1Tj8OwJbltD9Bsg8h7DCVKbY",
+    "diamond": "price_1Tj8T7JbltD9Bsg8bdi7XyiL",
+}
+
+STRIPE_PRODUCT_IDS = {
+    "entry": "prod_UiZCqDWqXkzVLL",
+    "starter": "prod_UiZS4ivHpbRIbE",
+    "growth": "prod_UiZVcDRBvn38CN",
+    "elite": "prod_UiZY0MsCbzD3dC",
+    "diamond": "prod_UiZcnUHa54wiu8",
+}
+
+PAYMENT_ROUTE_LINKS.update({
+    "entry": f"{APP_BASE_URL}/pay/entry",
+    "starter": f"{APP_BASE_URL}/pay/starter",
+    "growth": f"{APP_BASE_URL}/pay/growth",
+    "elite": f"{APP_BASE_URL}/pay/elite",
+    "diamond": f"{APP_BASE_URL}/pay/diamond",
+})
+
+STRIPE_PLAN_CONFIG = {
+    plan: {
+        "plan_name": plan,
+        "payment_link": PAYMENT_LINKS[plan],
+        "internal_payment_route": PAYMENT_ROUTE_LINKS[plan],
+        "monthly_reply_limit": PACKAGES[plan]["monthly_reply_limit"],
+        "package_amount": PACKAGES[plan]["price_en"].replace(" monthly", ""),
+        "subscription_type": "monthly",
+    }
+    for plan in ["entry", "starter", "growth", "elite", "diamond"]
+}
+
+PACKAGE_ORDER = ["entry", "starter", "growth", "elite", "diamond"]
+
+# ===== ALSAAB_PACKAGES_2026_PRICE_RESET_V1 END =====

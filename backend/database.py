@@ -396,14 +396,16 @@ def normalize_partner_rank(rank_value):
     aliases = {
         "1": "Level 1",
         "level 1": "Level 1",
-        "starter": "Level 1",
-        "starter partner": "Level 1",
+        "entry": "Level 1",
+        "entry partner": "Level 1",
+        "starter": "Level 2",
+        "starter partner": "Level 2",
         "المستوى الأول": "Level 1",
 
         "2": "Level 2",
         "level 2": "Level 2",
-        "growth": "Level 2",
-        "growth partner": "Level 2",
+        "growth": "Level 3",
+        "growth partner": "Level 3",
         "المستوى الثاني": "Level 2",
 
         "3": "Level 3",
@@ -420,8 +422,10 @@ def normalize_partner_rank(rank_value):
 
         "5": "Level 5",
         "level 5": "Level 5",
-        "elite": "Level 5",
-        "elite partner": "Level 5",
+        "elite": "Level 4",
+        "diamond": "Level 5",
+        "diamond partner": "Level 5",
+        "elite partner": "Level 4",
         "المستوى الخامس": "Level 5",
     }
 
@@ -3643,9 +3647,9 @@ def _level_number_to_label(level_value):
 def _course_code_to_display_name(course_code):
     mapping = {
         "marketing_course_free": "كورس التسويق المجاني",
-        "sales_course_99": "كورس المبيعات 99$",
-        "life_philosophy_workshop_299": "ورشة فلسفة الحياة 299$",
-        "change_journey_course_1099": "كورس رحلة التغيير 1099$",
+        "pro_marketer_mindset_69": "كورس عقلية المسوق المحترف 69$",
+        "sales_skills_89": "كورس مهارات المبيعات 89$",
+        "change_journey_149": "كورس رحلة التغيير 149$",
     }
 
     return mapping.get(str(course_code or "").strip(), str(course_code or "").strip())
@@ -4065,3 +4069,96 @@ except Exception as _entry_database_error:
     print(f"ENTRY DATABASE PATCH WARNING: {_entry_database_error}", flush=True)
 
 # ===== ALSAAB_ENTRY_DATABASE_SAFE_V1 END =====
+
+# ===== ALSAAB_DIAMOND_DATABASE_SAFE_V1 START =====
+
+DIAMOND_PLAN_KEY = "diamond"
+
+DIAMOND_PLAN_ALIASES = {
+    "diamond": "diamond",
+    "دايموند": "diamond",
+    "الماسية": "diamond",
+    "باقة الماسية": "diamond",
+    "الباقة الماسية": "diamond",
+}
+
+DIAMOND_PLAN_LIMITS = {
+    "monthly_reply_limit": 40000,
+    "customer_reply_limit": 40000,
+    "owner_advisory_reply_limit": 5000,
+}
+
+def _alsaab_diamond_normalize_plan(value):
+    raw = str(value or "").strip()
+    if not raw:
+        return ""
+    raw_lower = raw.lower()
+    if raw_lower in DIAMOND_PLAN_ALIASES:
+        return DIAMOND_PLAN_ALIASES[raw_lower]
+    if raw in DIAMOND_PLAN_ALIASES:
+        return DIAMOND_PLAN_ALIASES[raw]
+    return raw_lower
+
+def _alsaab_diamond_wrap_normalizers():
+    function_names = [
+        "normalize_plan_name",
+        "normalize_plan",
+        "normalize_package_name",
+        "normalize_package",
+    ]
+
+    for function_name in function_names:
+        old_function = globals().get(function_name)
+
+        if not callable(old_function):
+            continue
+
+        if getattr(old_function, "_alsaab_diamond_wrapped", False):
+            continue
+
+        def wrapper(value=None, *args, _old_function=old_function, **kwargs):
+            normalized = _alsaab_diamond_normalize_plan(value)
+            if normalized == "diamond":
+                return "diamond"
+            return _old_function(value, *args, **kwargs)
+
+        wrapper._alsaab_diamond_wrapped = True
+        globals()[function_name] = wrapper
+
+def _alsaab_diamond_wrap_limit_functions():
+    function_names = [
+        "get_plan_reply_limit",
+        "get_plan_owner_advisory_reply_limit",
+        "get_customer_reply_limit",
+        "get_owner_advisory_reply_limit",
+        "get_monthly_reply_limit",
+    ]
+
+    for function_name in function_names:
+        old_function = globals().get(function_name)
+
+        if not callable(old_function):
+            continue
+
+        if getattr(old_function, "_alsaab_diamond_wrapped", False):
+            continue
+
+        def wrapper(plan=None, *args, _old_function=old_function, _function_name=function_name, **kwargs):
+            normalized = _alsaab_diamond_normalize_plan(plan)
+            if normalized == "diamond":
+                if "owner_advisory" in _function_name:
+                    return 5000
+                return 40000
+            return _old_function(plan, *args, **kwargs)
+
+        wrapper._alsaab_diamond_wrapped = True
+        globals()[function_name] = wrapper
+
+try:
+    _alsaab_diamond_wrap_normalizers()
+    _alsaab_diamond_wrap_limit_functions()
+except Exception as _diamond_database_error:
+    print(f"DIAMOND DATABASE PATCH WARNING: {_diamond_database_error}", flush=True)
+
+# ===== ALSAAB_DIAMOND_DATABASE_SAFE_V1 END =====
+

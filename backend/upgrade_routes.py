@@ -4,9 +4,10 @@ import os
 
 # ===== ALSAAB_UPGRADE_SCHEDULE_STRIPE_V1 START =====
 UPGRADE_PRICE_IDS = {
-    "starter": "price_1TWEwPJbltD9Bsg8SH2xMao1",
-    "growth": "price_1TWFRJJbltD9Bsg8vgUXA1WD",
-    "elite": "price_1TWFUhJbltD9Bsg848phcf6P",
+    "starter": "price_1Tj8JmJbltD9Bsg81rMyR7lJ",
+    "growth": "price_1Tj8MQJbltD9Bsg8XL7xwOYe",
+    "elite": "price_1Tj8OwJbltD9Bsg8h7DCVKbY",
+    "diamond": "price_1Tj8T7JbltD9Bsg8bdi7XyiL",
 }
 # ===== ALSAAB_UPGRADE_SCHEDULE_STRIPE_V1 END =====
 
@@ -15,7 +16,7 @@ UPGRADE_PRICE_IDS = {
 # Entry can upgrade only upward: Entry -> Starter/Growth/Elite.
 # Entry is not a downgrade target.
 
-UPGRADE_PLAN_ORDER = ["entry", "starter", "growth", "elite"]
+UPGRADE_PLAN_ORDER = ["entry", "starter", "growth", "elite", "diamond"]
 
 def normalize_upgrade_plan(plan):
     value = str(plan or "").strip().lower()
@@ -592,18 +593,20 @@ Stripe Schedule: {{ schedule_id }}
     <label>الباقة الحالية</label>
     <select name="current_plan" required>
       <option value="">اختر الباقة الحالية</option>
-      <option value="entry">الدخول / Entry</option>
-      <option value="starter">البداية / Starter</option>
-      <option value="growth">النمو / Growth</option>
-      <option value="elite">النخبة / Elite</option>
+      <option value="entry">الدخول / Entry — 99 AED</option>
+      <option value="starter">البداية / Starter — 299 AED</option>
+      <option value="growth">النمو / Growth — 599 AED</option>
+      <option value="elite">النخبة / Elite — 1199 AED</option>
+      <option value="diamond">الماسية / Diamond — 2399 AED</option>
     </select>
 
     <label>الباقة المطلوبة</label>
     <select name="target_plan" required>
       <option value="">اختر الباقة الجديدة</option>
-      <option value="starter">البداية / Starter — 599 AED</option>
-      <option value="growth">النمو / Growth — 1099 AED</option>
-      <option value="elite">النخبة / Elite — 2099 AED</option>
+      <option value="starter">البداية / Starter — 299 AED</option>
+      <option value="growth">النمو / Growth — 599 AED</option>
+      <option value="elite">النخبة / Elite — 1199 AED</option>
+      <option value="diamond">الماسية / Diamond — 2399 AED</option>
     </select>
 
     <label>ملاحظات اختيارية</label>
