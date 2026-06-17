@@ -1,0 +1,2099 @@
+﻿
+  backend\brain.py:297:        "affiliate",
+  backend\brain.py:298:        "partner",
+  backend\brain.py:299:        "referral",
+> backend\brain.py:300:        "mlm",
+  backend\brain.py:301:        "package",
+  backend\brain.py:302:        "price",
+  backend\brain.py:303:        "pricing",
+  backend\brain.py:304:    ]
+  backend\brain.py:305:
+  backend\brain.py:306:    lowered = name.lower()
+  backend\brain.py:624:                customer_name = 
+get_customer_name(current_state)
+  backend\brain.py:625:                reply = (
+  backend\brain.py:626:                    f"تمام يا {customer_name}، تم حفظ 
+بيانات التواصل ✅\n\n"
+> backend\brain.py:627:                    "شو أكثر شي تبغي تطوره حالياً: مبيعات 
+مشروعك ولا دخل إضافي لك؟"
+  backend\brain.py:628:                )
+  backend\brain.py:629:                set_session_state(session_id, 
+current_state)
+  backend\brain.py:630:                return reply
+  backend\brain.py:631:
+  backend\brain.py:632:        elif current_state.get("awaiting_customer_phone"):
+  backend\brain.py:633:            reply = (
+  backend\config.py:31:# =========================
+  backend\config.py:32:
+  backend\config.py:33:PACKAGES = {
+> backend\config.py:34:    "starter": {
+  backend\config.py:35:        "name_ar": "باقة البداية",
+  backend\config.py:36:        "price_ar": "599 درهم إماراتي شهرياً",
+  backend\config.py:37:        "position": "بداية الدخول للنظام",
+  backend\config.py:38:        "best_for": "للمشاريع الصغيرة أو من يريد تجربة 
+النظام بتكلفة أقل",
+  backend\config.py:39:        "note": "باقة دخول أساسية، مناسبة للبداية ولا 
+تشمل الاستشارات الخاصة أو ربط الموقع.",
+  backend\config.py:40:        "monthly_reply_limit": 2000,
+  backend\config.py:67:            "Google Sheets Leads",
+  backend\config.py:68:            "Google Sheets ClientProfiles",
+  backend\config.py:69:            "Partner ID + Referral Link",
+> backend\config.py:70:            "عمولة مباشرة 25% عند الاشتراك النشط"
+  backend\config.py:71:        ],
+  backend\config.py:72:        "not_included": [
+  backend\config.py:73:            "ربط الموقع",
+  backend\config.py:74:            "Client Dashboard متقدم",
+  backend\config.py:75:            "استشارات خاصة لصاحب المشروع",
+  backend\config.py:76:            "إضافة صور المنتجات والكتالوجات",
+  backend\config.py:82:        "sales_recommendation": "لا ترشح هذه الباقة إلا 
+إذا العميل طلب الأرخص أو يريد تجربة بسيطة فقط."
+  backend\config.py:83:    },
+  backend\config.py:84:
+> backend\config.py:85:    "growth": {
+  backend\config.py:86:        "name_ar": "باقة النمو",
+  backend\config.py:87:        "price_ar": "599 درهم إماراتي شهرياً",
+  backend\config.py:88:        "position": "الباقة الموصى بها",
+  backend\config.py:89:        "best_for": "معظم أصحاب المشاريع والشركاء الذين 
+يريدون بوت مبيعات + مستشار أعمال ومبيعات.",
+  backend\config.py:90:        "note": "هذه الباقة الأفضل لمعظم المشاريع لأنها 
+تجمع بين ردود العملاء والاستشارات الخاصة لصاحب المشروع.",
+  backend\config.py:91:        "monthly_reply_limit": 6000,
+  backend\config.py:135:        "sales_recommendation": "هذه هي الباقة 
+الافتراضية الموصى بها لمعظم أصحاب المشاريع والشركاء."
+  backend\config.py:136:    },
+  backend\config.py:137:
+> backend\config.py:138:    "elite": {
+  backend\config.py:139:        "name_ar": "باقة النخبة",
+  backend\config.py:140:        "price_ar": "1199 درهم إماراتي شهرياً",
+  backend\config.py:141:        "position": "أقوى باقة",
+  backend\config.py:142:        "best_for": "المشاريع الجادة والشركاء المتقدمين 
+الذين يريدون حجم ردود أعلى وقنوات أكثر وتخصيص أقوى.",
+  backend\config.py:143:        "note": "باقة متقدمة للمشاريع الجادة، وتشمل ردود 
+إضافية هدية واستشارات أعمق لصاحب المشروع.",
+  backend\config.py:144:        "monthly_reply_limit": 15000,
+  backend\config.py:248:        "Your current monthly package limit has been 
+used ✅\n\n"
+  backend\config.py:249:        "To continue using ALSAAB AI, you can upgrade 
+your package or wait for the next monthly cycle.\n\n"
+  backend\config.py:250:        "Available options:\n"
+> backend\config.py:251:        "- Growth Package: 6000 customer replies/month + 
+1000 owner advisory replies/month from Client Dashboard\n"
+> backend\config.py:252:        "- Elite Package: 15000 customer replies/month + 
+2000 owner advisory replies/month from Client Dashboard\n\n"
+  backend\config.py:253:        "For high usage or larger companies, we can 
+prepare a custom Enterprise plan."
+  backend\config.py:254:    )
+  backend\config.py:255:}
+  backend\config.py:256:
+  backend\config.py:257:
+  backend\config.py:258:# =========================
+> backend\config.py:259:# MLM LEVELS
+  backend\config.py:260:# =========================
+  backend\config.py:261:
+> backend\config.py:262:MLM_LEVELS = {
+  backend\config.py:263:    "level_1": {
+  backend\config.py:264:        "name_ar": "المستوى الأول",
+  backend\config.py:265:        "title_ar": "شريك البداية",
+  backend\config.py:266:        "requirements": "الاشتراك بأي باقة",
+> backend\config.py:267:        "benefits": "25% عمولة مباشرة + كورس التسويق 
+مجاناً",
+  backend\config.py:268:        "commission_percent": 25,
+  backend\config.py:269:        "commission_depth": 1
+  backend\config.py:270:    },
+  backend\config.py:271:    "level_2": {
+  backend\config.py:272:        "name_ar": "المستوى الثاني",
+  backend\config.py:273:        "title_ar": "شريك النمو",
+  backend\config.py:274:        "requirements": "الترقية إلى باقة النمو + بيع 2 
+عملاء مدفوعين",
+> backend\config.py:275:        "benefits": "+5% عمولة شهرية إضافية",
+  backend\config.py:276:        "commission_percent": 5,
+  backend\config.py:277:        "commission_depth": 2
+  backend\config.py:278:    },
+  backend\config.py:279:    "level_3": {
+  backend\config.py:280:        "name_ar": "المستوى الثالث",
+  backend\config.py:281:        "title_ar": "شريك المبيعات",
+  backend\config.py:282:        "requirements": "شراء كورس المبيعات 99$ + بيع 5 
+عملاء",
+> backend\config.py:283:        "benefits": "+4% عمولة شهرية إضافية",
+  backend\config.py:284:        "commission_percent": 4,
+  backend\config.py:285:        "commission_depth": 3
+  backend\config.py:286:    },
+  backend\config.py:287:    "level_4": {
+  backend\config.py:288:        "name_ar": "المستوى الرابع",
+  backend\config.py:289:        "title_ar": "شريك القيادة",
+  backend\config.py:290:        "requirements": "شراء ورشة فلسفة الحياة 299$ + 
+إدخال 20 عميل نشط",
+> backend\config.py:291:        "benefits": "+3% عمولة شهرية إضافية",
+  backend\config.py:292:        "commission_percent": 3,
+  backend\config.py:293:        "commission_depth": 4,
+  backend\config.py:294:        "locked": True,
+  backend\config.py:295:        "teaser": "الدخل الأكبر يبدأ في المستويات الأعلى 
+🔐"
+  backend\config.py:296:    },
+  backend\config.py:297:    "level_5": {
+  backend\config.py:298:        "name_ar": "المستوى الخامس",
+  backend\config.py:299:        "title_ar": "شريك النخبة",
+  backend\config.py:300:        "requirements": "شراء كورس رحلة التغيير 1099$ + 
+إدخال 50 عميل نشط",
+> backend\config.py:301:        "benefits": "+2% عمولة شهرية إضافية",
+  backend\config.py:302:        "commission_percent": 2,
+  backend\config.py:303:        "commission_depth": 5,
+  backend\config.py:304:        "locked": True,
+  backend\config.py:305:        "teaser": "هذا مستوى القمة والدخل الأقوى 🔐"
+  backend\config.py:306:    }
+  backend\config.py:307:}
+  backend\config.py:308:
+  backend\config.py:309:
+  backend\config.py:310:# =========================
+> backend\config.py:311:# MLM OWNER / SPONSOR RULES
+  backend\config.py:312:# =========================
+  backend\config.py:313:
+  backend\config.py:314:COMPANY_OWNER_PARTNER_ID = 
+os.getenv("COMPANY_OWNER_PARTNER_ID", "alsaab")
+> backend\config.py:315:MLM_OWNER_PARTNER_ID = COMPANY_OWNER_PARTNER_ID
+  backend\config.py:316:
+> backend\config.py:317:MLM_SPONSOR_RULES = {
+  backend\config.py:318:    "require_sponsor_for_partner_registration": True,
+  backend\config.py:319:    "owner_partner_id": COMPANY_OWNER_PARTNER_ID,
+  backend\config.py:320:    "owner_id_is_company_income": True,
+  backend\config.py:321:    "owner_id_has_no_external_commission": True,
+  backend\config.py:322:    "allow_owner_without_sponsor": True,
+  backend\config.py:323:    "do_not_auto_assign_owner_before_asking_source": 
+True,
+  backend\config.py:333:}
+  backend\config.py:334:
+  backend\config.py:335:
+> backend\config.py:336:MLM_SOURCE_OPTIONS = {
+  backend\config.py:337:    "direct_partner": {
+  backend\config.py:338:        "name_ar": "عن طريق شريك",
+  backend\config.py:339:        "requires_partner_id": True,
+  backend\config.py:340:        "example": "ALS-P00025"
+  backend\config.py:341:    },
+  backend\config.py:342:    "social_media": {
+  backend\config.py:367:}
+  backend\config.py:368:
+  backend\config.py:369:
+> backend\config.py:370:MLM_REGISTRATION_MESSAGES = {
+  backend\config.py:371:    "ask_source_ar": (
+  backend\config.py:372:        "قبل ما أكمل تسجيلك كشريك، لازم نربط تسجيلك 
+بالشخص أو المصدر اللي عرّفك على النظام عشان نحفظ الحقوق بدقة.\n\n"
+  backend\config.py:373:        "من وين عرفت ALSAAB AI؟\n"
+  backend\config.py:374:        "- عن طريق شخص / شريك\n"
+  backend\config.py:375:        "- السوشيال ميديا\n"
+  backend\config.py:376:        "- الموقع\n"
+  backend\config.py:406:    "do_not_sell_first_message": True,
+  backend\config.py:407:    "do_not_show_price_before_discovery": True,
+  backend\config.py:408:    "sell_client_product_first": True,
+> backend\config.py:409:    "mention_mlm_after_interest_only": True,
+  backend\config.py:410:    "never_insult": True,
+  backend\config.py:411:    "human_style": True
+  backend\config.py:412:}
+  backend\config.py:413:
+  backend\config.py:414:
+  backend\config.py:415:# =========================
+  backend\config.py:435:# =========================
+  backend\config.py:436:
+  backend\config.py:437:PAYMENT_LINKS = {
+> backend\config.py:438:    "starter": 
+"https://buy.stripe.com/aFa28sg7WdxIbEOeRpaEE03",
+> backend\config.py:439:    "growth": 
+"https://buy.stripe.com/28E6oI9Jy3X810a6kTaEE04",
+> backend\config.py:440:    "elite": 
+"https://buy.stripe.com/4gMbJ2g7Walw9wGdNlaEE05",
+  backend\config.py:441:}
+  backend\config.py:442:
+  backend\config.py:443:
+  backend\config.py:444:# =========================
+  backend\config.py:445:# STRIPE CONFIG
+  backend\config.py:446:# =========================
+  backend\config.py:468:# روابط دفع داخلية تمر عبر Render قبل Stripe.
+  backend\config.py:469:# الهدف منها نربط session_id بالخطة قبل الدفع.
+  backend\config.py:470:PAYMENT_ROUTE_LINKS = {
+> backend\config.py:471:    "starter": f"{APP_BASE_URL}/pay/starter",
+> backend\config.py:472:    "growth": f"{APP_BASE_URL}/pay/growth",
+> backend\config.py:473:    "elite": f"{APP_BASE_URL}/pay/elite",
+  backend\config.py:474:}
+  backend\config.py:475:
+  backend\config.py:476:# إعدادات ربط الباقات مع Stripe Webhook.
+  backend\config.py:477:# Webhook سيستخدم plan_name لتفعيل الاشتراك وحد الردود.
+  backend\config.py:478:STRIPE_PLAN_CONFIG = {
+> backend\config.py:479:    "starter": {
+> backend\config.py:480:        "plan_name": "starter",
+> backend\config.py:481:        "payment_link": PAYMENT_LINKS["starter"],
+> backend\config.py:482:        "internal_payment_route": 
+PAYMENT_ROUTE_LINKS["starter"],
+> backend\config.py:483:        "monthly_reply_limit": 
+PACKAGES["starter"]["monthly_reply_limit"],
+  backend\config.py:484:        "package_amount": "299 AED",
+  backend\config.py:485:        "subscription_type": "monthly",
+  backend\config.py:486:    },
+> backend\config.py:487:    "growth": {
+> backend\config.py:488:        "plan_name": "growth",
+> backend\config.py:489:        "payment_link": PAYMENT_LINKS["growth"],
+> backend\config.py:490:        "internal_payment_route": 
+PAYMENT_ROUTE_LINKS["growth"],
+> backend\config.py:491:        "monthly_reply_limit": 
+PACKAGES["growth"]["monthly_reply_limit"],
+  backend\config.py:492:        "package_amount": "599 AED",
+  backend\config.py:493:        "subscription_type": "monthly",
+  backend\config.py:494:    },
+> backend\config.py:495:    "elite": {
+> backend\config.py:496:        "plan_name": "elite",
+> backend\config.py:497:        "payment_link": PAYMENT_LINKS["elite"],
+> backend\config.py:498:        "internal_payment_route": 
+PAYMENT_ROUTE_LINKS["elite"],
+> backend\config.py:499:        "monthly_reply_limit": 
+PACKAGES["elite"]["monthly_reply_limit"],
+  backend\config.py:500:        "package_amount": "1199 AED",
+  backend\config.py:501:        "subscription_type": "monthly",
+  backend\config.py:502:    },
+  backend\config.py:503:}
+  backend\config.py:504:
+  backend\config.py:505:# مفتاح client_reference_id داخل Stripe Checkout.
+  backend\config.py:618:
+  backend\config.py:619:_package_order = globals().get("PACKAGE_ORDER")
+  backend\config.py:620:if not isinstance(_package_order, list):
+> backend\config.py:621:    _package_order = ["entry", "starter", "growth", 
+"elite", "diamond"]
+  backend\config.py:622:    globals()["PACKAGE_ORDER"] = _package_order
+  backend\config.py:623:elif "entry" not in _package_order:
+  backend\config.py:624:    _package_order.insert(0, "entry")
+  backend\config.py:625:
+  backend\config.py:626:# ===== ALSAAB_ENTRY_PACKAGE_SAFE_V3 END =====
+  backend\config.py:627:
+  backend\config.py:628:# ===== ALSAAB_PACKAGES_2026_PRICE_RESET_V1 START =====
+  backend\config.py:629:
+  backend\config.py:630:# Final approved packages:
+> backend\config.py:631:# Entry 99 / Starter 299 / Growth 599 / Elite 1199 / 
+Diamond 2399
+  backend\config.py:632:
+  backend\config.py:633:PACKAGES["entry"] = {
+  backend\config.py:634:    "name_ar": "باقة الدخول",
+  backend\config.py:635:    "name_en": "Entry",
+  backend\config.py:636:    "price_ar": "99 درهم إماراتي شهرياً",
+  backend\config.py:637:    "price_en": "99 AED monthly",
+  backend\config.py:656:    "recommended": False,
+  backend\config.py:657:}
+  backend\config.py:658:
+> backend\config.py:659:PACKAGES["starter"].update({
+  backend\config.py:660:    "price_ar": "299 درهم إماراتي شهرياً",
+  backend\config.py:661:    "price_en": "299 AED monthly",
+  backend\config.py:662:    "monthly_reply_limit": 2000,
+  backend\config.py:663:    "customer_reply_limit": 2000,
+  backend\config.py:664:    "base_customer_reply_limit": 2000,
+  backend\config.py:665:    "gift_reply_limit": 0,
+  backend\config.py:672:    "image_catalog_enabled": True,
+  backend\config.py:673:})
+  backend\config.py:674:
+> backend\config.py:675:PACKAGES["growth"].update({
+  backend\config.py:676:    "price_ar": "599 درهم إماراتي شهرياً",
+  backend\config.py:677:    "price_en": "599 AED monthly",
+  backend\config.py:678:    "monthly_reply_limit": 6000,
+  backend\config.py:679:    "customer_reply_limit": 6000,
+  backend\config.py:680:    "base_customer_reply_limit": 6000,
+  backend\config.py:681:    "gift_reply_limit": 0,
+  backend\config.py:686:    "max_product_image_groups": 50,
+  backend\config.py:687:})
+  backend\config.py:688:
+> backend\config.py:689:PACKAGES["elite"].update({
+  backend\config.py:690:    "price_ar": "1199 درهم إماراتي شهرياً",
+  backend\config.py:691:    "price_en": "1199 AED monthly",
+  backend\config.py:692:    "monthly_reply_limit": 15000,
+  backend\config.py:693:    "customer_reply_limit": 15000,
+  backend\config.py:694:    "base_customer_reply_limit": 12000,
+  backend\config.py:695:    "gift_reply_limit": 3000,
+  backend\config.py:722:
+  backend\config.py:723:PAYMENT_LINKS.update({
+  backend\config.py:724:    "entry": 
+"https://buy.stripe.com/4gMcN61d2dxI6ku10zaEE07",
+> backend\config.py:725:    "starter": 
+"https://buy.stripe.com/aFa8wQ9Jy8docISeRpaEE08",
+> backend\config.py:726:    "growth": 
+"https://buy.stripe.com/7sY14obRG8doaAK5gPaEE09",
+> backend\config.py:727:    "elite": 
+"https://buy.stripe.com/28E9AUf3SalwbEO4cLaEE0a",
+  backend\config.py:728:    "diamond": 
+"https://buy.stripe.com/aFaeVe7Bq51c4cmcJhaEE0b",
+  backend\config.py:729:})
+  backend\config.py:730:
+  backend\config.py:731:STRIPE_PRICE_IDS = {
+  backend\config.py:732:    "entry": "price_1Tj84XJbltD9Bsg8rOGTTn3D",
+> backend\config.py:733:    "starter": "price_1Tj8JmJbltD9Bsg81rMyR7lJ",
+> backend\config.py:734:    "growth": "price_1Tj8MQJbltD9Bsg8XL7xwOYe",
+> backend\config.py:735:    "elite": "price_1Tj8OwJbltD9Bsg8h7DCVKbY",
+  backend\config.py:736:    "diamond": "price_1Tj8T7JbltD9Bsg8bdi7XyiL",
+  backend\config.py:737:}
+  backend\config.py:738:
+  backend\config.py:739:STRIPE_PRODUCT_IDS = {
+  backend\config.py:740:    "entry": "prod_UiZCqDWqXkzVLL",
+> backend\config.py:741:    "starter": "prod_UiZS4ivHpbRIbE",
+> backend\config.py:742:    "growth": "prod_UiZVcDRBvn38CN",
+> backend\config.py:743:    "elite": "prod_UiZY0MsCbzD3dC",
+  backend\config.py:744:    "diamond": "prod_UiZcnUHa54wiu8",
+  backend\config.py:745:}
+  backend\config.py:746:
+  backend\config.py:747:PAYMENT_ROUTE_LINKS.update({
+  backend\config.py:748:    "entry": f"{APP_BASE_URL}/pay/entry",
+> backend\config.py:749:    "starter": f"{APP_BASE_URL}/pay/starter",
+> backend\config.py:750:    "growth": f"{APP_BASE_URL}/pay/growth",
+> backend\config.py:751:    "elite": f"{APP_BASE_URL}/pay/elite",
+  backend\config.py:752:    "diamond": f"{APP_BASE_URL}/pay/diamond",
+  backend\config.py:753:})
+  backend\config.py:754:
+  backend\config.py:755:STRIPE_PLAN_CONFIG = {
+  backend\config.py:756:    plan: {
+  backend\config.py:757:        "plan_name": plan,
+  backend\config.py:761:        "package_amount": 
+PACKAGES[plan]["price_en"].replace(" monthly", ""),
+  backend\config.py:762:        "subscription_type": "monthly",
+  backend\config.py:763:    }
+> backend\config.py:764:    for plan in ["entry", "starter", "growth", "elite", 
+"diamond"]
+  backend\config.py:765:}
+  backend\config.py:766:
+> backend\config.py:767:PACKAGE_ORDER = ["entry", "starter", "growth", "elite", 
+"diamond"]
+  backend\config.py:768:
+  backend\config.py:769:# ===== ALSAAB_PACKAGES_2026_PRICE_RESET_V1 END =====
+  backend\config.py:770:
+  backend\config.py:771:
+  backend\config.py:772:# ===== ALSAAB_OFFICIAL_STRIPE_PACKAGES_V2 START =====
+  backend\config.py:773:# Official approved package prices + Stripe links/ids.
+  backend\config.py:775:
+  backend\config.py:776:OFFICIAL_PACKAGE_PRICES_2026 = {
+  backend\config.py:777:    "entry": "99 AED",
+> backend\config.py:778:    "starter": "299 AED",
+> backend\config.py:779:    "growth": "599 AED",
+> backend\config.py:780:    "elite": "1199 AED",
+  backend\config.py:781:    "diamond": "2399 AED",
+  backend\config.py:782:}
+  backend\config.py:783:
+  backend\config.py:784:PAYMENT_LINKS.update({
+  backend\config.py:785:    "entry": 
+"https://buy.stripe.com/4gMcN61d2dxI6ku10zaEE07",
+> backend\config.py:786:    "starter": 
+"https://buy.stripe.com/aFa8wQ9Jy8docISeRpaEE08",
+> backend\config.py:787:    "growth": 
+"https://buy.stripe.com/7sY14obRG8doaAK5gPaEE09",
+> backend\config.py:788:    "elite": 
+"https://buy.stripe.com/28E9AUf3SalwbEO4cLaEE0a",
+  backend\config.py:789:    "diamond": 
+"https://buy.stripe.com/aFaeVe7Bq51c4cmcJhaEE0b",
+  backend\config.py:790:})
+  backend\config.py:791:
+  backend\config.py:792:STRIPE_PRICE_IDS = {
+  backend\config.py:793:    "entry": "price_1Tj84XJbltD9Bsg8rOGTTn3D",
+> backend\config.py:794:    "starter": "price_1Tj8JmJbltD9Bsg81rMyR7lJ",
+> backend\config.py:795:    "growth": "price_1Tj8MQJbltD9Bsg8XL7xwOYe",
+> backend\config.py:796:    "elite": "price_1Tj8OwJbltD9Bsg8h7DCVKbY",
+  backend\config.py:797:    "diamond": "price_1Tj8T7JbltD9Bsg8bdi7XyiL",
+  backend\config.py:798:}
+  backend\config.py:799:
+  backend\config.py:800:STRIPE_PRODUCT_IDS = {
+  backend\config.py:801:    "entry": "prod_UiZCqDWqXkzVLL",
+> backend\config.py:802:    "starter": "prod_UiZS4ivHpbRIbE",
+> backend\config.py:803:    "growth": "prod_UiZVcDRBvn38CN",
+> backend\config.py:804:    "elite": "prod_UiZY0MsCbzD3dC",
+  backend\config.py:805:    "diamond": "prod_UiZcnUHa54wiu8",
+  backend\config.py:806:}
+  backend\config.py:807:
+  backend\config.py:808:PAYMENT_ROUTE_LINKS.update({
+  backend\config.py:809:    "entry": f"{APP_BASE_URL}/pay/entry",
+> backend\config.py:810:    "starter": f"{APP_BASE_URL}/pay/starter",
+> backend\config.py:811:    "growth": f"{APP_BASE_URL}/pay/growth",
+> backend\config.py:812:    "elite": f"{APP_BASE_URL}/pay/elite",
+  backend\config.py:813:    "diamond": f"{APP_BASE_URL}/pay/diamond",
+  backend\config.py:814:})
+  backend\config.py:815:
+  backend\config.py:816:STRIPE_PLAN_CONFIG = {
+  backend\config.py:817:    plan: {
+  backend\config.py:818:        "plan_name": plan,
+  backend\config.py:822:        "package_amount": 
+OFFICIAL_PACKAGE_PRICES_2026[plan],
+  backend\config.py:823:        "subscription_type": "monthly",
+  backend\config.py:824:    }
+> backend\config.py:825:    for plan in ["entry", "starter", "growth", "elite", 
+"diamond"]
+  backend\config.py:826:}
+  backend\config.py:827:
+> backend\config.py:828:PACKAGE_ORDER = ["entry", "starter", "growth", "elite", 
+"diamond"]
+  backend\config.py:829:# ===== ALSAAB_OFFICIAL_STRIPE_PACKAGES_V2 END =====
+  backend\config.py:830:
+  backend\database.py:22:    from config import PACKAGES, USAGE_LIMIT_MESSAGES
+  backend\database.py:23:except Exception:
+  backend\database.py:24:    PACKAGES = {
+> backend\database.py:25:        "starter": {"monthly_reply_limit": 2000},
+> backend\database.py:26:        "growth": {"monthly_reply_limit": 6000},
+> backend\database.py:27:        "elite": {"monthly_reply_limit": 15000},
+  backend\database.py:28:    }
+  backend\database.py:29:
+  backend\database.py:30:    USAGE_LIMIT_MESSAGES = {
+  backend\database.py:31:        "ar": (
+  backend\database.py:32:            "تم استهلاك باقتك الحالية لهذا الشهر ✅\n\n"
+  backend\database.py:33:            "لإكمال استخدام ALSAAB AI، تقدر ترقّي باقتك 
+أو تنتظر تجديد الدورة الشهرية."
+  backend\database.py:269:    if raw_user_type == "business":
+  backend\database.py:270:        return "Business"
+  backend\database.py:271:
+> backend\database.py:272:    if raw_user_type in ["mlm", "personal"]:
+  backend\database.py:273:        return "Personal"
+  backend\database.py:274:
+  backend\database.py:275:    if raw_user_type == "unknown":
+  backend\database.py:276:        return "Unknown"
+  backend\database.py:277:
+  backend\database.py:278:    return raw_user_type
+  backend\database.py:398:        "level 1": "Level 1",
+  backend\database.py:399:        "entry": "Level 1",
+  backend\database.py:400:        "entry partner": "Level 1",
+> backend\database.py:401:        "starter": "Level 2",
+> backend\database.py:402:        "starter partner": "Level 2",
+  backend\database.py:403:        "المستوى الأول": "Level 1",
+  backend\database.py:404:
+  backend\database.py:405:        "2": "Level 2",
+  backend\database.py:406:        "level 2": "Level 2",
+> backend\database.py:407:        "growth": "Level 3",
+> backend\database.py:408:        "growth partner": "Level 3",
+  backend\database.py:409:        "المستوى الثاني": "Level 2",
+  backend\database.py:410:
+  backend\database.py:411:        "3": "Level 3",
+  backend\database.py:412:        "level 3": "Level 3",
+  backend\database.py:413:        "sales": "Level 3",
+  backend\database.py:414:        "sales partner": "Level 3",
+  backend\database.py:422:
+  backend\database.py:423:        "5": "Level 5",
+  backend\database.py:424:        "level 5": "Level 5",
+> backend\database.py:425:        "elite": "Level 4",
+  backend\database.py:426:        "diamond": "Level 5",
+  backend\database.py:427:        "diamond partner": "Level 5",
+> backend\database.py:428:        "elite partner": "Level 4",
+  backend\database.py:429:        "المستوى الخامس": "Level 5",
+  backend\database.py:430:    }
+  backend\database.py:431:
+  backend\database.py:432:    normalized_key = rank_value.lower()
+  backend\database.py:433:    return aliases.get(normalized_key, rank_value)
+  backend\database.py:434:
+  backend\database.py:523:def post_to_google_sheet_json(payload, 
+label="unknown"):
+  backend\database.py:524:    """
+  backend\database.py:525:    نفس فكرة post_to_google_sheet، لكن يرجع JSON كامل.
+> backend\database.py:526:    نحتاجه في MLM عشان نستلم partner_id و 
+referral_link من Google Apps Script.
+  backend\database.py:527:    """
+  backend\database.py:528:    print(f"GOOGLE SHEET JSON SEND START ✅ 
+label={label}", flush=True)
+  backend\database.py:529:
+  backend\database.py:530:    if not GOOGLE_SHEET_WEBHOOK_URL:
+  backend\database.py:531:        print("GOOGLE SHEET JSON ERROR ❌ 
+GOOGLE_SHEET_WEBHOOK_URL is empty", flush=True)
+  backend\database.py:532:        return {
+  backend\database.py:1172:    plan_name = str(plan_name).lower().strip()
+  backend\database.py:1173:
+  backend\database.py:1174:    aliases = {
+> backend\database.py:1175:        "start": "starter",
+> backend\database.py:1176:        "basic": "starter",
+> backend\database.py:1177:        "beginner": "starter",
+> backend\database.py:1178:        "بداية": "starter",
+> backend\database.py:1179:        "البداية": "starter",
+> backend\database.py:1180:        "starter": "starter",
+  backend\database.py:1181:
+> backend\database.py:1182:        "growth": "growth",
+> backend\database.py:1183:        "pro": "growth",
+> backend\database.py:1184:        "professional": "growth",
+> backend\database.py:1185:        "نمو": "growth",
+> backend\database.py:1186:        "النمو": "growth",
+  backend\database.py:1187:
+> backend\database.py:1188:        "elite": "elite",
+> backend\database.py:1189:        "premium": "elite",
+> backend\database.py:1190:        "vip": "elite",
+> backend\database.py:1191:        "نخبة": "elite",
+> backend\database.py:1192:        "النخبة": "elite",
+  backend\database.py:1193:
+  backend\database.py:1194:        "enterprise": "enterprise",
+  backend\database.py:1195:        "custom": "enterprise",
+  backend\database.py:1196:        "شركة": "enterprise",
+  backend\database.py:1197:        "شركات": "enterprise",
+  backend\database.py:1198:    }
+  backend\database.py:1228:    except Exception as error:
+  backend\database.py:1229:        print(f"GET PLAN REPLY LIMIT CONFIG ERROR ⚠️ 
+{error}", flush=True)
+  backend\database.py:1230:
+> backend\database.py:1231:    if plan == "starter":
+  backend\database.py:1232:        return 2000
+  backend\database.py:1233:
+> backend\database.py:1234:    if plan == "growth":
+  backend\database.py:1235:        return 6000
+  backend\database.py:1236:
+> backend\database.py:1237:    if plan == "elite":
+  backend\database.py:1238:        return 15000
+  backend\database.py:1239:
+  backend\database.py:1240:    return 6000
+  backend\database.py:1241:
+  backend\database.py:1242:
+  backend\database.py:1243:def get_plan_owner_advisory_reply_limit(plan_name):
+  backend\database.py:1253:    except Exception as error:
+  backend\database.py:1254:        print(f"GET PLAN OWNER ADVISORY LIMIT ERROR 
+⚠️ {error}", flush=True)
+  backend\database.py:1255:
+> backend\database.py:1256:    if plan == "growth":
+  backend\database.py:1257:        return 1000
+  backend\database.py:1258:
+> backend\database.py:1259:    if plan == "elite":
+  backend\database.py:1260:        return 2000
+  backend\database.py:1261:
+  backend\database.py:1262:    return 0
+  backend\database.py:1263:
+  backend\database.py:1264:
+  backend\database.py:1265:def get_plan_package_features(plan_name):
+  backend\database.py:2458:
+  backend\database.py:2459:
+  backend\database.py:2460:# =========================
+> backend\database.py:2461:# MLM / PARTNER GOOGLE SHEETS SYSTEM
+  backend\database.py:2462:# =========================
+  backend\database.py:2463:
+  backend\database.py:2464:def send_partner_to_google_sheet(
+  backend\database.py:2465:    partner_name,
+  backend\database.py:2466:    phone,
+  backend\database.py:2467:    email="",
+  backend\database.py:2817:    return post_to_google_sheet_json(payload, 
+label="commission")
+  backend\database.py:2818:
+  backend\database.py:2819:
+> backend\database.py:2820:def send_mlm_level_to_google_sheet(
+  backend\database.py:2821:    partner_id,
+  backend\database.py:2822:    current_level="Level 1",
+  backend\database.py:2823:    required_sales="1",
+  backend\database.py:2824:    completed_sales="0",
+  backend\database.py:2825:    required_course_workshop="الاشتراك بأي باقة",
+  backend\database.py:2826:    level_status="active",
+  backend\database.py:2833:    last_updated=""
+  backend\database.py:2834:):
+  backend\database.py:2835:    """
+> backend\database.py:2836:    يسجل أو يحدث مستوى الشريك في Google Sheet صفحة 
+MLMLevels.
+  backend\database.py:2837:    يدعم الأعمدة الجديدة:
+  backend\database.py:2838:    Current Package, Subscription Status, Commission 
+Eligible, Missing Requirements, Last Updated
+  backend\database.py:2839:    """
+  backend\database.py:2840:    import json
+  backend\database.py:2841:
+  backend\database.py:2842:    normalized_rank = 
+normalize_partner_rank(partner_rank or current_level)
+  backend\database.py:2853:
+  backend\database.py:2854:    payload = {
+  backend\database.py:2855:        "token": GOOGLE_SHEET_TOKEN,
+> backend\database.py:2856:        "action": "mlm_level",
+  backend\database.py:2857:        "partner_id": 
+normalize_partner_id(partner_id) or "",
+  backend\database.py:2858:        "partner_rank": normalized_rank or "Level 1",
+  backend\database.py:2859:        "current_level": normalized_rank or "Level 1",
+  backend\database.py:2860:        "required_sales": required_sales or "1",
+  backend\database.py:2861:        "completed_sales": completed_sales or "0",
+  backend\database.py:2862:        "required_course_workshop": 
+required_course_workshop or "",
+  backend\database.py:2871:        "last_updated": last_updated or 
+current_timestamp(),
+  backend\database.py:2872:    }
+  backend\database.py:2873:
+> backend\database.py:2874:    return post_to_google_sheet_json(payload, 
+label="mlm_level")
+  backend\database.py:2875:
+  backend\database.py:2876:def _level_db_table_exists(table_name):
+  backend\database.py:2877:    try:
+  backend\database.py:2878:        conn = get_connection()
+  backend\database.py:2879:        c = conn.cursor()
+  backend\database.py:2880:        c.execute(
+  backend\database.py:3670:
+  backend\database.py:3671:def 
+sync_partner_level_progress_to_google_sheet(partner_id):
+  backend\database.py:3672:    """
+> backend\database.py:3673:    يحسب مستوى الشريك الحقيقي من قاعدة البيانات ثم 
+يرسله إلى Google Sheets / MLMLevels.
+  backend\database.py:3674:    هذا لا يدفع عمولات. فقط يحدّث حالة المستوى 
+والتقدم.
+  backend\database.py:3675:    """
+  backend\database.py:3676:    partner_id = normalize_partner_id(partner_id)
+  backend\database.py:3677:
+  backend\database.py:3678:    if not partner_id:
+  backend\database.py:3679:        return {
+  backend\database.py:3684:    if str(partner_id).lower() == 
+str(COMPANY_OWNER_PARTNER_ID).lower():
+  backend\database.py:3685:        return {
+  backend\database.py:3686:            "status": "skipped",
+> backend\database.py:3687:            "message": "company owner does not need 
+MLM level sync",
+  backend\database.py:3688:            "partner_id": partner_id
+  backend\database.py:3689:        }
+  backend\database.py:3690:
+  backend\database.py:3691:    try:
+  backend\database.py:3692:        progress = 
+calculate_and_save_partner_level_progress(partner_id)
+  backend\database.py:3693:
+  backend\database.py:3721:        subscription_status = 
+progress.get("subscription_status") or ""
+  backend\database.py:3722:        commission_eligible = "yes" if 
+progress.get("commission_eligible") else "no"
+  backend\database.py:3723:
+> backend\database.py:3724:        sheet_result = send_mlm_level_to_google_sheet(
+  backend\database.py:3725:            partner_id=partner_id,
+  backend\database.py:3726:            current_level=current_level_label,
+  backend\database.py:3727:            required_sales=required_sales,
+  backend\database.py:3728:            
+completed_sales=str(active_direct_customers),
+  backend\database.py:3729:            
+required_course_workshop=required_course_workshop,
+  backend\database.py:3730:            level_status=level_status,
+  backend\database.py:3742:            flush=True
+  backend\database.py:3743:        )
+  backend\database.py:3744:
+> backend\database.py:3745:        progress["mlm_level_sheet_result"] = 
+sheet_result
+  backend\database.py:3746:
+  backend\database.py:3747:        return {
+  backend\database.py:3748:            "status": "success",
+  backend\database.py:3749:            "partner_id": partner_id,
+  backend\database.py:3750:            "progress": progress,
+  backend\database.py:3751:            "sheet_result": sheet_result,
+  backend\database.py:3952:        if "entry" in value:
+  backend\database.py:3953:            continue
+  backend\database.py:3954:
+> backend\database.py:3955:        starter_value = value.get("starter")
+  backend\database.py:3956:
+> backend\database.py:3957:        if isinstance(starter_value, int):
+  backend\database.py:3958:            value["entry"] = 500
+> backend\database.py:3959:        elif isinstance(starter_value, dict):
+> backend\database.py:3960:            entry_value = dict(starter_value)
+  backend\database.py:3961:            entry_value.update(ENTRY_PLAN_LIMITS)
+  backend\database.py:3962:            value["entry"] = entry_value
+  backend\database.py:3963:        else:
+  backend\database.py:3964:            value["entry"] = dict(ENTRY_PLAN_LIMITS)
+  backend\database.py:3965:
+  backend\database.py:3966:def _alsaab_entry_patch_known_order_lists():
+  backend\level_engine.py:5:
+  backend\level_engine.py:6:
+  backend\level_engine.py:7:PACKAGE_ENTRY = "entry"
+> backend\level_engine.py:8:PACKAGE_STARTER = "starter"
+> backend\level_engine.py:9:PACKAGE_GROWTH = "growth"
+> backend\level_engine.py:10:PACKAGE_ELITE = "elite"
+  backend\level_engine.py:11:PACKAGE_DIAMOND = "diamond"
+  backend\level_engine.py:12:
+  backend\level_engine.py:13:COURSE_MARKETING_FREE = "marketing_course_free"
+  backend\level_engine.py:14:COURSE_PRO_MARKETER_MINDSET_69 = 
+"pro_marketer_mindset_69"
+  backend\level_engine.py:15:COURSE_SALES_SKILLS_89 = "sales_skills_89"
+  backend\level_engine.py:16:COURSE_CHANGE_JOURNEY_149 = "change_journey_149"
+  backend\level_engine.py:21:LEVEL_NAMES = {
+  backend\level_engine.py:22:    0: "Inactive / Not Qualified",
+  backend\level_engine.py:23:    1: "Entry Partner",
+> backend\level_engine.py:24:    2: "Starter Partner",
+> backend\level_engine.py:25:    3: "Growth Partner",
+> backend\level_engine.py:26:    4: "Elite Partner",
+  backend\level_engine.py:27:    5: "Diamond Partner",
+  backend\level_engine.py:28:}
+  backend\level_engine.py:29:
+  backend\level_engine.py:30:COMMISSION_RATES_BY_DEPTH = {
+  backend\level_engine.py:31:    1: 25.0,
+  backend\level_engine.py:32:    2: 5.0,
+  backend\level_engine.py:50:    1: LevelRequirement(
+  backend\level_engine.py:51:        level=1,
+  backend\level_engine.py:52:        name="Entry Partner",
+> backend\level_engine.py:53:        allowed_packages=(PACKAGE_ENTRY, 
+PACKAGE_STARTER, PACKAGE_GROWTH, PACKAGE_ELITE, PACKAGE_DIAMOND),
+  backend\level_engine.py:54:        min_active_direct_customers=0,
+  backend\level_engine.py:55:        required_courses=(),
+  backend\level_engine.py:56:        commission_rate=25.0,
+  backend\level_engine.py:57:    ),
+  backend\level_engine.py:58:    2: LevelRequirement(
+  backend\level_engine.py:59:        level=2,
+> backend\level_engine.py:60:        name="Starter Partner",
+> backend\level_engine.py:61:        allowed_packages=(PACKAGE_STARTER, 
+PACKAGE_GROWTH, PACKAGE_ELITE, PACKAGE_DIAMOND),
+  backend\level_engine.py:62:        min_active_direct_customers=2,
+  backend\level_engine.py:63:        required_courses=(),
+  backend\level_engine.py:64:        commission_rate=5.0,
+  backend\level_engine.py:65:    ),
+  backend\level_engine.py:66:    3: LevelRequirement(
+  backend\level_engine.py:67:        level=3,
+> backend\level_engine.py:68:        name="Growth Partner",
+> backend\level_engine.py:69:        allowed_packages=(PACKAGE_GROWTH, 
+PACKAGE_ELITE, PACKAGE_DIAMOND),
+  backend\level_engine.py:70:        min_active_direct_customers=5,
+  backend\level_engine.py:71:        
+required_courses=(COURSE_PRO_MARKETER_MINDSET_69,),
+  backend\level_engine.py:72:        commission_rate=4.0,
+  backend\level_engine.py:73:    ),
+  backend\level_engine.py:74:    4: LevelRequirement(
+  backend\level_engine.py:75:        level=4,
+> backend\level_engine.py:76:        name="Elite Partner",
+> backend\level_engine.py:77:        allowed_packages=(PACKAGE_ELITE, 
+PACKAGE_DIAMOND),
+  backend\level_engine.py:78:        min_active_direct_customers=10,
+  backend\level_engine.py:79:        required_courses=(COURSE_SALES_SKILLS_89,),
+  backend\level_engine.py:80:        commission_rate=3.0,
+  backend\level_engine.py:81:    ),
+  backend\level_engine.py:82:    5: LevelRequirement(
+  backend\level_engine.py:83:        level=5,
+  backend\level_engine.py:94:    "دخول": PACKAGE_ENTRY,
+  backend\level_engine.py:95:    "الدخول": PACKAGE_ENTRY,
+  backend\level_engine.py:96:    "باقة الدخول": PACKAGE_ENTRY,
+> backend\level_engine.py:97:    "starter": PACKAGE_STARTER,
+> backend\level_engine.py:98:    "البداية": PACKAGE_STARTER,
+> backend\level_engine.py:99:    "بداية": PACKAGE_STARTER,
+> backend\level_engine.py:100:    "growth": PACKAGE_GROWTH,
+> backend\level_engine.py:101:    "النمو": PACKAGE_GROWTH,
+> backend\level_engine.py:102:    "باقة النمو": PACKAGE_GROWTH,
+> backend\level_engine.py:103:    "elite": PACKAGE_ELITE,
+> backend\level_engine.py:104:    "النخبة": PACKAGE_ELITE,
+> backend\level_engine.py:105:    "باقة النخبة": PACKAGE_ELITE,
+  backend\level_engine.py:106:    "diamond": PACKAGE_DIAMOND,
+  backend\level_engine.py:107:    "دايموند": PACKAGE_DIAMOND,
+  backend\level_engine.py:108:    "الماسية": PACKAGE_DIAMOND,
+  backend\level_engine.py:109:    "باقة الماسية": PACKAGE_DIAMOND,
+  backend\level_engine.py:110:    "الباقة الماسية": PACKAGE_DIAMOND,
+  backend\level_engine.py:111:}
+  backend\level_engine.py:161:        return PACKAGE_ALIASES[lowered]
+  backend\level_engine.py:162:
+  backend\level_engine.py:163:    if "النمو" in raw or "نمو" in raw:
+> backend\level_engine.py:164:        return PACKAGE_GROWTH
+  backend\level_engine.py:165:
+  backend\level_engine.py:166:    if "النخبة" in raw or "نخبة" in raw:
+> backend\level_engine.py:167:        return PACKAGE_ELITE
+  backend\level_engine.py:168:
+  backend\level_engine.py:169:    if "البداية" in raw or "بداية" in raw:
+> backend\level_engine.py:170:        return PACKAGE_STARTER
+  backend\level_engine.py:171:
+  backend\level_engine.py:172:    return lowered
+  backend\level_engine.py:173:
+  backend\level_engine.py:174:
+  backend\level_engine.py:175:def normalize_course_code(value: Any) -> str:
+  backend\level_engine.py:176:    raw = _clean_text(value)
+  backend\main.py:318:    position: fixed;
+  backend\main.py:319:    inset: 0;
+  backend\main.py:320:    background:
+> backend\main.py:321:        radial-gradient(circle at 15% 15%, rgba(214, 168, 
+79, 0.16), transparent 28%),
+> backend\main.py:322:        radial-gradient(circle at 85% 85%, rgba(214, 168, 
+79, 0.12), transparent 32%),
+> backend\main.py:323:        linear-gradient(135deg, #03050a 0%, #0a0f1d 42%, 
+#060810 100%);
+  backend\main.py:324:    z-index: -3;
+  backend\main.py:325:}
+  backend\main.py:326:
+  backend\main.py:327:.luxury-bg::before {
+  backend\main.py:328:    content: "";
+  backend\main.py:329:    position: absolute;
+  backend\main.py:341:    position: absolute;
+  backend\main.py:342:    inset: 0;
+  backend\main.py:343:    background:
+> backend\main.py:344:        radial-gradient(circle at 55% 115%, 
+rgba(214,168,79,0.22), transparent 35%),
+> backend\main.py:345:        radial-gradient(circle at 95% 10%, 
+rgba(255,255,255,0.05), transparent 25%);
+  backend\main.py:346:    opacity: 0.9;
+  backend\main.py:347:}
+  backend\main.py:348:
+  backend\main.py:349:.page {
+  backend\main.py:350:    width: 100%;
+  backend\main.py:351:    height: 100vh;
+  backend\main.py:379:    padding: 24px 18px;
+  backend\main.py:380:    border-left: 1px solid rgba(255,255,255,0.07);
+  backend\main.py:381:    background:
+> backend\main.py:382:        radial-gradient(circle at top, 
+rgba(214,168,79,0.13), transparent 34%),
+  backend\main.py:383:        linear-gradient(180deg, rgba(255,255,255,0.035), 
+rgba(255,255,255,0.01));
+  backend\main.py:384:    overflow-y: auto;
+  backend\main.py:385:}
+  backend\main.py:386:
+  backend\main.py:387:.sidebar::before {
+  backend\main.py:388:    content: "";
+  backend\main.py:389:    position: absolute;
+  backend\main.py:390:    inset: 0;
+  backend\main.py:391:    background:
+> backend\main.py:392:        linear-gradient(145deg, transparent 0%, 
+rgba(214,168,79,0.045) 45%, transparent 80%);
+  backend\main.py:393:    pointer-events: none;
+  backend\main.py:394:}
+  backend\main.py:395:
+  backend\main.py:396:.brand-block {
+  backend\main.py:397:    position: relative;
+  backend\main.py:398:    display: flex;
+  backend\main.py:452:.side-card.gold {
+  backend\main.py:453:    border-color: rgba(214,168,79,0.35);
+  backend\main.py:454:    background:
+> backend\main.py:455:        radial-gradient(circle at top right, 
+rgba(214,168,79,0.13), transparent 45%),
+  backend\main.py:456:        rgba(255,255,255,0.04);
+  backend\main.py:457:}
+  backend\main.py:458:
+  backend\main.py:459:.side-label {
+  backend\main.py:460:    color: var(--gold-2);
+  backend\main.py:461:    font-size: 12px;
+  backend\main.py:535:    gap: 14px;
+  backend\main.py:536:    border-bottom: 1px solid rgba(214,168,79,0.26);
+  backend\main.py:537:    background:
+> backend\main.py:538:        radial-gradient(circle at top left, 
+rgba(214,168,79,0.09), transparent 35%),
+  backend\main.py:539:        linear-gradient(180deg, rgba(255,255,255,0.045), 
+rgba(255,255,255,0.015));
+  backend\main.py:540:    flex-shrink: 0;
+  backend\main.py:541:}
+  backend\main.py:542:
+  backend\main.py:543:.header-title {
+  backend\main.py:544:    display: flex;
+  backend\main.py:655:    display: flex;
+  backend\main.py:656:    flex-direction: column;
+  backend\main.py:657:    background:
+> backend\main.py:658:        radial-gradient(circle at 85% 15%, 
+rgba(214,168,79,0.06), transparent 34%),
+> backend\main.py:659:        radial-gradient(circle at 12% 88%, 
+rgba(34,197,94,0.04), transparent 28%);
+  backend\main.py:660:    overflow: hidden;
+  backend\main.py:661:}
+  backend\main.py:662:
+  backend\main.py:663:.messages {
+  backend\main.py:664:    flex: 1;
+  backend\main.py:665:    min-height: 0;
+  backend\main.py:743:}
+  backend\main.py:744:
+  backend\main.py:745:.msg-bubble {
+> backend\main.py:746:    max-width: min(82%, 720px);
+  backend\main.py:747:    padding: 14px 16px;
+  backend\main.py:748:    border-radius: 18px;
+  backend\main.py:749:    line-height: 1.9;
+  backend\main.py:750:    font-size: 15px;
+  backend\main.py:751:    overflow-wrap: break-word;
+  backend\main.py:752:    word-wrap: break-word;
+  backend\main.py:963:    }
+  backend\main.py:964:
+  backend\main.py:965:    .msg-bubble {
+> backend\main.py:966:        max-width: 92%;
+  backend\main.py:967:        font-size: 14px;
+  backend\main.py:968:        line-height: 1.85;
+  backend\main.py:969:    }
+  backend\main.py:970:
+  backend\main.py:971:    .chat-footer {
+  backend\main.py:972:        padding: 12px;
+  backend\main.py:1201:                        <div class="quick-actions">
+  backend\main.py:1202:                            <button class="quick-chip" 
+onclick="sendQuick('أبغي أعرف الباقات')">عرض الباقات</button>
+  backend\main.py:1203:                            <button class="quick-chip" 
+onclick="sendQuick('عندي مشروع وأبغي أرفع المبيعات')">عندي مشروع</button>
+> backend\main.py:1204:                            <button class="quick-chip" 
+onclick="sendQuick('محتاج دخل إضافي')">دخل إضافي</button>
+  backend\main.py:1205:                        </div>
+  backend\main.py:1206:                    </div>
+  backend\main.py:1207:                </div>
+  backend\main.py:1208:
+  backend\main.py:1209:                <div id="typingWrap" class="typing-wrap">
+  backend\main.py:1210:                    <div class="typing">
+  backend\main.py:1821:            })
+  backend\main.py:1822:
+  backend\main.py:1823:        session_id = 
+existing_subscription.get("session_id") or ""
+> backend\main.py:1824:        plan_name = 
+existing_subscription.get("plan_name") or "growth"
+  backend\main.py:1825:        source_partner_id = normalize_source_partner_id(
+  backend\main.py:1826:            
+existing_subscription.get("source_partner_id") or ""
+  backend\main.py:1827:        )
+  backend\main.py:1828:
+  backend\main.py:1829:        stripe_customer_id = (
+  backend\main.py:1830:            invoice.get("customer", "")
+  backend\main.py:1926:            })
+  backend\main.py:1927:
+  backend\main.py:1928:        session_id = 
+existing_subscription.get("session_id") or ""
+> backend\main.py:1929:        plan_name = 
+existing_subscription.get("plan_name") or "growth"
+  backend\main.py:1930:        source_partner_id = normalize_source_partner_id(
+  backend\main.py:1931:            
+existing_subscription.get("source_partner_id") or ""
+  backend\main.py:1932:        )
+  backend\main.py:1933:
+  backend\main.py:1934:        stripe_customer_id = (
+  backend\main.py:1935:            invoice.get("customer", "")
+  backend\main.py:2003:            })
+  backend\main.py:2004:
+  backend\main.py:2005:        session_id = 
+existing_subscription.get("session_id") or ""
+> backend\main.py:2006:        plan_name = 
+existing_subscription.get("plan_name") or "growth"
+  backend\main.py:2007:        source_partner_id = normalize_source_partner_id(
+  backend\main.py:2008:            
+existing_subscription.get("source_partner_id") or ""
+  backend\main.py:2009:        )
+  backend\main.py:2010:
+  backend\main.py:2011:        stripe_customer_id = (
+  backend\main.py:2012:            stripe_subscription.get("customer", "")
+  backend\main.py:2105:            })
+  backend\main.py:2106:
+  backend\main.py:2107:        session_id = 
+existing_subscription.get("session_id") or ""
+> backend\main.py:2108:        plan_name = 
+existing_subscription.get("plan_name") or "growth"
+  backend\main.py:2109:        source_partner_id = normalize_source_partner_id(
+  backend\main.py:2110:            
+existing_subscription.get("source_partner_id") or ""
+  backend\main.py:2111:        )
+  backend\main.py:2112:
+  backend\main.py:2113:        stripe_customer_id = (
+  backend\main.py:2114:            stripe_subscription.get("customer", "")
+  backend\main.py:2417:            example_body={
+  backend\main.py:2418:                "key": ADMIN_KEY,
+  backend\main.py:2419:                "session_id": "commission-test-001",
+> backend\main.py:2420:                "plan": "growth",
+  backend\main.py:2421:                "source_partner_id": "ALS-P00001",
+  backend\main.py:2422:                "package_amount": "599 AED",
+  backend\main.py:2423:                "notes": "manual_post_activation"
+  backend\main.py:2424:            }
+  backend\main.py:2425:        )
+  backend\main.py:2426:
+  backend\main.py:2427:    session_id = get_payload_value(payload, "session_id")
+> backend\main.py:2428:    plan = get_payload_value(payload, "plan", 
+default="growth")
+  backend\main.py:2429:    client_id = get_payload_value(payload, "client_id")
+  backend\main.py:2430:    bot_id = get_payload_value(payload, "bot_id")
+  backend\main.py:2431:    status = get_payload_value(payload, "status", 
+default="active")
+  backend\main.py:2432:    limit = get_payload_value(payload, "limit")
+  backend\main.py:2433:    package_amount = get_payload_value(payload, 
+"package_amount")
+  backend\main.py:2434:    notes = get_payload_value(payload, "notes")
+  backend\main.py:2550:            ],
+  backend\main.py:2551:            example_body={
+  backend\main.py:2552:                "key": ADMIN_KEY,
+> backend\main.py:2553:                "partner_name": "MLM Level 1 Test",
+  backend\main.py:2554:                "phone": "+971500000001",
+  backend\main.py:2555:                "email": "test@alsaab.ai",
+  backend\main.py:2556:                "country": "UAE",
+  backend\main.py:2557:                "invited_by": "alsaab",
+  backend\main.py:2558:                "level": "Level 1",
+  backend\main.py:2559:                "status": "active",
+  backend\main.py:2995:
+  backend\main.py:2996:        rank_meta = {
+  backend\main.py:2997:            1: {"rank": "Entry Partner", "color": 
+"#B8860B", "glow": "rgba(184,134,11,.28)"},
+> backend\main.py:2998:            2: {"rank": "Starter Partner", "color": 
+"#C0C0C0", "glow": "rgba(192,192,192,.25)"},
+> backend\main.py:2999:            3: {"rank": "Growth Partner", "color": 
+"#D7B85A", "glow": "rgba(215,184,90,.32)"},
+> backend\main.py:3000:            4: {"rank": "Elite Partner", "color": 
+"#F0D98A", "glow": "rgba(240,217,138,.38)"},
+  backend\main.py:3001:            5: {"rank": "Diamond Partner", "color": 
+"#FFFFFF", "glow": "rgba(255,215,0,.42)"},
+  backend\main.py:3002:        }
+  backend\main.py:3003:
+  backend\main.py:3004:        next_level_num = current_level_num + 1 if 
+current_level_num < 5 else 5
+  backend\main.py:3005:
+  backend\main.py:3006:        next_requirements = {
+  backend\main.py:3008:                "sales": 2,
+  backend\main.py:3009:                "course": "-",
+  backend\main.py:3010:                "course_token": "",
+> backend\main.py:3011:                "text_ar": "باقة Starter أو أعلى + 2 
+عملاء نشطين",
+> backend\main.py:3012:                "text_en": "Starter package or higher + 2 
+active customers",
+  backend\main.py:3013:            },
+  backend\main.py:3014:            3: {
+  backend\main.py:3015:                "sales": 5,
+  backend\main.py:3016:                "course": "كورس المسوق المحترف 69$",
+  backend\main.py:3017:                "course_token": "69",
+  backend\main.py:3018:                "text_ar": "كورس المسوق المحترف 69$ + 5 
+عملاء نشطين",
+  backend\main.py:3044:        package_value = 
+str(search_level.get("current_package") or "").lower()
+  backend\main.py:3045:        package_ok = True
+  backend\main.py:3046:        if next_level_num == 2:
+> backend\main.py:3047:            package_ok = package_value in ("starter", 
+"growth", "elite", "diamond")
+  backend\main.py:3048:
+  backend\main.py:3049:        missing_items = []
+  backend\main.py:3050:
+  backend\main.py:3051:        if next_level_num == 2 and not package_ok:
+> backend\main.py:3052:            missing_items.append("الترقية إلى باقة 
+Starter أو أعلى" if is_ar else "Upgrade to Starter package or higher")
+  backend\main.py:3053:
+  backend\main.py:3054:        if required_sales_count and completed_sales_count 
+< required_sales_count:
+  backend\main.py:3055:            missing_items.append(
+  backend\main.py:3056:                f"تحتاج {required_sales_count - 
+completed_sales_count} عملاء نشطين إضافيين"
+  backend\main.py:3057:                if is_ar
+  backend\main.py:3058:                else f"Need {required_sales_count - 
+completed_sales_count} more active customers"
+  backend\main.py:3495:    /* ===== ALSAAB_DASHBOARD_VISUAL_POLISH_V4 START 
+===== */
+  backend\main.py:3496:    .alsaab-skin-v4 {
+  backend\main.py:3497:      background:
+> backend\main.py:3498:        radial-gradient(circle at 85% 8%, 
+rgba(240,204,104,.14), transparent 24%),
+> backend\main.py:3499:        radial-gradient(circle at 12% 20%, 
+rgba(59,130,246,.10), transparent 26%);
+  backend\main.py:3500:    }
+  backend\main.py:3501:
+  backend\main.py:3502:    .alsaab-skin-v4 .card,
+  backend\main.py:3503:    .alsaab-skin-v4 .section,
+  backend\main.py:3504:    .alsaab-skin-v4 .portal-card {
+  backend\main.py:3505:      background:
+  backend\main.py:3506:        linear-gradient(145deg, rgba(255,255,255,.05), 
+rgba(12,15,24,.96)),
+> backend\main.py:3507:        radial-gradient(circle at top right, 
+rgba(215,184,90,.08), transparent 32%) !important;
+  backend\main.py:3508:      border-color: rgba(240,204,104,.38) !important;
+  backend\main.py:3509:      box-shadow:
+  backend\main.py:3510:        0 14px 34px rgba(0,0,0,.34),
+  backend\main.py:3511:        inset 0 1px 0 rgba(255,255,255,.06),
+  backend\main.py:3512:        0 0 18px rgba(215,184,90,.08) !important;
+  backend\main.py:3513:      transition: all .20s ease !important;
+  backend\main.py:3526:    .alsaab-skin-v4 .portal-card.active,
+  backend\main.py:3527:    .alsaab-skin-v4 .primary-btn,
+  backend\main.py:3528:    .alsaab-skin-v4 button.primary-btn {
+> backend\main.py:3529:      background: linear-gradient(135deg, #6f4d13 0%, 
+#d7b85a 44%, #f0cc68 68%, #9a6b18 100%) !important;
+  backend\main.py:3530:      color: #fffaf0 !important;
+  backend\main.py:3531:      text-shadow: 0 2px 4px rgba(0,0,0,.58) !important;
+  backend\main.py:3532:      border-color: rgba(255,255,255,.25) !important;
+  backend\main.py:3533:      box-shadow: 0 10px 26px rgba(215,184,90,.24) 
+!important;
+  backend\main.py:3534:      font-weight: 900 !important;
+  backend\main.py:3535:    }
+  backend\main.py:4312:    /* ===== ALSAAB_DASHBOARD_VISUAL_POLISH_V4 START 
+===== */
+  backend\main.py:4313:    .alsaab-skin-v4 {
+  backend\main.py:4314:      background:
+> backend\main.py:4315:        radial-gradient(circle at 85% 8%, 
+rgba(240,204,104,.14), transparent 24%),
+> backend\main.py:4316:        radial-gradient(circle at 12% 20%, 
+rgba(59,130,246,.10), transparent 26%);
+  backend\main.py:4317:    }
+  backend\main.py:4318:
+  backend\main.py:4319:    .alsaab-skin-v4 .card,
+  backend\main.py:4320:    .alsaab-skin-v4 .section,
+  backend\main.py:4321:    .alsaab-skin-v4 .portal-card {
+  backend\main.py:4322:      background:
+  backend\main.py:4323:        linear-gradient(145deg, rgba(255,255,255,.05), 
+rgba(12,15,24,.96)),
+> backend\main.py:4324:        radial-gradient(circle at top right, 
+rgba(215,184,90,.08), transparent 32%) !important;
+  backend\main.py:4325:      border-color: rgba(240,204,104,.38) !important;
+  backend\main.py:4326:      box-shadow:
+  backend\main.py:4327:        0 14px 34px rgba(0,0,0,.34),
+  backend\main.py:4328:        inset 0 1px 0 rgba(255,255,255,.06),
+  backend\main.py:4329:        0 0 18px rgba(215,184,90,.08) !important;
+  backend\main.py:4330:      transition: all .20s ease !important;
+  backend\main.py:4343:    .alsaab-skin-v4 .portal-card.active,
+  backend\main.py:4344:    .alsaab-skin-v4 .primary-btn,
+  backend\main.py:4345:    .alsaab-skin-v4 button.primary-btn {
+> backend\main.py:4346:      background: linear-gradient(135deg, #6f4d13 0%, 
+#d7b85a 44%, #f0cc68 68%, #9a6b18 100%) !important;
+  backend\main.py:4347:      color: #fffaf0 !important;
+  backend\main.py:4348:      text-shadow: 0 2px 4px rgba(0,0,0,.58) !important;
+  backend\main.py:4349:      border-color: rgba(255,255,255,.25) !important;
+  backend\main.py:4350:      box-shadow: 0 10px 26px rgba(215,184,90,.24) 
+!important;
+  backend\main.py:4351:      font-weight: 900 !important;
+  backend\main.py:4352:    }
+  backend\partner_engine.py:11:try:
+  backend\partner_engine.py:12:    from config import (
+  backend\partner_engine.py:13:        COMPANY_OWNER_PARTNER_ID,
+> backend\partner_engine.py:14:        MLM_SPONSOR_RULES,
+> backend\partner_engine.py:15:        MLM_SOURCE_OPTIONS,
+> backend\partner_engine.py:16:        MLM_REGISTRATION_MESSAGES,
+  backend\partner_engine.py:17:    )
+  backend\partner_engine.py:18:except Exception:
+  backend\partner_engine.py:19:    COMPANY_OWNER_PARTNER_ID = "alsaab"
+  backend\partner_engine.py:20:
+> backend\partner_engine.py:21:    MLM_SPONSOR_RULES = {
+  backend\partner_engine.py:22:        
+"require_sponsor_for_partner_registration": True,
+  backend\partner_engine.py:23:        "owner_partner_id": 
+COMPANY_OWNER_PARTNER_ID,
+  backend\partner_engine.py:24:        "owner_id_is_company_income": True,
+  backend\partner_engine.py:25:        
+"do_not_auto_assign_owner_before_asking_source": True,
+  backend\partner_engine.py:26:        "ask_source_before_owner_assignment": 
+True,
+  backend\partner_engine.py:27:        "prevent_empty_sponsor": True,
+  backend\partner_engine.py:28:        "prevent_invalid_sponsor": True,
+  backend\partner_engine.py:29:    }
+  backend\partner_engine.py:30:
+> backend\partner_engine.py:31:    MLM_SOURCE_OPTIONS = {
+  backend\partner_engine.py:32:        "direct_partner": {
+  backend\partner_engine.py:33:            "name_ar": "عن طريق شريك",
+  backend\partner_engine.py:34:            "requires_partner_id": True,
+  backend\partner_engine.py:35:            "example": "ALS-P00025"
+  backend\partner_engine.py:36:        },
+  backend\partner_engine.py:37:        "social_media": {
+  backend\partner_engine.py:61:        }
+  backend\partner_engine.py:62:    }
+  backend\partner_engine.py:63:
+> backend\partner_engine.py:64:    MLM_REGISTRATION_MESSAGES = {
+  backend\partner_engine.py:65:        "ask_source_ar": (
+  backend\partner_engine.py:66:            "قبل ما أكمل تسجيلك كشريك، لازم نربط 
+تسجيلك بالشخص أو المصدر اللي عرّفك على النظام عشان نحفظ الحقوق بدقة.\n\n"
+  backend\partner_engine.py:67:            "من وين عرفت ALSAAB AI؟\n"
+  backend\partner_engine.py:68:            "- عن طريق شخص / شريك\n"
+  backend\partner_engine.py:69:            "- السوشيال ميديا\n"
+  backend\partner_engine.py:70:            "- الموقع\n"
+  backend\partner_engine.py:581:
+  backend\partner_engine.py:582:
+  backend\partner_engine.py:583:def source_requires_sponsor_id(source_type):
+> backend\partner_engine.py:584:    source_data = 
+MLM_SOURCE_OPTIONS.get(source_type, {})
+  backend\partner_engine.py:585:    return 
+bool(source_data.get("requires_partner_id"))
+  backend\partner_engine.py:586:
+  backend\partner_engine.py:587:
+  backend\partner_engine.py:588:def 
+get_default_partner_id_for_source(source_type):
+> backend\partner_engine.py:589:    source_data = 
+MLM_SOURCE_OPTIONS.get(source_type, {})
+  backend\partner_engine.py:590:    return source_data.get("default_partner_id", 
+COMPANY_OWNER_PARTNER_ID)
+  backend\partner_engine.py:591:
+  backend\partner_engine.py:592:
+  backend\partner_engine.py:593:def get_source_name_ar(source_type):
+> backend\partner_engine.py:594:    source_data = 
+MLM_SOURCE_OPTIONS.get(source_type, {})
+  backend\partner_engine.py:595:    return source_data.get("name_ar", 
+source_type)
+  backend\partner_engine.py:596:
+  backend\partner_engine.py:597:
+  backend\partner_engine.py:598:def get_question_for_step(step, data):
+  backend\partner_engine.py:599:    partner_name = data.get("partner_name", "")
+  backend\partner_engine.py:600:
+  backend\partner_engine.py:636:        return (
+  backend\partner_engine.py:637:            "شو هدفك الأساسي من الشراكة؟\n\n"
+  backend\partner_engine.py:638:            "مثلاً:\n"
+> backend\partner_engine.py:639:            "- دخل إضافي\n"
+  backend\partner_engine.py:640:            "- تسويق ALSAAB AI\n"
+  backend\partner_engine.py:641:            "- عندي علاقات وأبغي أستفيد\n"
+  backend\partner_engine.py:642:            "- عندي مشروع وأبغي أضيف مصدر دخل"
+  backend\partner_engine.py:643:        )
+  backend\partner_engine.py:644:
+  backend\partner_engine.py:645:    if step == "source":
+> backend\partner_engine.py:646:        return MLM_REGISTRATION_MESSAGES.get(
+  backend\partner_engine.py:647:            "ask_source_ar",
+  backend\partner_engine.py:648:            (
+  backend\partner_engine.py:649:                "قبل ما أكمل تسجيلك كشريك، لازم 
+نعرف من وين عرفت ALSAAB AI عشان نحفظ الحقوق بدقة.\n\n"
+  backend\partner_engine.py:650:                "- عن طريق شخص / شريك\n"
+  backend\partner_engine.py:651:                "- السوشيال ميديا\n"
+  backend\partner_engine.py:652:                "- الموقع\n"
+  backend\partner_engine.py:657:        )
+  backend\partner_engine.py:658:
+  backend\partner_engine.py:659:    if step == "sponsor":
+> backend\partner_engine.py:660:        return MLM_REGISTRATION_MESSAGES.get(
+  backend\partner_engine.py:661:            "ask_sponsor_id_ar",
+  backend\partner_engine.py:662:            (
+  backend\partner_engine.py:663:                "اكتب Partner ID الخاص بالشخص 
+اللي عرفك على النظام.\n\n"
+  backend\partner_engine.py:664:                "مثال:\n"
+  backend\partner_engine.py:665:                "ALS-P00025\n\n"
+  backend\partner_engine.py:666:                "مهم: بعد التسجيل، تغيير المعرّف 
+يحتاج مراجعة إدارية عشان نحفظ الحقوق."
+  backend\partner_engine.py:808:        sponsor_partner_id = 
+extract_partner_id(raw_message)
+  backend\partner_engine.py:809:
+  backend\partner_engine.py:810:        if not sponsor_partner_id:
+> backend\partner_engine.py:811:            return False, 
+MLM_REGISTRATION_MESSAGES.get(
+  backend\partner_engine.py:812:                "invalid_sponsor_ar",
+  backend\partner_engine.py:813:                (
+  backend\partner_engine.py:814:                    "لازم يكون عندك Partner ID 
+صحيح للشخص اللي عرفك على النظام.\n\n"
+  backend\partner_engine.py:815:                    "إذا عرفتنا من السوشيال 
+ميديا أو الموقع أو إعلان أو من الشركة مباشرة، بنستخدم معرف الشركة."
+  backend\partner_engine.py:816:                )
+  backend\partner_engine.py:817:            )
+  backend\partner_engine.py:877:    state["lead_phone"] = phone
+  backend\partner_engine.py:878:    state["phone_captured"] = True
+  backend\partner_engine.py:879:
+> backend\partner_engine.py:880:    if 
+MLM_SPONSOR_RULES.get("prevent_empty_sponsor", True) and not sponsor_partner_id:
+  backend\partner_engine.py:881:        data["step"] = "source"
+  backend\partner_engine.py:882:        return (
+  backend\partner_engine.py:883:            "ما أقدر أكمل التسجيل بدون تحديد 
+المصدر أو معرف الشخص اللي عرفك على النظام.\n\n"
+  backend\partner_engine.py:884:            "هذا مهم عشان نحفظ الحقوق وما نلخبط 
+العمولات.\n\n"
+  backend\partner_engine.py:885:            + get_question_for_step("source", 
+data)
+  backend\partner_engine.py:886:        )
+  backend\partner_engine.py:977:        f"{sponsor_text}\n\n"
+  backend\partner_engine.py:978:        "ابدأ باستخدام رابطك مع أي شخص مهتم 
+بالنظام.\n"
+  backend\partner_engine.py:979:        "وأي اشتراك شهري فعّال يدخل عن طريقك يتم 
+احتساب العمولة حسب رتبتك وشروط نظام الشراكة.\n\n"
+> backend\partner_engine.py:980:        "بدايتك الحالية: Level 1 — Starter 
+Partner 🚀\n"
+> backend\partner_engine.py:981:        "الميزة: 25% عمولة مباشرة + كورس التسويق 
+مجاناً."
+  backend\partner_engine.py:982:    )
+  backend\partner_engine.py:983:
+  backend\partner_engine.py:984:
+  backend\partner_engine.py:985:def handle_partner_registration(message, state, 
+session_id):
+  backend\partner_engine.py:986:    data = get_or_create_partner_data(state, 
+session_id)
+  backend\partner_engine.py:987:
+  backend\prompt_builder.py:8:    WEBSITE_URL,
+  backend\prompt_builder.py:9:    WHATSAPP_LINK,
+  backend\prompt_builder.py:10:    PACKAGES,
+> backend\prompt_builder.py:11:    MLM_LEVELS,
+  backend\prompt_builder.py:12:    FOUNDER_INFO,
+  backend\prompt_builder.py:13:    PAYMENT_LINKS,
+  backend\prompt_builder.py:14:)
+  backend\prompt_builder.py:15:
+  backend\prompt_builder.py:16:try:
+  backend\prompt_builder.py:17:    from config import ENTERPRISE_PACKAGE, 
+USAGE_LIMIT_MESSAGES
+  backend\prompt_builder.py:36:except Exception:
+  backend\prompt_builder.py:37:    APP_BASE_URL = 
+"https://alsaab-ai.onrender.com"
+  backend\prompt_builder.py:38:    PAYMENT_ROUTE_LINKS = {
+> backend\prompt_builder.py:39:        "starter": f"{APP_BASE_URL}/pay/starter",
+> backend\prompt_builder.py:40:        "growth": f"{APP_BASE_URL}/pay/growth",
+> backend\prompt_builder.py:41:        "elite": f"{APP_BASE_URL}/pay/elite",
+  backend\prompt_builder.py:42:    }
+  backend\prompt_builder.py:43:
+  backend\prompt_builder.py:44:
+  backend\prompt_builder.py:45:def normalize_source_partner_id(value):
+  backend\prompt_builder.py:46:    value = str(value or "").strip()
+  backend\prompt_builder.py:47:
+  backend\prompt_builder.py:95:
+  backend\prompt_builder.py:96:def format_payment_links(state):
+  backend\prompt_builder.py:97:    return {
+> backend\prompt_builder.py:98:        "starter": 
+build_internal_payment_link("starter", state),
+> backend\prompt_builder.py:99:        "growth": 
+build_internal_payment_link("growth", state),
+> backend\prompt_builder.py:100:        "elite": 
+build_internal_payment_link("elite", state),
+  backend\prompt_builder.py:101:    }
+  backend\prompt_builder.py:102:
+  backend\prompt_builder.py:103:
+  backend\prompt_builder.py:104:def format_customer_context(state):
+  backend\prompt_builder.py:105:    customer_name = (
+  backend\prompt_builder.py:106:        state.get("customer_name")
+  backend\prompt_builder.py:138:
+  backend\prompt_builder.py:139:
+  backend\prompt_builder.py:140:def format_packages():
+> backend\prompt_builder.py:141:    starter_limit = 
+PACKAGES["starter"].get("customer_reply_limit") or 
+PACKAGES["starter"].get("monthly_reply_limit", "2000")
+> backend\prompt_builder.py:142:    growth_limit = 
+PACKAGES["growth"].get("customer_reply_limit") or 
+PACKAGES["growth"].get("monthly_reply_limit", "6000")
+> backend\prompt_builder.py:143:    growth_advisory = 
+PACKAGES["growth"].get("owner_advisory_reply_limit", "1000")
+> backend\prompt_builder.py:144:    elite_total = 
+PACKAGES["elite"].get("total_customer_reply_limit") or 
+PACKAGES["elite"].get("customer_reply_limit") or 
+PACKAGES["elite"].get("monthly_reply_limit", "15000")
+> backend\prompt_builder.py:145:    elite_base = 
+PACKAGES["elite"].get("base_customer_reply_limit", "12000")
+> backend\prompt_builder.py:146:    elite_gift = 
+PACKAGES["elite"].get("gift_reply_limit", "3000")
+> backend\prompt_builder.py:147:    elite_advisory = 
+PACKAGES["elite"].get("owner_advisory_reply_limit", "2000")
+  backend\prompt_builder.py:148:
+  backend\prompt_builder.py:149:    return f"""
+  backend\prompt_builder.py:150:الباقات:
+  backend\prompt_builder.py:151:
+> backend\prompt_builder.py:152:1) {PACKAGES["starter"]["name_ar"]} — 
+{PACKAGES["starter"]["price_ar"]}
+  backend\prompt_builder.py:153:- مناسبة للي يريد يبدأ بتكلفة بسيطة ويجرب النظام.
+  backend\prompt_builder.py:154:- تشمل موظف مبيعات ذكي يرد على العملاء عبر 
+WhatsApp.
+  backend\prompt_builder.py:155:- يفهم معلومات المشروع، الخدمات، الأسعار، وطريقة 
+الطلب.
+> backend\prompt_builder.py:156:- عدد الردود الشهري للعملاء: {starter_limit} رد.
+  backend\prompt_builder.py:157:- المنفذ الرئيسي: WhatsApp.
+  backend\prompt_builder.py:158:- لا تشمل ربط موظف المبيعات الذكي على الموقع.
+  backend\prompt_builder.py:159:- مناسبة كبداية وتجربة، وليست الخيار الموصى به 
+لمعظم المشاريع.
+  backend\prompt_builder.py:160:- إذا سأل العميل هل تشمل الموقع، وضّح له أن ربط 
+الموقع يبدأ من باقة النمو.
+  backend\prompt_builder.py:161:
+> backend\prompt_builder.py:162:2) {PACKAGES["growth"]["name_ar"]} — 
+{PACKAGES["growth"]["price_ar"]}
+  backend\prompt_builder.py:163:- هذه الباقة الأساسية والمُوصى بها لمعظم أصحاب 
+المشاريع.
+  backend\prompt_builder.py:164:- تشمل موظف مبيعات ذكي يرد على العملاء، يشرح 
+الخدمات، يتعامل مع الاعتراضات، ويساعد في تحويل المهتمين إلى عملاء.
+> backend\prompt_builder.py:165:- عدد الردود الشهري للعملاء: {growth_limit} رد.
+  backend\prompt_builder.py:166:- تشمل WhatsApp + إمكانية ربط موظف المبيعات 
+الذكي على الموقع.
+> backend\prompt_builder.py:167:- تشمل {growth_advisory} رد شهري مخصص لصاحب 
+المشروع للاستشارات والتطوير.
+  backend\prompt_builder.py:168:- صاحب المشروع يقدر يستخدم ALSAAB AI كمستشار ذكي 
+في المبيعات وريادة الأعمال، مثل:
+  backend\prompt_builder.py:169:  تحسين العروض، التعامل مع اعتراضات العملاء، 
+أفكار تسويقية، تطوير طريقة البيع، ورفع التحويلات.
+  backend\prompt_builder.py:170:- تدعم إضافة صور المنتجات والكتالوجات حتى يفهم 
+موظف المبيعات الذكي تفاصيل المنتجات والأسعار والعروض بشكل أفضل.
+  backend\prompt_builder.py:171:- تدعم إضافة روابط الدفع الخاصة بالعميل للمنتجات 
+والعروض، والعميل يستلم مبالغه بنفسه ونحن لا نستلم مبالغ عملائه.
+  backend\prompt_builder.py:172:- هذه هي الباقة التي يجب ترشيحها لصاحب المشروع 
+في أغلب الحالات.
+  backend\prompt_builder.py:173:
+> backend\prompt_builder.py:174:3) {PACKAGES["elite"]["name_ar"]} — 
+{PACKAGES["elite"]["price_ar"]}
+  backend\prompt_builder.py:175:- هذه الباقة للمشاريع الجادة واللي تريد نظام 
+أقوى وتخصيص أعلى.
+  backend\prompt_builder.py:176:- تشمل موظف مبيعات ذكي أكثر تقدماً.
+  backend\prompt_builder.py:177:- تعمل على WhatsApp والموقع، مع دعم Instagram 
+ضمن الربط المتقدم.
+> backend\prompt_builder.py:178:- عدد الردود الشهري الأساسي للعملاء: 
+{elite_base} رد.
+> backend\prompt_builder.py:179:- هدية من شركة الصعب: {elite_gift} رد إضافي.
+> backend\prompt_builder.py:180:- مجموع ردود العملاء: {elite_total} رد شهري.
+> backend\prompt_builder.py:181:- تشمل {elite_advisory} رد شهري مخصص لصاحب 
+المشروع للاستشارات والتطوير.
+  backend\prompt_builder.py:182:- صاحب المشروع يقدر يستخدم ALSAAB AI كمستشار 
+أقوى في المبيعات، التسويق، تطوير العروض، تحليل الاعتراضات، وتحسين أداء المشروع.
+  backend\prompt_builder.py:183:- تشمل تخصيص أقوى وفهم أعمق للمنتجات والخدمات.
+  backend\prompt_builder.py:184:- تدعم صور المنتجات والكتالوجات.
+  backend\prompt_builder.py:185:- تدعم إضافة روابط الدفع الخاصة بالعميل للمنتجات 
+والعروض.
+  backend\prompt_builder.py:186:- مناسبة للمشاريع اللي عندها حجم عملاء أعلى أو 
+تريد تجربة أكثر احترافية وقنوات أكثر.
+  backend\prompt_builder.py:187:
+  backend\prompt_builder.py:198:- إذا احتجت تشرح مكان الاستشارات أو الصور أو 
+روابط الدفع، قل: "من حسابك الخاص" أو "من لوحة حسابك" فقط.
+  backend\prompt_builder.py:199:- لا تخلط بين الباقات والمستويات.
+  backend\prompt_builder.py:200:- الباقات = اشتراك ALSAAB AI.
+> backend\prompt_builder.py:201:- المستويات = نظام الشراكة / MLM.
+  backend\prompt_builder.py:202:- إذا سأل العميل عن "الباقات"، اشرح الباقات 
+الخمس كاملة، ومعها Enterprise إذا كان استخدامه كبير.
+> backend\prompt_builder.py:203:- إذا سأل عن "المستويات" أو "الدخل الإضافي" أو 
+"الشراكة"، اشرح نظام MLM.
+  backend\prompt_builder.py:204:- WhatsApp هو المنفذ الرئيسي في كل الباقات.
+  backend\prompt_builder.py:205:- باقة البداية لا تشمل الموقع.
+  backend\prompt_builder.py:206:- ربط الموقع يبدأ من باقة النمو وما فوق.
+  backend\prompt_builder.py:207:- إذا خلص العميل حد الردود الشهري، يتوقف 
+الاستخدام الذكي حتى التجديد أو الترقية أو الموافقة على باقة أعلى.
+  backend\prompt_builder.py:208:
+  backend\prompt_builder.py:209:صياغة مختصرة إذا العميل سأل: "شو الباقات؟":
+> backend\prompt_builder.py:210:- البداية بـ 299 درهم شهرياً: موظف مبيعات ذكي 
+على WhatsApp مع {starter_limit} رد شهري للعملاء، مناسبة كبداية وتجربة.
+> backend\prompt_builder.py:211:- النمو بـ 599 درهم شهرياً: الباقة الموصى بها 
+لمعظم المشاريع، فيها {growth_limit} رد للعملاء، واستشارات خاصة لصاحب المشروع 
+بعدد {growth_advisory} رد شهري، وتشمل WhatsApp + إمكانية الموقع + صور المنتجات 
+والكتالوجات + روابط دفع العميل الخاصة.
+> backend\prompt_builder.py:212:- النخبة بـ 1199 درهم شهرياً: للمشاريع الجادة، 
+فيها {elite_total} رد شهري للعملاء منها {elite_gift} رد هدية، ومعها 
+{elite_advisory} رد استشاري لصاحب المشروع، وتدعم WhatsApp + الموقع + Instagram 
+ضمن الربط المتقدم، مع تخصيص أقوى.
+  backend\prompt_builder.py:213:
+  backend\prompt_builder.py:214:إذا العميل يريد الخيار العملي لمعظم المشاريع:
+  backend\prompt_builder.py:215:رشّح باقة النمو لأنها تجمع بين موظف مبيعات ذكي 
+للعملاء ومستشار يساعد صاحب المشروع في تطوير المبيعات.
+  backend\prompt_builder.py:216:"""
+  backend\prompt_builder.py:217:
+  backend\prompt_builder.py:218:
+> backend\prompt_builder.py:219:def format_mlm():
+  backend\prompt_builder.py:220:    return f"""
+> backend\prompt_builder.py:221:نظام الشراكة / MLM:
+  backend\prompt_builder.py:222:
+> backend\prompt_builder.py:223:- {MLM_LEVELS["level_1"]["name_ar"]}: 
+{MLM_LEVELS["level_1"]["benefits"]}
+> backend\prompt_builder.py:224:- {MLM_LEVELS["level_2"]["name_ar"]}: 
+{MLM_LEVELS["level_2"]["benefits"]}
+> backend\prompt_builder.py:225:- {MLM_LEVELS["level_3"]["name_ar"]}: 
+{MLM_LEVELS["level_3"]["benefits"]}
+  backend\prompt_builder.py:226:
+> backend\prompt_builder.py:227:المستوى 4 و 5:
+  backend\prompt_builder.py:228:الدخل الأكبر يكون هناك 🔐
+> backend\prompt_builder.py:229:لا تشرح تفاصيل المستوى 4 و 5 من البداية.
+  backend\prompt_builder.py:230:قل إن المستويات الأعلى تنفتح بعد التدرج 
+والالتزام والنتائج.
+  backend\prompt_builder.py:231:
+> backend\prompt_builder.py:232:قواعد MLM المهمة جداً:
+  backend\prompt_builder.py:233:
+  backend\prompt_builder.py:234:1) إذا العميل شخصي / Personal:
+  backend\prompt_builder.py:235:- إذا قال أو لمح إلى:
+> backend\prompt_builder.py:236:  دخل إضافي
+  backend\prompt_builder.py:237:  أبغي أربح
+  backend\prompt_builder.py:238:  أبغي شراكة
+  backend\prompt_builder.py:239:  أبي مصدر دخل
+  backend\prompt_builder.py:240:  عندي وقت وأبغي أستفيد
+  backend\prompt_builder.py:241:  كيف أدخل معاكم
+  backend\prompt_builder.py:242:  عمولات
+  backend\prompt_builder.py:250:- ركّز على أن البداية تكون من مستوى 1، ثم التدرج.
+  backend\prompt_builder.py:251:
+  backend\prompt_builder.py:252:2) إذا العميل صاحب مشروع / Business:
+> backend\prompt_builder.py:253:- لا تفتح MLM في بداية المحادثة.
+  backend\prompt_builder.py:254:- لا تعرض الشراكة قبل ما تساعده في مشروعه.
+  backend\prompt_builder.py:255:- الأولوية لصاحب المشروع:
+  backend\prompt_builder.py:256:  بيع منتجاته
+  backend\prompt_builder.py:257:  تحسين ردوده
+  backend\prompt_builder.py:258:  رفع مبيعاته
+  backend\prompt_builder.py:259:  اختيار باقة مناسبة له
+  backend\prompt_builder.py:270:  هل أقدر أربح معاكم
+  backend\prompt_builder.py:271:- اسأله عن تجربته مع موظف المبيعات الذكي أولاً:
+  backend\prompt_builder.py:272:  "قبل لا أعطيك فرصة إضافية، كيف كانت تجربتك مع 
+موظف المبيعات الذكي؟ هل حسيت أنه ممكن يساعد مشروعك فعلياً؟"
+> backend\prompt_builder.py:273:- بعد ما يرد بإيجابية، اعرض عليه MLM كفرصة ثانية:
+  backend\prompt_builder.py:274:  "بما إنك شفت قيمة النظام، عندك فرصة ثانية إنك 
+تستفيد منه كشريك وتربح من الناس اللي تدخلهم للنظام."
+  backend\prompt_builder.py:275:
+> backend\prompt_builder.py:276:3) لا تخلط بين العميل اللي يريد خدمة لمشروعه 
+والعميل اللي يريد دخل إضافي.
+  backend\prompt_builder.py:277:- Business = مشروعه أولاً.
+> backend\prompt_builder.py:278:- Personal / دخل إضافي = MLM مباشرة.
+  backend\prompt_builder.py:279:
+> backend\prompt_builder.py:280:4) عند شرح MLM:
+  backend\prompt_builder.py:281:- كن مقنع، لكن لا تعد بدخل مضمون.
+  backend\prompt_builder.py:282:- قل إن الدخل يعتمد على الجهد، عدد العملاء، 
+الاستمرارية، وطريقة البيع.
+  backend\prompt_builder.py:283:- ممكن تذكر أن بعض الناس يحققون أرقام قوية 
+وعشرات الآلاف عند الالتزام والبيع، لكن بدون ضمان.
+  backend\prompt_builder.py:284:"""
+  backend\prompt_builder.py:285:
+  backend\prompt_builder.py:286:
+  backend\prompt_builder.py:465:- ركز على رفع مبيعاته
+  backend\prompt_builder.py:466:- ركز على منتجاته وخدماته إذا فيه بيانات مشروع 
+مدربة
+  backend\prompt_builder.py:467:- بعد الإقناع → اعرض النظام أو الباقة المناسبة
+> backend\prompt_builder.py:468:- لا تفتح MLM له من البداية
+> backend\prompt_builder.py:469:- لا تعرض الشراكة إلا بعد ما تساعده في مشروعه أو 
+بعد ما يسأل عن فرصة دخل إضافي أو بعد ما تظهر تجربة إيجابية مع موظف المبيعات الذكي
+  backend\prompt_builder.py:470:
+> backend\prompt_builder.py:471:2) Personal / MLM:
+> backend\prompt_builder.py:472:- يبي دخل إضافي
+  backend\prompt_builder.py:473:- يبي أرباح
+  backend\prompt_builder.py:474:- يسأل عن فرصة
+  backend\prompt_builder.py:475:- يسأل عن شراكة
+  backend\prompt_builder.py:476:- يسأل عن عمولات
+  backend\prompt_builder.py:477:- افتح الشراكة مباشرة
+  backend\prompt_builder.py:478:- اربطه بمستوى 1 ثم التدرج
+  backend\prompt_builder.py:479:
+  backend\prompt_builder.py:480:3) Unknown:
+  backend\prompt_builder.py:481:- اسأل:
+> backend\prompt_builder.py:482:"شو أكثر شي تبغي تطوره حالياً: مبيعات مشروعك ولا 
+دخل إضافي لك؟"
+  backend\prompt_builder.py:483:
+  backend\prompt_builder.py:484:---
+  backend\prompt_builder.py:485:
+  backend\prompt_builder.py:486:🧠 بيانات المشروع المدربة:
+  backend\prompt_builder.py:487:
+  backend\prompt_builder.py:488:{format_client_data(state)}
+  backend\prompt_builder.py:509:- اعرضها بعد الفهم.
+  backend\prompt_builder.py:510:- لا تخلط بين الباقات والمستويات.
+  backend\prompt_builder.py:511:- الباقات = اشتراك ALSAAB AI.
+> backend\prompt_builder.py:512:- المستويات = نظام الشراكة / MLM.
+  backend\prompt_builder.py:513:
+  backend\prompt_builder.py:514:رشّح:
+  backend\prompt_builder.py:515:- النمو = الأفضل والأقرب لمعظم المشاريع.
+  backend\prompt_builder.py:516:- النخبة = للجادين وأصحاب المشاريع اللي يبون 
+أقوى نتيجة.
+  backend\prompt_builder.py:517:- البداية = تجربة فقط، ولا ترشحها إلا إذا العميل 
+طلب الأرخص أو قال ميزانيته محدودة.
+  backend\prompt_builder.py:518:
+  backend\prompt_builder.py:721:اختر الباقة المناسبة لك:"
+  backend\prompt_builder.py:722:
+  backend\prompt_builder.py:723:- البداية:
+> backend\prompt_builder.py:724:{payment_links["starter"]}
+  backend\prompt_builder.py:725:
+  backend\prompt_builder.py:726:- النمو:
+> backend\prompt_builder.py:727:{payment_links["growth"]}
+  backend\prompt_builder.py:728:
+  backend\prompt_builder.py:729:- النخبة:
+> backend\prompt_builder.py:730:{payment_links["elite"]}
+  backend\prompt_builder.py:731:
+  backend\prompt_builder.py:732:إذا القناة واتساب:
+  backend\prompt_builder.py:733:لا تذكر واتساب، فقط أرسل روابط الدفع.
+  backend\prompt_builder.py:734:
+  backend\prompt_builder.py:735:إذا القناة موقع:
+  backend\prompt_builder.py:736:أرسل روابط الدفع، ولا تحول واتساب إلا لو طلب 
+تواصل بشري.
+  backend\prompt_builder.py:788:"في ناس تقدر توصل لأرقام قوية جداً، وفي حالات 
+ممكن توصل لعشرات الآلاف شهرياً أو أكثر، لكن خلني أكون صريح وياك… هذا يعتمد على 
+شغلك، عدد العملاء، التزامك، وطريقة البيع. الفرق الحقيقي يكون في الاستمرارية 
+والتطبيق، مب في الاشتراك بروحه."
+  backend\prompt_builder.py:789:
+  backend\prompt_builder.py:790:ثم وجّهه:
+> backend\prompt_builder.py:791:- إذا يبي دخل إضافي → نظام الشراكة / MLM
+  backend\prompt_builder.py:792:- إذا عنده مشروع → باقة النمو أو النخبة حسب 
+الجدية
+  backend\prompt_builder.py:793:
+  backend\prompt_builder.py:794:لا تعد بدخل مضمون.
+  backend\prompt_builder.py:795:لا تقل إن الكل سيربح.
+  backend\prompt_builder.py:796:لا تعرض الدخل كضمان.
+  backend\prompt_builder.py:797:اعرضه كفرصة قوية لمن يشتغل صح.
+  backend\prompt_builder.py:798:
+  backend\prompt_builder.py:799:---
+  backend\prompt_builder.py:800:
+> backend\prompt_builder.py:801:📈 MLM:
+  backend\prompt_builder.py:802:
+> backend\prompt_builder.py:803:{format_mlm()}
+  backend\prompt_builder.py:804:
+  backend\prompt_builder.py:805:---
+  backend\prompt_builder.py:806:
+  backend\prompt_builder.py:807:👤 إذا سأل عن الشركة:
+  backend\prompt_builder.py:808:
+  backend\prompt_builder.py:809:{founder_info()}
+  backend\prompt_builder.py:960:- لا تقل إن باقة البداية تشمل الموقع
+  backend\prompt_builder.py:961:- لا تقل إن الاستخدام مفتوح بلا حدود
+  backend\prompt_builder.py:962:- لا تخلط بين الباقات والمستويات
+> backend\prompt_builder.py:963:- لا تفتح MLM لصاحب مشروع من البداية
+  backend\prompt_builder.py:964:- لا تعطي خطط مجانية طويلة
+  backend\prompt_builder.py:965:- لا تكرر الواتساب
+  backend\prompt_builder.py:966:- لا تنهي الردود بدون قيادة واضحة للمحادثة
+  backend\prompt_builder.py:967:- لا تطلب من الزائر العادي كتابة "تدريب موظف 
+المبيعات الذكي" قبل الاشتراك.
+  backend\prompt_builder.py:968:- لا تستخدم بيانات مشروع غير مرتبطة بالـ 
+client_id الحالي.
+  backend\prompt_builder.py:969:
+  backend\prompt_builder.py:1038:- إذا لم يكن هناك سياق داخلي واضح يقول إن 
+الزائر دخل من رابط مشروع أو صاحب رابط، فأنت تمثل ALSAAB AI وتبيع نظام ALSAAB AI.
+  backend\prompt_builder.py:1039:- لا تسأل في الرابط العام: "أي مشروع تقصد؟" أو 
+"من صاحب المشروع؟" إلا إذا العميل قال إنه يسأل عن مشروع معين.
+  backend\prompt_builder.py:1040:- لا تتكلم عن منتجات صاحب مشروع إلا إذا وصلك 
+سياق داخلي واضح من رابط ذكي فيه بيانات مشروع.
+> backend\prompt_builder.py:1041:- الرابط العام = بيع ALSAAB AI والباقات وفرصة 
+التسويق بالعمولة متعدد المستويات.
+  backend\prompt_builder.py:1042:- رابط العميل الخاص = بيع منتجات وخدمات صاحب 
+الرابط أولاً، ثم ALSAAB AI فقط إذا صار مناسب.
+  backend\prompt_builder.py:1043:
+  backend\prompt_builder.py:1044:3. عرض الباقات:
+  backend\prompt_builder.py:1045:إذا سألك العميل عن الباقات أو الأسعار أو 
+الاشتراك، لازم تذكر كل الباقات الخمس من أول رد، بهذا الترتيب:
+  backend\prompt_builder.py:1046:
+  backend\prompt_builder.py:1047:Entry / باقة الدخول:
+  backend\prompt_builder.py:1052:- بدون خصائص إضافية
+  backend\prompt_builder.py:1053:- مناسبة للتجربة المحدودة فقط
+  backend\prompt_builder.py:1054:
+> backend\prompt_builder.py:1055:Starter / باقة البداية:
+  backend\prompt_builder.py:1056:- 599 درهم شهرياً
+  backend\prompt_builder.py:1057:- 2000 رد شهري
+  backend\prompt_builder.py:1058:- مناسبة للبداية الجادة
+  backend\prompt_builder.py:1059:
+> backend\prompt_builder.py:1060:Growth / باقة النمو:
+  backend\prompt_builder.py:1061:- 599 درهم شهرياً
+  backend\prompt_builder.py:1062:- 6000 رد للعملاء + 1000 رد استشاري لصاحب 
+المشروع
+  backend\prompt_builder.py:1063:- مناسبة للمشاريع التي تريد تشغيل أقوى ومساحة 
+استخدام أكبر
+  backend\prompt_builder.py:1064:
+> backend\prompt_builder.py:1065:Elite / باقة النخبة:
+  backend\prompt_builder.py:1066:- 1199 درهم شهرياً
+  backend\prompt_builder.py:1067:- 15000 رد للعملاء + 2000 رد استشاري لصاحب 
+المشروع
+  backend\prompt_builder.py:1068:- مناسبة للتشغيل الأكبر والمشاريع الجادة جداً
+  backend\prompt_builder.py:1069:
+> backend\prompt_builder.py:1070:ممنوع تذكر Starter و Growth و Elite وتنسى Entry.
+  backend\prompt_builder.py:1071:إذا العميل قال "ليش ما ذكرت باقة الدخول؟" لا 
+تعتذر بإطالة. صحح فوراً واذكر كل الباقات.
+  backend\prompt_builder.py:1072:
+  backend\prompt_builder.py:1073:4. متى ترشح كل باقة:
+  backend\prompt_builder.py:1074:- لا ترشح Entry كخيار أساسي للمشاريع الجادة. قل 
+إنها تجربة محدودة.
+  backend\prompt_builder.py:1075:- إذا العميل يريد أرخص شيء أو يريد يجرب فقط، 
+اشرح Entry.
+> backend\prompt_builder.py:1076:- إذا العميل عنده مشروع فعلي ويبي نتيجة أفضل، 
+وضح أن Starter أو Growth أفضل.
+  backend\prompt_builder.py:1077:- لا تضغط عليه، لكن وضح الفرق بذكاء.
+  backend\prompt_builder.py:1078:
+> backend\prompt_builder.py:1079:5. التسويق بالعمولة متعدد المستويات:
+> backend\prompt_builder.py:1080:ممنوع استخدام كلمة MLM في الردود للعميل.
+  backend\prompt_builder.py:1081:استخدم دائماً:
+> backend\prompt_builder.py:1082:التسويق بالعمولة متعدد المستويات
+  backend\prompt_builder.py:1083:
+  backend\prompt_builder.py:1084:6. العمولات:
+> backend\prompt_builder.py:1085:- العمولة المباشرة: 25% من اشتراك العميل الفعال.
+  backend\prompt_builder.py:1086:- Entry تخولك للعمولة المباشرة فقط.
+> backend\prompt_builder.py:1087:- إذا تبا تفتح عمولات مستويات أعلى، لازم ترقي 
+على الأقل إلى Starter وتكمل الشروط.
+  backend\prompt_builder.py:1088:- لا توجد عمولات بأثر رجعي.
+  backend\prompt_builder.py:1089:- لا يوجد دخل مضمون.
+  backend\prompt_builder.py:1090:
+  backend\prompt_builder.py:1091:7. شروط المستويات:
+> backend\prompt_builder.py:1092:المستوى 1:
+> backend\prompt_builder.py:1093:- عمولة مباشرة 25%
+  backend\prompt_builder.py:1094:- متاحة من Entry وأعلى
+  backend\prompt_builder.py:1095:
+> backend\prompt_builder.py:1096:المستوى 2:
+> backend\prompt_builder.py:1097:- Starter أو أعلى
+  backend\prompt_builder.py:1098:- شخصين مباشرين فعالين
+  backend\prompt_builder.py:1099:- كورس عقلية المسوّق المحترف
+> backend\prompt_builder.py:1100:- العمولة 5%
+  backend\prompt_builder.py:1101:
+> backend\prompt_builder.py:1102:المستوى 3:
+  backend\prompt_builder.py:1103:- 5 اشتراكات مباشرة فعالة
+> backend\prompt_builder.py:1104:- العمولة 4%
+  backend\prompt_builder.py:1105:
+> backend\prompt_builder.py:1106:المستوى 4:
+> backend\prompt_builder.py:1107:- Growth أو أعلى
+  backend\prompt_builder.py:1108:- كورس مهارات المبيعات
+  backend\prompt_builder.py:1109:- 15 اشتراك فعال كمجموع
+> backend\prompt_builder.py:1110:- العمولة 3%
+  backend\prompt_builder.py:1111:
+> backend\prompt_builder.py:1112:المستوى 5:
+> backend\prompt_builder.py:1113:- Elite
+  backend\prompt_builder.py:1114:- كورس رحلة التغيير
+  backend\prompt_builder.py:1115:- 30 اشتراك فعال كمجموع
+  backend\prompt_builder.py:1116:- لا تعط نسبة مستوى 5 إذا لم تكن مثبتة في 
+إعدادات النظام، وقل إنها حسب إعداد العمولة المعتمد.
+  backend\prompt_builder.py:1117:
+  backend\prompt_builder.py:1118:8. إذا سأل عن الأرباح:
+  backend\prompt_builder.py:1119:إذا قال:
+  backend\prompt_builder.py:1128:
+  backend\prompt_builder.py:1129:استخدم هذه القاعدة:
+  backend\prompt_builder.py:1130:إذا كانوا اشتراكات مباشرة وفعالة من رابطك:
+> backend\prompt_builder.py:1131:الربح التقريبي = عدد العملاء × سعر الباقة × 25%
+  backend\prompt_builder.py:1132:
+  backend\prompt_builder.py:1133:لو 100 شخص مباشرين:
+> backend\prompt_builder.py:1134:- Entry: 100 × 299 × 25% = 7,475 درهم شهرياً 
+تقريباً
+> backend\prompt_builder.py:1135:- Starter: 100 × 599 × 25% = 14,975 درهم شهرياً 
+تقريباً
+> backend\prompt_builder.py:1136:- Growth: 100 × 1099 × 25% = 27,475 درهم شهرياً 
+تقريباً
+> backend\prompt_builder.py:1137:- Elite: 100 × 2099 × 25% = 52,475 درهم شهرياً 
+تقريباً
+  backend\prompt_builder.py:1138:
+  backend\prompt_builder.py:1139:لو 500 شخص مباشرين:
+> backend\prompt_builder.py:1140:- Entry: 500 × 299 × 25% = 37,375 درهم شهرياً 
+تقريباً
+> backend\prompt_builder.py:1141:- Starter: 500 × 599 × 25% = 74,875 درهم شهرياً 
+تقريباً
+> backend\prompt_builder.py:1142:- Growth: 500 × 1099 × 25% = 137,375 درهم 
+شهرياً تقريباً
+> backend\prompt_builder.py:1143:- Elite: 500 × 2099 × 25% = 262,375 درهم شهرياً 
+تقريباً
+  backend\prompt_builder.py:1144:
+  backend\prompt_builder.py:1145:بعد الأرقام، لازم تقول:
+  backend\prompt_builder.py:1146:هذي أرقام تقريبية وليست وعد دخل مضمون. تعتمد 
+على الاشتراكات الفعالة، استمرار العملاء، الباقة المختارة، وجهدك في التسويق.
+  backend\prompt_builder.py:1147:
+  backend\prompt_builder.py:1148:9. إذا قال "تحتي":
+  backend\prompt_builder.py:1149:ابدأ بحسبة العمولة المباشرة لأنها أوضح.
+  backend\prompt_builder.py:1157:- النظام يساعدك ترد على العملاء
+  backend\prompt_builder.py:1158:- يقلل ضياع الفرص
+  backend\prompt_builder.py:1159:- يحول المحادثات إلى مبيعات
+> backend\prompt_builder.py:1160:- يعطيك فرصة تبني دخل إضافي من التسويق بالعمولة 
+متعدد المستويات
+  backend\prompt_builder.py:1161:
+  backend\prompt_builder.py:1162:اختم بسؤال قرار واضح، مثل:
+  backend\prompt_builder.py:1163:- تبا تبدأ كتجربة محدودة على Entry، ولا تبا 
+باقة تعطيك مساحة تشغيل أفضل؟
+  backend\prompt_builder.py:1164:- هدفك تستخدم النظام لمشروعك، ولا تبدأ كمسوق 
+بالعمولة متعدد المستويات؟
+  backend\prompt_builder.py:1165:- تبا أحسبها لك على 100 شخص أو 500 شخص؟
+  backend\prompt_builder.py:1166:
+  backend\prompt_builder.py:1237:قاعدة مهمة جداً لروابط الدفع:
+  backend\prompt_builder.py:1238:
+  backend\prompt_builder.py:1239:إذا العميل طلب رابط باقة الدخول أو Entry:
+> backend\prompt_builder.py:1240:- ممنوع ترسل رابط Starter.
+> backend\prompt_builder.py:1241:- ممنوع تستخدم /pay/starter.
+  backend\prompt_builder.py:1242:- رابط باقة الدخول الصحيح هو:
+  backend\prompt_builder.py:1243:https://alsaab-ai.onrender.com/pay/entry
+  backend\prompt_builder.py:1244:
+  backend\prompt_builder.py:1245:إذا عندك رقم جلسة أو sid، استخدم:
+  
+backend\prompt_builder.py:1246:https://alsaab-ai.onrender.com/pay/entry?sid=<sid>
+  backend\prompt_builder.py:1247:
+  backend\prompt_builder.py:1328:- بدون روابط دفع
+  backend\prompt_builder.py:1329:- WhatsApp فقط
+  backend\prompt_builder.py:1330:
+> backend\prompt_builder.py:1331:2) Starter / باقة البداية:
+  backend\prompt_builder.py:1332:- 299 درهم شهرياً
+  backend\prompt_builder.py:1333:- 2000 رد شهري
+  backend\prompt_builder.py:1334:- WhatsApp فقط
+  backend\prompt_builder.py:1335:- مناسبة للبداية
+  backend\prompt_builder.py:1336:
+> backend\prompt_builder.py:1337:3) Growth / باقة النمو:
+  backend\prompt_builder.py:1338:- 599 درهم شهرياً
+  backend\prompt_builder.py:1339:- 6000 رد للعملاء + 1000 رد استشاري لصاحب 
+المشروع
+  backend\prompt_builder.py:1340:- تدعم الموقع حسب الإعداد
+  backend\prompt_builder.py:1341:- تدعم صور المنتجات وروابط الدفع الخاصة بالعميل
+  backend\prompt_builder.py:1342:
+> backend\prompt_builder.py:1343:4) Elite / باقة النخبة:
+  backend\prompt_builder.py:1344:- 1199 درهم شهرياً
+  backend\prompt_builder.py:1345:- 15000 رد للعملاء + 2000 رد استشاري لصاحب 
+المشروع
+  backend\prompt_builder.py:1346:- WhatsApp + Website + Instagram حسب الربط 
+المتقدم
+  backend\prompt_builder.py:1347:
+  backend\prompt_builder.py:1348:5) Diamond / الباقة الماسية:
+  backend\prompt_builder.py:1349:- 2399 درهم شهرياً
+  backend\prompt_builder.py:1352:
+  backend\prompt_builder.py:1353:ممنوع استخدام هذه الأسعار القديمة:
+  backend\prompt_builder.py:1354:Entry old-price
+> backend\prompt_builder.py:1355:Starter old-price
+> backend\prompt_builder.py:1356:Growth old-price
+> backend\prompt_builder.py:1357:Elite old-price
+  backend\prompt_builder.py:1358:
+  backend\prompt_builder.py:1359:إذا طلب العميل روابط الدفع، استخدم روابط الدفع 
+الداخلية /pay/plan وليس روابط Stripe المباشرة إذا كانت الروابط الداخلية متاحة.
+  backend\prompt_builder.py:1360:"""
+  backend\prompt_builder.py:1361:def 
+_alsaab_append_packages_2026_override(prompt_text):
+  backend\prompt_builder.py:1362:    if "ALSAAB_PACKAGES_2026_PROMPT_OVERRIDE" 
+in str(prompt_text):
+  backend\prompt_builder.py:1363:        return prompt_text
+  backend\prompt_builder.py:1439:- رابط الدفع:
+  backend\prompt_builder.py:1440:https://buy.stripe.com/4gMcN61d2dxI6ku10zaEE07
+  backend\prompt_builder.py:1441:
+> backend\prompt_builder.py:1442:2) Starter / باقة البداية — 299 AED شهرياً
+  backend\prompt_builder.py:1443:- 2000 رد شهري
+  backend\prompt_builder.py:1444:- رابط الدفع:
+  backend\prompt_builder.py:1445:https://buy.stripe.com/aFa8wQ9Jy8docISeRpaEE08
+  backend\prompt_builder.py:1446:
+> backend\prompt_builder.py:1447:3) Growth / باقة النمو — 599 AED شهرياً
+  backend\prompt_builder.py:1448:- 6000 رد للعملاء + 1000 رد استشاري لصاحب 
+المشروع
+  backend\prompt_builder.py:1449:- رابط الدفع:
+  backend\prompt_builder.py:1450:https://buy.stripe.com/7sY14obRG8doaAK5gPaEE09
+  backend\prompt_builder.py:1451:
+> backend\prompt_builder.py:1452:4) Elite / باقة النخبة — 1199 AED شهرياً
+  backend\prompt_builder.py:1453:- 15000 رد للعملاء + 2000 رد استشاري لصاحب 
+المشروع
+  backend\prompt_builder.py:1454:- رابط الدفع:
+  backend\prompt_builder.py:1455:https://buy.stripe.com/28E9AUf3SalwbEO4cLaEE0a
+  backend\prompt_builder.py:1456:
+  backend\prompt_builder.py:1457:5) Diamond / الباقة الماسية — 2399 AED شهرياً
+  backend\prompt_builder.py:1458:- 40000 رد للعملاء + 5000 رد استشاري لصاحب 
+المشروع
+  backend\prompt_builder.py:1461:
+  backend\prompt_builder.py:1462:ممنوع نهائياً عرض الأسعار القديمة:
+  backend\prompt_builder.py:1463:Entry 299
+> backend\prompt_builder.py:1464:Starter 599
+> backend\prompt_builder.py:1465:Growth 1099
+> backend\prompt_builder.py:1466:Elite 2099
+  backend\prompt_builder.py:1467:
+  backend\prompt_builder.py:1468:ممنوع تنقص أي باقة إذا العميل طلب كل الباقات.
+  backend\prompt_builder.py:1469:ممنوع تخترع روابط دفع.
+  backend\prompt_builder.py:1470:"""
+  backend\prompt_builder.py:1471:def 
+_alsaab_force_official_packages_and_links_v3(prompt_text):
+  backend\prompt_builder.py:1472:    if 
+"ALSAAB_FORCE_OFFICIAL_PACKAGES_AND_LINKS_V3" in str(prompt_text):
+  backend\prompt_builder.py:1525:قاعدة نهائية للباقات والعمولات والأرباح:
+  backend\prompt_builder.py:1526:إذا سأل العميل عن الباقات أو الأسعار أو روابط 
+الدفع أو الأرباح أو الدخل أو العمولات، لازم تذكر كل الباقات الخمس:
+  backend\prompt_builder.py:1527:1) Entry — 99 AED
+> backend\prompt_builder.py:1528:2) Starter — 299 AED
+> backend\prompt_builder.py:1529:3) Growth — 599 AED
+> backend\prompt_builder.py:1530:4) Elite — 1199 AED
+  backend\prompt_builder.py:1531:5) Diamond — 2399 AED
+  backend\prompt_builder.py:1532:
+  backend\prompt_builder.py:1533:ممنوع تنسى Diamond في حساب الأرباح أو العمولات 
+أو روابط الدفع.
+  backend\prompt_builder.py:1534:ممنوع تقول الباقات الثلاث أو الأربع.
+  backend\prompt_builder.py:1535:"""
+  backend\prompt_builder.py:1536:
+  backend\smart_link_analytics_routes.py:358:    <div 
+class="alsaab-smart-summary-card"><span 
+id="smartConversations">-</span><small>محادثات</small></div>
+  backend\smart_link_analytics_routes.py:359:    <div 
+class="alsaab-smart-summary-card"><span 
+id="smartPaymentRequests">-</span><small>طلبات دفع</small></div>
+  backend\smart_link_analytics_routes.py:360:    <div 
+class="alsaab-smart-summary-card"><span 
+id="smartHumanRequests">-</span><small>طلبات رد بشري</small></div>
+> backend\smart_link_analytics_routes.py:361:    <div 
+class="alsaab-smart-summary-card"><span 
+id="smartIncomeRequests">-</span><small>فرص دخل إضافي</small></div>
+  backend\smart_link_analytics_routes.py:362:    <div 
+class="alsaab-smart-summary-card"><span 
+id="smartMessages">-</span><small>رسائل</small></div>
+  backend\smart_link_analytics_routes.py:363:  </div>
+  backend\smart_link_analytics_routes.py:364:
+  backend\smart_link_analytics_routes.py:365:  <div id="alsaabSmartLatestEvents" 
+class="alsaab-smart-latest-events" style="display:none!important;"></div>
+  backend\smart_link_analytics_routes.py:366:</div>
+  backend\smart_link_analytics_routes.py:367:
+  backend\smart_link_routes.py:253:                <div 
+class="alsaab-smart-subtitle">مرحباً بك، اكتب طلبك أو اختر من الخيارات 
+السريعة.</div>
+  backend\smart_link_routes.py:254:              </div>
+  backend\smart_link_routes.py:255:              <div 
+class="alsaab-smart-top-actions">
+> backend\smart_link_routes.py:256:                <button type="button" 
+class="alsaab-smart-money" id="alsaabSmartIncomeBtn">💰 أريد فرصة دخل 
+إضافي</button>
+  backend\smart_link_routes.py:257:                <button type="button" 
+class="alsaab-smart-back" id="alsaabSmartBackBtn">الرجوع إلى واتساب</button>
+  backend\smart_link_routes.py:258:              </div>
+  backend\smart_link_routes.py:259:            </div>
+  backend\smart_link_routes.py:260:
+  backend\smart_link_routes.py:261:            <div class="alsaab-smart-quick">
+  backend\smart_link_routes.py:262:              <button type="button" 
+data-msg="أريد معرفة الأسعار">أريد معرفة الأسعار</button>
+  backend\smart_link_routes.py:455:        /* ALSAAB_SMART_LINK_VISUAL_SAFE_V1 
+START */
+  backend\smart_link_routes.py:456:        #alsaabSmartChatOverlay{
+  backend\smart_link_routes.py:457:          background:
+> backend\smart_link_routes.py:458:            radial-gradient(circle at 15% 
+18%, rgba(34,197,94,.10), transparent 28%),
+> backend\smart_link_routes.py:459:            radial-gradient(circle at 85% 
+10%, rgba(215,184,90,.18), transparent 30%),
+  backend\smart_link_routes.py:460:            rgba(5,5,5,.82)!important;
+  backend\smart_link_routes.py:461:          
+backdrop-filter:blur(10px)!important;
+  backend\smart_link_routes.py:462:        }
+  backend\smart_link_routes.py:463:
+  backend\smart_link_routes.py:464:        .alsaab-smart-shell{
+  backend\smart_link_routes.py:465:          width:min(1120px,96vw)!important;
+  backend\smart_link_routes.py:587:          
+.alsaab-smart-card{border-radius:0;border:0;}
+  backend\smart_link_routes.py:588:          
+.alsaab-smart-head{align-items:flex-start;flex-direction:column;}
+  backend\smart_link_routes.py:589:          .alsaab-smart-title{font-size:23px;}
+> backend\smart_link_routes.py:590:          
+.alsaab-smart-msg{max-width:92%;font-size:15px;}
+  backend\smart_link_routes.py:591:          
+.alsaab-smart-form{padding-bottom:22px;}
+  backend\smart_link_routes.py:592:        }
+  backend\smart_link_routes.py:593:
+  backend\smart_link_routes.py:594:        /* Wider existing widget fallback */
+  backend\smart_link_routes.py:595:        .alsaab-chat-widget,
+  backend\smart_link_routes.py:596:        .chat-widget,
+  backend\smart_link_routes.py:664:      var incomeBtn = 
+document.getElementById("alsaabSmartIncomeBtn");
+  backend\smart_link_routes.py:665:      if (incomeBtn) {
+  backend\smart_link_routes.py:666:        incomeBtn.addEventListener("click", 
+function () {
+> backend\smart_link_routes.py:667:          send("أريد فرصة دخل إضافي");
+  backend\smart_link_routes.py:668:        });
+  backend\smart_link_routes.py:669:      }
+  backend\smart_link_routes.py:670:
+  backend\smart_link_routes.py:671:      form.addEventListener("submit", 
+function (e) {
+  backend\smart_link_routes.py:672:        e.preventDefault();
+  backend\smart_link_routes.py:673:        send(input.value);
+  backend\smart_link_routes.py:1032:            "إذا كان الزائر يسأل عن منتجات 
+أو خدمات، بع منتجات وخدمات صاحب هذا الرابط أولاً.",
+  backend\smart_link_routes.py:1033:            "استخدم بيانات المشروع وروابط 
+الدفع الخاصة بصاحب الرابط.",
+  backend\smart_link_routes.py:1034:            "لا تخلط بين منتجات صاحب المشروع 
+وباقات الصعب.",
+> backend\smart_link_routes.py:1035:            "إذا الزائر قال إنه يريد دخل 
+إضافي أو يريد نظام مثل هذا، اشرح له نظام الصعب واشتراكاته وفرصة الشراكة بدون وعد 
+بدخل مضمون.",
+  backend\smart_link_routes.py:1036:            "",
+  backend\smart_link_routes.py:1037:        ]
+  backend\smart_link_routes.py:1038:
+  backend\smart_link_routes.py:1039:        if project_name:
+  backend\smart_link_routes.py:1040:            context_lines.append(f"اسم 
+المشروع: {_short_text(project_name, 160)}")
+  backend\smart_link_routes.py:1041:
+  backend\smart_link_routes.py:1195:        income_terms = [
+  backend\smart_link_routes.py:1196:            "دخل",
+  backend\smart_link_routes.py:1197:            "دخل اضافي",
+> backend\smart_link_routes.py:1198:            "دخل إضافي",
+  backend\smart_link_routes.py:1199:            "فلوس",
+  backend\smart_link_routes.py:1200:            "فرصة",
+  backend\smart_link_routes.py:1201:            "شراكة",
+  backend\smart_link_routes.py:1202:            "عمولة",
+  backend\smart_link_routes.py:1203:            "عمولات",
+> backend\smart_link_routes.py:1204:            "mlm",
+  backend\smart_link_routes.py:1205:            "ربح",
+  backend\smart_link_routes.py:1206:            "اربح",
+  backend\smart_link_routes.py:1207:            "أربح",
+  backend\smart_link_routes.py:1208:            "ابي اشتغل",
+  backend\smart_link_routes.py:1209:            "أبي أشتغل",
+  backend\smart_link_routes.py:1210:            "كيف استفيد",
+  backend\smart_link_routes.py:1256:        if wants_income:
+  backend\smart_link_routes.py:1257:            return "\n".join([
+  backend\smart_link_routes.py:1258:                "منطق البيع لهذه الرسالة:",
+> backend\smart_link_routes.py:1259:                "نية الزائر واضحة: يبحث عن 
+فرصة دخل إضافي أو شراكة أو طريقة يربح منها.",
+  backend\smart_link_routes.py:1260:                "في هذه الحالة اشرح نظام 
+الصعب مباشرة بطريقة بيعية محترمة.",
+  backend\smart_link_routes.py:1261:                "اشرح أن النظام مناسب لنوعين 
+من الناس:",
+  backend\smart_link_routes.py:1262:                "1. صاحب مشروع يريد يرفع 
+مبيعاته.",
+> backend\smart_link_routes.py:1263:                "2. شخص لا يملك مشروع ويريد 
+يبدأ فرصة دخل إضافي من خلال الاشتراك والشراكة.",
+  backend\smart_link_routes.py:1264:                "وضح أن الدخل ليس مضموناً 
+ولا تلقائياً، بل يعتمد على الجهد، التسويق، فهم النظام، وعدد العملاء الذين 
+يجلبهم.",
+  backend\smart_link_routes.py:1265:                "رشح باقة النمو كخيار ذكي 
+إذا كان جاداً، ولا ترشح البداية إلا إذا ميزانيته محدودة.",
+> backend\smart_link_routes.py:1266:                "اسأله سؤالاً ينقله للقرار: 
+هل تريد تبدأ كصاحب مشروع أم كشريك يبحث عن دخل إضافي؟",
+  backend\smart_link_routes.py:1267:            ])
+  backend\smart_link_routes.py:1268:
+  backend\smart_link_routes.py:1269:        if asks_about_system:
+  backend\smart_link_routes.py:1270:            return "\n".join([
+  backend\smart_link_routes.py:1271:                "منطق البيع لهذه الرسالة:",
+  backend\smart_link_routes.py:1272:                "الزائر يسأل عن نظام الصعب 
+أو موظف المبيعات الذكي.",
+  backend\state.py:12:        "training_data": {},
+  backend\state.py:13:        "client_data": {},
+  backend\state.py:14:
+> backend\state.py:15:        "user_type": None,  # business / mlm / unknown
+  backend\state.py:16:
+  backend\state.py:17:        "business_type": None,
+  backend\state.py:18:        "pain_point": None,
+  backend\state.py:19:        "goal": None,
+  backend\state.py:20:
+  backend\state.py:21:        "customer_type": "unknown",
+  backend\state.py:51:        "i sell", "my products", "my service", "clients", 
+"customers"
+  backend\state.py:52:    ]
+  backend\state.py:53:
+> backend\state.py:54:    mlm_words = [
+  backend\state.py:55:        "ابغي اربح", "أبغي أربح", "ابي اربح", "أبي أربح",
+> backend\state.py:56:        "دخل إضافي", "دخل اضافي", "محتاج دخل إضافي", 
+"محتاج دخل اضافي",
+  backend\state.py:57:        "مصدر دخل", "دخل ثاني", "دخل شهري", "ارباح", 
+"أرباح", "عمولات",
+> backend\state.py:58:        "نظام الشراكة", "الشراكة", "mlm", "referral", 
+"commission",
+  backend\state.py:59:        "i want to earn", "extra income", "passive 
+income", "monthly income"
+  backend\state.py:60:    ]
+  backend\state.py:61:
+  backend\state.py:62:    if any(word in msg for word in business_words):
+  backend\state.py:63:        return "business"
+  backend\state.py:64:
+> backend\state.py:65:    if any(word in msg for word in mlm_words):
+> backend\state.py:66:        return "mlm"
+  backend\state.py:67:
+  backend\state.py:68:    return None
+  backend\state.py:69:
+  backend\state.py:70:
+  backend\state.py:71:def detect_business_type(message):
+  backend\state.py:72:    msg = message.lower()
+  backend\state.py:113:    if any(word in msg for word in ["مرحبا", "هلا", 
+"السلام", "hello", "hi", "hola"]):
+  backend\state.py:114:        return "greeting"
+  backend\state.py:115:
+> backend\state.py:116:    if any(word in msg for word in ["دخل إضافي", "دخل 
+اضافي", "مصدر دخل", "عمولات", "commission", "extra income"]):
+> backend\state.py:117:        return "mlm_interest"
+  backend\state.py:118:
+  backend\state.py:119:    if any(word in msg for word in ["الدخل", "كم اربح", 
+"كم أربح", "ارباحي", "أرباحي", "monthly income", "how much can i earn"]):
+  backend\state.py:120:        return "income_question"
+  backend\state.py:121:
+  backend\state.py:122:    if any(word in msg for word in ["سعر", "كم", "تكلفة", 
+"price", "cost", "pricing"]):
+  backend\state.py:123:        return "pricing"
+  backend\state.py:141:    if state["intent"] == "greeting":
+  backend\state.py:142:        return "opening"
+  backend\state.py:143:
+> backend\state.py:144:    if state["intent"] in ["mlm_interest", 
+"income_question"] or state["user_type"] == "mlm":
+> backend\state.py:145:        return "mlm_interest"
+  backend\state.py:146:
+  backend\state.py:147:    if state["intent"] in ["pricing", "price_objection"]:
+  backend\state.py:148:        return "offer"
+  backend\state.py:149:
+  backend\state.py:150:    if state["intent"] == "objection":
+  backend\state.py:151:        return "objection"
+  backend\state.py:153:    if state["intent"] == "buying":
+  backend\state.py:154:        return "closing"
+  backend\state.py:155:
+> backend\state.py:156:    if not state["business_type"] and state["user_type"] 
+!= "mlm":
+  backend\state.py:157:        return "discovery"
+  backend\state.py:158:
+  backend\state.py:159:    if not state["pain_point"] and state["user_type"] == 
+"business":
+  backend\state.py:160:        return "discovery"
+  backend\state.py:161:
+  backend\state.py:162:    return "diagnosis"
+  backend\state.py:186:
+  backend\state.py:187:    state["intent"] = detect_intent(message)
+  backend\state.py:188:
+> backend\state.py:189:    if state["intent"] in ["mlm_interest", 
+"income_question"]:
+> backend\state.py:190:        state["user_type"] = "mlm"
+  backend\state.py:191:
+  backend\state.py:192:    state["stage"] = decide_stage(state)
+  backend\state.py:193:
+  backend\state.py:194:    if not state["user_type"]:
+  backend\state.py:195:        state["user_type"] = "unknown"
+  backend\state.py:196:
+  backend\upgrade_routes.py:4:
+  backend\upgrade_routes.py:5:# ===== ALSAAB_UPGRADE_SCHEDULE_STRIPE_V1 START 
+=====
+  backend\upgrade_routes.py:6:UPGRADE_PRICE_IDS = {
+> backend\upgrade_routes.py:7:    "starter": "price_1Tj8JmJbltD9Bsg81rMyR7lJ",
+> backend\upgrade_routes.py:8:    "growth": "price_1Tj8MQJbltD9Bsg8XL7xwOYe",
+> backend\upgrade_routes.py:9:    "elite": "price_1Tj8OwJbltD9Bsg8h7DCVKbY",
+  backend\upgrade_routes.py:10:    "diamond": "price_1Tj8T7JbltD9Bsg8bdi7XyiL",
+  backend\upgrade_routes.py:11:}
+  backend\upgrade_routes.py:12:# ===== ALSAAB_UPGRADE_SCHEDULE_STRIPE_V1 END 
+=====
+  backend\upgrade_routes.py:13:
+  backend\upgrade_routes.py:14:
+  backend\upgrade_routes.py:15:# ===== ALSAAB_ENTRY_UPGRADE_SAFE_V1 START =====
+> backend\upgrade_routes.py:16:# Entry can upgrade only upward: Entry -> 
+Starter/Growth/Elite.
+  backend\upgrade_routes.py:17:# Entry is not a downgrade target.
+  backend\upgrade_routes.py:18:
+> backend\upgrade_routes.py:19:UPGRADE_PLAN_ORDER = ["entry", "starter", 
+"growth", "elite", "diamond"]
+  backend\upgrade_routes.py:20:
+  backend\upgrade_routes.py:21:def normalize_upgrade_plan(plan):
+  backend\upgrade_routes.py:22:    value = str(plan or "").strip().lower()
+  backend\upgrade_routes.py:23:
+  backend\upgrade_routes.py:24:    aliases = {
+  backend\upgrade_routes.py:25:        "entry": "entry",
+  backend\upgrade_routes.py:26:        "دخول": "entry",
+  backend\upgrade_routes.py:27:        "الدخول": "entry",
+  backend\upgrade_routes.py:28:        "باقة الدخول": "entry",
+> backend\upgrade_routes.py:29:        "starter": "starter",
+> backend\upgrade_routes.py:30:        "start": "starter",
+> backend\upgrade_routes.py:31:        "بداية": "starter",
+> backend\upgrade_routes.py:32:        "البداية": "starter",
+> backend\upgrade_routes.py:33:        "growth": "growth",
+> backend\upgrade_routes.py:34:        "النمو": "growth",
+> backend\upgrade_routes.py:35:        "elite": "elite",
+> backend\upgrade_routes.py:36:        "النخبة": "elite",
+  backend\upgrade_routes.py:37:    }
+  backend\upgrade_routes.py:38:
+  backend\upgrade_routes.py:39:    return aliases.get(value, value)
+  backend\upgrade_routes.py:40:
+  backend\upgrade_routes.py:41:def is_valid_upgrade_path(current_plan, 
+target_plan):
+  backend\upgrade_routes.py:42:    current_plan = 
+normalize_upgrade_plan(current_plan)
+  backend\upgrade_routes.py:594:    <select name="current_plan" required>
+  backend\upgrade_routes.py:595:      <option value="">اختر الباقة 
+الحالية</option>
+  backend\upgrade_routes.py:596:      <option value="entry">الدخول / Entry — 99 
+AED</option>
+> backend\upgrade_routes.py:597:      <option value="starter">البداية / Starter 
+— 299 AED</option>
+> backend\upgrade_routes.py:598:      <option value="growth">النمو / Growth — 
+599 AED</option>
+> backend\upgrade_routes.py:599:      <option value="elite">النخبة / Elite — 
+1199 AED</option>
+  backend\upgrade_routes.py:600:      <option value="diamond">الماسية / Diamond 
+— 2399 AED</option>
+  backend\upgrade_routes.py:601:    </select>
+  backend\upgrade_routes.py:602:
+  backend\upgrade_routes.py:603:    <label>الباقة المطلوبة</label>
+  backend\upgrade_routes.py:604:    <select name="target_plan" required>
+  backend\upgrade_routes.py:605:      <option value="">اختر الباقة 
+الجديدة</option>
+> backend\upgrade_routes.py:606:      <option value="starter">البداية / Starter 
+— 299 AED</option>
+> backend\upgrade_routes.py:607:      <option value="growth">النمو / Growth — 
+599 AED</option>
+> backend\upgrade_routes.py:608:      <option value="elite">النخبة / Elite — 
+1199 AED</option>
+  backend\upgrade_routes.py:609:      <option value="diamond">الماسية / Diamond 
+— 2399 AED</option>
+  backend\upgrade_routes.py:610:    </select>
+  backend\upgrade_routes.py:611:
+  backend\upgrade_routes.py:612:    <label>ملاحظات اختيارية</label>
+  backend\upgrade_routes.py:613:    <textarea name="customer_notes" 
+placeholder="مثال: أريد الترقية لأنني أحتاج ربط الموقع أو عدد ردود 
+أعلى."></textarea>
+  backend\upgrade_routes.py:614:
+
+

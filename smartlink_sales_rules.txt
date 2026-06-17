@@ -1,0 +1,155 @@
+﻿
+  backend\smart_link_routes.py:252:                <div 
+class="alsaab-smart-title">موظف المبيعات الذكي</div>
+  backend\smart_link_routes.py:253:                <div 
+class="alsaab-smart-subtitle">مرحباً بك، اكتب طلبك أو اختر من الخيارات 
+السريعة.</div>
+  backend\smart_link_routes.py:254:              </div>
+  backend\smart_link_routes.py:255:              <div 
+class="alsaab-smart-top-actions">
+> backend\smart_link_routes.py:256:                <button type="button" 
+class="alsaab-smart-money" id="alsaabSmartIncomeBtn">💰 أريد فرصة دخل 
+إضافي</button>
+  backend\smart_link_routes.py:257:                <button type="button" 
+class="alsaab-smart-back" id="alsaabSmartBackBtn">الرجوع إلى واتساب</button>
+  backend\smart_link_routes.py:258:              </div>
+  backend\smart_link_routes.py:259:            </div>
+  backend\smart_link_routes.py:260:
+  backend\smart_link_routes.py:476:          box-shadow:0 24px 80px 
+rgba(0,0,0,.62), inset 0 1px 0 rgba(255,255,255,.06)!important;
+  backend\smart_link_routes.py:477:        }
+  backend\smart_link_routes.py:478:
+  backend\smart_link_routes.py:479:        .alsaab-smart-card:after{
+> backend\smart_link_routes.py:480:          content:"Powered by ALSAAB AI";
+  backend\smart_link_routes.py:481:          position:absolute;
+  backend\smart_link_routes.py:482:          bottom:7px;
+  backend\smart_link_routes.py:483:          left:50%;
+  backend\smart_link_routes.py:484:          transform:translateX(-50%);
+  backend\smart_link_routes.py:663:
+  backend\smart_link_routes.py:664:      var incomeBtn = 
+document.getElementById("alsaabSmartIncomeBtn");
+  backend\smart_link_routes.py:665:      if (incomeBtn) {
+  backend\smart_link_routes.py:666:        incomeBtn.addEventListener("click", 
+function () {
+> backend\smart_link_routes.py:667:          send("أريد فرصة دخل إضافي");
+  backend\smart_link_routes.py:668:        });
+  backend\smart_link_routes.py:669:      }
+  backend\smart_link_routes.py:670:
+  backend\smart_link_routes.py:671:      form.addEventListener("submit", 
+function (e) {
+  backend\smart_link_routes.py:1024:        subscription_status = 
+_first_value(subscription, ["subscription_status", "status"])
+  backend\smart_link_routes.py:1025:
+  backend\smart_link_routes.py:1026:        context_lines = [
+  backend\smart_link_routes.py:1027:            "تعليمات داخلية للموظف الذكي، لا 
+تعرضها للزائر كنص منفصل:",
+> backend\smart_link_routes.py:1028:            f"صاحب الرابط / معرف الحساب: 
+{ref}",
+  backend\smart_link_routes.py:1029:            "مصدر الزائر: رابط واتساب ذكي.",
+  backend\smart_link_routes.py:1030:            "",
+  backend\smart_link_routes.py:1031:            "قاعدة مهمة:",
+  backend\smart_link_routes.py:1032:            "إذا كان الزائر يسأل عن منتجات 
+أو خدمات، بع منتجات وخدمات صاحب هذا الرابط أولاً.",
+> backend\smart_link_routes.py:1033:            "استخدم بيانات المشروع وروابط 
+الدفع الخاصة بصاحب الرابط.",
+> backend\smart_link_routes.py:1034:            "لا تخلط بين منتجات صاحب المشروع 
+وباقات الصعب.",
+> backend\smart_link_routes.py:1035:            "إذا الزائر قال إنه يريد دخل 
+إضافي أو يريد نظام مثل هذا، اشرح له نظام الصعب واشتراكاته وفرصة الشراكة بدون وعد 
+بدخل مضمون.",
+  backend\smart_link_routes.py:1036:            "",
+  backend\smart_link_routes.py:1037:        ]
+  backend\smart_link_routes.py:1038:
+  backend\smart_link_routes.py:1039:        if project_name:
+  backend\smart_link_routes.py:1048:        if owner_whatsapp_phone:
+  backend\smart_link_routes.py:1049:            context_lines.append(f"رقم 
+واتساب صاحب المشروع للرد البشري: {_short_text(owner_whatsapp_phone, 80)}")
+  backend\smart_link_routes.py:1050:
+  backend\smart_link_routes.py:1051:        if plan_name or subscription_status:
+> backend\smart_link_routes.py:1052:            context_lines.append(f"حالة حساب 
+صاحب الرابط: الخطة {plan_name or '-'} / الحالة {subscription_status or '-'}")
+  backend\smart_link_routes.py:1053:
+  backend\smart_link_routes.py:1054:        if product_lines:
+  backend\smart_link_routes.py:1055:            context_lines.append("")
+  backend\smart_link_routes.py:1056:            context_lines.append("المنتجات 
+أو الكتالوجات المتاحة:")
+  backend\smart_link_routes.py:1081:        ref = _normalize_ref(ref)
+  backend\smart_link_routes.py:1082:
+  backend\smart_link_routes.py:1083:        if not ref or ref.lower() == 
+"alsaab":
+  backend\smart_link_routes.py:1084:            return {
+> backend\smart_link_routes.py:1085:                "project_name": "ALSAAB AI",
+  backend\smart_link_routes.py:1086:                "context_text": "",
+  backend\smart_link_routes.py:1087:                "subscription_status": 
+"active",
+  backend\smart_link_routes.py:1088:                "plan_name": "",
+  backend\smart_link_routes.py:1089:                "payment_links_count": 0,
+  backend\smart_link_routes.py:1122:        except Exception as error:
+  backend\smart_link_routes.py:1123:            print(f"SMART PROJECT CONTEXT 
+FETCH ERROR ❌ {error}", flush=True)
+  backend\smart_link_routes.py:1124:            return {
+  backend\smart_link_routes.py:1125:                "project_name": "",
+> backend\smart_link_routes.py:1126:                "context_text": f"تعذر تحميل 
+بيانات صاحب الرابط {ref}. لا تدّعي معلومات غير مؤكدة.",
+  backend\smart_link_routes.py:1127:                "subscription_status": "",
+  backend\smart_link_routes.py:1128:                "plan_name": "",
+  backend\smart_link_routes.py:1129:                "payment_links_count": 0,
+  backend\smart_link_routes.py:1130:                "product_groups_count": 0,
+  backend\smart_link_routes.py:1194:
+  backend\smart_link_routes.py:1195:        income_terms = [
+  backend\smart_link_routes.py:1196:            "دخل",
+  backend\smart_link_routes.py:1197:            "دخل اضافي",
+> backend\smart_link_routes.py:1198:            "دخل إضافي",
+  backend\smart_link_routes.py:1199:            "فلوس",
+  backend\smart_link_routes.py:1200:            "فرصة",
+  backend\smart_link_routes.py:1201:            "شراكة",
+  backend\smart_link_routes.py:1202:            "عمولة",
+  backend\smart_link_routes.py:1255:
+  backend\smart_link_routes.py:1256:        if wants_income:
+  backend\smart_link_routes.py:1257:            return "\n".join([
+  backend\smart_link_routes.py:1258:                "منطق البيع لهذه الرسالة:",
+> backend\smart_link_routes.py:1259:                "نية الزائر واضحة: يبحث عن 
+فرصة دخل إضافي أو شراكة أو طريقة يربح منها.",
+  backend\smart_link_routes.py:1260:                "في هذه الحالة اشرح نظام 
+الصعب مباشرة بطريقة بيعية محترمة.",
+  backend\smart_link_routes.py:1261:                "اشرح أن النظام مناسب لنوعين 
+من الناس:",
+  backend\smart_link_routes.py:1262:                "1. صاحب مشروع يريد يرفع 
+مبيعاته.",
+> backend\smart_link_routes.py:1263:                "2. شخص لا يملك مشروع ويريد 
+يبدأ فرصة دخل إضافي من خلال الاشتراك والشراكة.",
+  backend\smart_link_routes.py:1264:                "وضح أن الدخل ليس مضموناً 
+ولا تلقائياً، بل يعتمد على الجهد، التسويق، فهم النظام، وعدد العملاء الذين 
+يجلبهم.",
+  backend\smart_link_routes.py:1265:                "رشح باقة النمو كخيار ذكي 
+إذا كان جاداً، ولا ترشح البداية إلا إذا ميزانيته محدودة.",
+> backend\smart_link_routes.py:1266:                "اسأله سؤالاً ينقله للقرار: 
+هل تريد تبدأ كصاحب مشروع أم كشريك يبحث عن دخل إضافي؟",
+  backend\smart_link_routes.py:1267:            ])
+  backend\smart_link_routes.py:1268:
+  backend\smart_link_routes.py:1269:        if asks_about_system:
+  backend\smart_link_routes.py:1270:            return "\n".join([
+  backend\smart_link_routes.py:1278:
+  backend\smart_link_routes.py:1279:        return "\n".join([
+  backend\smart_link_routes.py:1280:            "منطق البيع لهذه الرسالة:",
+  backend\smart_link_routes.py:1281:            "الزائر غالباً داخل من رابط 
+واتساب الخاص بصاحب المشروع.",
+> backend\smart_link_routes.py:1282:            "ركز أولاً على بيع منتجات أو 
+خدمات صاحب الرابط.",
+> backend\smart_link_routes.py:1283:            "استخدم بيانات المشروع وروابط 
+الدفع الخاصة بصاحب الرابط إذا كانت متاحة.",
+  backend\smart_link_routes.py:1284:            "لا تعرض نظام الصعب في بداية 
+المحادثة.",
+  backend\smart_link_routes.py:1285:            "بعد أن تساعد الزائر وتعطيه 
+تجربة قوية، يمكنك فتح فرصة الصعب بذكاء فقط إذا صار مناسباً.",
+  backend\smart_link_routes.py:1286:            "إذا اكتشفت أن الزائر لا يريد 
+منتج صاحب المشروع بل يريد فرصة دخل أو نظام ذكي، انتقل لبيع نظام الصعب.",
+> backend\smart_link_routes.py:1287:            "لا تخلط بين أسعار منتجات صاحب 
+المشروع وباقات الصعب.",
+  backend\smart_link_routes.py:1288:        ])
+  backend\smart_link_routes.py:1289:    # ===== ALSAAB_SMART_LINK_SALES_LOGIC_V3 
+END =====
+  backend\smart_link_routes.py:1290:
+  backend\smart_link_routes.py:1291:
+
+

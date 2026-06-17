@@ -1,0 +1,1713 @@
+﻿
+clean_prompt_base_only.py:8:# 1) Fix payment links source: include all official 
+5 packages.
+clean_prompt_base_only.py:10:    r'def format_payment_links\(state\):\n    
+return \{.*?\n    \}\n\n',
+clean_prompt_base_only.py:11:    '''def format_payment_links(state):
+clean_prompt_base_only.py:13:        "entry": 
+build_internal_payment_link("entry", state),
+clean_prompt_base_only.py:14:        "starter": 
+build_internal_payment_link("starter", state),
+clean_prompt_base_only.py:15:        "growth": 
+build_internal_payment_link("growth", state),
+clean_prompt_base_only.py:16:        "elite": 
+build_internal_payment_link("elite", state),
+clean_prompt_base_only.py:17:        "diamond": 
+build_internal_payment_link("diamond", state),
+clean_prompt_base_only.py:30:    entry_limit = PACKAGES.get("entry", 
+{}).get("customer_reply_limit") or PACKAGES.get("entry", 
+{}).get("monthly_reply_limit", "500")
+clean_prompt_base_only.py:31:    starter_limit = 
+PACKAGES["starter"].get("customer_reply_limit") or 
+PACKAGES["starter"].get("monthly_reply_limit", "2000")
+clean_prompt_base_only.py:32:    growth_limit = 
+PACKAGES["growth"].get("customer_reply_limit") or 
+PACKAGES["growth"].get("monthly_reply_limit", "6000")
+clean_prompt_base_only.py:33:    growth_advisory = 
+PACKAGES["growth"].get("owner_advisory_reply_limit", "1000")
+clean_prompt_base_only.py:34:    elite_total = 
+PACKAGES["elite"].get("total_customer_reply_limit") or 
+PACKAGES["elite"].get("customer_reply_limit") or 
+PACKAGES["elite"].get("monthly_reply_limit", "15000")
+clean_prompt_base_only.py:35:    elite_advisory = 
+PACKAGES["elite"].get("owner_advisory_reply_limit", "2000")
+clean_prompt_base_only.py:36:    diamond_limit = PACKAGES.get("diamond", 
+{}).get("customer_reply_limit") or PACKAGES.get("diamond", 
+{}).get("monthly_reply_limit", "40000")
+clean_prompt_base_only.py:37:    diamond_advisory = PACKAGES.get("diamond", 
+{}).get("owner_advisory_reply_limit", "5000")
+clean_prompt_base_only.py:40:الباقات الرسمية الحالية:
+clean_prompt_base_only.py:42:1) Entry / باقة الدخول — 99 درهم شهرياً
+clean_prompt_base_only.py:43:- عدد الردود الشهري للعملاء: {entry_limit} رد.
+clean_prompt_base_only.py:47:2) Starter / باقة البداية — 299 درهم شهرياً
+clean_prompt_base_only.py:48:- عدد الردود الشهري للعملاء: {starter_limit} رد.
+clean_prompt_base_only.py:52:3) Growth / باقة النمو — 599 درهم شهرياً
+clean_prompt_base_only.py:54:- عدد الردود الشهري للعملاء: {growth_limit} رد.
+clean_prompt_base_only.py:55:- تشمل {growth_advisory} رد شهري مخصص لصاحب المشروع 
+للاستشارات والتطوير.
+clean_prompt_base_only.py:57:- تدعم صور المنتجات والكتالوجات وروابط الدفع الخاصة 
+بالعميل.
+clean_prompt_base_only.py:59:4) Elite / باقة النخبة — 1199 درهم شهرياً
+clean_prompt_base_only.py:61:- مجموع ردود العملاء: {elite_total} رد شهري.
+clean_prompt_base_only.py:62:- تشمل {elite_advisory} رد شهري مخصص لصاحب المشروع 
+للاستشارات والتطوير.
+clean_prompt_base_only.py:65:5) Diamond / الباقة الماسية — 2399 درهم شهرياً
+clean_prompt_base_only.py:67:- عدد الردود الشهري للعملاء: {diamond_limit} رد.
+clean_prompt_base_only.py:68:- تشمل {diamond_advisory} رد شهري مخصص لصاحب 
+المشروع للاستشارات والتطوير.
+clean_prompt_base_only.py:76:- لا تستخدم كلمة "بوت" في عرض الباقات للعميل. 
+استخدم "موظف المبيعات الذكي".
+clean_prompt_base_only.py:78:- لا تخلط بين الباقات والمستويات.
+clean_prompt_base_only.py:79:- الباقات = اشتراك ALSAAB AI.
+clean_prompt_base_only.py:81:- إذا سأل العميل عن الباقات أو الأسعار أو روابط 
+الدفع أو الأرباح أو العمولات، اذكر الباقات الخمس كاملة ولا تنسَ Diamond.
+clean_prompt_base_only.py:82:- WhatsApp هو المنفذ الرئيسي في كل الباقات.
+clean_prompt_base_only.py:85:- إذا العميل يريد الأرخص أو تجربة محدودة، اشرح 
+Entry أو Starter حسب احتياجه.
+clean_prompt_base_only.py:86:- إذا العميل جاد أو عنده استخدام أعلى، رشّح Elite 
+أو Diamond.
+clean_prompt_base_only.py:98:    'def build_prompt(message, state, 
+conversation_history=""):\n    payment_links = format_payment_links(state)\n    
+customer_context = format_customer_context(state)\n',
+clean_prompt_base_only.py:99:    'def build_prompt(message, state, 
+conversation_history=""):\n    payment_links = format_payment_links(state)\n    
+customer_context = format_customer_context(state)\n    detected_language = 
+str(state.get("language") or "").lower().strip()\n'
+clean_prompt_base_only.py:107:# 4) Fix payment section to include all 5 payment 
+links.
+clean_prompt_base_only.py:109:    r'قل له:\n\n"تمام، نبدأ مباشرة 👇  \nاختر 
+الباقة المناسبة لك:"\n\n- البداية:\n\{payment_links\["starter"\]\}\n\n- 
+النمو:\n\{payment_links\["growth"\]\}\n\n- 
+النخبة:\n\{payment_links\["elite"\]\}',
+clean_prompt_base_only.py:115:- الدخول / Entry:
+clean_prompt_base_only.py:116:{payment_links["entry"]}
+clean_prompt_base_only.py:118:- البداية / Starter:
+clean_prompt_base_only.py:119:{payment_links["starter"]}
+clean_prompt_base_only.py:121:- النمو / Growth:
+clean_prompt_base_only.py:122:{payment_links["growth"]}
+clean_prompt_base_only.py:124:- النخبة / Elite:
+clean_prompt_base_only.py:125:{payment_links["elite"]}
+clean_prompt_base_only.py:127:- الماسية / Diamond:
+clean_prompt_base_only.py:128:{payment_links["diamond"]}''',
+clean_prompt_base_only.py:135:    "ALSAAB_ENTRY_EMIRATI_SALES_PROMPT_V2",
+clean_prompt_base_only.py:136:    "ALSAAB_ENTRY_PAYMENT_LINK_FIX_V1",
+clean_prompt_base_only.py:140:    "ALSAAB_LANGUAGE_AND_DIAMOND_FINAL_FIX_V1",
+final_package_cleanup.py:21:text = text.replace('_package_order = ["entry", 
+"starter", "growth", "elite"]', '_package_order = ["entry", "starter", "growth", 
+"elite", "diamond"]')
+final_package_cleanup.py:23:text = text.replace('"title_ar": "Ø´Ø±ÙŠÙƒ 
+Ø§Ù„Ù†Ù…Ùˆ"', '"title_ar": "Starter Partner"')
+final_package_cleanup.py:24:text = text.replace('"title_ar": "Ø´Ø±ÙŠÙƒ 
+Ø§Ù„Ù…Ø¨ÙŠØ¹Ø§Øª"', '"title_ar": "Growth Partner"')
+final_package_cleanup.py:25:text = text.replace('"title_ar": "Ø´Ø±ÙŠÙƒ 
+Ø§Ù„Ù‚ÙŠØ§Ø¯Ø©️"', '"title_ar": "Elite Partner"')
+final_package_cleanup.py:26:text = text.replace('"title_ar": "Ø´Ø±ÙŠÙƒ 
+Ø§Ù„Ù†Ø®️Ø¨Ø©️"', '"title_ar": "Diamond Partner"')
+final_package_cleanup.py:37:text = text.replace('"starter": "Level 1",', 
+'"entry": "Level 1",\n        "entry partner": "Level 1",\n        "starter": 
+"Level 2",')
+final_package_cleanup.py:38:text = text.replace('"growth": "Level 2",', 
+'"growth": "Level 3",')
+final_package_cleanup.py:39:text = text.replace('"elite": "Level 5",', '"elite": 
+"Level 4",\n        "diamond": "Level 5",')
+final_package_cleanup.py:66:text = text.replace('"starter": 
+"price_1TWEwPJbltD9Bsg8SH2xMao1"', '"starter": "price_1Tj8JmJbltD9Bsg81rMyR7lJ"')
+final_package_cleanup.py:67:text = text.replace('"growth": 
+"price_1TWFRJJbltD9Bsg8vgUXA1WD"', '"growth": "price_1Tj8MQJbltD9Bsg8XL7xwOYe"')
+final_package_cleanup.py:68:text = text.replace('"elite": 
+"price_1TWFUhJbltD9Bsg848phcf6P"', '"elite": "price_1Tj8OwJbltD9Bsg8h7DCVKbY",\n 
+   "diamond": "price_1Tj8T7JbltD9Bsg8bdi7XyiL"')
+final_package_cleanup.py:70:text = text.replace('UPGRADE_PLAN_ORDER = ["entry", 
+"starter", "growth", "elite"]', 'UPGRADE_PLAN_ORDER = ["entry", "starter", 
+"growth", "elite", "diamond"]')
+final_package_cleanup.py:72:text = text.replace('<option 
+value="elite">Ø§Ù„Ù†Ø®️Ø¨Ø©️ / Elite</option>', '<option 
+value="elite">Ø§Ù„Ù†Ø®️Ø¨Ø©️ / Elite</option>\n      <option 
+value="diamond">Ø§Ù„Ù…Ø§Ø³ÙŠØ©️ / Diamond</option>')
+final_package_cleanup.py:74:text = text.replace('<option 
+value="starter">Ø§Ù„Ø¨Ø¯Ø§ÙŠØ©️ / Starter â€” 599 AED</option>', '<option 
+value="starter">Ø§Ù„Ø¨Ø¯Ø§ÙŠØ©️ / Starter — 299 AED</option>')
+final_package_cleanup.py:75:text = text.replace('<option 
+value="growth">Ø§Ù„Ù†Ù…Ùˆ / Growth â€” 1099 AED</option>', '<option 
+value="growth">Ø§Ù„Ù†Ù…Ùˆ / Growth — 599 AED</option>')
+final_package_cleanup.py:76:text = text.replace('<option 
+value="elite">Ø§Ù„Ù†Ø®️Ø¨Ø©️ / Elite â€” 2099 AED</option>', '<option 
+value="elite">Ø§Ù„Ù†Ø®️Ø¨Ø©️ / Elite — 1199 AED</option>\n      <option 
+value="diamond">Ø§Ù„Ù…Ø§Ø³ÙŠØ©️ / Diamond — 2399 AED</option>')
+fix_database_diamond.py:5:path.with_suffix(".py.bak_diamond_safe_2").write_text(t
+ext, encoding="utf-8")
+fix_database_diamond.py:7:marker = "# ===== ALSAAB_DIAMOND_DATABASE_SAFE_V1 
+START ====="
+fix_database_diamond.py:11:# ===== ALSAAB_DIAMOND_DATABASE_SAFE_V1 START =====
+fix_database_diamond.py:13:DIAMOND_PLAN_KEY = "diamond"
+fix_database_diamond.py:15:DIAMOND_PLAN_ALIASES = {
+fix_database_diamond.py:16:    "diamond": "diamond",
+fix_database_diamond.py:17:    "دايموند": "diamond",
+fix_database_diamond.py:18:    "الماسية": "diamond",
+fix_database_diamond.py:19:    "باقة الماسية": "diamond",
+fix_database_diamond.py:20:    "الباقة الماسية": "diamond",
+fix_database_diamond.py:23:DIAMOND_PLAN_LIMITS = {
+fix_database_diamond.py:24:    "monthly_reply_limit": 40000,
+fix_database_diamond.py:25:    "customer_reply_limit": 40000,
+fix_database_diamond.py:29:def _alsaab_diamond_normalize_plan(value):
+fix_database_diamond.py:34:    if raw_lower in DIAMOND_PLAN_ALIASES:
+fix_database_diamond.py:35:        return DIAMOND_PLAN_ALIASES[raw_lower]
+fix_database_diamond.py:36:    if raw in DIAMOND_PLAN_ALIASES:
+fix_database_diamond.py:37:        return DIAMOND_PLAN_ALIASES[raw]
+fix_database_diamond.py:40:def _alsaab_diamond_wrap_normalizers():
+fix_database_diamond.py:54:        if getattr(old_function, 
+"_alsaab_diamond_wrapped", False):
+fix_database_diamond.py:58:            normalized = 
+_alsaab_diamond_normalize_plan(value)
+fix_database_diamond.py:59:            if normalized == "diamond":
+fix_database_diamond.py:60:                return "diamond"
+fix_database_diamond.py:63:        wrapper._alsaab_diamond_wrapped = True
+fix_database_diamond.py:66:def _alsaab_diamond_wrap_limit_functions():
+fix_database_diamond.py:81:        if getattr(old_function, 
+"_alsaab_diamond_wrapped", False):
+fix_database_diamond.py:85:            normalized = 
+_alsaab_diamond_normalize_plan(plan)
+fix_database_diamond.py:86:            if normalized == "diamond":
+fix_database_diamond.py:89:                return 40000
+fix_database_diamond.py:92:        wrapper._alsaab_diamond_wrapped = True
+fix_database_diamond.py:96:    _alsaab_diamond_wrap_normalizers()
+fix_database_diamond.py:97:    _alsaab_diamond_wrap_limit_functions()
+fix_database_diamond.py:98:except Exception as _diamond_database_error:
+fix_database_diamond.py:99:    print(f"DIAMOND DATABASE PATCH WARNING: 
+{_diamond_database_error}", flush=True)
+fix_database_diamond.py:101:# ===== ALSAAB_DIAMOND_DATABASE_SAFE_V1 END =====
+fix_entry_299_prompt.py:5:p.with_suffix(".py.bak_fix_entry_wrong_price_299").writ
+e_text(text, encoding="utf-8")
+fix_entry_299_prompt.py:10:text = text.replace("Entry 299", "Entry old-price")
+fix_entry_299_prompt.py:13:print("ENTRY_299_PROMPT_FIXED")
+fix_final_aliases.py:6:text = text.replace('"starter partner": "Level 1"', 
+'"starter partner": "Level 2"')
+fix_final_aliases.py:7:text = text.replace('"growth partner": "Level 2"', 
+'"growth partner": "Level 3"')
+fix_final_aliases.py:8:text = text.replace('"elite partner": "Level 5"', '"elite 
+partner": "Level 4"')
+fix_final_aliases.py:9:if '"diamond partner": "Level 5"' not in text:
+fix_final_aliases.py:10:    text = text.replace('"diamond": "Level 5",', 
+'"diamond": "Level 5",\n        "diamond partner": "Level 5",')
+fix_language_and_diamond.py:6:p.with_suffix(".py.bak_fix_language_and_diamond").w
+rite_text(text, encoding="utf-8")
+fix_language_and_diamond.py:9:text = text.replace('اشرح الباقات الثلاث فقط', 
+'اشرح الباقات الخمس كاملة')
+fix_language_and_diamond.py:10:text = text.replace('لازم تذكر كل الباقات 
+الأربع', 'لازم تذكر كل الباقات الخمس')
+fix_language_and_diamond.py:11:text = text.replace('كل الباقات الأربع', 'كل 
+الباقات الخمس')
+fix_language_and_diamond.py:15:    r"# ===== 
+ALSAAB_LANGUAGE_AND_DIAMOND_FINAL_FIX_V1 START =====.*?# ===== 
+ALSAAB_LANGUAGE_AND_DIAMOND_FINAL_FIX_V1 END =====",
+fix_language_and_diamond.py:22:# ===== ALSAAB_LANGUAGE_AND_DIAMOND_FINAL_FIX_V1 
+START =====
+fix_language_and_diamond.py:23:def 
+_alsaab_language_and_diamond_final_fix(prompt_text, state=None):
+fix_language_and_diamond.py:52:    diamond_rule = """
+fix_language_and_diamond.py:54:إذا سأل العميل عن الباقات أو الأسعار أو روابط 
+الدفع أو الأرباح أو الدخل أو العمولات، لازم تذكر كل الباقات الخمس:
+fix_language_and_diamond.py:55:1) Entry — 99 AED
+fix_language_and_diamond.py:56:2) Starter — 299 AED
+fix_language_and_diamond.py:57:3) Growth — 599 AED
+fix_language_and_diamond.py:58:4) Elite — 1199 AED
+fix_language_and_diamond.py:59:5) Diamond — 2399 AED
+fix_language_and_diamond.py:61:ممنوع تنسى Diamond في حساب الأرباح أو العمولات أو 
+روابط الدفع.
+fix_language_and_diamond.py:62:ممنوع تقول الباقات الثلاث أو الأربع.
+fix_language_and_diamond.py:65:    return str(prompt_text).rstrip() + "\n\n" + 
+language_rule.strip() + "\n\n" + diamond_rule.strip() + "\n"
+fix_language_and_diamond.py:75:    if callable(_old_fn) and not getattr(_old_fn, 
+"_alsaab_language_diamond_final_wrapped", False):
+fix_language_and_diamond.py:83:                return 
+_alsaab_language_and_diamond_final_fix(fn(*args, **kwargs), state)
+fix_language_and_diamond.py:84:            
+_wrapped._alsaab_language_diamond_final_wrapped = True
+fix_language_and_diamond.py:87:# ===== ALSAAB_LANGUAGE_AND_DIAMOND_FINAL_FIX_V1 
+END =====
+fix_language_and_diamond.py:93:print("LANGUAGE_AND_DIAMOND_FINAL_FIX_OK")
+fix_level_engine.py:9:    r'PACKAGE_STARTER = "starter"\s+PACKAGE_GROWTH = 
+"growth"\s+PACKAGE_ELITE = "elite"',
+fix_level_engine.py:10:    'PACKAGE_ENTRY = "entry"\nPACKAGE_STARTER = 
+"starter"\nPACKAGE_GROWTH = "growth"\nPACKAGE_ELITE = "elite"\nPACKAGE_DIAMOND = 
+"diamond"',
+fix_level_engine.py:21:    r'1: "Starter Partner",\s+2: "Growth Partner",\s+3: 
+"Sales Partner",\s+4: "Leader Partner",\s+5: "Elite Partner",',
+fix_level_engine.py:22:    '1: "Entry Partner",\n    2: "Starter Partner",\n    
+3: "Growth Partner",\n    4: "Elite Partner",\n    5: "Diamond Partner",',
+fix_level_engine.py:29:        name="Entry Partner",
+fix_level_engine.py:30:        allowed_packages=(PACKAGE_ENTRY, PACKAGE_STARTER, 
+PACKAGE_GROWTH, PACKAGE_ELITE, PACKAGE_DIAMOND),
+fix_level_engine.py:37:        name="Starter Partner",
+fix_level_engine.py:38:        allowed_packages=(PACKAGE_STARTER, 
+PACKAGE_GROWTH, PACKAGE_ELITE, PACKAGE_DIAMOND),
+fix_level_engine.py:45:        name="Growth Partner",
+fix_level_engine.py:46:        allowed_packages=(PACKAGE_GROWTH, PACKAGE_ELITE, 
+PACKAGE_DIAMOND),
+fix_level_engine.py:53:        name="Elite Partner",
+fix_level_engine.py:54:        allowed_packages=(PACKAGE_ELITE, PACKAGE_DIAMOND),
+fix_level_engine.py:61:        name="Diamond Partner",
+fix_level_engine.py:62:        allowed_packages=(PACKAGE_DIAMOND,),
+fix_level_engine.py:72:    "entry": PACKAGE_ENTRY,
+fix_level_engine.py:73:    "دخول": PACKAGE_ENTRY,
+fix_level_engine.py:74:    "الدخول": PACKAGE_ENTRY,
+fix_level_engine.py:75:    "باقة الدخول": PACKAGE_ENTRY,
+fix_level_engine.py:76:    "starter": PACKAGE_STARTER,
+fix_level_engine.py:77:    "البداية": PACKAGE_STARTER,
+fix_level_engine.py:78:    "بداية": PACKAGE_STARTER,
+fix_level_engine.py:79:    "growth": PACKAGE_GROWTH,
+fix_level_engine.py:80:    "النمو": PACKAGE_GROWTH,
+fix_level_engine.py:81:    "باقة النمو": PACKAGE_GROWTH,
+fix_level_engine.py:82:    "elite": PACKAGE_ELITE,
+fix_level_engine.py:83:    "النخبة": PACKAGE_ELITE,
+fix_level_engine.py:84:    "باقة النخبة": PACKAGE_ELITE,
+fix_level_engine.py:85:    "diamond": PACKAGE_DIAMOND,
+fix_level_engine.py:86:    "دايموند": PACKAGE_DIAMOND,
+fix_level_engine.py:87:    "الماسية": PACKAGE_DIAMOND,
+fix_level_engine.py:88:    "باقة الماسية": PACKAGE_DIAMOND,
+fix_level_engine.py:89:    "الباقة الماسية": PACKAGE_DIAMOND,
+fix_main_level_ui.py:7:text = text.replace('1: {"rank": "Starter Partner"', '1: 
+{"rank": "Entry Partner"')
+fix_main_level_ui.py:8:text = text.replace('2: {"rank": "Growth Partner"', '2: 
+{"rank": "Starter Partner"')
+fix_main_level_ui.py:9:text = text.replace('3: {"rank": "Sales Partner"', '3: 
+{"rank": "Growth Partner"')
+fix_main_level_ui.py:10:text = text.replace('4: {"rank": "Leader Partner"', '4: 
+{"rank": "Elite Partner"')
+fix_main_level_ui.py:11:text = text.replace('5: {"rank": "Elite Partner"', '5: 
+{"rank": "Diamond Partner"')
+fix_main_level_ui.py:21:text = text.replace('("starter", "growth", "elite")', 
+'("starter", "growth", "elite", "diamond")')
+fix_official_packages_links_prompt.py:4:# 1) CONFIG: official Stripe data
+fix_official_packages_links_prompt.py:8:config_path.with_suffix(".py.bak_official
+_stripe_packages").write_text(config_text, encoding="utf-8")
+fix_official_packages_links_prompt.py:11:# ===== 
+ALSAAB_OFFICIAL_STRIPE_PACKAGES_V2 START =====
+fix_official_packages_links_prompt.py:12:# Official approved package prices + 
+Stripe links/ids.
+fix_official_packages_links_prompt.py:13:# Do not remove. This block overrides 
+older package/payment values safely.
+fix_official_packages_links_prompt.py:16:    "entry": "99 AED",
+fix_official_packages_links_prompt.py:17:    "starter": "299 AED",
+fix_official_packages_links_prompt.py:18:    "growth": "599 AED",
+fix_official_packages_links_prompt.py:19:    "elite": "1199 AED",
+fix_official_packages_links_prompt.py:20:    "diamond": "2399 AED",
+fix_official_packages_links_prompt.py:23:PAYMENT_LINKS.update({
+fix_official_packages_links_prompt.py:24:    "entry": 
+"https://buy.stripe.com/4gMcN61d2dxI6ku10zaEE07",
+fix_official_packages_links_prompt.py:25:    "starter": 
+"https://buy.stripe.com/aFa8wQ9Jy8docISeRpaEE08",
+fix_official_packages_links_prompt.py:26:    "growth": 
+"https://buy.stripe.com/7sY14obRG8doaAK5gPaEE09",
+fix_official_packages_links_prompt.py:27:    "elite": 
+"https://buy.stripe.com/28E9AUf3SalwbEO4cLaEE0a",
+fix_official_packages_links_prompt.py:28:    "diamond": 
+"https://buy.stripe.com/aFaeVe7Bq51c4cmcJhaEE0b",
+fix_official_packages_links_prompt.py:31:STRIPE_PRICE_IDS = {
+fix_official_packages_links_prompt.py:32:    "entry": 
+"price_1Tj84XJbltD9Bsg8rOGTTn3D",
+fix_official_packages_links_prompt.py:33:    "starter": 
+"price_1Tj8JmJbltD9Bsg81rMyR7lJ",
+fix_official_packages_links_prompt.py:34:    "growth": 
+"price_1Tj8MQJbltD9Bsg8XL7xwOYe",
+fix_official_packages_links_prompt.py:35:    "elite": 
+"price_1Tj8OwJbltD9Bsg8h7DCVKbY",
+fix_official_packages_links_prompt.py:36:    "diamond": 
+"price_1Tj8T7JbltD9Bsg8bdi7XyiL",
+fix_official_packages_links_prompt.py:39:STRIPE_PRODUCT_IDS = {
+fix_official_packages_links_prompt.py:40:    "entry": "prod_UiZCqDWqXkzVLL",
+fix_official_packages_links_prompt.py:41:    "starter": "prod_UiZS4ivHpbRIbE",
+fix_official_packages_links_prompt.py:42:    "growth": "prod_UiZVcDRBvn38CN",
+fix_official_packages_links_prompt.py:43:    "elite": "prod_UiZY0MsCbzD3dC",
+fix_official_packages_links_prompt.py:44:    "diamond": "prod_UiZcnUHa54wiu8",
+fix_official_packages_links_prompt.py:47:PAYMENT_ROUTE_LINKS.update({
+fix_official_packages_links_prompt.py:48:    "entry": 
+f"{APP_BASE_URL}/pay/entry",
+fix_official_packages_links_prompt.py:49:    "starter": 
+f"{APP_BASE_URL}/pay/starter",
+fix_official_packages_links_prompt.py:50:    "growth": 
+f"{APP_BASE_URL}/pay/growth",
+fix_official_packages_links_prompt.py:51:    "elite": 
+f"{APP_BASE_URL}/pay/elite",
+fix_official_packages_links_prompt.py:52:    "diamond": 
+f"{APP_BASE_URL}/pay/diamond",
+fix_official_packages_links_prompt.py:55:STRIPE_PLAN_CONFIG = {
+fix_official_packages_links_prompt.py:58:        "payment_link": 
+PAYMENT_LINKS[plan],
+fix_official_packages_links_prompt.py:59:        "internal_payment_route": 
+PAYMENT_ROUTE_LINKS[plan],
+fix_official_packages_links_prompt.py:64:    for plan in ["entry", "starter", 
+"growth", "elite", "diamond"]
+fix_official_packages_links_prompt.py:67:PACKAGE_ORDER = ["entry", "starter", 
+"growth", "elite", "diamond"]
+fix_official_packages_links_prompt.py:68:# ===== 
+ALSAAB_OFFICIAL_STRIPE_PACKAGES_V2 END =====
+fix_official_packages_links_prompt.py:71:if "ALSAAB_OFFICIAL_STRIPE_PACKAGES_V2" 
+not in config_text:
+fix_official_packages_links_prompt.py:88:    "Entry 299": "Entry 99",
+fix_official_packages_links_prompt.py:93:    "Starter 599": "Starter 299",
+fix_official_packages_links_prompt.py:98:    "Growth 1099": "Growth 599",
+fix_official_packages_links_prompt.py:103:    "Elite 2099": "Elite 1199",
+fix_official_packages_links_prompt.py:112:قاعدة نهائية إلزامية عند ذكر الباقات 
+أو الأسعار أو روابط الدفع:
+fix_official_packages_links_prompt.py:114:اعرض الباقات الرسمية الحالية فقط بهذا 
+الشكل:
+fix_official_packages_links_prompt.py:116:1) Entry / باقة الدخول — 99 درهم شهرياً
+fix_official_packages_links_prompt.py:119:- رابط الدفع الداخلي: /pay/entry
+fix_official_packages_links_prompt.py:121:2) Starter / باقة البداية — 299 درهم 
+شهرياً
+fix_official_packages_links_prompt.py:122:- 2000 رد شهري
+fix_official_packages_links_prompt.py:124:- رابط الدفع الداخلي: /pay/starter
+fix_official_packages_links_prompt.py:126:3) Growth / باقة النمو — 599 درهم 
+شهرياً
+fix_official_packages_links_prompt.py:127:- 6000 رد للعملاء + 1000 رد استشاري 
+لصاحب المشروع
+fix_official_packages_links_prompt.py:129:- رابط الدفع الداخلي: /pay/growth
+fix_official_packages_links_prompt.py:131:4) Elite / باقة النخبة — 1199 درهم 
+شهرياً
+fix_official_packages_links_prompt.py:132:- 15000 رد للعملاء + 2000 رد استشاري 
+لصاحب المشروع
+fix_official_packages_links_prompt.py:134:- رابط الدفع الداخلي: /pay/elite
+fix_official_packages_links_prompt.py:136:5) Diamond / الباقة الماسية — 2399 
+درهم شهرياً
+fix_official_packages_links_prompt.py:137:- 40000 رد للعملاء + 5000 رد استشاري 
+لصاحب المشروع
+fix_official_packages_links_prompt.py:139:- رابط الدفع الداخلي: /pay/diamond
+fix_official_packages_links_prompt.py:141:ممنوع نهائياً عرض هذه الأسعار القديمة:
+fix_official_packages_links_prompt.py:142:Entry 299
+fix_official_packages_links_prompt.py:143:Starter 599
+fix_official_packages_links_prompt.py:144:Growth 1099
+fix_official_packages_links_prompt.py:145:Elite 2099
+fix_official_packages_links_prompt.py:147:إذا طلب العميل كل الباقات، اذكر الخمس 
+باقات كاملة ولا تنقص Diamond.
+fix_official_packages_links_prompt.py:148:إذا طلب رابط الدفع، استخدم الرابط 
+الداخلي /pay/package حتى يحافظ النظام على session_id والتتبع.
+fix_prompt_prices_2026.py:25:⚠️ قواعد نهائية لأسعار وباقات ALSAAB AI — لا تستخدم 
+أي أسعار قديمة:
+fix_prompt_prices_2026.py:27:الباقات الرسمية الحالية:
+fix_prompt_prices_2026.py:28:1) Entry / باقة الدخول:
+fix_prompt_prices_2026.py:35:2) Starter / باقة البداية:
+fix_prompt_prices_2026.py:37:- 2000 رد شهري
+fix_prompt_prices_2026.py:41:3) Growth / باقة النمو:
+fix_prompt_prices_2026.py:43:- 6000 رد للعملاء + 1000 رد استشاري لصاحب المشروع
+fix_prompt_prices_2026.py:45:- تدعم صور المنتجات وروابط الدفع الخاصة بالعميل
+fix_prompt_prices_2026.py:47:4) Elite / باقة النخبة:
+fix_prompt_prices_2026.py:49:- 15000 رد للعملاء + 2000 رد استشاري لصاحب المشروع
+fix_prompt_prices_2026.py:52:5) Diamond / الباقة الماسية:
+fix_prompt_prices_2026.py:54:- 40000 رد للعملاء + 5000 رد استشاري لصاحب المشروع
+fix_prompt_prices_2026.py:57:ممنوع استخدام هذه الأسعار القديمة:
+fix_prompt_prices_2026.py:58:Entry 299
+fix_prompt_prices_2026.py:59:Starter 599
+fix_prompt_prices_2026.py:60:Growth 1099
+fix_prompt_prices_2026.py:61:Elite 2099
+fix_prompt_prices_2026.py:63:إذا طلب العميل روابط الدفع، استخدم روابط الدفع 
+الداخلية /pay/plan وليس روابط Stripe المباشرة إذا كانت الروابط الداخلية متاحة.
+fix_remaining_old_prices.py:15:    "Entry 299": "Entry old-price",
+fix_remaining_old_prices.py:16:    "Starter 599": "Starter old-price",
+fix_remaining_old_prices.py:17:    "Growth 1099": "Growth old-price",
+fix_remaining_old_prices.py:18:    "Elite 2099": "Elite old-price",
+fix_upgrade_ui_auto.py:10:      <option value="entry">الدخول / Entry — 99 
+AED</option>
+fix_upgrade_ui_auto.py:11:      <option value="starter">البداية / Starter — 299 
+AED</option>
+fix_upgrade_ui_auto.py:12:      <option value="growth">النمو / Growth — 599 
+AED</option>
+fix_upgrade_ui_auto.py:13:      <option value="elite">النخبة / Elite — 1199 
+AED</option>
+fix_upgrade_ui_auto.py:14:      <option value="diamond">الماسية / Diamond — 2399 
+AED</option>
+fix_upgrade_ui_auto.py:19:      <option value="starter">البداية / Starter — 299 
+AED</option>
+fix_upgrade_ui_auto.py:20:      <option value="growth">النمو / Growth — 599 
+AED</option>
+fix_upgrade_ui_auto.py:21:      <option value="elite">النخبة / Elite — 1199 
+AED</option>
+fix_upgrade_ui_auto.py:22:      <option value="diamond">الماسية / Diamond — 2399 
+AED</option>
+fix_upgrade_ui_auto.py:42:    'UPGRADE_PLAN_ORDER = ["entry", "starter", 
+"growth", "elite"]',
+fix_upgrade_ui_auto.py:43:    'UPGRADE_PLAN_ORDER = ["entry", "starter", 
+"growth", "elite", "diamond"]'
+force_all_package_links_prompt.py:41:قاعدة نهائية إلزامية عند ذكر الباقات أو 
+الأسعار أو روابط الدفع:
+force_all_package_links_prompt.py:43:اعرض هذه الباقات فقط، بنفس الأسعار ونفس 
+روابط الدفع الرسمية:
+force_all_package_links_prompt.py:45:1) Entry / باقة الدخول — 99 AED شهرياً
+force_all_package_links_prompt.py:47:- رابط الدفع:
+force_all_package_links_prompt.py:48:https://buy.stripe.com/4gMcN61d2dxI6ku10zaEE
+07
+force_all_package_links_prompt.py:50:2) Starter / باقة البداية — 299 AED شهرياً
+force_all_package_links_prompt.py:51:- 2000 رد شهري
+force_all_package_links_prompt.py:52:- رابط الدفع:
+force_all_package_links_prompt.py:53:https://buy.stripe.com/aFa8wQ9Jy8docISeRpaEE
+08
+force_all_package_links_prompt.py:55:3) Growth / باقة النمو — 599 AED شهرياً
+force_all_package_links_prompt.py:56:- 6000 رد للعملاء + 1000 رد استشاري لصاحب 
+المشروع
+force_all_package_links_prompt.py:57:- رابط الدفع:
+force_all_package_links_prompt.py:58:https://buy.stripe.com/7sY14obRG8doaAK5gPaEE
+09
+force_all_package_links_prompt.py:60:4) Elite / باقة النخبة — 1199 AED شهرياً
+force_all_package_links_prompt.py:61:- 15000 رد للعملاء + 2000 رد استشاري لصاحب 
+المشروع
+force_all_package_links_prompt.py:62:- رابط الدفع:
+force_all_package_links_prompt.py:63:https://buy.stripe.com/28E9AUf3SalwbEO4cLaEE
+0a
+force_all_package_links_prompt.py:65:5) Diamond / الباقة الماسية — 2399 AED 
+شهرياً
+force_all_package_links_prompt.py:66:- 40000 رد للعملاء + 5000 رد استشاري لصاحب 
+المشروع
+force_all_package_links_prompt.py:67:- رابط الدفع:
+force_all_package_links_prompt.py:68:https://buy.stripe.com/aFaeVe7Bq51c4cmcJhaEE
+0b
+force_all_package_links_prompt.py:70:ممنوع نهائياً عرض الأسعار القديمة:
+force_all_package_links_prompt.py:71:Entry 299
+force_all_package_links_prompt.py:72:Starter 599
+force_all_package_links_prompt.py:73:Growth 1099
+force_all_package_links_prompt.py:74:Elite 2099
+force_all_package_links_prompt.py:76:ممنوع تنقص أي باقة إذا العميل طلب كل 
+الباقات.
+backend\brain.py:279:        "أسعار",
+backend\brain.py:487:    # مهم: نخزن session_id داخل state عشان prompt_builder 
+يقدر يبني روابط الدفع الداخلية
+backend\cancellation_routes.py:179:            <th>Stripe</th>
+backend\cancellation_routes.py:207:              Customer: {{ 
+item.stripe_customer_id or "-" }}<br>
+backend\cancellation_routes.py:208:              Subscription: {{ 
+item.stripe_subscription_id or "-" }}
+backend\cancellation_routes.py:248:                <input type="hidden" 
+name="stripe_subscription_id" value="{{ item.stripe_subscription_id }}">
+backend\cancellation_routes.py:331:    # ===== 
+ALSAAB_SCHEDULE_CANCELLATION_STRIPE_V1 START =====
+backend\cancellation_routes.py:340:        stripe_subscription_id = 
+request.form.get("stripe_subscription_id", "").strip()
+backend\cancellation_routes.py:345:        if not stripe_subscription_id:
+backend\cancellation_routes.py:349:                <head><meta 
+charset="utf-8"><title>لا يوجد اشتراك Stripe</title></head>
+backend\cancellation_routes.py:353:                  <p>طلب الإلغاء لا يحتوي على 
+Stripe Subscription ID. هذا طبيعي إذا كان الطلب تجريبياً أو الاشتراك غير مربوط 
+بـ Stripe.</p>
+backend\cancellation_routes.py:363:            import stripe
+backend\cancellation_routes.py:365:            stripe_key = (
+backend\cancellation_routes.py:366:                os.getenv("STRIPE_SECRET_KEY")
+backend\cancellation_routes.py:367:                or os.getenv("STRIPE_API_KEY")
+backend\cancellation_routes.py:368:                or os.getenv("STRIPE_KEY")
+backend\cancellation_routes.py:372:            if not stripe_key:
+backend\cancellation_routes.py:373:                return "STRIPE_SECRET_KEY is 
+missing in Render environment", 500
+backend\cancellation_routes.py:375:            stripe.api_key = stripe_key
+backend\cancellation_routes.py:377:            subscription = 
+stripe.Subscription.modify(
+backend\cancellation_routes.py:378:                stripe_subscription_id,
+backend\cancellation_routes.py:393:                        "Stripe cancellation 
+scheduled at period end. "
+backend\cancellation_routes.py:395:                        + 
+stripe_subscription_id
+backend\cancellation_routes.py:417:Stripe Subscription: {{ 
+stripe_subscription_id }}
+backend\cancellation_routes.py:432:                
+stripe_subscription_id=stripe_subscription_id,
+backend\cancellation_routes.py:441:    # ===== 
+ALSAAB_SCHEDULE_CANCELLATION_STRIPE_V1 END =====
+backend\config.py:25:# نستخدمه لاحقاً في روابط الدفع الداخلية والـ webhook
+backend\config.py:34:    "starter": {
+backend\config.py:53:        "client_payment_links_enabled": False,
+backend\config.py:61:            "2000 رد شهري للعملاء",
+backend\config.py:85:    "growth": {
+backend\config.py:104:        "client_payment_links_enabled": True,
+backend\config.py:112:            "6000 رد شهري للعملاء",
+backend\config.py:138:    "elite": {
+backend\config.py:157:        "client_payment_links_enabled": True,
+backend\config.py:165:            "12000 رد شهري للعملاء",
+backend\config.py:167:            "مجموع ردود العملاء = 15000 رد شهري",
+backend\config.py:168:            "2000 رد شهري استشاري لصاحب المشروع من Client 
+Dashboard",
+backend\config.py:207:    "stripe_invoice_required": True,
+backend\config.py:208:    "note": "إذا عند العميل شركة كبيرة أو استخدامات عديدة، 
+يتم تجهيز فاتورة شهرية منفصلة من Stripe بسعر أعلى حسب الاستخدام والربط المطلوب.",
+backend\config.py:219:    "sales_recommendation": "إذا العميل شركة كبيرة أو عنده 
+حجم محادثات عالي، لا تحصره في الباقات العادية. اعرض عليه باقة Enterprise بفاتورة 
+شهرية منفصلة."
+backend\config.py:242:        "الباقات المتاحة:\n"
+backend\config.py:243:        "- باقة النمو: 6000 رد شهري للعملاء + 1000 رد 
+استشاري لصاحب المشروع من Client Dashboard\n"
+backend\config.py:244:        "- باقة النخبة: 15000 رد شهري للعملاء + 2000 رد 
+استشاري لصاحب المشروع من Client Dashboard\n\n"
+backend\config.py:251:        "- Growth Package: 6000 customer replies/month + 
+1000 owner advisory replies/month from Client Dashboard\n"
+backend\config.py:252:        "- Elite Package: 15000 customer replies/month + 
+2000 owner advisory replies/month from Client Dashboard\n\n"
+backend\config.py:434:# PAYMENT LINKS
+backend\config.py:437:PAYMENT_LINKS = {
+backend\config.py:438:    "starter": 
+"https://buy.stripe.com/aFa28sg7WdxIbEOeRpaEE03",
+backend\config.py:439:    "growth": 
+"https://buy.stripe.com/28E6oI9Jy3X810a6kTaEE04",
+backend\config.py:440:    "elite": 
+"https://buy.stripe.com/4gMbJ2g7Walw9wGdNlaEE05",
+backend\config.py:445:# STRIPE CONFIG
+backend\config.py:448:# Stripe Secret Key نحتاجه لاحقاً إذا بنستخدم Stripe API 
+مباشرة.
+backend\config.py:449:# حالياً نقدر نبدأ بالـ Payment Links + Webhook.
+backend\config.py:450:STRIPE_SECRET_KEY = os.getenv("STRIPE_SECRET_KEY", "")
+backend\config.py:452:# Stripe Webhook Secret ينضاف من Render Environment 
+Variables.
+backend\config.py:454:STRIPE_WEBHOOK_SECRET = os.getenv("STRIPE_WEBHOOK_SECRET", 
+"")
+backend\config.py:456:# مدة قبول توقيع Stripe Webhook بالثواني.
+backend\config.py:457:STRIPE_WEBHOOK_TOLERANCE_SECONDS = 300
+backend\config.py:459:# أحداث Stripe التي نهتم بها حالياً.
+backend\config.py:460:STRIPE_ALLOWED_EVENTS = [
+backend\config.py:461:    "checkout.session.completed",
+backend\config.py:463:    "invoice.payment_failed",
+backend\config.py:468:# روابط دفع داخلية تمر عبر Render قبل Stripe.
+backend\config.py:470:PAYMENT_ROUTE_LINKS = {
+backend\config.py:471:    "starter": f"{APP_BASE_URL}/pay/starter",
+backend\config.py:472:    "growth": f"{APP_BASE_URL}/pay/growth",
+backend\config.py:473:    "elite": f"{APP_BASE_URL}/pay/elite",
+backend\config.py:476:# إعدادات ربط الباقات مع Stripe Webhook.
+backend\config.py:478:STRIPE_PLAN_CONFIG = {
+backend\config.py:479:    "starter": {
+backend\config.py:480:        "plan_name": "starter",
+backend\config.py:481:        "payment_link": PAYMENT_LINKS["starter"],
+backend\config.py:482:        "internal_payment_route": 
+PAYMENT_ROUTE_LINKS["starter"],
+backend\config.py:483:        "monthly_reply_limit": 
+PACKAGES["starter"]["monthly_reply_limit"],
+backend\config.py:487:    "growth": {
+backend\config.py:488:        "plan_name": "growth",
+backend\config.py:489:        "payment_link": PAYMENT_LINKS["growth"],
+backend\config.py:490:        "internal_payment_route": 
+PAYMENT_ROUTE_LINKS["growth"],
+backend\config.py:491:        "monthly_reply_limit": 
+PACKAGES["growth"]["monthly_reply_limit"],
+backend\config.py:495:    "elite": {
+backend\config.py:496:        "plan_name": "elite",
+backend\config.py:497:        "payment_link": PAYMENT_LINKS["elite"],
+backend\config.py:498:        "internal_payment_route": 
+PAYMENT_ROUTE_LINKS["elite"],
+backend\config.py:499:        "monthly_reply_limit": 
+PACKAGES["elite"]["monthly_reply_limit"],
+backend\config.py:505:# مفتاح client_reference_id داخل Stripe Checkout.
+backend\config.py:508:STRIPE_CLIENT_REFERENCE_SEPARATOR = "::"
+backend\config.py:511:STRIPE_SUCCESS_URL = f"{APP_BASE_URL}/payment-success"
+backend\config.py:512:STRIPE_CANCEL_URL = f"{APP_BASE_URL}/payment-cancel"
+backend\config.py:520:    "website_closes_with_payment": True,
+backend\config.py:533:# ===== ALSAAB_ENTRY_PACKAGE_SAFE_V3 START =====
+backend\config.py:534:# Entry package is added safely at the end of config.py.
+backend\config.py:537:ENTRY_PACKAGE_PRICE_ID = "price_1TXetrJbltD9Bsg8wnVMaBnZ"
+backend\config.py:538:ENTRY_PACKAGE_PAYMENT_LINK = 
+"https://buy.stripe.com/6oU3cw3laalw7oy7oXaEE06"
+backend\config.py:540:ENTRY_PACKAGE_CONFIG = {
+backend\config.py:542:    "name_en": "Entry",
+backend\config.py:548:    "max_payment_links": 1,
+backend\config.py:553:    "smart_whatsapp_entry": True,
+backend\config.py:556:    "description_en": "Limited entry package: 500 monthly 
+replies, one payment link, and one product image only.",
+backend\config.py:563:_packages["entry"] = ENTRY_PACKAGE_CONFIG
+backend\config.py:565:_payment_links = globals().get("PAYMENT_LINKS")
+backend\config.py:566:if not isinstance(_payment_links, dict):
+backend\config.py:567:    _payment_links = {}
+backend\config.py:568:    globals()["PAYMENT_LINKS"] = _payment_links
+backend\config.py:569:_payment_links["entry"] = ENTRY_PACKAGE_PAYMENT_LINK
+backend\config.py:571:_payment_route_links = globals().get("PAYMENT_ROUTE_LINKS")
+backend\config.py:572:if not isinstance(_payment_route_links, dict):
+backend\config.py:573:    _payment_route_links = {}
+backend\config.py:574:    globals()["PAYMENT_ROUTE_LINKS"] = _payment_route_links
+backend\config.py:577:_payment_route_links["entry"] = f"{_app_base}/pay/entry"
+backend\config.py:579:for _entry_price_dict_name in [
+backend\config.py:581:    "STRIPE_PRICE_IDS",
+backend\config.py:585:    _entry_price_dict = 
+globals().get(_entry_price_dict_name)
+backend\config.py:586:    if isinstance(_entry_price_dict, dict):
+backend\config.py:587:        _entry_price_dict["entry"] = ENTRY_PACKAGE_PRICE_ID
+backend\config.py:589:for _entry_limit_dict_name in [
+backend\config.py:595:    _entry_limit_dict = 
+globals().get(_entry_limit_dict_name)
+backend\config.py:596:    if isinstance(_entry_limit_dict, dict):
+backend\config.py:597:        _entry_limit_dict["entry"] = {
+backend\config.py:601:            "max_payment_links": 1,
+backend\config.py:606:_package_payment_options = 
+globals().get("PACKAGE_PAYMENT_OPTIONS")
+backend\config.py:607:if not isinstance(_package_payment_options, dict):
+backend\config.py:608:    _package_payment_options = {}
+backend\config.py:609:    globals()["PACKAGE_PAYMENT_OPTIONS"] = 
+_package_payment_options
+backend\config.py:611:_package_payment_options["entry"] = {
+backend\config.py:612:    "plan_name": "entry",
+backend\config.py:613:    "payment_link": ENTRY_PACKAGE_PAYMENT_LINK,
+backend\config.py:614:    "internal_payment_route": 
+_payment_route_links.get("entry", "https://alsaab-ai.onrender.com/pay/entry"),
+backend\config.py:621:    _package_order = ["entry", "starter", "growth", 
+"elite", "diamond"]
+backend\config.py:623:elif "entry" not in _package_order:
+backend\config.py:624:    _package_order.insert(0, "entry")
+backend\config.py:626:# ===== ALSAAB_ENTRY_PACKAGE_SAFE_V3 END =====
+backend\config.py:631:# Entry 99 / Starter 299 / Growth 599 / Elite 1199 / 
+Diamond 2399
+backend\config.py:633:PACKAGES["entry"] = {
+backend\config.py:635:    "name_en": "Entry",
+backend\config.py:651:    "client_payment_links_enabled": False,
+backend\config.py:652:    "max_payment_links": 0,
+backend\config.py:659:PACKAGES["starter"].update({
+backend\config.py:668:    "max_payment_links": 20,
+backend\config.py:671:    "client_payment_links_enabled": True,
+backend\config.py:675:PACKAGES["growth"].update({
+backend\config.py:684:    "max_payment_links": 50,
+backend\config.py:689:PACKAGES["elite"].update({
+backend\config.py:700:PACKAGES["diamond"] = {
+backend\config.py:702:    "name_en": "Diamond",
+backend\config.py:705:    "monthly_reply_limit": 40000,
+backend\config.py:706:    "customer_reply_limit": 40000,
+backend\config.py:707:    "base_customer_reply_limit": 40000,
+backend\config.py:709:    "total_customer_reply_limit": 40000,
+backend\config.py:718:    "client_payment_links_enabled": True,
+backend\config.py:719:    "advisor_level": "diamond_business_sales_advisor",
+backend\config.py:723:PAYMENT_LINKS.update({
+backend\config.py:724:    "entry": 
+"https://buy.stripe.com/4gMcN61d2dxI6ku10zaEE07",
+backend\config.py:725:    "starter": 
+"https://buy.stripe.com/aFa8wQ9Jy8docISeRpaEE08",
+backend\config.py:726:    "growth": 
+"https://buy.stripe.com/7sY14obRG8doaAK5gPaEE09",
+backend\config.py:727:    "elite": 
+"https://buy.stripe.com/28E9AUf3SalwbEO4cLaEE0a",
+backend\config.py:728:    "diamond": 
+"https://buy.stripe.com/aFaeVe7Bq51c4cmcJhaEE0b",
+backend\config.py:731:STRIPE_PRICE_IDS = {
+backend\config.py:732:    "entry": "price_1Tj84XJbltD9Bsg8rOGTTn3D",
+backend\config.py:733:    "starter": "price_1Tj8JmJbltD9Bsg81rMyR7lJ",
+backend\config.py:734:    "growth": "price_1Tj8MQJbltD9Bsg8XL7xwOYe",
+backend\config.py:735:    "elite": "price_1Tj8OwJbltD9Bsg8h7DCVKbY",
+backend\config.py:736:    "diamond": "price_1Tj8T7JbltD9Bsg8bdi7XyiL",
+backend\config.py:739:STRIPE_PRODUCT_IDS = {
+backend\config.py:740:    "entry": "prod_UiZCqDWqXkzVLL",
+backend\config.py:741:    "starter": "prod_UiZS4ivHpbRIbE",
+backend\config.py:742:    "growth": "prod_UiZVcDRBvn38CN",
+backend\config.py:743:    "elite": "prod_UiZY0MsCbzD3dC",
+backend\config.py:744:    "diamond": "prod_UiZcnUHa54wiu8",
+backend\config.py:747:PAYMENT_ROUTE_LINKS.update({
+backend\config.py:748:    "entry": f"{APP_BASE_URL}/pay/entry",
+backend\config.py:749:    "starter": f"{APP_BASE_URL}/pay/starter",
+backend\config.py:750:    "growth": f"{APP_BASE_URL}/pay/growth",
+backend\config.py:751:    "elite": f"{APP_BASE_URL}/pay/elite",
+backend\config.py:752:    "diamond": f"{APP_BASE_URL}/pay/diamond",
+backend\config.py:755:STRIPE_PLAN_CONFIG = {
+backend\config.py:758:        "payment_link": PAYMENT_LINKS[plan],
+backend\config.py:759:        "internal_payment_route": 
+PAYMENT_ROUTE_LINKS[plan],
+backend\config.py:764:    for plan in ["entry", "starter", "growth", "elite", 
+"diamond"]
+backend\config.py:767:PACKAGE_ORDER = ["entry", "starter", "growth", "elite", 
+"diamond"]
+backend\config.py:772:# ===== ALSAAB_OFFICIAL_STRIPE_PACKAGES_V2 START =====
+backend\config.py:773:# Official approved package prices + Stripe links/ids.
+backend\config.py:774:# Do not remove. This block overrides older 
+package/payment values safely.
+backend\config.py:777:    "entry": "99 AED",
+backend\config.py:778:    "starter": "299 AED",
+backend\config.py:779:    "growth": "599 AED",
+backend\config.py:780:    "elite": "1199 AED",
+backend\config.py:781:    "diamond": "2399 AED",
+backend\config.py:784:PAYMENT_LINKS.update({
+backend\config.py:785:    "entry": 
+"https://buy.stripe.com/4gMcN61d2dxI6ku10zaEE07",
+backend\config.py:786:    "starter": 
+"https://buy.stripe.com/aFa8wQ9Jy8docISeRpaEE08",
+backend\config.py:787:    "growth": 
+"https://buy.stripe.com/7sY14obRG8doaAK5gPaEE09",
+backend\config.py:788:    "elite": 
+"https://buy.stripe.com/28E9AUf3SalwbEO4cLaEE0a",
+backend\config.py:789:    "diamond": 
+"https://buy.stripe.com/aFaeVe7Bq51c4cmcJhaEE0b",
+backend\config.py:792:STRIPE_PRICE_IDS = {
+backend\config.py:793:    "entry": "price_1Tj84XJbltD9Bsg8rOGTTn3D",
+backend\config.py:794:    "starter": "price_1Tj8JmJbltD9Bsg81rMyR7lJ",
+backend\config.py:795:    "growth": "price_1Tj8MQJbltD9Bsg8XL7xwOYe",
+backend\config.py:796:    "elite": "price_1Tj8OwJbltD9Bsg8h7DCVKbY",
+backend\config.py:797:    "diamond": "price_1Tj8T7JbltD9Bsg8bdi7XyiL",
+backend\config.py:800:STRIPE_PRODUCT_IDS = {
+backend\config.py:801:    "entry": "prod_UiZCqDWqXkzVLL",
+backend\config.py:802:    "starter": "prod_UiZS4ivHpbRIbE",
+backend\config.py:803:    "growth": "prod_UiZVcDRBvn38CN",
+backend\config.py:804:    "elite": "prod_UiZY0MsCbzD3dC",
+backend\config.py:805:    "diamond": "prod_UiZcnUHa54wiu8",
+backend\config.py:808:PAYMENT_ROUTE_LINKS.update({
+backend\config.py:809:    "entry": f"{APP_BASE_URL}/pay/entry",
+backend\config.py:810:    "starter": f"{APP_BASE_URL}/pay/starter",
+backend\config.py:811:    "growth": f"{APP_BASE_URL}/pay/growth",
+backend\config.py:812:    "elite": f"{APP_BASE_URL}/pay/elite",
+backend\config.py:813:    "diamond": f"{APP_BASE_URL}/pay/diamond",
+backend\config.py:816:STRIPE_PLAN_CONFIG = {
+backend\config.py:819:        "payment_link": PAYMENT_LINKS[plan],
+backend\config.py:820:        "internal_payment_route": 
+PAYMENT_ROUTE_LINKS[plan],
+backend\config.py:825:    for plan in ["entry", "starter", "growth", "elite", 
+"diamond"]
+backend\config.py:828:PACKAGE_ORDER = ["entry", "starter", "growth", "elite", 
+"diamond"]
+backend\config.py:829:# ===== ALSAAB_OFFICIAL_STRIPE_PACKAGES_V2 END =====
+backend\database.py:25:        "starter": {"monthly_reply_limit": 2000},
+backend\database.py:26:        "growth": {"monthly_reply_limit": 6000},
+backend\database.py:27:        "elite": {"monthly_reply_limit": 15000},
+backend\database.py:161:        stripe_customer_id TEXT,
+backend\database.py:162:        stripe_subscription_id TEXT,
+backend\database.py:180:    add_column_if_missing(c, "client_subscriptions", 
+"stripe_customer_id", "TEXT")
+backend\database.py:181:    add_column_if_missing(c, "client_subscriptions", 
+"stripe_subscription_id", "TEXT")
+backend\database.py:399:        "entry": "Level 1",
+backend\database.py:400:        "entry partner": "Level 1",
+backend\database.py:401:        "starter": "Level 2",
+backend\database.py:402:        "starter partner": "Level 2",
+backend\database.py:407:        "growth": "Level 3",
+backend\database.py:408:        "growth partner": "Level 3",
+backend\database.py:425:        "elite": "Level 4",
+backend\database.py:426:        "diamond": "Level 5",
+backend\database.py:427:        "diamond partner": "Level 5",
+backend\database.py:428:        "elite partner": "Level 4",
+backend\database.py:723:        payment_status="pending",
+backend\database.py:1175:        "start": "starter",
+backend\database.py:1176:        "basic": "starter",
+backend\database.py:1177:        "beginner": "starter",
+backend\database.py:1178:        "بداية": "starter",
+backend\database.py:1179:        "البداية": "starter",
+backend\database.py:1180:        "starter": "starter",
+backend\database.py:1182:        "growth": "growth",
+backend\database.py:1183:        "pro": "growth",
+backend\database.py:1184:        "professional": "growth",
+backend\database.py:1185:        "نمو": "growth",
+backend\database.py:1186:        "النمو": "growth",
+backend\database.py:1188:        "elite": "elite",
+backend\database.py:1189:        "premium": "elite",
+backend\database.py:1190:        "vip": "elite",
+backend\database.py:1191:        "نخبة": "elite",
+backend\database.py:1192:        "النخبة": "elite",
+backend\database.py:1231:    if plan == "starter":
+backend\database.py:1234:    if plan == "growth":
+backend\database.py:1237:    if plan == "elite":
+backend\database.py:1256:    if plan == "growth":
+backend\database.py:1259:    if plan == "elite":
+backend\database.py:1286:            "client_payment_links_enabled": 
+bool(package.get("client_payment_links_enabled")),
+backend\database.py:1306:        "client_payment_links_enabled": False,
+backend\database.py:1315:            "للاستمرار في استخدام ALSAAB AI، لازم يتم 
+تفعيل اشتراكك أولاً أو اختيار إحدى الباقات."
+backend\database.py:1383:            stripe_customer_id,
+backend\database.py:1384:            stripe_subscription_id,
+backend\database.py:1429:        "stripe_customer_id": row[12],
+backend\database.py:1430:        "stripe_subscription_id": row[13],
+backend\database.py:1437:def 
+get_client_subscription_by_stripe_subscription_id(stripe_subscription_id):
+backend\database.py:1438:    stripe_subscription_id = str(stripe_subscription_id 
+or "").strip()
+backend\database.py:1440:    if not stripe_subscription_id:
+backend\database.py:1450:        WHERE stripe_subscription_id=?
+backend\database.py:1454:        (stripe_subscription_id,)
+backend\database.py:1565:    stripe_subscription_id="",
+backend\database.py:1616:        
+f"stripe_subscription_id={stripe_subscription_id or ''}",
+backend\database.py:1656:                
+stripe_subscription_id=stripe_subscription_id,
+backend\database.py:1701:    stripe_customer_id="",
+backend\database.py:1702:    stripe_subscription_id="",
+backend\database.py:1746:                    stripe_customer_id=?,
+backend\database.py:1747:                    stripe_subscription_id=?,
+backend\database.py:1762:                    stripe_customer_id,
+backend\database.py:1763:                    stripe_subscription_id,
+backend\database.py:1780:                    stripe_customer_id=?,
+backend\database.py:1781:                    stripe_subscription_id=?,
+backend\database.py:1794:                    stripe_customer_id,
+backend\database.py:1795:                    stripe_subscription_id,
+backend\database.py:1815:                stripe_customer_id,
+backend\database.py:1816:                stripe_subscription_id,
+backend\database.py:1833:                stripe_customer_id,
+backend\database.py:1834:                stripe_subscription_id,
+backend\database.py:1858:            
+stripe_customer_id=subscription.get("stripe_customer_id") or stripe_customer_id,
+backend\database.py:1859:            
+stripe_subscription_id=subscription.get("stripe_subscription_id") or 
+stripe_subscription_id,
+backend\database.py:1880:                
+stripe_subscription_id=stripe_subscription_id,
+backend\database.py:2269:            stripe_customer_id,
+backend\database.py:2270:            stripe_subscription_id,
+backend\database.py:2300:            "stripe_customer_id": row[11],
+backend\database.py:2301:            "stripe_subscription_id": row[12],
+backend\database.py:2422:            "Stripe Customer ID",
+backend\database.py:2423:            "Stripe Subscription ID",
+backend\database.py:2449:            subscription["stripe_customer_id"],
+backend\database.py:2450:            subscription["stripe_subscription_id"],
+backend\database.py:2548:    payment_status="pending",
+backend\database.py:2554:    stripe_subscription_id=""
+backend\database.py:2578:        "payment_status": payment_status or "pending",
+backend\database.py:2582:        "stripe_subscription_id": 
+stripe_subscription_id or "",
+backend\database.py:2596:    stripe_customer_id="",
+backend\database.py:2597:    stripe_subscription_id="",
+backend\database.py:2621:        "stripe_customer_id": stripe_customer_id or "",
+backend\database.py:2622:        "stripe_subscription_id": 
+stripe_subscription_id or "",
+backend\database.py:2645:    stripe_subscription_id="",
+backend\database.py:2788:        "stripe_subscription_id": 
+stripe_subscription_id or "",
+backend\database.py:2935:            stripe_subscription_id TEXT,
+backend\database.py:2952:            stripe_payment_id TEXT,
+backend\database.py:2958:            UNIQUE(partner_id, course_code, 
+stripe_payment_id)
+backend\database.py:3035:    stripe_subscription_id="",
+backend\database.py:3068:            stripe_subscription_id,
+backend\database.py:3083:            
+stripe_subscription_id=COALESCE(NULLIF(excluded.stripe_subscription_id, ''), 
+partner_client_map.stripe_subscription_id),
+backend\database.py:3097:            str(stripe_subscription_id or "").strip(),
+backend\database.py:3124:    stripe_subscription_id="",
+backend\database.py:3147:        stripe_subscription_id=stripe_subscription_id,
+backend\database.py:3181:            stripe_subscription_id,
+backend\database.py:3208:        "stripe_subscription_id": row[10],
+backend\database.py:3227:        "stripe_subscription_id": 
+mapping.get("stripe_subscription_id") or "",
+backend\database.py:3258:    stripe_col = _pick_first_existing_column(
+backend\database.py:3260:        ["stripe_subscription_id", "subscription_id"]
+backend\database.py:3273:    for col in [plan_col, status_col, client_col, 
+session_col, stripe_col, amount_col]:
+backend\database.py:3326:        if stripe_col:
+backend\database.py:3327:            snapshot["stripe_subscription_id"] = 
+str(values.get(stripe_col) or snapshot["stripe_subscription_id"] or "").strip()
+backend\database.py:3362:        ["client_id", "session_id", 
+"stripe_customer_id", "email"]
+backend\database.py:3400:    stripe_payment_id="manual",
+backend\database.py:3411:    stripe_payment_id = str(stripe_payment_id or 
+"manual").strip()
+backend\database.py:3431:            stripe_payment_id,
+backend\database.py:3446:            stripe_payment_id,
+backend\database.py:3459:        "stripe_payment_id": stripe_payment_id,
+backend\database.py:3507:    progress["stripe_subscription_id"] = 
+subscription.get("stripe_subscription_id") or ""
+backend\database.py:3896:# ===== ALSAAB_ENTRY_DATABASE_SAFE_V1 START =====
+backend\database.py:3897:# Safe Entry package support for database.py.
+backend\database.py:3900:ENTRY_PLAN_KEY = "entry"
+backend\database.py:3902:ENTRY_PLAN_ALIASES = {
+backend\database.py:3903:    "entry": "entry",
+backend\database.py:3904:    "دخول": "entry",
+backend\database.py:3905:    "الدخول": "entry",
+backend\database.py:3906:    "باقة الدخول": "entry",
+backend\database.py:3907:    "entry package": "entry",
+backend\database.py:3910:ENTRY_PLAN_LIMITS = {
+backend\database.py:3914:    "max_payment_links": 1,
+backend\database.py:3919:def _alsaab_entry_normalize_plan(value):
+backend\database.py:3927:    if raw_lower in ENTRY_PLAN_ALIASES:
+backend\database.py:3928:        return ENTRY_PLAN_ALIASES[raw_lower]
+backend\database.py:3930:    if raw in ENTRY_PLAN_ALIASES:
+backend\database.py:3931:        return ENTRY_PLAN_ALIASES[raw]
+backend\database.py:3935:def _alsaab_entry_patch_known_limit_dicts():
+backend\database.py:3952:        if "entry" in value:
+backend\database.py:3955:        starter_value = value.get("starter")
+backend\database.py:3957:        if isinstance(starter_value, int):
+backend\database.py:3958:            value["entry"] = 500
+backend\database.py:3959:        elif isinstance(starter_value, dict):
+backend\database.py:3960:            entry_value = dict(starter_value)
+backend\database.py:3961:            entry_value.update(ENTRY_PLAN_LIMITS)
+backend\database.py:3962:            value["entry"] = entry_value
+backend\database.py:3964:            value["entry"] = dict(ENTRY_PLAN_LIMITS)
+backend\database.py:3966:def _alsaab_entry_patch_known_order_lists():
+backend\database.py:3975:        if isinstance(value, list) and "entry" not in 
+value:
+backend\database.py:3976:            value.insert(0, "entry")
+backend\database.py:3978:def _alsaab_entry_wrap_normalizers():
+backend\database.py:3994:        if getattr(old_function, 
+"_alsaab_entry_wrapped", False):
+backend\database.py:3998:            normalized = 
+_alsaab_entry_normalize_plan(value)
+backend\database.py:4000:            if normalized == "entry":
+backend\database.py:4001:                return "entry"
+backend\database.py:4005:        wrapper._alsaab_entry_wrapped = True
+backend\database.py:4008:def _alsaab_entry_wrap_limit_functions():
+backend\database.py:4017:        "get_max_payment_links",
+backend\database.py:4028:        if getattr(old_function, 
+"_alsaab_entry_wrapped", False):
+backend\database.py:4032:            normalized = 
+_alsaab_entry_normalize_plan(plan)
+backend\database.py:4034:            if normalized == "entry":
+backend\database.py:4036:                    return dict(ENTRY_PLAN_LIMITS)
+backend\database.py:4041:                if "payment_links" in _function_name:
+backend\database.py:4054:        wrapper._alsaab_entry_wrapped = True
+backend\database.py:4057:def get_entry_plan_limits():
+backend\database.py:4058:    return dict(ENTRY_PLAN_LIMITS)
+backend\database.py:4060:_al_saab_entry_patch_done = False
+backend\database.py:4063:    _alsaab_entry_patch_known_limit_dicts()
+backend\database.py:4064:    _alsaab_entry_patch_known_order_lists()
+backend\database.py:4065:    _alsaab_entry_wrap_normalizers()
+backend\database.py:4066:    _alsaab_entry_wrap_limit_functions()
+backend\database.py:4067:    _al_saab_entry_patch_done = True
+backend\database.py:4068:except Exception as _entry_database_error:
+backend\database.py:4069:    print(f"ENTRY DATABASE PATCH WARNING: 
+{_entry_database_error}", flush=True)
+backend\database.py:4071:# ===== ALSAAB_ENTRY_DATABASE_SAFE_V1 END =====
+backend\database.py:4073:# ===== ALSAAB_DIAMOND_DATABASE_SAFE_V1 START =====
+backend\database.py:4075:DIAMOND_PLAN_KEY = "diamond"
+backend\database.py:4077:DIAMOND_PLAN_ALIASES = {
+backend\database.py:4078:    "diamond": "diamond",
+backend\database.py:4079:    "دايموند": "diamond",
+backend\database.py:4080:    "الماسية": "diamond",
+backend\database.py:4081:    "باقة الماسية": "diamond",
+backend\database.py:4082:    "الباقة الماسية": "diamond",
+backend\database.py:4085:DIAMOND_PLAN_LIMITS = {
+backend\database.py:4086:    "monthly_reply_limit": 40000,
+backend\database.py:4087:    "customer_reply_limit": 40000,
+backend\database.py:4091:def _alsaab_diamond_normalize_plan(value):
+backend\database.py:4096:    if raw_lower in DIAMOND_PLAN_ALIASES:
+backend\database.py:4097:        return DIAMOND_PLAN_ALIASES[raw_lower]
+backend\database.py:4098:    if raw in DIAMOND_PLAN_ALIASES:
+backend\database.py:4099:        return DIAMOND_PLAN_ALIASES[raw]
+backend\database.py:4102:def _alsaab_diamond_wrap_normalizers():
+backend\database.py:4116:        if getattr(old_function, 
+"_alsaab_diamond_wrapped", False):
+backend\database.py:4120:            normalized = 
+_alsaab_diamond_normalize_plan(value)
+backend\database.py:4121:            if normalized == "diamond":
+backend\database.py:4122:                return "diamond"
+backend\database.py:4125:        wrapper._alsaab_diamond_wrapped = True
+backend\database.py:4128:def _alsaab_diamond_wrap_limit_functions():
+backend\database.py:4143:        if getattr(old_function, 
+"_alsaab_diamond_wrapped", False):
+backend\database.py:4147:            normalized = 
+_alsaab_diamond_normalize_plan(plan)
+backend\database.py:4148:            if normalized == "diamond":
+backend\database.py:4151:                return 40000
+backend\database.py:4154:        wrapper._alsaab_diamond_wrapped = True
+backend\database.py:4158:    _alsaab_diamond_wrap_normalizers()
+backend\database.py:4159:    _alsaab_diamond_wrap_limit_functions()
+backend\database.py:4160:except Exception as _diamond_database_error:
+backend\database.py:4161:    print(f"DIAMOND DATABASE PATCH WARNING: 
+{_diamond_database_error}", flush=True)
+backend\database.py:4163:# ===== ALSAAB_DIAMOND_DATABASE_SAFE_V1 END =====
+backend\entry_payment_routes.py:5:ENTRY_PAYMENT_LINK = 
+"https://buy.stripe.com/6oU3cw3laalw7oy7oXaEE06"
+backend\entry_payment_routes.py:28:def register_entry_payment_routes(app):
+backend\entry_payment_routes.py:29:    if getattr(app, 
+"alsaab_entry_payment_routes_registered", False):
+backend\entry_payment_routes.py:32:    
+app.alsaab_entry_payment_routes_registered = True
+backend\entry_payment_routes.py:35:    def entry_payment_redirect_guard():
+backend\entry_payment_routes.py:38:        if path != "/pay/entry":
+backend\entry_payment_routes.py:50:        source = request.args.get("source") 
+or request.args.get("src") or "entry_payment"
+backend\entry_payment_routes.py:53:            ENTRY_PAYMENT_LINK,
+backend\entry_payment_routes.py:57:                "utm_campaign": 
+"entry_package",
+backend\level_engine.py:7:PACKAGE_ENTRY = "entry"
+backend\level_engine.py:8:PACKAGE_STARTER = "starter"
+backend\level_engine.py:9:PACKAGE_GROWTH = "growth"
+backend\level_engine.py:10:PACKAGE_ELITE = "elite"
+backend\level_engine.py:11:PACKAGE_DIAMOND = "diamond"
+backend\level_engine.py:23:    1: "Entry Partner",
+backend\level_engine.py:24:    2: "Starter Partner",
+backend\level_engine.py:25:    3: "Growth Partner",
+backend\level_engine.py:26:    4: "Elite Partner",
+backend\level_engine.py:27:    5: "Diamond Partner",
+backend\level_engine.py:52:        name="Entry Partner",
+backend\level_engine.py:53:        allowed_packages=(PACKAGE_ENTRY, 
+PACKAGE_STARTER, PACKAGE_GROWTH, PACKAGE_ELITE, PACKAGE_DIAMOND),
+backend\level_engine.py:60:        name="Starter Partner",
+backend\level_engine.py:61:        allowed_packages=(PACKAGE_STARTER, 
+PACKAGE_GROWTH, PACKAGE_ELITE, PACKAGE_DIAMOND),
+backend\level_engine.py:68:        name="Growth Partner",
+backend\level_engine.py:69:        allowed_packages=(PACKAGE_GROWTH, 
+PACKAGE_ELITE, PACKAGE_DIAMOND),
+backend\level_engine.py:76:        name="Elite Partner",
+backend\level_engine.py:77:        allowed_packages=(PACKAGE_ELITE, 
+PACKAGE_DIAMOND),
+backend\level_engine.py:84:        name="Diamond Partner",
+backend\level_engine.py:85:        allowed_packages=(PACKAGE_DIAMOND,),
+backend\level_engine.py:93:    "entry": PACKAGE_ENTRY,
+backend\level_engine.py:94:    "دخول": PACKAGE_ENTRY,
+backend\level_engine.py:95:    "الدخول": PACKAGE_ENTRY,
+backend\level_engine.py:96:    "باقة الدخول": PACKAGE_ENTRY,
+backend\level_engine.py:97:    "starter": PACKAGE_STARTER,
+backend\level_engine.py:98:    "البداية": PACKAGE_STARTER,
+backend\level_engine.py:99:    "بداية": PACKAGE_STARTER,
+backend\level_engine.py:100:    "growth": PACKAGE_GROWTH,
+backend\level_engine.py:101:    "النمو": PACKAGE_GROWTH,
+backend\level_engine.py:102:    "باقة النمو": PACKAGE_GROWTH,
+backend\level_engine.py:103:    "elite": PACKAGE_ELITE,
+backend\level_engine.py:104:    "النخبة": PACKAGE_ELITE,
+backend\level_engine.py:105:    "باقة النخبة": PACKAGE_ELITE,
+backend\level_engine.py:106:    "diamond": PACKAGE_DIAMOND,
+backend\level_engine.py:107:    "دايموند": PACKAGE_DIAMOND,
+backend\level_engine.py:108:    "الماسية": PACKAGE_DIAMOND,
+backend\level_engine.py:109:    "باقة الماسية": PACKAGE_DIAMOND,
+backend\level_engine.py:110:    "الباقة الماسية": PACKAGE_DIAMOND,
+backend\level_engine.py:164:        return PACKAGE_GROWTH
+backend\level_engine.py:167:        return PACKAGE_ELITE
+backend\level_engine.py:170:        return PACKAGE_STARTER
+backend\main.py:16:    get_client_subscription_by_stripe_subscription_id,
+backend\main.py:20:    STRIPE_PLAN_CONFIG,
+backend\main.py:21:    STRIPE_WEBHOOK_SECRET,
+backend\main.py:22:    STRIPE_WEBHOOK_TOLERANCE_SECONDS,
+backend\main.py:66:SAFE_STRIPE_REFERENCE_SEPARATOR = "__"
+backend\main.py:112:def build_stripe_client_reference_id(session_id, plan_name, 
+source_partner_id=""):
+backend\main.py:118:            f"{SAFE_STRIPE_REFERENCE_SEPARATOR}{plan_name}"
+backend\main.py:119:            
+f"{SAFE_STRIPE_REFERENCE_SEPARATOR}{source_partner_id}"
+backend\main.py:122:    return 
+f"{session_id}{SAFE_STRIPE_REFERENCE_SEPARATOR}{plan_name}"
+backend\main.py:125:def parse_stripe_client_reference_id(reference_id):
+backend\main.py:131:    if SAFE_STRIPE_REFERENCE_SEPARATOR in reference_id:
+backend\main.py:132:        parts = 
+reference_id.rsplit(SAFE_STRIPE_REFERENCE_SEPARATOR, 2)
+backend\main.py:173:def verify_stripe_signature(payload, signature_header, 
+webhook_secret, tolerance_seconds=300):
+backend\main.py:175:        return False, "STRIPE_WEBHOOK_SECRET is not 
+configured"
+backend\main.py:178:        return False, "Stripe-Signature header is missing"
+backend\main.py:200:            return False, "Stripe timestamp is missing"
+backend\main.py:203:            return False, "Stripe v1 signature is missing"
+backend\main.py:209:            return False, "Stripe signature timestamp is 
+outside tolerance"
+backend\main.py:223:        return False, "No matching Stripe signature"
+backend\main.py:1157:                <button class="mini-cta" 
+onclick="sendQuick('أبغي أعرف الباقات')">
+backend\main.py:1158:                    عرض الباقات
+backend\main.py:1202:                            <button class="quick-chip" 
+onclick="sendQuick('أبغي أعرف الباقات')">عرض الباقات</button>
+backend\main.py:1557:    if plan_name not in STRIPE_PLAN_CONFIG:
+backend\main.py:1570:            <title>ALSAAB AI Payment</title>
+backend\main.py:1603:                <h1>رابط الدفع غير مكتمل</h1>
+backend\main.py:1605:                    افتح رابط الدفع من داخل محادثة ALSAAB 
+AI عشان نربط الدفع بجلسة العميل بشكل صحيح.
+backend\main.py:1621:    plan_config = STRIPE_PLAN_CONFIG[plan_name]
+backend\main.py:1622:    payment_link = plan_config.get("payment_link", "")
+backend\main.py:1624:    if not payment_link:
+backend\main.py:1627:            "message": "Payment link is not configured"
+backend\main.py:1630:    client_reference_id = build_stripe_client_reference_id(
+backend\main.py:1636:    payment_url = append_query_params(
+backend\main.py:1637:        payment_link,
+backend\main.py:1644:        f"PAYMENT REDIRECT ✅ session_id={session_id} 
+plan={plan_name} source_partner_id={source_partner_id} 
+reference={client_reference_id}",
+backend\main.py:1648:    return redirect(payment_url, code=302)
+backend\main.py:1651:@app.route("/stripe-webhook", methods=["POST"])
+backend\main.py:1652:def stripe_webhook():
+backend\main.py:1654:    signature_header = 
+request.headers.get("Stripe-Signature", "")
+backend\main.py:1656:    verified, verification_message = 
+verify_stripe_signature(
+backend\main.py:1659:        webhook_secret=STRIPE_WEBHOOK_SECRET,
+backend\main.py:1660:        tolerance_seconds=STRIPE_WEBHOOK_TOLERANCE_SECONDS
+backend\main.py:1664:        print(f"STRIPE WEBHOOK SIGNATURE FAILED ❌ 
+{verification_message}", flush=True)
+backend\main.py:1668:            "message": "Invalid Stripe signature"
+backend\main.py:1674:        print(f"STRIPE WEBHOOK JSON ERROR ❌ {error}", 
+flush=True)
+backend\main.py:1684:    print(f"STRIPE WEBHOOK RECEIVED ✅ event={event_type} 
+id={event_id}", flush=True)
+backend\main.py:1686:    if event_type == "checkout.session.completed":
+backend\main.py:1687:        checkout_session = event.get("data", 
+{}).get("object", {})
+backend\main.py:1689:        client_reference_id = 
+checkout_session.get("client_reference_id", "")
+backend\main.py:1690:        session_id, plan_name, source_partner_id = 
+parse_stripe_client_reference_id(client_reference_id)
+backend\main.py:1694:                f"STRIPE CHECKOUT IGNORED ⚠️ missing 
+client_reference_id={client_reference_id}",
+backend\main.py:1705:        if plan_name not in STRIPE_PLAN_CONFIG:
+backend\main.py:1706:            print(f"STRIPE CHECKOUT IGNORED ⚠️ invalid 
+plan={plan_name}", flush=True)
+backend\main.py:1717:                print(f"STRIPE SOURCE PARTNER LOOKUP ERROR 
+❌ {error}", flush=True)
+backend\main.py:1722:        plan_config = STRIPE_PLAN_CONFIG[plan_name]
+backend\main.py:1724:        stripe_customer_id = 
+checkout_session.get("customer", "") or ""
+backend\main.py:1725:        stripe_subscription_id = 
+checkout_session.get("subscription", "") or ""
+backend\main.py:1735:            stripe_customer_id=stripe_customer_id,
+backend\main.py:1736:            stripe_subscription_id=stripe_subscription_id,
+backend\main.py:1738:            notes=f"Activated automatically by Stripe 
+checkout.session.completed event {event_id}",
+backend\main.py:1744:            customer_details = 
+checkout_session.get("customer_details", {}) or {}
+backend\main.py:1754:                    or 
+checkout_session.get("customer_email", "")
+backend\main.py:1758:                
+notes=f"auto_partner_from_checkout_session_completed; 
+stripe_event_id={event_id}",
+backend\main.py:1759:                
+stripe_subscription_id=stripe_subscription_id,
+backend\main.py:1764:            print(f"STRIPE AUTO PARTNER RESULT 
+{auto_partner_result}", flush=True)
+backend\main.py:1767:            print(f"STRIPE AUTO PARTNER ERROR {error}", 
+flush=True)
+backend\main.py:1770:            f"STRIPE SUBSCRIPTION ACTIVATED ✅ 
+session_id={session_id} plan={plan_name} source_partner_id={source_partner_id}",
+backend\main.py:1784:        stripe_subscription_id = 
+invoice.get("subscription", "") or ""
+backend\main.py:1786:        if isinstance(stripe_subscription_id, dict):
+backend\main.py:1787:            stripe_subscription_id = 
+stripe_subscription_id.get("id", "") or ""
+backend\main.py:1789:        if not stripe_subscription_id:
+backend\main.py:1792:            stripe_subscription_id = 
+subscription_details.get("subscription", "") or ""
+backend\main.py:1794:        if not stripe_subscription_id:
+backend\main.py:1796:                f"STRIPE INVOICE PAID IGNORED ⚠️ missing 
+stripe_subscription_id invoice_id={invoice_id}",
+backend\main.py:1802:                "reason": "missing_stripe_subscription_id",
+backend\main.py:1806:        existing_subscription = 
+get_client_subscription_by_stripe_subscription_id(
+backend\main.py:1807:            stripe_subscription_id
+backend\main.py:1812:                f"STRIPE INVOICE PAID IGNORED ⚠️ 
+subscription not found stripe_subscription_id={stripe_subscription_id} 
+invoice_id={invoice_id}",
+backend\main.py:1819:                "stripe_subscription_id": 
+stripe_subscription_id,
+backend\main.py:1824:        plan_name = existing_subscription.get("plan_name") 
+or "growth"
+backend\main.py:1829:        stripe_customer_id = (
+backend\main.py:1831:            or 
+existing_subscription.get("stripe_customer_id")
+backend\main.py:1844:            stripe_customer_id=stripe_customer_id,
+backend\main.py:1845:            stripe_subscription_id=stripe_subscription_id,
+backend\main.py:1847:            notes=f"Renewed automatically by Stripe 
+invoice.paid event {event_id}; invoice_id={invoice_id}",
+backend\main.py:1861:                
+notes=f"auto_partner_from_invoice_paid_fallback; stripe_event_id={event_id}; 
+invoice_id={invoice_id}",
+backend\main.py:1862:                
+stripe_subscription_id=stripe_subscription_id,
+backend\main.py:1873:            f"STRIPE INVOICE PAID HANDLED ✅ 
+session_id={session_id} plan={plan_name} source_partner_id={source_partner_id} 
+invoice_id={invoice_id}",
+backend\main.py:1881:            "stripe_subscription_id": 
+stripe_subscription_id,
+backend\main.py:1885:    if event_type == "invoice.payment_failed":
+backend\main.py:1889:        stripe_subscription_id = 
+invoice.get("subscription", "") or ""
+backend\main.py:1891:        if isinstance(stripe_subscription_id, dict):
+backend\main.py:1892:            stripe_subscription_id = 
+stripe_subscription_id.get("id", "") or ""
+backend\main.py:1894:        if not stripe_subscription_id:
+backend\main.py:1897:            stripe_subscription_id = 
+subscription_details.get("subscription", "") or ""
+backend\main.py:1899:        if not stripe_subscription_id:
+backend\main.py:1901:                f"STRIPE INVOICE PAYMENT FAILED IGNORED ⚠️ 
+missing stripe_subscription_id invoice_id={invoice_id}",
+backend\main.py:1907:                "reason": "missing_stripe_subscription_id",
+backend\main.py:1911:        existing_subscription = 
+get_client_subscription_by_stripe_subscription_id(
+backend\main.py:1912:            stripe_subscription_id
+backend\main.py:1917:                f"STRIPE INVOICE PAYMENT FAILED IGNORED ⚠️ 
+subscription not found stripe_subscription_id={stripe_subscription_id} 
+invoice_id={invoice_id}",
+backend\main.py:1924:                "stripe_subscription_id": 
+stripe_subscription_id,
+backend\main.py:1929:        plan_name = existing_subscription.get("plan_name") 
+or "growth"
+backend\main.py:1934:        stripe_customer_id = (
+backend\main.py:1936:            or 
+existing_subscription.get("stripe_customer_id")
+backend\main.py:1947:            status="payment_failed",
+backend\main.py:1949:            stripe_customer_id=stripe_customer_id,
+backend\main.py:1950:            stripe_subscription_id=stripe_subscription_id,
+backend\main.py:1952:            notes=f"Payment failed by Stripe 
+invoice.payment_failed event {event_id}; invoice_id={invoice_id}",
+backend\main.py:1958:            f"STRIPE INVOICE PAYMENT FAILED HANDLED ⚠️ 
+session_id={session_id} plan={plan_name} source_partner_id={source_partner_id} 
+invoice_id={invoice_id}",
+backend\main.py:1964:            "message": "invoice.payment_failed handled",
+backend\main.py:1966:            "stripe_subscription_id": 
+stripe_subscription_id,
+backend\main.py:1971:        stripe_subscription = event.get("data", 
+{}).get("object", {})
+backend\main.py:1973:        stripe_subscription_id = 
+stripe_subscription.get("id", "") or ""
+backend\main.py:1975:        if isinstance(stripe_subscription_id, dict):
+backend\main.py:1976:            stripe_subscription_id = 
+stripe_subscription_id.get("id", "") or ""
+backend\main.py:1978:        if not stripe_subscription_id:
+backend\main.py:1980:                "STRIPE SUBSCRIPTION DELETED IGNORED ⚠️ 
+missing stripe_subscription_id",
+backend\main.py:1986:                "reason": "missing_stripe_subscription_id"
+backend\main.py:1989:        existing_subscription = 
+get_client_subscription_by_stripe_subscription_id(
+backend\main.py:1990:            stripe_subscription_id
+backend\main.py:1995:                f"STRIPE SUBSCRIPTION DELETED IGNORED ⚠️ 
+subscription not found stripe_subscription_id={stripe_subscription_id}",
+backend\main.py:2002:                "stripe_subscription_id": 
+stripe_subscription_id
+backend\main.py:2006:        plan_name = existing_subscription.get("plan_name") 
+or "growth"
+backend\main.py:2011:        stripe_customer_id = (
+backend\main.py:2012:            stripe_subscription.get("customer", "")
+backend\main.py:2013:            or 
+existing_subscription.get("stripe_customer_id")
+backend\main.py:2026:            stripe_customer_id=stripe_customer_id,
+backend\main.py:2027:            stripe_subscription_id=stripe_subscription_id,
+backend\main.py:2029:            notes=f"Cancelled automatically by Stripe 
+customer.subscription.deleted event {event_id}",
+backend\main.py:2035:            f"STRIPE SUBSCRIPTION DELETED HANDLED ⚠️ 
+session_id={session_id} plan={plan_name} source_partner_id={source_partner_id} 
+stripe_subscription_id={stripe_subscription_id}",
+backend\main.py:2042:            "stripe_subscription_id": 
+stripe_subscription_id,
+backend\main.py:2047:        stripe_subscription = event.get("data", 
+{}).get("object", {})
+backend\main.py:2049:        stripe_subscription_id = 
+stripe_subscription.get("id", "") or ""
+backend\main.py:2051:        if isinstance(stripe_subscription_id, dict):
+backend\main.py:2052:            stripe_subscription_id = 
+stripe_subscription_id.get("id", "") or ""
+backend\main.py:2054:        if not stripe_subscription_id:
+backend\main.py:2056:                "STRIPE SUBSCRIPTION UPDATED IGNORED ⚠️ 
+missing stripe_subscription_id",
+backend\main.py:2062:                "reason": "missing_stripe_subscription_id"
+backend\main.py:2065:        existing_subscription = 
+get_client_subscription_by_stripe_subscription_id(
+backend\main.py:2066:            stripe_subscription_id
+backend\main.py:2071:                f"STRIPE SUBSCRIPTION UPDATED IGNORED ⚠️ 
+subscription not found stripe_subscription_id={stripe_subscription_id}",
+backend\main.py:2078:                "stripe_subscription_id": 
+stripe_subscription_id
+backend\main.py:2081:        stripe_status = 
+str(stripe_subscription.get("status", "") or "").lower().strip()
+backend\main.py:2085:        if stripe_status in ["past_due", "unpaid", 
+"incomplete", "incomplete_expired"]:
+backend\main.py:2086:            mapped_status = "payment_failed"
+backend\main.py:2088:        elif stripe_status in ["canceled", "cancelled"]:
+backend\main.py:2091:        elif stripe_status in ["paused"]:
+backend\main.py:2094:        elif stripe_status in ["active", "trialing"]:
+backend\main.py:2096:                f"STRIPE SUBSCRIPTION UPDATED RECEIVED ✅ 
+active update ignored for commission safety 
+stripe_subscription_id={stripe_subscription_id}",
+backend\main.py:2103:                "stripe_subscription_id": 
+stripe_subscription_id,
+backend\main.py:2104:                "stripe_status": stripe_status
+backend\main.py:2108:        plan_name = existing_subscription.get("plan_name") 
+or "growth"
+backend\main.py:2113:        stripe_customer_id = (
+backend\main.py:2114:            stripe_subscription.get("customer", "")
+backend\main.py:2115:            or 
+existing_subscription.get("stripe_customer_id")
+backend\main.py:2128:            stripe_customer_id=stripe_customer_id,
+backend\main.py:2129:            stripe_subscription_id=stripe_subscription_id,
+backend\main.py:2131:            notes=f"Updated automatically by Stripe 
+customer.subscription.updated event {event_id}; stripe_status={stripe_status}",
+backend\main.py:2137:            f"STRIPE SUBSCRIPTION UPDATED HANDLED ✅ 
+session_id={session_id} mapped_status={mapped_status} 
+stripe_status={stripe_status} stripe_subscription_id={stripe_subscription_id}",
+backend\main.py:2144:            "stripe_subscription_id": 
+stripe_subscription_id,
+backend\main.py:2145:            "stripe_status": stripe_status,
+backend\main.py:2156:@app.route("/payment-success", methods=["GET"])
+backend\main.py:2157:def payment_success():
+backend\main.py:2221:@app.route("/payment-cancel", methods=["GET"])
+backend\main.py:2222:def payment_cancel():
+backend\main.py:2420:                "plan": "growth",
+backend\main.py:2428:    plan = get_payload_value(payload, "plan", 
+default="growth")
+backend\main.py:2493:                stripe_subscription_id="",
+backend\main.py:2997:            1: {"rank": "Entry Partner", "color": 
+"#B8860B", "glow": "rgba(184,134,11,.28)"},
+backend\main.py:2998:            2: {"rank": "Starter Partner", "color": 
+"#C0C0C0", "glow": "rgba(192,192,192,.25)"},
+backend\main.py:2999:            3: {"rank": "Growth Partner", "color": 
+"#D7B85A", "glow": "rgba(215,184,90,.32)"},
+backend\main.py:3000:            4: {"rank": "Elite Partner", "color": 
+"#F0D98A", "glow": "rgba(240,217,138,.38)"},
+backend\main.py:3001:            5: {"rank": "Diamond Partner", "color": 
+"#FFFFFF", "glow": "rgba(255,215,0,.42)"},
+backend\main.py:3011:                "text_ar": "باقة Starter أو أعلى + 2 عملاء 
+نشطين",
+backend\main.py:3012:                "text_en": "Starter package or higher + 2 
+active customers",
+backend\main.py:3047:            package_ok = package_value in ("starter", 
+"growth", "elite", "diamond")
+backend\main.py:3052:            missing_items.append("الترقية إلى باقة Starter 
+أو أعلى" if is_ar else "Upgrade to Starter package or higher")
+backend\main.py:3569:    .alsaab-skin-v4 .payment-row {
+backend\main.py:3945:            "payment_links": "روابط الدفع الخاصة",
+backend\main.py:3947:            "payment_link": "رابط الدفع",
+backend\main.py:3950:            "payment_description": "وصف المنتج أو العرض",
+backend\main.py:3951:            "add_more_payment": "إضافة رابط دفع إضافي",
+backend\main.py:3952:            "save_payment_links": "حفظ روابط الدفع",
+backend\main.py:3953:            "saved_payment_links": "روابط الدفع المحفوظة",
+backend\main.py:3988:            "payment_links": "Client Payment Links",
+backend\main.py:3990:            "payment_link": "Payment Link",
+backend\main.py:3993:            "payment_description": "Product or Offer 
+Description",
+backend\main.py:3994:            "add_more_payment": "Add Another Payment Link",
+backend\main.py:3995:            "save_payment_links": "Save Payment Links",
+backend\main.py:3996:            "saved_payment_links": "Saved Payment Links",
+backend\main.py:4049:        client_payment_links = 
+client_dashboard_result.get("client_payment_links") or []
+backend\main.py:4063:        client_payment_links = [item for item in 
+client_payment_links if not _is_launch_test_item(item)]
+backend\main.py:4292:    .payment-row {
+backend\main.py:4386:    .alsaab-skin-v4 .payment-row {
+backend\main.py:4585:      <h2>{{ t.payment_links }}</h2>
+backend\main.py:4587:      <form method="POST" 
+action="/client-dashboard/save-payment-link">
+backend\main.py:4594:        <div id="paymentRows">
+backend\main.py:4595:          <div class="payment-row">
+backend\main.py:4603:                <label>{{ t.payment_link }}</label>
+backend\main.py:4604:                <input type="url" name="payment_link" 
+placeholder="https://..." required>
+backend\main.py:4618:                <label>{{ t.payment_description }}</label>
+backend\main.py:4619:                <textarea name="description" 
+placeholder="{{ t.payment_description }}"></textarea>
+backend\main.py:4625:        <button class="primary-btn" type="button" 
+onclick="addPaymentRow()">{{ t.add_more_payment }}</button>
+backend\main.py:4626:        <button class="primary-btn" type="submit">{{ 
+t.save_payment_links }}</button>
+backend\main.py:4630:        <h3 style="color:#d7b85a;">{{ t.saved_payment_links 
+}}</h3>
+backend\main.py:4631:        {% for link in client_payment_links[:8] %}
+backend\main.py:4634:            <div><a href="{{ link.get("Payment Link") }}" 
+target="_blank">{{ link.get("Payment Link") }}</a></div>
+backend\main.py:4654:  <textarea id="alsaabWhatsAppMessageDirect" readonly style=
+"width:100%;box-sizing:border-box;min-height:125px;margin-top:8px;background:#0b0
+b0b;color:#fff;border:1px solid 
+rgba(215,184,90,.45);border-radius:12px;padding:12px;line-height:1.8;">هلا وسهلا 
+👋&#10;عشان نخدمك بسرعة، تقدر تتكلم مع موظف المبيعات الذكي من هذا 
+الرابط:&#10;https://alsaab.io/?ref={{ partner_id }}&#10;&#10;بيفهم طلبك، يشرح لك 
+التفاصيل، ويرسل لك رابط الدفع أو يحولك لفريق العمل إذا احتجت.</textarea>
+backend\main.py:4683:    function addPaymentRow() {
+backend\main.py:4684:      const container = 
+document.getElementById("paymentRows");
+backend\main.py:4685:      const first = container.querySelector(".payment-row");
+backend\main.py:4726:            client_payment_links=client_payment_links,
+backend\main.py:4840:@app.route("/client-dashboard/save-payment-link", 
+methods=["POST"])
+backend\main.py:4841:def client_dashboard_save_payment_link():
+backend\main.py:4879:        payment_links = request.form.getlist("payment_link")
+backend\main.py:4884:        max_len = max(len(product_names), 
+len(payment_links), len(amounts), len(currencies), len(descriptions), 1)
+backend\main.py:4889:            payment_link = payment_links[index].strip() if 
+index < len(payment_links) else ""
+backend\main.py:4894:            if not product_name and not payment_link:
+backend\main.py:4899:                "action": "client_payment_link",
+backend\main.py:4903:                "payment_link": payment_link,
+backend\main.py:4910:            result = post_to_google_sheet_json(payload, 
+label="client_dashboard_save_payment_link")
+backend\main.py:4915:        status = "payment_link_saved" if saved_count > 0 
+else "payment_link_error"
+backend\main.py:4920:        print(f"CLIENT DASHBOARD SAVE PAYMENT LINK ERROR ❌ 
+{error}", flush=True)
+backend\main.py:4922:        return 
+redirect(build_dashboard_return_url("/client-dashboard", key, partner_id, lang, 
+"payment_link_error"))
+backend\main.py:6373:                  <td>{{ payout.payment_method or "-" 
+}}</td>
+backend\main.py:6628:        <div class="muted">Total: {{ 
+subscription_summary.total or 0 }} / Failed: {{ 
+subscription_summary.payment_failed or 0 }}</div>
+backend\main.py:6662:        <h3>Payment Failed</h3>
+backend\main.py:6663:        <div class="big">{{ 
+subscription_summary.payment_failed or 0 }}</div>
+backend\main.py:6734:              <th>Stripe Sub</th>
+backend\main.py:6746:              <td>{{ s.stripe_subscription_id or "-" }}</td>
+backend\main.py:6841:              <th>Stripe Payment</th>
+backend\main.py:6853:              <td>{{ course.stripe_payment_id or "-" }}</td>
+backend\main.py:8140:                "payment_method": "manual_transfer"
+backend\main.py:8254:        entries = payload.get("entry", []) if 
+isinstance(payload, dict) else []
+backend\main.py:8256:        for entry in entries:
+backend\main.py:8257:            changes = entry.get("changes", []) if 
+isinstance(entry, dict) else []
+backend\main.py:9046:# ===== ALSAAB ENTRY PAYMENT ROUTES REGISTER START =====
+backend\main.py:9048:    from entry_payment_routes import 
+register_entry_payment_routes
+backend\main.py:9050:    from backend.entry_payment_routes import 
+register_entry_payment_routes
+backend\main.py:9052:register_entry_payment_routes(app)
+backend\main.py:9053:# ===== ALSAAB ENTRY PAYMENT ROUTES REGISTER END =====
+backend\main.py:9079:    port = int(os.environ.get("PORT", 10000))
+backend\partner_engine.py:980:        "بدايتك الحالية: Level 1 — Starter Partner 
+🚀\n"
+backend\prompt_builder.py:13:    PAYMENT_LINKS,
+backend\prompt_builder.py:35:    from config import APP_BASE_URL, 
+PAYMENT_ROUTE_LINKS
+backend\prompt_builder.py:38:    PAYMENT_ROUTE_LINKS = {
+backend\prompt_builder.py:39:        "starter": f"{APP_BASE_URL}/pay/starter",
+backend\prompt_builder.py:40:        "growth": f"{APP_BASE_URL}/pay/growth",
+backend\prompt_builder.py:41:        "elite": f"{APP_BASE_URL}/pay/elite",
+backend\prompt_builder.py:62:def get_payment_source_partner_id(state):
+backend\prompt_builder.py:73:def build_internal_payment_link(plan_name, state):
+backend\prompt_builder.py:75:    source_partner_id = 
+get_payment_source_partner_id(state)
+backend\prompt_builder.py:77:    internal_base = PAYMENT_ROUTE_LINKS.get(
+backend\prompt_builder.py:93:    return PAYMENT_LINKS.get(plan_name, 
+internal_base)
+backend\prompt_builder.py:96:def format_payment_links(state):
+backend\prompt_builder.py:98:        "entry": 
+build_internal_payment_link("entry", state),
+backend\prompt_builder.py:99:        "starter": 
+build_internal_payment_link("starter", state),
+backend\prompt_builder.py:100:        "growth": 
+build_internal_payment_link("growth", state),
+backend\prompt_builder.py:101:        "elite": 
+build_internal_payment_link("elite", state),
+backend\prompt_builder.py:102:        "diamond": 
+build_internal_payment_link("diamond", state),
+backend\prompt_builder.py:144:    entry_limit = PACKAGES.get("entry", 
+{}).get("customer_reply_limit") or PACKAGES.get("entry", 
+{}).get("monthly_reply_limit", "500")
+backend\prompt_builder.py:145:    starter_limit = 
+PACKAGES["starter"].get("customer_reply_limit") or 
+PACKAGES["starter"].get("monthly_reply_limit", "2000")
+backend\prompt_builder.py:146:    growth_limit = 
+PACKAGES["growth"].get("customer_reply_limit") or 
+PACKAGES["growth"].get("monthly_reply_limit", "6000")
+backend\prompt_builder.py:147:    growth_advisory = 
+PACKAGES["growth"].get("owner_advisory_reply_limit", "1000")
+backend\prompt_builder.py:148:    elite_total = 
+PACKAGES["elite"].get("total_customer_reply_limit") or 
+PACKAGES["elite"].get("customer_reply_limit") or 
+PACKAGES["elite"].get("monthly_reply_limit", "15000")
+backend\prompt_builder.py:149:    elite_advisory = 
+PACKAGES["elite"].get("owner_advisory_reply_limit", "2000")
+backend\prompt_builder.py:150:    diamond_limit = PACKAGES.get("diamond", 
+{}).get("customer_reply_limit") or PACKAGES.get("diamond", 
+{}).get("monthly_reply_limit", "40000")
+backend\prompt_builder.py:151:    diamond_advisory = PACKAGES.get("diamond", 
+{}).get("owner_advisory_reply_limit", "5000")
+backend\prompt_builder.py:156:1) Entry / Ø¨Ø§Ù‚Ø© Ø§Ù„Ø¯Ø®ÙˆÙ„ â€” 99 Ø¯Ø±Ù‡Ù… 
+Ø´Ù‡Ø±ÙŠØ§Ù‹
+backend\prompt_builder.py:157:- Ø¹Ø¯Ø¯ Ø§Ù„Ø±Ø¯ÙˆØ¯ Ø§Ù„Ø´Ù‡Ø±ÙŠ Ù„Ù„Ø¹Ù…Ù„Ø§Ø¡: 
+{entry_limit} Ø±Ø¯.
+backend\prompt_builder.py:161:2) Starter / Ø¨Ø§Ù‚Ø© Ø§Ù„Ø¨Ø¯Ø§ÙŠØ© â€” 299 
+Ø¯Ø±Ù‡Ù… Ø´Ù‡Ø±ÙŠØ§Ù‹
+backend\prompt_builder.py:162:- Ø¹Ø¯Ø¯ Ø§Ù„Ø±Ø¯ÙˆØ¯ Ø§Ù„Ø´Ù‡Ø±ÙŠ Ù„Ù„Ø¹Ù…Ù„Ø§Ø¡: 
+{starter_limit} Ø±Ø¯.
+backend\prompt_builder.py:166:3) Growth / Ø¨Ø§Ù‚Ø© Ø§Ù„Ù†Ù…Ùˆ â€” 599 Ø¯Ø±Ù‡Ù… 
+Ø´Ù‡Ø±ÙŠØ§Ù‹
+backend\prompt_builder.py:168:- Ø¹Ø¯Ø¯ Ø§Ù„Ø±Ø¯ÙˆØ¯ Ø§Ù„Ø´Ù‡Ø±ÙŠ Ù„Ù„Ø¹Ù…Ù„Ø§Ø¡: 
+{growth_limit} Ø±Ø¯.
+backend\prompt_builder.py:169:- ØªØ´Ù…Ù„ {growth_advisory} Ø±Ø¯ Ø´Ù‡Ø±ÙŠ 
+Ù…Ø®ØµØµ Ù„ØµØ§ØØ¨ Ø§Ù„Ù…Ø´Ø±ÙˆØ¹ Ù„Ù„Ø§Ø³ØªØ´Ø§Ø±Ø§Øª ÙˆØ§Ù„ØªØ·ÙˆÙŠØ±.
+backend\prompt_builder.py:173:4) Elite / Ø¨Ø§Ù‚Ø© Ø§Ù„Ù†Ø®Ø¨Ø© â€” 1199 Ø¯Ø±Ù‡Ù… 
+Ø´Ù‡Ø±ÙŠØ§Ù‹
+backend\prompt_builder.py:175:- Ù…Ø¬Ù…ÙˆØ¹ Ø±Ø¯ÙˆØ¯ Ø§Ù„Ø¹Ù…Ù„Ø§Ø¡: 
+{elite_total} Ø±Ø¯ Ø´Ù‡Ø±ÙŠ.
+backend\prompt_builder.py:176:- ØªØ´Ù…Ù„ {elite_advisory} Ø±Ø¯ Ø´Ù‡Ø±ÙŠ Ù…Ø®ØµØµ 
+Ù„ØµØ§ØØ¨ Ø§Ù„Ù…Ø´Ø±ÙˆØ¹ Ù„Ù„Ø§Ø³ØªØ´Ø§Ø±Ø§Øª ÙˆØ§Ù„ØªØ·ÙˆÙŠØ±.
+backend\prompt_builder.py:179:5) Diamond / Ø§Ù„Ø¨Ø§Ù‚Ø© Ø§Ù„Ù…Ø§Ø³ÙŠØ© â€” 2399 
+Ø¯Ø±Ù‡Ù… Ø´Ù‡Ø±ÙŠØ§Ù‹
+backend\prompt_builder.py:181:- Ø¹Ø¯Ø¯ Ø§Ù„Ø±Ø¯ÙˆØ¯ Ø§Ù„Ø´Ù‡Ø±ÙŠ Ù„Ù„Ø¹Ù…Ù„Ø§Ø¡: 
+{diamond_limit} Ø±Ø¯.
+backend\prompt_builder.py:182:- ØªØ´Ù…Ù„ {diamond_advisory} Ø±Ø¯ Ø´Ù‡Ø±ÙŠ 
+Ù…Ø®ØµØµ Ù„ØµØ§ØØ¨ Ø§Ù„Ù…Ø´Ø±ÙˆØ¹ Ù„Ù„Ø§Ø³ØªØ´Ø§Ø±Ø§Øª ÙˆØ§Ù„ØªØ·ÙˆÙŠØ±.
+backend\prompt_builder.py:195:- Ø¥Ø°Ø§ Ø³Ø£Ù„ Ø§Ù„Ø¹Ù…ÙŠÙ„ Ø¹Ù† Ø§Ù„Ø¨Ø§Ù‚Ø§Øª 
+Ø£Ùˆ Ø§Ù„Ø£Ø³Ø¹Ø§Ø± Ø£Ùˆ Ø±ÙˆØ§Ø¨Ø· Ø§Ù„Ø¯ÙØ¹ Ø£Ùˆ Ø§Ù„Ø£Ø±Ø¨Ø§Ø Ø£Ùˆ 
+Ø§Ù„Ø¹Ù…ÙˆÙ„Ø§ØªØŒ Ø§Ø°ÙƒØ± Ø§Ù„Ø¨Ø§Ù‚Ø§Øª Ø§Ù„Ø®Ù…Ø³ ÙƒØ§Ù…Ù„Ø© ÙˆÙ„Ø§ ØªÙ†Ø³ÙŽ 
+Diamond.
+backend\prompt_builder.py:199:- Ø¥Ø°Ø§ Ø§Ù„Ø¹Ù…ÙŠÙ„ ÙŠØ±ÙŠØ¯ Ø§Ù„Ø£Ø±Ø®Øµ Ø£Ùˆ 
+ØªØ¬Ø±Ø¨Ø© Ù…ØØ¯ÙˆØ¯Ø©ØŒ Ø§Ø´Ø±Ø Entry Ø£Ùˆ Starter ØØ³Ø¨ Ø§ØØªÙŠØ§Ø¬Ù‡.
+backend\prompt_builder.py:200:- Ø¥Ø°Ø§ Ø§Ù„Ø¹Ù…ÙŠÙ„ Ø¬Ø§Ø¯ Ø£Ùˆ Ø¹Ù†Ø¯Ù‡ 
+Ø§Ø³ØªØ®Ø¯Ø§Ù… Ø£Ø¹Ù„Ù‰ØŒ Ø±Ø´Ù‘Ø Elite Ø£Ùˆ Diamond.
+backend\prompt_builder.py:344:    payment_links = format_payment_links(state)
+backend\prompt_builder.py:537:- Ø¥Ø°Ø§ Ø§Ù„Ø¹Ù…ÙŠÙ„ Ø´Ø±ÙƒØ© ÙƒØ¨ÙŠØ±Ø© Ø£Ùˆ 
+Ø¹Ù†Ø¯Ù‡ Ø§Ø³ØªØ®Ø¯Ø§Ù… Ø¹Ø§Ù„ÙŠØŒ Ø§Ø¹Ø±Ø¶ Ø¹Ù„ÙŠÙ‡ Ø¨Ø§Ù‚Ø© Enterprise 
+Ø¨ÙØ§ØªÙˆØ±Ø© Stripe Ø´Ù‡Ø±ÙŠØ© Ù…Ù†ÙØµÙ„Ø©.
+backend\prompt_builder.py:715:- Ø§Ù„Ø¯Ø®ÙˆÙ„ / Entry:
+backend\prompt_builder.py:716:{payment_links["entry"]}
+backend\prompt_builder.py:718:- Ø§Ù„Ø¨Ø¯Ø§ÙŠØ© / Starter:
+backend\prompt_builder.py:719:{payment_links["starter"]}
+backend\prompt_builder.py:721:- Ø§Ù„Ù†Ù…Ùˆ / Growth:
+backend\prompt_builder.py:722:{payment_links["growth"]}
+backend\prompt_builder.py:724:- Ø§Ù„Ù†Ø®Ø¨Ø© / Elite:
+backend\prompt_builder.py:725:{payment_links["elite"]}
+backend\prompt_builder.py:727:- Ø§Ù„Ù…Ø§Ø³ÙŠØ© / Diamond:
+backend\prompt_builder.py:728:{payment_links["diamond"]}
+backend\prompt_builder.py:752:- Ù„Ø§ ØªØ³ØªØ®Ø¯Ù… Ø±ÙˆØ§Ø¨Ø· Stripe 
+Ø§Ù„Ù…Ø¨Ø§Ø´Ø±Ø© Ø¥Ø°Ø§ ÙƒØ§Ù†Øª Ø±ÙˆØ§Ø¨Ø· Ø§Ù„Ø¯ÙØ¹ Ø§Ù„Ø¯Ø§Ø®Ù„ÙŠØ© Ù…ØªØ§Ø
+Ø©.
+backend\prompt_builder.py:753:- Ø§Ù„Ù‡Ø¯Ù Ù…Ù† Ø±ÙˆØ§Ø¨Ø· Ø§Ù„Ø¯ÙØ¹ 
+Ø§Ù„Ø¯Ø§Ø®Ù„ÙŠØ© Ù‡Ùˆ Ø±Ø¨Ø· Ø§Ù„Ø¯ÙØ¹ Ø¨Ø¬Ù„Ø³Ø© Ø§Ù„Ø¹Ù…ÙŠÙ„ ÙˆØªÙØ¹ÙŠÙ„ 
+Ø§Ù„Ø§Ø´ØªØ±Ø§Ùƒ ØªÙ„Ù‚Ø§Ø¦ÙŠØ§Ù‹ Ø¨Ø¹Ø¯ Stripe Webhook.
+backend\prompt_builder.py:1031:  * بع الباقات.
+backend\smart_link_analytics_routes.py:202:        text.indexOf("رابط الدفع") 
+!== -1 ||
+backend\smart_link_analytics_routes.py:208:        return "payment_request";
+backend\smart_link_analytics_routes.py:359:    <div 
+class="alsaab-smart-summary-card"><span 
+id="smartPaymentRequests">-</span><small>طلبات دفع</small></div>
+backend\smart_link_analytics_routes.py:455:          
+document.getElementById("smartPaymentRequests").innerText = 
+summary.payment_requests || 0;
+backend\smart_link_dashboard_routes.py:248:"بيفهم طلبك، يرشح لك الأنسب، يجاوب 
+على أسئلتك، ويرسل لك رابط الدفع إذا كنت جاهز.\\n\\n" +
+backend\smart_link_event_filter_routes.py:46:        if raw in ["payment", 
+"payment_link", "payment_request", "checkout_request"]:
+backend\smart_link_event_filter_routes.py:47:            return "payment_request"
+backend\smart_link_event_filter_routes.py:88:        if event_type in 
+["payment_request", "human_request", "income_request"]:
+backend\smart_link_event_filter_routes.py:130:                "payment_request",
+backend\smart_link_event_filter_routes.py:179:            elif event_type == 
+"payment_request":
+backend\smart_link_event_filter_routes.py:180:                clean_message = 
+"payment requested"
+backend\smart_link_protection_routes.py:102:            "payment_failed",
+backend\smart_link_protection_routes.py:134:            "payment_failed",
+backend\smart_link_routes.py:111:                payload.entry_source = 
+payload.entry_source || source;
+backend\smart_link_routes.py:262:              <button type="button" 
+data-msg="أريد معرفة الأسعار">أريد معرفة الأسعار</button>
+backend\smart_link_routes.py:264:              <button type="button" 
+data-msg="أريد رابط الدفع">أريد رابط الدفع</button>
+backend\smart_link_routes.py:612:      addMessage(messages, "bot", "هلا وسهلاً 
+👋\nأنا موظف المبيعات الذكي. أقدر أساعدك في معرفة التفاصيل، اختيار الأنسب، أو 
+إرسال رابط الدفع.");
+backend\smart_link_routes.py:647:            entry_source: source || 
+"smart_link",
+backend\smart_link_routes.py:761:                payload.get("entry_source")
+backend\smart_link_routes.py:779:                
+payload.setdefault("entry_source", source)
+backend\smart_link_routes.py:984:        payment_link_items = _find_dicts(
+backend\smart_link_routes.py:986:            ["payment_url", "payment_link", 
+"link_url", "url"],
+backend\smart_link_routes.py:990:        payment_lines = []
+backend\smart_link_routes.py:991:        for item in payment_link_items:
+backend\smart_link_routes.py:993:            url = _first_value(item, 
+["payment_url", "payment_link", "link_url", "url"])
+backend\smart_link_routes.py:995:                payment_lines.append(f"- {title 
+or 'رابط دفع'}: {url}")
+backend\smart_link_routes.py:1033:            "استخدم بيانات المشروع وروابط 
+الدفع الخاصة بصاحب الرابط.",
+backend\smart_link_routes.py:1059:        if payment_lines:
+backend\smart_link_routes.py:1061:            context_lines.append("روابط الدفع 
+الخاصة بصاحب المشروع:")
+backend\smart_link_routes.py:1062:            
+context_lines.extend(payment_lines[:6])
+backend\smart_link_routes.py:1064:        if not project_name and not 
+description and not product_lines and not payment_lines:
+backend\smart_link_routes.py:1073:            "payment_links_count": 
+len(payment_lines),
+backend\smart_link_routes.py:1089:                "payment_links_count": 0,
+backend\smart_link_routes.py:1129:                "payment_links_count": 0,
+backend\smart_link_routes.py:1151:            "payment_links_count": 
+data.get("payment_links_count", 0),
+backend\smart_link_routes.py:1160:        payment_terms = [
+backend\smart_link_routes.py:1161:            "رابط الدفع",
+backend\smart_link_routes.py:1176:            "payment",
+backend\smart_link_routes.py:1178:            "checkout",
+backend\smart_link_routes.py:1230:        wants_payment = any(term in raw for 
+term in payment_terms)
+backend\smart_link_routes.py:1235:        if wants_payment:
+backend\smart_link_routes.py:1273:                "اشرح نظام الصعب بوضوح: يساعد 
+في الرد، الإقناع، البيع، إرسال روابط الدفع، وتقليل ضياع العملاء.",
+backend\smart_link_routes.py:1283:            "استخدم بيانات المشروع وروابط 
+الدفع الخاصة بصاحب الرابط إذا كانت متاحة.",
+backend\smart_link_routes.py:1287:            "لا تخلط بين أسعار منتجات صاحب 
+المشروع وباقات الصعب.",
+backend\smart_link_summary_cache_routes.py:31:        "payment_requests": 0,
+backend\training_engine.py:17:        "عطني وصف عام ومفصل عن مشروعك. اكتب كل شيء 
+مهم حتى لو بشكل طويل أو ممل: شو تبيع، من جمهورك، شو يميزك، طريقة شغلك، الأسعار 
+العامة، العروض، المشاكل اللي تواجهها، طريقة البيع، وأي معلومة تبغي البوت يعرفها 
+عشان يبيع عنك صح."
+backend\training_engine.py:21:    ("prices", "شو الأسعار أو متوسط الأسعار؟"),
+backend\upgrade_routes.py:5:# ===== ALSAAB_UPGRADE_SCHEDULE_STRIPE_V1 START =====
+backend\upgrade_routes.py:7:    "starter": "price_1Tj8JmJbltD9Bsg81rMyR7lJ",
+backend\upgrade_routes.py:8:    "growth": "price_1Tj8MQJbltD9Bsg8XL7xwOYe",
+backend\upgrade_routes.py:9:    "elite": "price_1Tj8OwJbltD9Bsg8h7DCVKbY",
+backend\upgrade_routes.py:10:    "diamond": "price_1Tj8T7JbltD9Bsg8bdi7XyiL",
+backend\upgrade_routes.py:12:# ===== ALSAAB_UPGRADE_SCHEDULE_STRIPE_V1 END =====
+backend\upgrade_routes.py:15:# ===== ALSAAB_ENTRY_UPGRADE_SAFE_V1 START =====
+backend\upgrade_routes.py:16:# Entry can upgrade only upward: Entry -> 
+Starter/Growth/Elite.
+backend\upgrade_routes.py:17:# Entry is not a downgrade target.
+backend\upgrade_routes.py:19:UPGRADE_PLAN_ORDER = ["entry", "starter", "growth", 
+"elite", "diamond"]
+backend\upgrade_routes.py:25:        "entry": "entry",
+backend\upgrade_routes.py:26:        "دخول": "entry",
+backend\upgrade_routes.py:27:        "الدخول": "entry",
+backend\upgrade_routes.py:28:        "باقة الدخول": "entry",
+backend\upgrade_routes.py:29:        "starter": "starter",
+backend\upgrade_routes.py:30:        "start": "starter",
+backend\upgrade_routes.py:31:        "بداية": "starter",
+backend\upgrade_routes.py:32:        "البداية": "starter",
+backend\upgrade_routes.py:33:        "growth": "growth",
+backend\upgrade_routes.py:34:        "النمو": "growth",
+backend\upgrade_routes.py:35:        "elite": "elite",
+backend\upgrade_routes.py:36:        "النخبة": "elite",
+backend\upgrade_routes.py:53:# ===== ALSAAB_ENTRY_UPGRADE_SAFE_V1 END =====
+backend\upgrade_routes.py:142:    الحالة: pending_payment
+backend\upgrade_routes.py:144:  <p>سيتم مراجعة طلب الترقية وتجهيز رابط الدفع أو 
+تفعيل الترقية حسب الإجراء المعتمد.</p>
+backend\upgrade_routes.py:193:<title>طلبات ترقية الباقات</title>
+backend\upgrade_routes.py:213:    <h1>طلبات ترقية الباقات</h1>
+backend\upgrade_routes.py:219:      <a class="btn" 
+href="/admin/upgrade-requests?key={{ encoded_key 
+}}&status=pending_payment">Pending Payment</a>
+backend\upgrade_routes.py:237:            <th>Payment</th>
+backend\upgrade_routes.py:266:            <td><span class="badge">{{ 
+item.payment_status or "-" }}</span></td>
+backend\upgrade_routes.py:280:                  <option 
+value="pending_payment">pending_payment</option>
+backend\upgrade_routes.py:286:                <select name="payment_status">
+backend\upgrade_routes.py:338:        payment_status = 
+request.form.get("payment_status", "").strip()
+backend\upgrade_routes.py:352:                    "payment_status": 
+payment_status,
+backend\upgrade_routes.py:402:            import stripe
+backend\upgrade_routes.py:404:            stripe_key = (
+backend\upgrade_routes.py:405:                os.getenv("STRIPE_SECRET_KEY")
+backend\upgrade_routes.py:406:                or os.getenv("STRIPE_API_KEY")
+backend\upgrade_routes.py:407:                or os.getenv("STRIPE_KEY")
+backend\upgrade_routes.py:411:            if not stripe_key:
+backend\upgrade_routes.py:412:                return "STRIPE_SECRET_KEY is 
+missing in Render environment", 500
+backend\upgrade_routes.py:414:            stripe.api_key = stripe_key
+backend\upgrade_routes.py:436:                      <h2 
+style="color:#d7b85a;">تعذر إيجاد اشتراك Stripe لهذا الحساب</h2>
+backend\upgrade_routes.py:448:            stripe_subscription_id = 
+str(subscription_data.get("stripe_subscription_id") or "").strip()
+backend\upgrade_routes.py:450:            if not stripe_subscription_id:
+backend\upgrade_routes.py:451:                return "Stripe Subscription ID is 
+empty for this client", 500
+backend\upgrade_routes.py:455:            subscription = 
+stripe.Subscription.retrieve(
+backend\upgrade_routes.py:456:                stripe_subscription_id,
+backend\upgrade_routes.py:463:                return "Stripe subscription has no 
+items", 500
+backend\upgrade_routes.py:492:                return "Stripe subscription period 
+dates missing", 500
+backend\upgrade_routes.py:497:                schedule = 
+stripe.SubscriptionSchedule.retrieve(existing_schedule_id)
+backend\upgrade_routes.py:499:                schedule = 
+stripe.SubscriptionSchedule.create(
+backend\upgrade_routes.py:500:                    
+from_subscription=stripe_subscription_id
+backend\upgrade_routes.py:508:            updated_schedule = 
+stripe.SubscriptionSchedule.modify(
+backend\upgrade_routes.py:529:                    "stripe_subscription_id": 
+stripe_subscription_id,
+backend\upgrade_routes.py:530:                    "stripe_schedule_id": 
+updated_schedule["id"],
+backend\upgrade_routes.py:550:Stripe Subscription: {{ stripe_subscription_id }}
+backend\upgrade_routes.py:551:Stripe Schedule: {{ schedule_id }}
+backend\upgrade_routes.py:563:                
+stripe_subscription_id=stripe_subscription_id,
+backend\upgrade_routes.py:596:      <option value="entry">الدخول / Entry — 99 
+AED</option>
+backend\upgrade_routes.py:597:      <option value="starter">البداية / Starter — 
+299 AED</option>
+backend\upgrade_routes.py:598:      <option value="growth">النمو / Growth — 599 
+AED</option>
+backend\upgrade_routes.py:599:      <option value="elite">النخبة / Elite — 1199 
+AED</option>
+backend\upgrade_routes.py:600:      <option value="diamond">الماسية / Diamond — 
+2399 AED</option>
+backend\upgrade_routes.py:606:      <option value="starter">البداية / Starter — 
+299 AED</option>
+backend\upgrade_routes.py:607:      <option value="growth">النمو / Growth — 599 
+AED</option>
+backend\upgrade_routes.py:608:      <option value="elite">النخبة / Elite — 1199 
+AED</option>
+backend\upgrade_routes.py:609:      <option value="diamond">الماسية / Diamond — 
+2399 AED</option>
+backend\upgrade_routes.py:650:  <h2>طلبات ترقية الباقات</h2>
+backend\upgrade_routes.py:654:      <div class="muted">عرض ومراجعة طلبات ترقية 
+الباقات قبل الدفع أو التفعيل.</div>
+
+
