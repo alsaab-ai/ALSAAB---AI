@@ -208,8 +208,8 @@ def format_packages():
 
 صياغة مختصرة إذا العميل سأل: "شو الباقات؟":
 - البداية بـ 599 درهم شهرياً: موظف مبيعات ذكي على WhatsApp مع {starter_limit} رد شهري للعملاء، مناسبة كبداية وتجربة.
-- النمو بـ 1099 درهم شهرياً: الباقة الموصى بها لمعظم المشاريع، فيها {growth_limit} رد للعملاء، واستشارات خاصة لصاحب المشروع بعدد {growth_advisory} رد شهري، وتشمل WhatsApp + إمكانية الموقع + صور المنتجات والكتالوجات + روابط دفع العميل الخاصة.
-- النخبة بـ 2099 درهم شهرياً: للمشاريع الجادة، فيها {elite_total} رد شهري للعملاء منها {elite_gift} رد هدية، ومعها {elite_advisory} رد استشاري لصاحب المشروع، وتدعم WhatsApp + الموقع + Instagram ضمن الربط المتقدم، مع تخصيص أقوى.
+- النمو بـ 599 درهم شهرياً: الباقة الموصى بها لمعظم المشاريع، فيها {growth_limit} رد للعملاء، واستشارات خاصة لصاحب المشروع بعدد {growth_advisory} رد شهري، وتشمل WhatsApp + إمكانية الموقع + صور المنتجات والكتالوجات + روابط دفع العميل الخاصة.
+- النخبة بـ 1199 درهم شهرياً: للمشاريع الجادة، فيها {elite_total} رد شهري للعملاء منها {elite_gift} رد هدية، ومعها {elite_advisory} رد استشاري لصاحب المشروع، وتدعم WhatsApp + الموقع + Instagram ضمن الربط المتقدم، مع تخصيص أقوى.
 
 إذا العميل يريد الخيار العملي لمعظم المشاريع:
 رشّح باقة النمو لأنها تجمع بين موظف مبيعات ذكي للعملاء ومستشار يساعد صاحب المشروع في تطوير المبيعات.
@@ -1058,12 +1058,12 @@ Starter / باقة البداية:
 - مناسبة للبداية الجادة
 
 Growth / باقة النمو:
-- 1099 درهم شهرياً
+- 599 درهم شهرياً
 - 6000 رد للعملاء + 1000 رد استشاري لصاحب المشروع
 - مناسبة للمشاريع التي تريد تشغيل أقوى ومساحة استخدام أكبر
 
 Elite / باقة النخبة:
-- 2099 درهم شهرياً
+- 1199 درهم شهرياً
 - 15000 رد للعملاء + 2000 رد استشاري لصاحب المشروع
 - مناسبة للتشغيل الأكبر والمشاريع الجادة جداً
 
@@ -1314,3 +1314,116 @@ for _prompt_const_name in [
         globals()[_prompt_const_name] = _alsaab_append_entry_payment_link_fix(_prompt_const)
 
 # ===== ALSAAB_ENTRY_PAYMENT_LINK_FIX_V1 END =====
+
+
+# ===== ALSAAB_PACKAGES_2026_PROMPT_OVERRIDE_V1 START =====
+ALSAAB_PACKAGES_2026_PROMPT_OVERRIDE = """
+⚠️ قواعد نهائية لأسعار وباقات ALSAAB AI — لا تستخدم أي أسعار قديمة:
+
+الباقات الرسمية الحالية:
+1) Entry / باقة الدخول:
+- 99 درهم شهرياً
+- 500 رد شهري
+- بدون صور
+- بدون روابط دفع
+- WhatsApp فقط
+
+2) Starter / باقة البداية:
+- 299 درهم شهرياً
+- 2000 رد شهري
+- WhatsApp فقط
+- مناسبة للبداية
+
+3) Growth / باقة النمو:
+- 599 درهم شهرياً
+- 6000 رد للعملاء + 1000 رد استشاري لصاحب المشروع
+- تدعم الموقع حسب الإعداد
+- تدعم صور المنتجات وروابط الدفع الخاصة بالعميل
+
+4) Elite / باقة النخبة:
+- 1199 درهم شهرياً
+- 15000 رد للعملاء + 2000 رد استشاري لصاحب المشروع
+- WhatsApp + Website + Instagram حسب الربط المتقدم
+
+5) Diamond / الباقة الماسية:
+- 2399 درهم شهرياً
+- 40000 رد للعملاء + 5000 رد استشاري لصاحب المشروع
+- أعلى باقة جاهزة قبل Enterprise
+
+ممنوع استخدام هذه الأسعار القديمة:
+Entry old-price
+Starter old-price
+Growth old-price
+Elite old-price
+
+إذا طلب العميل روابط الدفع، استخدم روابط الدفع الداخلية /pay/plan وليس روابط Stripe المباشرة إذا كانت الروابط الداخلية متاحة.
+"""
+def _alsaab_append_packages_2026_override(prompt_text):
+    if "ALSAAB_PACKAGES_2026_PROMPT_OVERRIDE" in str(prompt_text):
+        return prompt_text
+    return str(prompt_text).rstrip() + "\n\n" + ALSAAB_PACKAGES_2026_PROMPT_OVERRIDE.strip() + "\n"
+# ===== ALSAAB_PACKAGES_2026_PROMPT_OVERRIDE_V1 END =====
+
+
+# ===== ALSAAB_PACKAGES_2026_PROMPT_WRAP_V1 START =====
+for _fn_name in [
+    "build_prompt",
+    "build_system_prompt",
+    "build_sales_prompt",
+    "build_alsaab_prompt",
+    "build_project_prompt",
+]:
+    _old_fn = globals().get(_fn_name)
+    if callable(_old_fn) and not getattr(_old_fn, "_alsaab_packages_2026_wrapped", False):
+        def _make_wrapper(fn):
+            def _wrapped(*args, **kwargs):
+                return _alsaab_append_packages_2026_override(fn(*args, **kwargs))
+            _wrapped._alsaab_packages_2026_wrapped = True
+            return _wrapped
+        globals()[_fn_name] = _make_wrapper(_old_fn)
+# ===== ALSAAB_PACKAGES_2026_PROMPT_WRAP_V1 END =====
+
+
+# ===== ALSAAB_REPLY_LANGUAGE_RULES_V1 START =====
+ALSAAB_REPLY_LANGUAGE_RULES = """
+🌍 قاعدة نهائية للغة الرد واللهجة:
+
+- أهم قاعدة: رد بنفس لغة آخر رسالة من العميل.
+- إذا كتب العميل بالإنجليزي، يجب أن يكون الرد بالإنجليزي فقط.
+- لا ترد بالعربي على عميل كتب إنجليزي، إلا إذا طلب العربية صراحة.
+- إذا كتب العميل بالعربي، رد بالعربي الواضح.
+- في الردود العربية، استخدم أسلوب خليجي واضح:
+  80% لهجة إماراتية خفيفة وواضحة
+  10% مفردات خليجية قريبة من السعودية عند الحاجة
+  10% عربية فصحى بسيطة لتوضيح المعنى
+- لا تبالغ في العامية، وخلك محترف ومفهوم.
+- افهم كل اللهجات العربية قدر الإمكان: الإماراتية، السعودية، الكويتية، القطرية، البحرينية، العمانية، المصرية، الشامية، المغربية وغيرها.
+- افهم اللغات الأخرى قدر الإمكان، لكن الرد يكون بلغة العميل الأقرب.
+- إذا كانت رسالة العميل مختلطة عربي وإنجليزي، اختَر اللغة الغالبة في آخر رسالة.
+- إذا كانت الرسالة الإنجليزية عبارة عن كلمة تقنية فقط داخل سؤال عربي، اعتبر الرد عربي.
+"""
+def _alsaab_append_reply_language_rules(prompt_text):
+    if "ALSAAB_REPLY_LANGUAGE_RULES" in str(prompt_text):
+        return prompt_text
+    return str(prompt_text).rstrip() + "\n\n" + ALSAAB_REPLY_LANGUAGE_RULES.strip() + "\n"
+# ===== ALSAAB_REPLY_LANGUAGE_RULES_V1 END =====
+
+
+# ===== ALSAAB_REPLY_LANGUAGE_RULES_WRAP_V1 START =====
+for _fn_name in [
+    "build_prompt",
+    "build_system_prompt",
+    "build_sales_prompt",
+    "build_alsaab_prompt",
+    "build_project_prompt",
+]:
+    _old_fn = globals().get(_fn_name)
+    if callable(_old_fn) and not getattr(_old_fn, "_alsaab_language_rules_wrapped", False):
+        def _make_language_wrapper(fn):
+            def _wrapped(*args, **kwargs):
+                return _alsaab_append_reply_language_rules(fn(*args, **kwargs))
+            _wrapped._alsaab_language_rules_wrapped = True
+            return _wrapped
+        globals()[_fn_name] = _make_language_wrapper(_old_fn)
+# ===== ALSAAB_REPLY_LANGUAGE_RULES_WRAP_V1 END =====
+
