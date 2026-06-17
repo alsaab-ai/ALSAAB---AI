@@ -4,7 +4,7 @@ import re
 from openai import OpenAI
 
 from config import OPENAI_API_KEY, MODEL_NAME, REPLY_MAX_TOKENS
-from state import create_state, update_state
+from state import create_state, update_state, detect_language
 from prompt_builder import build_prompt
 from database import (
     get_last_messages,
@@ -487,6 +487,9 @@ def think(message, session_id, source_partner_id=""):
     # مهم: نخزن session_id داخل state عشان prompt_builder يقدر يبني روابط الدفع الداخلية
     current_state["session_id"] = session_id
 
+    # Detect reply language from the latest customer message.
+    current_state["language"] = detect_language(message)
+
     # Referral Tracking
     current_state = apply_source_partner_to_state(current_state, source_partner_id)
 
@@ -668,6 +671,9 @@ def think(message, session_id, source_partner_id=""):
 
     # مهم: نعيد تثبيت session_id بعد update_state عشان ما يضيع إذا رجّع state جديد
     current_state["session_id"] = session_id
+
+    # Detect reply language from the latest customer message.
+    current_state["language"] = detect_language(message)
 
     # نحافظ على اسم ورقم العميل إذا update_state رجّع state جديد
     if existing_customer_name:

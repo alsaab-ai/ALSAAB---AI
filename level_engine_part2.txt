@@ -1,0 +1,151 @@
+﻿    missing_active_direct_customers = max(
+        requirement.min_active_direct_customers - active_customers,
+        0,
+    )
+
+    return {
+        "level": requirement.level,
+        "name": requirement.name,
+        "commission_rate": requirement.commission_rate,
+        "allowed_packages": list(requirement.allowed_packages),
+        "current_package": package,
+        "package_ok": package_ok,
+        "min_active_direct_customers": requirement.min_active_direct_customers,
+        "active_direct_customers": active_customers,
+        "customers_ok": customers_ok,
+        "missing_active_direct_customers": missing_active_direct_customers,
+        "required_courses": list(requirement.required_courses),
+        "purchased_courses": sorted(courses),
+        "courses_ok": courses_ok,
+        "missing_courses": missing_courses,
+        "qualified": bool(package_ok and customers_ok and courses_ok),
+    }
+
+
+def calculate_partner_level_progress(
+    package_name: Any,
+    active_direct_customers: Any = 0,
+    purchased_courses: Optional[Iterable[Any]] = None,
+    subscription_status: Any = "active",
+) -> dict:
+    package = normalize_package_name(package_name)
+    status = normalize_subscription_status(subscription_status)
+    subscription_active = is_subscription_active(status)
+    active_customers = _safe_int(active_direct_customers)
+    courses = normalize_courses(purchased_courses)
+
+    achieved_level = 0
+    level_details = []
+
+    for level in range(1, 6):
+        detail = evaluate_level_requirement(
+            level=level,
+            package_name=package,
+            active_direct_customers=active_customers,
+            purchased_courses=courses,
+        )
+
+        if detail["qualified"] and achieved_level == level - 1:
+            achieved_level = level
+
+        level_details.append(detail)
+
+    next_level = achieved_level + 1 if achieved_level < 5 else None
+    missing_requirements = []
+
+    if next_level:
+        next_detail = level_details[next_level - 1]
+
+        if not next_detail["package_ok"]:
+            missing_requirements.append({
+                "type": "package",
+                "current": package,
+                "required": next_detail["allowed_packages"],
+            })
+
+        if not next_detail["customers_ok"]:
+            missing_requirements.append({
+                "type": "active_direct_customers",
+                "current": active_customers,
+                "required": next_detail["min_active_direct_customers"],
+                "missing": next_detail["missing_active_direct_customers"],
+            })
+
+        if not next_detail["courses_ok"]:
+            missing_requirements.append({
+                "type": "courses",
+                "current": sorted(courses),
+                "required": next_detail["required_courses"],
+                "missing": next_detail["missing_courses"],
+            })
+
+    return {
+        "current_package": package,
+        "subscription_status": status,
+        "subscription_active": subscription_active,
+        "active_direct_customers": active_customers,
+        "purchased_courses": sorted(courses),
+        "achieved_level": achieved_level,
+        "current_level": achieved_level,
+        "current_level_name": LEVEL_NAMES.get(achieved_level, "Unknown"),
+        "commission_eligible": bool(subscription_active and achieved_level >= 1),
+        "next_level": next_level,
+        "next_level_name": LEVEL_NAMES.get(next_level) if next_level else None,
+        "missing_requirements": missing_requirements,
+        "level_details": level_details,
+    }
+
+
+def is_partner_eligible_for_commission_depth(
+    current_level: Any,
+    commission_depth: Any,
+    subscription_status: Any = "active",
+) -> bool:
+    level = _safe_int(current_level)
+    depth = _safe_int(commission_depth)
+
+    if depth < 1 or depth > 5:
+        return False
+
+    if not is_subscription_active(subscription_status):
+        return False
+
+    return level >= depth
+
+
+def get_commission_rate_for_depth(commission_depth: Any) -> float:
+    depth = _safe_int(commission_depth)
+    return float(COMMISSION_RATES_BY_DEPTH.get(depth, 0.0))
+
+
+def summarize_next_level_requirement(progress: dict) -> str:
+    next_level = progress.get("next_level")
+
+    if not next_level:
+        return "You already reached the highest level."
+
+    missing = progress.get("missing_requirements") or []
+
+    if not missing:
+        return f"You are eligible for Level {next_level}."
+
+    parts = []
+
+    for item in missing:
+        if item.get("type") == "package":
+            parts.append("upgrade package")
+        elif item.get("type") == "active_direct_customers":
+            parts.append(f"{item.get('missing', 0)} more active direct customers")
+        elif item.get("type") == "courses":
+            parts.append("complete required course purchase")
+        else:
+            parts.append("missing requirement")
+
+    return f"To reach Level {next_level}, you need: " + ", ".join(parts)
+
+
+def export_level_requirements() -> list[dict]:
+    return [
+        asdict(LEVEL_REQUIREMENTS[level])
+        for level in sorted(LEVEL_REQUIREMENTS)
+    ]

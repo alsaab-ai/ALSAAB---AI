@@ -1,0 +1,28 @@
+﻿
+
+Path       : C:\Users\admin\OneDrive\سطح المكتب\ALSAAB - AI\backend\database.py
+LineNumber : 3335
+Line       : def count_active_direct_paid_customers(partner_id):
+
+Path       : C:\Users\admin\OneDrive\سطح المكتب\ALSAAB - AI\backend\database.py
+LineNumber : 3490
+Line       :     active_direct_customers = 
+             count_active_direct_paid_customers(partner_id)
+
+Path       : C:\Users\admin\OneDrive\سطح المكتب\ALSAAB - AI\backend\main.py
+LineNumber : 3710
+Line       :         <div class="card"><h3>{{ t.total_network }}</h3><div 
+             class="big">{{ tree.downline_count or 0 }}</div></div>
+
+Path       : C:\Users\admin\OneDrive\سطح المكتب\ALSAAB - AI\backend\main.py
+LineNumber : 6185
+Line       :             <div class="kv"><span>Downline Count</span><strong>{{ 
+             search_tree.get("downline_count") or 0 }}</strong></div>
+
+Path       : C:\Users\admin\OneDrive\سطح المكتب\ALSAAB - AI\backend\main.py
+LineNumber : 7710
+Line       :         <div class="big">{{ preview.get("network_count") or 0 
+             }}</div>
+
+
+

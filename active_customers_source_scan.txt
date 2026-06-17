@@ -1,0 +1,390 @@
+﻿
+
+Path       : C:\Users\admin\OneDrive\سطح المكتب\ALSAAB - AI\backend\database.py
+LineNumber : 2511
+Line       : def send_partner_tree_to_google_sheet(
+
+Path       : C:\Users\admin\OneDrive\سطح المكتب\ALSAAB - AI\backend\database.py
+LineNumber : 2519
+Line       :     يحفظ علاقة في شجرة الشركاء PartnerTree.
+
+Path       : C:\Users\admin\OneDrive\سطح المكتب\ALSAAB - AI\backend\database.py
+LineNumber : 2523
+Line       :         "action": "partner_tree",
+
+Path       : C:\Users\admin\OneDrive\سطح المكتب\ALSAAB - AI\backend\database.py
+LineNumber : 2534
+Line       :     return post_to_google_sheet_json(payload, label="partner_tree")
+
+Path       : C:\Users\admin\OneDrive\سطح المكتب\ALSAAB - AI\backend\database.py
+LineNumber : 2972
+Line       :             active_direct_customers INTEGER DEFAULT 0,
+
+Path       : C:\Users\admin\OneDrive\سطح المكتب\ALSAAB - AI\backend\database.py
+LineNumber : 3490
+Line       :     active_direct_customers = 
+             count_active_direct_paid_customers(partner_id)
+
+Path       : C:\Users\admin\OneDrive\سطح المكتب\ALSAAB - AI\backend\database.py
+LineNumber : 3495
+Line       :         active_direct_customers=active_direct_customers,
+
+Path       : C:\Users\admin\OneDrive\سطح المكتب\ALSAAB - AI\backend\database.py
+LineNumber : 3531
+Line       :             active_direct_customers,
+
+Path       : C:\Users\admin\OneDrive\سطح المكتب\ALSAAB - AI\backend\database.py
+LineNumber : 3547
+Line       :             
+             active_direct_customers=excluded.active_direct_customers,
+
+Path       : C:\Users\admin\OneDrive\سطح المكتب\ALSAAB - AI\backend\database.py
+LineNumber : 3563
+Line       :             int(progress.get("active_direct_customers") or 0),
+
+Path       : C:\Users\admin\OneDrive\سطح المكتب\ALSAAB - AI\backend\database.py
+LineNumber : 3696
+Line       :         active_direct_customers = 
+             int(progress.get("active_direct_customers") or 0)
+
+Path       : C:\Users\admin\OneDrive\سطح المكتب\ALSAAB - AI\backend\database.py
+LineNumber : 3705
+Line       :             required_sales = 
+             str(next_detail.get("min_active_direct_customers") or "0")
+
+Path       : C:\Users\admin\OneDrive\سطح المكتب\ALSAAB - AI\backend\database.py
+LineNumber : 3710
+Line       :             required_sales = str(active_direct_customers)
+
+Path       : C:\Users\admin\OneDrive\سطح المكتب\ALSAAB - AI\backend\database.py
+LineNumber : 3724
+Line       :             completed_sales=str(active_direct_customers),
+
+Path       : C:\Users\admin\OneDrive\سطح المكتب\ALSAAB - 
+             AI\backend\level_engine.py
+LineNumber : 41
+Line       :     min_active_direct_customers: int
+
+Path       : C:\Users\admin\OneDrive\سطح المكتب\ALSAAB - 
+             AI\backend\level_engine.py
+LineNumber : 51
+Line       :         min_active_direct_customers=0,
+
+Path       : C:\Users\admin\OneDrive\سطح المكتب\ALSAAB - 
+             AI\backend\level_engine.py
+LineNumber : 59
+Line       :         min_active_direct_customers=2,
+
+Path       : C:\Users\admin\OneDrive\سطح المكتب\ALSAAB - 
+             AI\backend\level_engine.py
+LineNumber : 67
+Line       :         min_active_direct_customers=5,
+
+Path       : C:\Users\admin\OneDrive\سطح المكتب\ALSAAB - 
+             AI\backend\level_engine.py
+LineNumber : 75
+Line       :         min_active_direct_customers=15,
+
+Path       : C:\Users\admin\OneDrive\سطح المكتب\ALSAAB - 
+             AI\backend\level_engine.py
+LineNumber : 83
+Line       :         min_active_direct_customers=30,
+
+Path       : C:\Users\admin\OneDrive\سطح المكتب\ALSAAB - 
+             AI\backend\level_engine.py
+LineNumber : 201
+Line       :     active_direct_customers: Any,
+
+Path       : C:\Users\admin\OneDrive\سطح المكتب\ALSAAB - 
+             AI\backend\level_engine.py
+LineNumber : 209
+Line       :     active_customers = _safe_int(active_direct_customers)
+
+Path       : C:\Users\admin\OneDrive\سطح المكتب\ALSAAB - 
+             AI\backend\level_engine.py
+LineNumber : 213
+Line       :     customers_ok = active_customers >= 
+             requirement.min_active_direct_customers
+
+Path       : C:\Users\admin\OneDrive\سطح المكتب\ALSAAB - 
+             AI\backend\level_engine.py
+LineNumber : 221
+Line       :     missing_active_direct_customers = max(
+
+Path       : C:\Users\admin\OneDrive\سطح المكتب\ALSAAB - 
+             AI\backend\level_engine.py
+LineNumber : 222
+Line       :         requirement.min_active_direct_customers - active_customers,
+
+Path       : C:\Users\admin\OneDrive\سطح المكتب\ALSAAB - 
+             AI\backend\level_engine.py
+LineNumber : 233
+Line       :         "min_active_direct_customers": 
+             requirement.min_active_direct_customers,
+
+Path       : C:\Users\admin\OneDrive\سطح المكتب\ALSAAB - 
+             AI\backend\level_engine.py
+LineNumber : 234
+Line       :         "active_direct_customers": active_customers,
+
+Path       : C:\Users\admin\OneDrive\سطح المكتب\ALSAAB - 
+             AI\backend\level_engine.py
+LineNumber : 236
+Line       :         "missing_active_direct_customers": 
+             missing_active_direct_customers,
+
+Path       : C:\Users\admin\OneDrive\سطح المكتب\ALSAAB - 
+             AI\backend\level_engine.py
+LineNumber : 247
+Line       :     active_direct_customers: Any = 0,
+
+Path       : C:\Users\admin\OneDrive\سطح المكتب\ALSAAB - 
+             AI\backend\level_engine.py
+LineNumber : 254
+Line       :     active_customers = _safe_int(active_direct_customers)
+
+Path       : C:\Users\admin\OneDrive\سطح المكتب\ALSAAB - 
+             AI\backend\level_engine.py
+LineNumber : 264
+Line       :             active_direct_customers=active_customers,
+
+Path       : C:\Users\admin\OneDrive\سطح المكتب\ALSAAB - 
+             AI\backend\level_engine.py
+LineNumber : 288
+Line       :                 "type": "active_direct_customers",
+
+Path       : C:\Users\admin\OneDrive\سطح المكتب\ALSAAB - 
+             AI\backend\level_engine.py
+LineNumber : 289
+Line       :                 "current": active_customers,
+
+Path       : C:\Users\admin\OneDrive\سطح المكتب\ALSAAB - 
+             AI\backend\level_engine.py
+LineNumber : 290
+Line       :                 "required": 
+             next_detail["min_active_direct_customers"],
+
+Path       : C:\Users\admin\OneDrive\سطح المكتب\ALSAAB - 
+             AI\backend\level_engine.py
+LineNumber : 291
+Line       :                 "missing": 
+             next_detail["missing_active_direct_customers"],
+
+Path       : C:\Users\admin\OneDrive\سطح المكتب\ALSAAB - 
+             AI\backend\level_engine.py
+LineNumber : 306
+Line       :         "active_direct_customers": active_customers,
+
+Path       : C:\Users\admin\OneDrive\سطح المكتب\ALSAAB - 
+             AI\backend\level_engine.py
+LineNumber : 357
+Line       :         elif item.get("type") == "active_direct_customers":
+
+Path       : C:\Users\admin\OneDrive\سطح المكتب\ALSAAB - AI\backend\main.py
+LineNumber : 2827
+Line       :             "active_direct_customers": "العملاء المباشرين النشطين",
+
+Path       : C:\Users\admin\OneDrive\سطح المكتب\ALSAAB - AI\backend\main.py
+LineNumber : 2844
+Line       :             "network": "الشبكة",
+
+Path       : C:\Users\admin\OneDrive\سطح المكتب\ALSAAB - AI\backend\main.py
+LineNumber : 2848
+Line       :             "total_network": "إجمالي الشبكة",
+
+Path       : C:\Users\admin\OneDrive\سطح المكتب\ALSAAB - AI\backend\main.py
+LineNumber : 2856
+Line       :             "direct_customers": "العملاء المباشرين",
+
+Path       : C:\Users\admin\OneDrive\سطح المكتب\ALSAAB - AI\backend\main.py
+LineNumber : 2878
+Line       :             "active_direct_customers": "Active Direct Customers",
+
+Path       : C:\Users\admin\OneDrive\سطح المكتب\ALSAAB - AI\backend\main.py
+LineNumber : 2895
+Line       :             "network": "Network",
+
+Path       : C:\Users\admin\OneDrive\سطح المكتب\ALSAAB - AI\backend\main.py
+LineNumber : 2899
+Line       :             "total_network": "Total Network",
+
+Path       : C:\Users\admin\OneDrive\سطح المكتب\ALSAAB - AI\backend\main.py
+LineNumber : 2907
+Line       :             "direct_customers": "Direct Customers",
+
+Path       : C:\Users\admin\OneDrive\سطح المكتب\ALSAAB - AI\backend\main.py
+LineNumber : 3657
+Line       :         <h3>{{ t.active_direct_customers }}</h3>
+
+Path       : C:\Users\admin\OneDrive\سطح المكتب\ALSAAB - AI\backend\main.py
+LineNumber : 3705
+Line       :       <h2>{{ t.network }}</h2>
+
+Path       : C:\Users\admin\OneDrive\سطح المكتب\ALSAAB - AI\backend\main.py
+LineNumber : 3710
+Line       :         <div class="card"><h3>{{ t.total_network }}</h3><div 
+             class="big">{{ tree.downline_count or 0 }}</div></div>
+
+Path       : C:\Users\admin\OneDrive\سطح المكتب\ALSAAB - AI\backend\main.py
+LineNumber : 3755
+Line       :       <h2>{{ t.direct_customers }}</h2>
+
+Path       : C:\Users\admin\OneDrive\سطح المكتب\ALSAAB - AI\backend\main.py
+LineNumber : 6185
+Line       :             <div class="kv"><span>Downline Count</span><strong>{{ 
+             search_tree.get("downline_count") or 0 }}</strong></div>
+
+Path       : C:\Users\admin\OneDrive\سطح المكتب\ALSAAB - AI\backend\main.py
+LineNumber : 6438
+Line       :               href="/admin/downline-transfer-preview?key={{ 
+             admin_key }}&partner_id={{ search_profile.get("partner_id") or 
+             search_lookup.get("partner_id") }}"
+
+Path       : C:\Users\admin\OneDrive\سطح المكتب\ALSAAB - AI\backend\main.py
+LineNumber : 6441
+Line       :               Preview Transfer Downline to alsaab
+
+Path       : C:\Users\admin\OneDrive\سطح المكتب\ALSAAB - AI\backend\main.py
+LineNumber : 7492
+Line       : # ===== ALSAAB_DOWNLINE_TRANSFER_PREVIEW_RENDER_V1 START =====
+
+Path       : C:\Users\admin\OneDrive\سطح المكتب\ALSAAB - AI\backend\main.py
+LineNumber : 7494
+Line       : @app.route("/admin/downline-transfer-preview", methods=["GET"])
+
+Path       : C:\Users\admin\OneDrive\سطح المكتب\ALSAAB - AI\backend\main.py
+LineNumber : 7495
+Line       : def admin_downline_transfer_preview():
+
+Path       : C:\Users\admin\OneDrive\سطح المكتب\ALSAAB - AI\backend\main.py
+LineNumber : 7498
+Line       :     Shows what would be affected if partner direct downline is 
+             transferred to alsaab.
+
+Path       : C:\Users\admin\OneDrive\سطح المكتب\ALSAAB - AI\backend\main.py
+LineNumber : 7527
+Line       :                 "action": "admin_downline_transfer_preview",
+
+Path       : C:\Users\admin\OneDrive\سطح المكتب\ALSAAB - AI\backend\main.py
+LineNumber : 7530
+Line       :             label="admin_downline_transfer_preview"
+
+Path       : C:\Users\admin\OneDrive\سطح المكتب\ALSAAB - AI\backend\main.py
+LineNumber : 7552
+Line       :         network_rows = preview.get("network_rows") or []
+
+Path       : C:\Users\admin\OneDrive\سطح المكتب\ALSAAB - AI\backend\main.py
+LineNumber : 7686
+Line       :       تنبيه: النقل الفعلي غير مفعّل هنا. هذه معاينة فقط قبل بناء زر 
+             Transfer Downline to alsaab.
+
+Path       : C:\Users\admin\OneDrive\سطح المكتب\ALSAAB - AI\backend\main.py
+LineNumber : 7710
+Line       :         <div class="big">{{ preview.get("network_count") or 0 
+             }}</div>
+
+Path       : C:\Users\admin\OneDrive\سطح المكتب\ALSAAB - AI\backend\main.py
+LineNumber : 7752
+Line       :             <tr><td colspan="7">لا يوجد direct downline لهذا 
+             الشريك.</td></tr>
+
+Path       : C:\Users\admin\OneDrive\سطح المكتب\ALSAAB - AI\backend\main.py
+LineNumber : 7774
+Line       :             {% for row in network_rows[:50] %}
+
+Path       : C:\Users\admin\OneDrive\سطح المكتب\ALSAAB - AI\backend\main.py
+LineNumber : 7792
+Line       :     <!-- ALSAAB_DOWNLINE_TRANSFER_EXECUTION_FORM_FORCE_V1 START -->
+
+Path       : C:\Users\admin\OneDrive\سطح المكتب\ALSAAB - AI\backend\main.py
+LineNumber : 7796
+Line       :         هذا الإجراء سيغير Sponsor / Parent للشركاء المباشرين تحت 
+             هذا الشريك إلى alsaab، وسيعيد بناء PartnerTree. لا تستخدمه إلا بعد 
+             التأكد من المعاينة.
+
+Path       : C:\Users\admin\OneDrive\سطح المكتب\ALSAAB - AI\backend\main.py
+LineNumber : 7799
+Line       :       <form method="POST" 
+             action="/admin/transfer-downline-to-alsaab">
+
+Path       : C:\Users\admin\OneDrive\سطح المكتب\ALSAAB - AI\backend\main.py
+LineNumber : 7821
+Line       :           onclick="return confirm('تأكيد نهائي: هل تريد نقل الـ 
+             direct downline إلى alsaab؟')"
+
+Path       : C:\Users\admin\OneDrive\سطح المكتب\ALSAAB - AI\backend\main.py
+LineNumber : 7824
+Line       :           Transfer Downline to alsaab
+
+Path       : C:\Users\admin\OneDrive\سطح المكتب\ALSAAB - AI\backend\main.py
+LineNumber : 7828
+Line       :     <!-- ALSAAB_DOWNLINE_TRANSFER_EXECUTION_FORM_FORCE_V1 END -->
+
+Path       : C:\Users\admin\OneDrive\سطح المكتب\ALSAAB - AI\backend\main.py
+LineNumber : 7844
+Line       :             network_rows=network_rows,
+
+Path       : C:\Users\admin\OneDrive\سطح المكتب\ALSAAB - AI\backend\main.py
+LineNumber : 7849
+Line       :         print(f"DOWNLINE TRANSFER PREVIEW ERROR ❌ 
+             partner_id={partner_id} error={error}", flush=True)
+
+Path       : C:\Users\admin\OneDrive\سطح المكتب\ALSAAB - AI\backend\main.py
+LineNumber : 7864
+Line       : # ===== ALSAAB_DOWNLINE_TRANSFER_PREVIEW_RENDER_V1 END =====
+
+Path       : C:\Users\admin\OneDrive\سطح المكتب\ALSAAB - AI\backend\main.py
+LineNumber : 7868
+Line       : # ===== ALSAAB_DOWNLINE_TRANSFER_EXECUTE_RENDER_V1 START =====
+
+Path       : C:\Users\admin\OneDrive\سطح المكتب\ALSAAB - AI\backend\main.py
+LineNumber : 7870
+Line       : @app.route("/admin/transfer-downline-to-alsaab", methods=["POST"])
+
+Path       : C:\Users\admin\OneDrive\سطح المكتب\ALSAAB - AI\backend\main.py
+LineNumber : 7871
+Line       : def admin_transfer_downline_to_alsaab():
+
+Path       : C:\Users\admin\OneDrive\سطح المكتب\ALSAAB - AI\backend\main.py
+LineNumber : 7874
+Line       :     Transfer direct downline of a partner to alsaab.
+
+Path       : C:\Users\admin\OneDrive\سطح المكتب\ALSAAB - AI\backend\main.py
+LineNumber : 7880
+Line       :     - Apps Script logs AuditLogs and rebuilds PartnerTree.
+
+Path       : C:\Users\admin\OneDrive\سطح المكتب\ALSAAB - AI\backend\main.py
+LineNumber : 7942
+Line       :                 "action": "admin_transfer_downline_to_alsaab",
+
+Path       : C:\Users\admin\OneDrive\سطح المكتب\ALSAAB - AI\backend\main.py
+LineNumber : 7949
+Line       :             label="admin_transfer_downline_to_alsaab"
+
+Path       : C:\Users\admin\OneDrive\سطح المكتب\ALSAAB - AI\backend\main.py
+LineNumber : 7953
+Line       :             f"ADMIN TRANSFER DOWNLINE TO ALSAAB ✅ 
+             partner_id={partner_id} result={result}",
+
+Path       : C:\Users\admin\OneDrive\سطح المكتب\ALSAAB - AI\backend\main.py
+LineNumber : 7966
+Line       :             f"/admin-dashboard?key={quote(key)}&partner_id={quote(pa
+             rtner_id)}&admin_action=downline_transferred&transferred={transferre
+             d_count}"
+
+Path       : C:\Users\admin\OneDrive\سطح المكتب\ALSAAB - AI\backend\main.py
+LineNumber : 7971
+Line       :             f"ADMIN TRANSFER DOWNLINE ERROR ❌ 
+             partner_id={partner_id} error={error}",
+
+Path       : C:\Users\admin\OneDrive\سطح المكتب\ALSAAB - AI\backend\main.py
+LineNumber : 7982
+Line       :             f"/admin-dashboard?key={quote(key)}&partner_id={quote(pa
+             rtner_id)}&admin_action=downline_transfer_error"
+
+Path       : C:\Users\admin\OneDrive\سطح المكتب\ALSAAB - AI\backend\main.py
+LineNumber : 7985
+Line       : # ===== ALSAAB_DOWNLINE_TRANSFER_EXECUTE_RENDER_V1 END =====
+
+
+

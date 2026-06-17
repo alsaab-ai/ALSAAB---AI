@@ -1,0 +1,26 @@
+﻿170:         return PACKAGE_STARTER
+171: 
+172:     return lowered
+173: 
+174: 
+175: def normalize_course_code(value: Any) -> str:
+176:     raw = _clean_text(value)
+177:     lowered = raw.lower()
+178: 
+179:     if not lowered:
+180:         return ""
+181: 
+182:     if lowered in COURSE_ALIASES:
+183:         return COURSE_ALIASES[lowered]
+184: 
+185:     if "مبيعات" in raw:
+186:         return COURSE_PRO_MARKETER_MINDSET_69
+187: 
+188:     if "فلسفة" in raw:
+189:         return COURSE_LIFE_PHILOSOPHY_FREE
+190: 
+191:     if "تغيير" in raw:
+192:         return COURSE_CHANGE_JOURNEY_149
+193: 
+194:     if "تسويق" in raw:
+195:         return COURSE_MARKETING_FREE

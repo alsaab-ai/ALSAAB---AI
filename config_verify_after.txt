@@ -1,0 +1,31 @@
+﻿PACKAGE_ORDER = ['entry', 'starter', 'growth', 'elite', 'diamond']
+entry 99 AED monthly 500 0
+link: https://buy.stripe.com/4gMcN61d2dxI6ku10zaEE07
+price: price_1Tj84XJbltD9Bsg8rOGTTn3D
+product: prod_UiZCqDWqXkzVLL
+stripe_config: {'plan_name': 'entry', 'payment_link': 'https://buy.stripe.com/4gMcN61d2dxI6ku10zaEE07', 'internal_payment_route': 'https://alsaab-ai.onrender.com/pay/entry', 'monthly_reply_limit': 500, 'package_amount': '99 AED', 'subscription_type': 'monthly'}
+---
+starter 299 AED monthly 2000 0
+link: https://buy.stripe.com/aFa8wQ9Jy8docISeRpaEE08
+price: price_1Tj8JmJbltD9Bsg81rMyR7lJ
+product: prod_UiZS4ivHpbRIbE
+stripe_config: {'plan_name': 'starter', 'payment_link': 'https://buy.stripe.com/aFa8wQ9Jy8docISeRpaEE08', 'internal_payment_route': 'https://alsaab-ai.onrender.com/pay/starter', 'monthly_reply_limit': 2000, 'package_amount': '299 AED', 'subscription_type': 'monthly'}
+---
+growth 599 AED monthly 6000 1000
+link: https://buy.stripe.com/7sY14obRG8doaAK5gPaEE09
+price: price_1Tj8MQJbltD9Bsg8XL7xwOYe
+product: prod_UiZVcDRBvn38CN
+stripe_config: {'plan_name': 'growth', 'payment_link': 'https://buy.stripe.com/7sY14obRG8doaAK5gPaEE09', 'internal_payment_route': 'https://alsaab-ai.onrender.com/pay/growth', 'monthly_reply_limit': 6000, 'package_amount': '599 AED', 'subscription_type': 'monthly'}
+---
+elite 1199 AED monthly 15000 2000
+link: https://buy.stripe.com/28E9AUf3SalwbEO4cLaEE0a
+price: price_1Tj8OwJbltD9Bsg8h7DCVKbY
+product: prod_UiZY0MsCbzD3dC
+stripe_config: {'plan_name': 'elite', 'payment_link': 'https://buy.stripe.com/28E9AUf3SalwbEO4cLaEE0a', 'internal_payment_route': 'https://alsaab-ai.onrender.com/pay/elite', 'monthly_reply_limit': 15000, 'package_amount': '1199 AED', 'subscription_type': 'monthly'}
+---
+diamond 2399 AED monthly 40000 5000
+link: https://buy.stripe.com/aFaeVe7Bq51c4cmcJhaEE0b
+price: price_1Tj8T7JbltD9Bsg8bdi7XyiL
+product: prod_UiZcnUHa54wiu8
+stripe_config: {'plan_name': 'diamond', 'payment_link': 'https://buy.stripe.com/aFaeVe7Bq51c4cmcJhaEE0b', 'internal_payment_route': 'https://alsaab-ai.onrender.com/pay/diamond', 'monthly_reply_limit': 40000, 'package_amount': '2399 AED', 'subscription_type': 'monthly'}
+---

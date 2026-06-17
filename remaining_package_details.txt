@@ -1,0 +1,555 @@
+﻿
+
+===== backend\config.py L270-L310 =====
+270:     },
+271:     "level_2": {
+272:         "name_ar": "Ø§Ù„Ù…Ø³ØªÙˆÙ‰ Ø§Ù„Ø«Ø§Ù†ÙŠ",
+273:         "title_ar": "Ø´Ø±ÙŠÙƒ Ø§Ù„Ù†Ù…Ùˆ",
+274:         "requirements": "Ø§Ù„ØªØ±Ù‚ÙŠØ© Ø¥Ù„Ù‰ Ø¨Ø§Ù‚Ø© Ø§Ù„Ù†Ù…Ùˆ + Ø¨ÙŠØ¹ 2 Ø¹Ù…Ù„Ø§Ø¡ Ù…Ø¯ÙÙˆØ¹ÙŠÙ†",
+275:         "benefits": "+5% Ø¹Ù…ÙˆÙ„Ø© Ø´Ù‡Ø±ÙŠØ© Ø¥Ø¶Ø§ÙÙŠØ©",
+276:         "commission_percent": 5,
+277:         "commission_depth": 2
+278:     },
+279:     "level_3": {
+280:         "name_ar": "Ø§Ù„Ù…Ø³ØªÙˆÙ‰ Ø§Ù„Ø«Ø§Ù„Ø«",
+281:         "title_ar": "Ø´Ø±ÙŠÙƒ Ø§Ù„Ù…Ø¨ÙŠØ¹Ø§Øª",
+282:         "requirements": "Ø´Ø±Ø§Ø¡ ÙƒÙˆØ±Ø³ Ø§Ù„Ù…Ø¨ÙŠØ¹Ø§Øª 99$ + Ø¨ÙŠØ¹ 5 Ø¹Ù…Ù„Ø§Ø¡",
+283:         "benefits": "+4% Ø¹Ù…ÙˆÙ„Ø© Ø´Ù‡Ø±ÙŠØ© Ø¥Ø¶Ø§ÙÙŠØ©",
+284:         "commission_percent": 4,
+285:         "commission_depth": 3
+286:     },
+287:     "level_4": {
+288:         "name_ar": "Ø§Ù„Ù…Ø³ØªÙˆÙ‰ Ø§Ù„Ø±Ø§Ø¨Ø¹",
+289:         "title_ar": "Ø´Ø±ÙŠÙƒ Ø§Ù„Ù‚ÙŠØ§Ø¯Ø©",
+290:         "requirements": "Ø´Ø±Ø§Ø¡ ÙˆØ±Ø´Ø© ÙÙ„Ø³ÙØ© Ø§Ù„Ø­ÙŠØ§Ø© 299$ + Ø¥Ø¯Ø®Ø§Ù„ 20 Ø¹Ù…ÙŠÙ„ Ù†Ø´Ø·",
+291:         "benefits": "+3% Ø¹Ù…ÙˆÙ„Ø© Ø´Ù‡Ø±ÙŠØ© Ø¥Ø¶Ø§ÙÙŠØ©",
+292:         "commission_percent": 3,
+293:         "commission_depth": 4,
+294:         "locked": True,
+295:         "teaser": "Ø§Ù„Ø¯Ø®Ù„ Ø§Ù„Ø£ÙƒØ¨Ø± ÙŠØ¨Ø¯Ø£ ÙÙŠ Ø§Ù„Ù…Ø³ØªÙˆÙŠØ§Øª Ø§Ù„Ø£Ø¹Ù„Ù‰ ðŸ”"
+296:     },
+297:     "level_5": {
+298:         "name_ar": "Ø§Ù„Ù…Ø³ØªÙˆÙ‰ Ø§Ù„Ø®Ø§Ù…Ø³",
+299:         "title_ar": "Ø´Ø±ÙŠÙƒ Ø§Ù„Ù†Ø®Ø¨Ø©",
+300:         "requirements": "Ø´Ø±Ø§Ø¡ ÙƒÙˆØ±Ø³ Ø±Ø­Ù„Ø© Ø§Ù„ØªØºÙŠÙŠØ± 1099$ + Ø¥Ø¯Ø®Ø§Ù„ 50 Ø¹Ù…ÙŠÙ„ Ù†Ø´Ø·",
+301:         "benefits": "+2% Ø¹Ù…ÙˆÙ„Ø© Ø´Ù‡Ø±ÙŠØ© Ø¥Ø¶Ø§ÙÙŠØ©",
+302:         "commission_percent": 2,
+303:         "commission_depth": 5,
+304:         "locked": True,
+305:         "teaser": "Ù‡Ø°Ø§ Ù…Ø³ØªÙˆÙ‰ Ø§Ù„Ù‚Ù…Ø© ÙˆØ§Ù„Ø¯Ø®Ù„ Ø§Ù„Ø£Ù‚ÙˆÙ‰ ðŸ”"
+306:     }
+307: }
+308: 
+309: 
+310: # =========================
+
+===== backend\config.py L470-L510 =====
+470: PAYMENT_ROUTE_LINKS = {
+471:     "starter": f"{APP_BASE_URL}/pay/starter",
+472:     "growth": f"{APP_BASE_URL}/pay/growth",
+473:     "elite": f"{APP_BASE_URL}/pay/elite",
+474: }
+475: 
+476: # Ø¥Ø¹Ø¯Ø§Ø¯Ø§Øª Ø±Ø¨Ø· Ø§Ù„Ø¨Ø§Ù‚Ø§Øª Ù…Ø¹ Stripe Webhook.
+477: # Webhook Ø³ÙŠØ³ØªØ®Ø¯Ù… plan_name Ù„ØªÙØ¹ÙŠÙ„ Ø§Ù„Ø§Ø´ØªØ±Ø§Ùƒ ÙˆØ­Ø¯ Ø§Ù„Ø±Ø¯ÙˆØ¯.
+478: STRIPE_PLAN_CONFIG = {
+479:     "starter": {
+480:         "plan_name": "starter",
+481:         "payment_link": PAYMENT_LINKS["starter"],
+482:         "internal_payment_route": PAYMENT_ROUTE_LINKS["starter"],
+483:         "monthly_reply_limit": PACKAGES["starter"]["monthly_reply_limit"],
+484:         "package_amount": "599 AED",
+485:         "subscription_type": "monthly",
+486:     },
+487:     "growth": {
+488:         "plan_name": "growth",
+489:         "payment_link": PAYMENT_LINKS["growth"],
+490:         "internal_payment_route": PAYMENT_ROUTE_LINKS["growth"],
+491:         "monthly_reply_limit": PACKAGES["growth"]["monthly_reply_limit"],
+492:         "package_amount": "1099 AED",
+493:         "subscription_type": "monthly",
+494:     },
+495:     "elite": {
+496:         "plan_name": "elite",
+497:         "payment_link": PAYMENT_LINKS["elite"],
+498:         "internal_payment_route": PAYMENT_ROUTE_LINKS["elite"],
+499:         "monthly_reply_limit": PACKAGES["elite"]["monthly_reply_limit"],
+500:         "package_amount": "2099 AED",
+501:         "subscription_type": "monthly",
+502:     },
+503: }
+504: 
+505: # Ù…ÙØªØ§Ø­ client_reference_id Ø¯Ø§Ø®Ù„ Stripe Checkout.
+506: # Ù„Ø§Ø­Ù‚Ø§Ù‹ Ø¨Ù†Ø±Ø³Ù„Ù‡ Ø¨Ù‡Ø°Ø§ Ø§Ù„Ø´ÙƒÙ„:
+507: # session_id::plan_name
+508: STRIPE_CLIENT_REFERENCE_SEPARATOR = "::"
+509: 
+510: # Ø±ÙˆØ§Ø¨Ø· ÙŠØ±Ø¬Ø¹ Ù„Ù‡Ø§ Ø§Ù„Ø¹Ù…ÙŠÙ„ Ø¨Ø¹Ø¯ Ø§Ù„Ø¯ÙØ¹ Ø£Ùˆ Ø¹Ù†Ø¯ Ø§Ù„Ø¥Ù„ØºØ§Ø¡.
+
+===== backend\config.py L620-L770 =====
+620: if not isinstance(_package_order, list):
+621:     _package_order = ["entry", "starter", "growth", "elite"]
+622:     globals()["PACKAGE_ORDER"] = _package_order
+623: elif "entry" not in _package_order:
+624:     _package_order.insert(0, "entry")
+625: 
+626: # ===== ALSAAB_ENTRY_PACKAGE_SAFE_V3 END =====
+627: 
+628: # ===== ALSAAB_PACKAGES_2026_PRICE_RESET_V1 START =====
+629: 
+630: # Final approved packages:
+631: # Entry 99 / Starter 299 / Growth 599 / Elite 1199 / Diamond 2399
+632: 
+633: PACKAGES["entry"] = {
+634:     "name_ar": "Ø¨Ø§Ù‚Ø© Ø§Ù„Ø¯Ø®ÙˆÙ„",
+635:     "name_en": "Entry",
+636:     "price_ar": "99 Ø¯Ø±Ù‡Ù… Ø¥Ù…Ø§Ø±Ø§ØªÙŠ Ø´Ù‡Ø±ÙŠØ§Ù‹",
+637:     "price_en": "99 AED monthly",
+638:     "monthly_reply_limit": 500,
+639:     "customer_reply_limit": 500,
+640:     "base_customer_reply_limit": 500,
+641:     "gift_reply_limit": 0,
+642:     "total_customer_reply_limit": 500,
+643:     "owner_advisory_reply_limit": 0,
+644:     "main_channel": "whatsapp",
+645:     "channels": ["whatsapp"],
+646:     "whatsapp_included": True,
+647:     "website_included": False,
+648:     "instagram_included": False,
+649:     "dashboard_advisory_enabled": False,
+650:     "image_catalog_enabled": False,
+651:     "client_payment_links_enabled": False,
+652:     "max_payment_links": 0,
+653:     "max_product_images": 0,
+654:     "max_product_image_groups": 0,
+655:     "advisor_level": "none",
+656:     "recommended": False,
+657: }
+658: 
+659: PACKAGES["starter"].update({
+660:     "price_ar": "299 Ø¯Ø±Ù‡Ù… Ø¥Ù…Ø§Ø±Ø§ØªÙŠ Ø´Ù‡Ø±ÙŠØ§Ù‹",
+661:     "price_en": "299 AED monthly",
+662:     "monthly_reply_limit": 2000,
+663:     "customer_reply_limit": 2000,
+664:     "base_customer_reply_limit": 2000,
+665:     "gift_reply_limit": 0,
+666:     "total_customer_reply_limit": 2000,
+667:     "owner_advisory_reply_limit": 0,
+668:     "max_payment_links": 20,
+669:     "max_product_images": 10,
+670:     "max_product_image_groups": 10,
+671:     "client_payment_links_enabled": True,
+672:     "image_catalog_enabled": True,
+673: })
+674: 
+675: PACKAGES["growth"].update({
+676:     "price_ar": "599 Ø¯Ø±Ù‡Ù… Ø¥Ù…Ø§Ø±Ø§ØªÙŠ Ø´Ù‡Ø±ÙŠØ§Ù‹",
+677:     "price_en": "599 AED monthly",
+678:     "monthly_reply_limit": 6000,
+679:     "customer_reply_limit": 6000,
+680:     "base_customer_reply_limit": 6000,
+681:     "gift_reply_limit": 0,
+682:     "total_customer_reply_limit": 6000,
+683:     "owner_advisory_reply_limit": 1000,
+684:     "max_payment_links": 50,
+685:     "max_product_images": 50,
+686:     "max_product_image_groups": 50,
+687: })
+688: 
+689: PACKAGES["elite"].update({
+690:     "price_ar": "1199 Ø¯Ø±Ù‡Ù… Ø¥Ù…Ø§Ø±Ø§ØªÙŠ Ø´Ù‡Ø±ÙŠØ§Ù‹",
+691:     "price_en": "1199 AED monthly",
+692:     "monthly_reply_limit": 15000,
+693:     "customer_reply_limit": 15000,
+694:     "base_customer_reply_limit": 12000,
+695:     "gift_reply_limit": 3000,
+696:     "total_customer_reply_limit": 15000,
+697:     "owner_advisory_reply_limit": 2000,
+698: })
+699: 
+700: PACKAGES["diamond"] = {
+701:     "name_ar": "Ø§Ù„Ø¨Ø§Ù‚Ø© Ø§Ù„Ù…Ø§Ø³ÙŠØ©",
+702:     "name_en": "Diamond",
+703:     "price_ar": "2399 Ø¯Ø±Ù‡Ù… Ø¥Ù…Ø§Ø±Ø§ØªÙŠ Ø´Ù‡Ø±ÙŠØ§Ù‹",
+704:     "price_en": "2399 AED monthly",
+705:     "monthly_reply_limit": 40000,
+706:     "customer_reply_limit": 40000,
+707:     "base_customer_reply_limit": 40000,
+708:     "gift_reply_limit": 0,
+709:     "total_customer_reply_limit": 40000,
+710:     "owner_advisory_reply_limit": 5000,
+711:     "main_channel": "whatsapp + website + instagram",
+712:     "channels": ["whatsapp", "website", "instagram"],
+713:     "whatsapp_included": True,
+714:     "website_included": True,
+715:     "instagram_included": True,
+716:     "dashboard_advisory_enabled": True,
+717:     "image_catalog_enabled": True,
+718:     "client_payment_links_enabled": True,
+719:     "advisor_level": "diamond_business_sales_advisor",
+720:     "recommended": False,
+721: }
+722: 
+723: PAYMENT_LINKS.update({
+724:     "entry": "https://buy.stripe.com/4gMcN61d2dxI6ku10zaEE07",
+725:     "starter": "https://buy.stripe.com/aFa8wQ9Jy8docISeRpaEE08",
+726:     "growth": "https://buy.stripe.com/7sY14obRG8doaAK5gPaEE09",
+727:     "elite": "https://buy.stripe.com/28E9AUf3SalwbEO4cLaEE0a",
+728:     "diamond": "https://buy.stripe.com/aFaeVe7Bq51c4cmcJhaEE0b",
+729: })
+730: 
+731: STRIPE_PRICE_IDS = {
+732:     "entry": "price_1Tj84XJbltD9Bsg8rOGTTn3D",
+733:     "starter": "price_1Tj8JmJbltD9Bsg81rMyR7lJ",
+734:     "growth": "price_1Tj8MQJbltD9Bsg8XL7xwOYe",
+735:     "elite": "price_1Tj8OwJbltD9Bsg8h7DCVKbY",
+736:     "diamond": "price_1Tj8T7JbltD9Bsg8bdi7XyiL",
+737: }
+738: 
+739: STRIPE_PRODUCT_IDS = {
+740:     "entry": "prod_UiZCqDWqXkzVLL",
+741:     "starter": "prod_UiZS4ivHpbRIbE",
+742:     "growth": "prod_UiZVcDRBvn38CN",
+743:     "elite": "prod_UiZY0MsCbzD3dC",
+744:     "diamond": "prod_UiZcnUHa54wiu8",
+745: }
+746: 
+747: PAYMENT_ROUTE_LINKS.update({
+748:     "entry": f"{APP_BASE_URL}/pay/entry",
+749:     "starter": f"{APP_BASE_URL}/pay/starter",
+750:     "growth": f"{APP_BASE_URL}/pay/growth",
+751:     "elite": f"{APP_BASE_URL}/pay/elite",
+752:     "diamond": f"{APP_BASE_URL}/pay/diamond",
+753: })
+754: 
+755: STRIPE_PLAN_CONFIG = {
+756:     plan: {
+757:         "plan_name": plan,
+758:         "payment_link": PAYMENT_LINKS[plan],
+759:         "internal_payment_route": PAYMENT_ROUTE_LINKS[plan],
+760:         "monthly_reply_limit": PACKAGES[plan]["monthly_reply_limit"],
+761:         "package_amount": PACKAGES[plan]["price_en"].replace(" monthly", ""),
+762:         "subscription_type": "monthly",
+763:     }
+764:     for plan in ["entry", "starter", "growth", "elite", "diamond"]
+765: }
+766: 
+767: PACKAGE_ORDER = ["entry", "starter", "growth", "elite", "diamond"]
+768: 
+769: # ===== ALSAAB_PACKAGES_2026_PRICE_RESET_V1 END =====
+770: 
+
+===== backend\database.py L360-L430 =====
+360:         )
+361:         row = c.fetchone()
+362: 
+363:         if row and row[0]:
+364:             conn.close()
+365:             return normalize_partner_id(row[0])
+366: 
+367:         c.execute(
+368:             """
+369:             SELECT source_partner_id
+370:             FROM leads
+371:             WHERE session_id=? AND source_partner_id IS NOT NULL AND source_partner_id != ''
+372:             ORDER BY id DESC
+373:             LIMIT 1
+374:             """,
+375:             (session_id,)
+376:         )
+377:         row = c.fetchone()
+378: 
+379:         if row and row[0]:
+380:             conn.close()
+381:             return normalize_partner_id(row[0])
+382: 
+383:     except Exception as error:
+384:         print(f"GET SOURCE PARTNER ERROR ❌ {error}", flush=True)
+385: 
+386:     conn.close()
+387:     return ""
+388: 
+389: 
+390: def normalize_partner_rank(rank_value):
+391:     if not rank_value:
+392:         return "Level 1"
+393: 
+394:     rank_value = str(rank_value).strip()
+395: 
+396:     aliases = {
+397:         "1": "Level 1",
+398:         "level 1": "Level 1",
+399:         "starter": "Level 1",
+400:         "starter partner": "Level 1",
+401:         "المستوى الأول": "Level 1",
+402: 
+403:         "2": "Level 2",
+404:         "level 2": "Level 2",
+405:         "growth": "Level 2",
+406:         "growth partner": "Level 2",
+407:         "المستوى الثاني": "Level 2",
+408: 
+409:         "3": "Level 3",
+410:         "level 3": "Level 3",
+411:         "sales": "Level 3",
+412:         "sales partner": "Level 3",
+413:         "المستوى الثالث": "Level 3",
+414: 
+415:         "4": "Level 4",
+416:         "level 4": "Level 4",
+417:         "leader": "Level 4",
+418:         "leader partner": "Level 4",
+419:         "المستوى الرابع": "Level 4",
+420: 
+421:         "5": "Level 5",
+422:         "level 5": "Level 5",
+423:         "elite": "Level 5",
+424:         "elite partner": "Level 5",
+425:         "المستوى الخامس": "Level 5",
+426:     }
+427: 
+428:     normalized_key = rank_value.lower()
+429:     return aliases.get(normalized_key, rank_value)
+430: 
+
+===== backend\database.py L3638-L3655 =====
+3638:         return "Level 0"
+3639: 
+3640:     return f"Level {level_number}"
+3641: 
+3642: 
+3643: def _course_code_to_display_name(course_code):
+3644:     mapping = {
+3645:         "marketing_course_free": "كورس التسويق المجاني",
+3646:         "sales_course_99": "كورس المبيعات 99$",
+3647:         "life_philosophy_workshop_299": "ورشة فلسفة الحياة 299$",
+3648:         "change_journey_course_1099": "كورس رحلة التغيير 1099$",
+3649:     }
+3650: 
+3651:     return mapping.get(str(course_code or "").strip(), str(course_code or "").strip())
+3652: 
+3653: 
+3654: def _build_required_course_text(required_courses):
+3655:     required_courses = required_courses or []
+
+===== backend\database.py L4060-L4165 =====
+4060:     _alsaab_entry_patch_known_order_lists()
+4061:     _alsaab_entry_wrap_normalizers()
+4062:     _alsaab_entry_wrap_limit_functions()
+4063:     _al_saab_entry_patch_done = True
+4064: except Exception as _entry_database_error:
+4065:     print(f"ENTRY DATABASE PATCH WARNING: {_entry_database_error}", flush=True)
+4066: 
+4067: # ===== ALSAAB_ENTRY_DATABASE_SAFE_V1 END =====
+4068: 
+4069: # ===== ALSAAB_DIAMOND_DATABASE_SAFE_V1 START =====
+4070: 
+4071: DIAMOND_PLAN_KEY = "diamond"
+4072: 
+4073: DIAMOND_PLAN_ALIASES = {
+4074:     "diamond": "diamond",
+4075:     "دايموند": "diamond",
+4076:     "الماسية": "diamond",
+4077:     "باقة الماسية": "diamond",
+4078:     "الباقة الماسية": "diamond",
+4079: }
+4080: 
+4081: DIAMOND_PLAN_LIMITS = {
+4082:     "monthly_reply_limit": 40000,
+4083:     "customer_reply_limit": 40000,
+4084:     "owner_advisory_reply_limit": 5000,
+4085: }
+4086: 
+4087: def _alsaab_diamond_normalize_plan(value):
+4088:     raw = str(value or "").strip()
+4089:     if not raw:
+4090:         return ""
+4091:     raw_lower = raw.lower()
+4092:     if raw_lower in DIAMOND_PLAN_ALIASES:
+4093:         return DIAMOND_PLAN_ALIASES[raw_lower]
+4094:     if raw in DIAMOND_PLAN_ALIASES:
+4095:         return DIAMOND_PLAN_ALIASES[raw]
+4096:     return raw_lower
+4097: 
+4098: def _alsaab_diamond_wrap_normalizers():
+4099:     function_names = [
+4100:         "normalize_plan_name",
+4101:         "normalize_plan",
+4102:         "normalize_package_name",
+4103:         "normalize_package",
+4104:     ]
+4105: 
+4106:     for function_name in function_names:
+4107:         old_function = globals().get(function_name)
+4108: 
+4109:         if not callable(old_function):
+4110:             continue
+4111: 
+4112:         if getattr(old_function, "_alsaab_diamond_wrapped", False):
+4113:             continue
+4114: 
+4115:         def wrapper(value=None, *args, _old_function=old_function, **kwargs):
+4116:             normalized = _alsaab_diamond_normalize_plan(value)
+4117:             if normalized == "diamond":
+4118:                 return "diamond"
+4119:             return _old_function(value, *args, **kwargs)
+4120: 
+4121:         wrapper._alsaab_diamond_wrapped = True
+4122:         globals()[function_name] = wrapper
+4123: 
+4124: def _alsaab_diamond_wrap_limit_functions():
+4125:     function_names = [
+4126:         "get_plan_reply_limit",
+4127:         "get_plan_owner_advisory_reply_limit",
+4128:         "get_customer_reply_limit",
+4129:         "get_owner_advisory_reply_limit",
+4130:         "get_monthly_reply_limit",
+4131:     ]
+4132: 
+4133:     for function_name in function_names:
+4134:         old_function = globals().get(function_name)
+4135: 
+4136:         if not callable(old_function):
+4137:             continue
+4138: 
+4139:         if getattr(old_function, "_alsaab_diamond_wrapped", False):
+4140:             continue
+4141: 
+4142:         def wrapper(plan=None, *args, _old_function=old_function, _function_name=function_name, **kwargs):
+4143:             normalized = _alsaab_diamond_normalize_plan(plan)
+4144:             if normalized == "diamond":
+4145:                 if "owner_advisory" in _function_name:
+4146:                     return 5000
+4147:                 return 40000
+4148:             return _old_function(plan, *args, **kwargs)
+4149: 
+4150:         wrapper._alsaab_diamond_wrapped = True
+4151:         globals()[function_name] = wrapper
+4152: 
+4153: try:
+4154:     _alsaab_diamond_wrap_normalizers()
+4155:     _alsaab_diamond_wrap_limit_functions()
+4156: except Exception as _diamond_database_error:
+4157:     print(f"DIAMOND DATABASE PATCH WARNING: {_diamond_database_error}", flush=True)
+4158: 
+4159: # ===== ALSAAB_DIAMOND_DATABASE_SAFE_V1 END =====
+4160: 
+4161: 
+4162: 
+4163: 
+4164: 
+4165: 
+
+===== backend\main.py L2415-L2435 =====
+2415:                 "package_amount optional"
+2416:             ],
+2417:             example_body={
+2418:                 "key": ADMIN_KEY,
+2419:                 "session_id": "commission-test-001",
+2420:                 "plan": "growth",
+2421:                 "source_partner_id": "ALS-P00001",
+2422:                 "package_amount": "1099 AED",
+2423:                 "notes": "manual_post_activation"
+2424:             }
+2425:         )
+2426: 
+2427:     session_id = get_payload_value(payload, "session_id")
+2428:     plan = get_payload_value(payload, "plan", default="growth")
+2429:     client_id = get_payload_value(payload, "client_id")
+2430:     bot_id = get_payload_value(payload, "bot_id")
+2431:     status = get_payload_value(payload, "status", default="active")
+2432:     limit = get_payload_value(payload, "limit")
+2433:     package_amount = get_payload_value(payload, "package_amount")
+2434:     notes = get_payload_value(payload, "notes")
+2435: 
+
+===== backend\main.py L2990-L3055 =====
+2990:             except Exception:
+2991:                 return default
+2992: 
+2993:         current_level_num = _rank_level_number(search_level.get("current_level") or search_level.get("partner_rank"))
+2994:         completed_sales_count = _safe_int(search_level.get("completed_sales") or search_customers.get("active_direct_paid_count") or 0)
+2995: 
+2996:         rank_meta = {
+2997:             1: {"rank": "Entry Partner", "color": "#B8860B", "glow": "rgba(184,134,11,.28)"},
+2998:             2: {"rank": "Starter Partner", "color": "#C0C0C0", "glow": "rgba(192,192,192,.25)"},
+2999:             3: {"rank": "Growth Partner", "color": "#D7B85A", "glow": "rgba(215,184,90,.32)"},
+3000:             4: {"rank": "Elite Partner", "color": "#F0D98A", "glow": "rgba(240,217,138,.38)"},
+3001:             5: {"rank": "Diamond Partner", "color": "#FFFFFF", "glow": "rgba(255,215,0,.42)"},
+3002:         }
+3003: 
+3004:         next_level_num = current_level_num + 1 if current_level_num < 5 else 5
+3005: 
+3006:         next_requirements = {
+3007:             2: {
+3008:                 "sales": 2,
+3009:                 "course": "-",
+3010:                 "course_token": "",
+3011:                 "text_ar": "Ø¨Ø§Ù‚Ø© Starter Ø£Ùˆ Ø£Ø¹Ù„Ù‰ + 2 Ø¹Ù…Ù„Ø§Ø¡ Ù†Ø´Ø·ÙŠÙ†",
+3012:                 "text_en": "Starter package or higher + 2 active customers",
+3013:             },
+3014:             3: {
+3015:                 "sales": 5,
+3016:                 "course": "ÙƒÙˆØ±Ø³ Ø§Ù„Ù…Ø³ÙˆÙ‚ Ø§Ù„Ù…Ø­ØªØ±Ù 69$",
+3017:                 "course_token": "69",
+3018:                 "text_ar": "ÙƒÙˆØ±Ø³ Ø§Ù„Ù…Ø³ÙˆÙ‚ Ø§Ù„Ù…Ø­ØªØ±Ù 69$ + 5 Ø¹Ù…Ù„Ø§Ø¡ Ù†Ø´Ø·ÙŠÙ†",
+3019:                 "text_en": "Professional Marketer Course $69 + 5 active customers",
+3020:             },
+3021:             4: {
+3022:                 "sales": 10,
+3023:                 "course": "ÙƒÙˆØ±Ø³ Ù…Ù‡Ø§Ø±Ø§Øª Ø§Ù„Ù…Ø¨ÙŠØ¹Ø§Øª 99$",
+3024:                 "course_token": "89",
+3025:                 "text_ar": "ÙƒÙˆØ±Ø³ Ù…Ù‡Ø§Ø±Ø§Øª Ø§Ù„Ù…Ø¨ÙŠØ¹Ø§Øª 99$ + 10 Ø¹Ù…Ù„Ø§Ø¡ Ù†Ø´Ø·ÙŠÙ†",
+3026:                 "text_en": "Sales Skills Course $89 + 10 active customers",
+3027:             },
+3028:             5: {
+3029:                 "sales": 20,
+3030:                 "course": "ÙƒÙˆØ±Ø³ Ø±Ø­Ù„Ø© Ø§Ù„ØªØºÙŠÙŠØ± 299$",
+3031:                 "course_token": "149",
+3032:                 "text_ar": "ÙƒÙˆØ±Ø³ Ø±Ø­Ù„Ø© Ø§Ù„ØªØºÙŠÙŠØ± 299$ + 20 Ø¹Ù…ÙŠÙ„ Ù†Ø´Ø·",
+3033:                 "text_en": "Change Journey Course $149 + 20 active customers",
+3034:             },
+3035:         }
+3036: 
+3037:         requirement = next_requirements.get(next_level_num, {})
+3038:         required_sales_count = _safe_int(requirement.get("sales"), 0)
+3039: 
+3040:         purchased_courses_text = str(purchased_courses or "").lower()
+3041:         course_token = str(requirement.get("course_token") or "").lower()
+3042:         course_done = True if not course_token else course_token in purchased_courses_text
+3043: 
+3044:         package_value = str(search_level.get("current_package") or "").lower()
+3045:         package_ok = True
+3046:         if next_level_num == 2:
+3047:             package_ok = package_value in ("starter", "growth", "elite", "diamond")
+3048: 
+3049:         missing_items = []
+3050: 
+3051:         if next_level_num == 2 and not package_ok:
+3052:             missing_items.append("Ø§Ù„ØªØ±Ù‚ÙŠØ© Ø¥Ù„Ù‰ Ø¨Ø§Ù‚Ø© Starter Ø£Ùˆ Ø£Ø¹Ù„Ù‰" if is_ar else "Upgrade to Starter package or higher")
+3053: 
+3054:         if required_sales_count and completed_sales_count < required_sales_count:
+3055:             missing_items.append(
+
+===== backend\upgrade_routes.py L590-L610 =====
+590:     <input type="hidden" name="partner_id" id="alsaabUpgradePartnerId">
+591: 
+592:     <label>Ø§Ù„Ø¨Ø§Ù‚Ø© Ø§Ù„Ø­Ø§Ù„ÙŠØ©</label>
+593:     <select name="current_plan" required>
+594:       <option value="">Ø§Ø®ØªØ± Ø§Ù„Ø¨Ø§Ù‚Ø© Ø§Ù„Ø­Ø§Ù„ÙŠØ©</option>
+595:       <option value="entry">Ø§Ù„Ø¯Ø®ÙˆÙ„ / Entry</option>
+596:       <option value="starter">Ø§Ù„Ø¨Ø¯Ø§ÙŠØ© / Starter</option>
+597:       <option value="growth">Ø§Ù„Ù†Ù…Ùˆ / Growth</option>
+598:       <option value="elite">Ø§Ù„Ù†Ø®Ø¨Ø© / Elite</option>
+599:     </select>
+600: 
+601:     <label>Ø§Ù„Ø¨Ø§Ù‚Ø© Ø§Ù„Ù…Ø·Ù„ÙˆØ¨Ø©</label>
+602:     <select name="target_plan" required>
+603:       <option value="">Ø§Ø®ØªØ± Ø§Ù„Ø¨Ø§Ù‚Ø© Ø§Ù„Ø¬Ø¯ÙŠØ¯Ø©</option>
+604:       <option value="starter">Ø§Ù„Ø¨Ø¯Ø§ÙŠØ© / Starter â€” 599 AED</option>
+605:       <option value="growth">Ø§Ù„Ù†Ù…Ùˆ / Growth â€” 1099 AED</option>
+606:       <option value="elite">Ø§Ù„Ù†Ø®Ø¨Ø© / Elite â€” 2099 AED</option>
+607:     </select>
+608: 
+609:     <label>Ù…Ù„Ø§Ø­Ø¸Ø§Øª Ø§Ø®ØªÙŠØ§Ø±ÙŠØ©</label>
+610:     <textarea name="customer_notes" placeholder="Ù…Ø«Ø§Ù„: Ø£Ø±ÙŠØ¯ Ø§Ù„ØªØ±Ù‚ÙŠØ© Ù„Ø£Ù†Ù†ÙŠ Ø£Ø­ØªØ§Ø¬ Ø±Ø¨Ø· Ø§Ù„Ù…ÙˆÙ‚Ø¹ Ø£Ùˆ Ø¹Ø¯Ø¯ Ø±Ø¯ÙˆØ¯ Ø£Ø¹Ù„Ù‰."></textarea>

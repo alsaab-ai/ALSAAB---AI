@@ -1,0 +1,130 @@
+﻿
+===== C:\Users\admin\OneDrive\سطح المكتب\ALSAAB - AI\backend\config.py | Line 36 =====
+        "price_ar": "599 درهم إماراتي شهرياً",
+
+===== C:\Users\admin\OneDrive\سطح المكتب\ALSAAB - AI\backend\config.py | Line 87 =====
+        "price_ar": "599 درهم إماراتي شهرياً",
+
+===== C:\Users\admin\OneDrive\سطح المكتب\ALSAAB - AI\backend\config.py | Line 471 =====
+    "starter": f"{APP_BASE_URL}/pay/starter",
+
+===== C:\Users\admin\OneDrive\سطح المكتب\ALSAAB - AI\backend\config.py | Line 472 =====
+    "growth": f"{APP_BASE_URL}/pay/growth",
+
+===== C:\Users\admin\OneDrive\سطح المكتب\ALSAAB - AI\backend\config.py | Line 473 =====
+    "elite": f"{APP_BASE_URL}/pay/elite",
+
+===== C:\Users\admin\OneDrive\سطح المكتب\ALSAAB - AI\backend\config.py | Line 543 =====
+    "price_ar": "299 درهم إماراتي شهرياً",
+
+===== C:\Users\admin\OneDrive\سطح المكتب\ALSAAB - AI\backend\config.py | Line 577 =====
+_payment_route_links["entry"] = f"{_app_base}/pay/entry"
+
+===== C:\Users\admin\OneDrive\سطح المكتب\ALSAAB - AI\backend\config.py | Line 614 =====
+    "internal_payment_route": _payment_route_links.get("entry", "https://alsaab-ai.onrender.com/pay/entry"),
+
+===== C:\Users\admin\OneDrive\سطح المكتب\ALSAAB - AI\backend\config.py | Line 660 =====
+    "price_ar": "299 درهم إماراتي شهرياً",
+
+===== C:\Users\admin\OneDrive\سطح المكتب\ALSAAB - AI\backend\config.py | Line 676 =====
+    "price_ar": "599 درهم إماراتي شهرياً",
+
+===== C:\Users\admin\OneDrive\سطح المكتب\ALSAAB - AI\backend\config.py | Line 748 =====
+    "entry": f"{APP_BASE_URL}/pay/entry",
+
+===== C:\Users\admin\OneDrive\سطح المكتب\ALSAAB - AI\backend\config.py | Line 749 =====
+    "starter": f"{APP_BASE_URL}/pay/starter",
+
+===== C:\Users\admin\OneDrive\سطح المكتب\ALSAAB - AI\backend\config.py | Line 750 =====
+    "growth": f"{APP_BASE_URL}/pay/growth",
+
+===== C:\Users\admin\OneDrive\سطح المكتب\ALSAAB - AI\backend\config.py | Line 751 =====
+    "elite": f"{APP_BASE_URL}/pay/elite",
+
+===== C:\Users\admin\OneDrive\سطح المكتب\ALSAAB - AI\backend\config.py | Line 752 =====
+    "diamond": f"{APP_BASE_URL}/pay/diamond",
+
+===== C:\Users\admin\OneDrive\سطح المكتب\ALSAAB - AI\backend\config.py | Line 809 =====
+    "entry": f"{APP_BASE_URL}/pay/entry",
+
+===== C:\Users\admin\OneDrive\سطح المكتب\ALSAAB - AI\backend\config.py | Line 810 =====
+    "starter": f"{APP_BASE_URL}/pay/starter",
+
+===== C:\Users\admin\OneDrive\سطح المكتب\ALSAAB - AI\backend\config.py | Line 811 =====
+    "growth": f"{APP_BASE_URL}/pay/growth",
+
+===== C:\Users\admin\OneDrive\سطح المكتب\ALSAAB - AI\backend\config.py | Line 812 =====
+    "elite": f"{APP_BASE_URL}/pay/elite",
+
+===== C:\Users\admin\OneDrive\سطح المكتب\ALSAAB - AI\backend\config.py | Line 813 =====
+    "diamond": f"{APP_BASE_URL}/pay/diamond",
+
+===== C:\Users\admin\OneDrive\سطح المكتب\ALSAAB - AI\backend\entry_payment_routes.py | Line 38 =====
+        if path != "/pay/entry":
+
+===== C:\Users\admin\OneDrive\سطح المكتب\ALSAAB - AI\backend\prompt_builder.py | Line 39 =====
+        "starter": f"{APP_BASE_URL}/pay/starter",
+
+===== C:\Users\admin\OneDrive\سطح المكتب\ALSAAB - AI\backend\prompt_builder.py | Line 40 =====
+        "growth": f"{APP_BASE_URL}/pay/growth",
+
+===== C:\Users\admin\OneDrive\سطح المكتب\ALSAAB - AI\backend\prompt_builder.py | Line 41 =====
+        "elite": f"{APP_BASE_URL}/pay/elite",
+
+===== C:\Users\admin\OneDrive\سطح المكتب\ALSAAB - AI\backend\prompt_builder.py | Line 210 =====
+- البداية بـ 299 درهم شهرياً: موظف مبيعات ذكي على WhatsApp مع {starter_limit} رد شهري للعملاء، مناسبة كبداية وتجربة.
+
+===== C:\Users\admin\OneDrive\سطح المكتب\ALSAAB - AI\backend\prompt_builder.py | Line 211 =====
+- النمو بـ 599 درهم شهرياً: الباقة الموصى بها لمعظم المشاريع، فيها {growth_limit} رد للعملاء، واستشارات خاصة لصاحب المشروع بعدد {growth_advisory} رد شهري، وتشمل WhatsApp + إمكانية الموقع + صور المنتجات والكتالوجات + روابط دفع العميل الخاصة.
+
+===== C:\Users\admin\OneDrive\سطح المكتب\ALSAAB - AI\backend\prompt_builder.py | Line 1048 =====
+- 299 درهم شهرياً
+
+===== C:\Users\admin\OneDrive\سطح المكتب\ALSAAB - AI\backend\prompt_builder.py | Line 1056 =====
+- 599 درهم شهرياً
+
+===== C:\Users\admin\OneDrive\سطح المكتب\ALSAAB - AI\backend\prompt_builder.py | Line 1061 =====
+- 599 درهم شهرياً
+
+===== C:\Users\admin\OneDrive\سطح المكتب\ALSAAB - AI\backend\prompt_builder.py | Line 1241 =====
+- ممنوع تستخدم /pay/starter.
+
+===== C:\Users\admin\OneDrive\سطح المكتب\ALSAAB - AI\backend\prompt_builder.py | Line 1243 =====
+https://alsaab-ai.onrender.com/pay/entry
+
+===== C:\Users\admin\OneDrive\سطح المكتب\ALSAAB - AI\backend\prompt_builder.py | Line 1246 =====
+https://alsaab-ai.onrender.com/pay/entry?sid=<sid>
+
+===== C:\Users\admin\OneDrive\سطح المكتب\ALSAAB - AI\backend\prompt_builder.py | Line 1249 =====
+- السعر: 299 درهم شهرياً
+
+===== C:\Users\admin\OneDrive\سطح المكتب\ALSAAB - AI\backend\prompt_builder.py | Line 1258 =====
+https://alsaab-ai.onrender.com/pay/entry
+
+===== C:\Users\admin\OneDrive\سطح المكتب\ALSAAB - AI\backend\prompt_builder.py | Line 1332 =====
+- 299 درهم شهرياً
+
+===== C:\Users\admin\OneDrive\سطح المكتب\ALSAAB - AI\backend\prompt_builder.py | Line 1338 =====
+- 599 درهم شهرياً
+
+===== C:\Users\admin\OneDrive\سطح المكتب\ALSAAB - AI\backend\prompt_builder.py | Line 1440 =====
+- رابط الدفع الداخلي: /pay/entry
+
+===== C:\Users\admin\OneDrive\سطح المكتب\ALSAAB - AI\backend\prompt_builder.py | Line 1442 =====
+2) Starter / باقة البداية — 299 درهم شهرياً
+
+===== C:\Users\admin\OneDrive\سطح المكتب\ALSAAB - AI\backend\prompt_builder.py | Line 1445 =====
+- رابط الدفع الداخلي: /pay/starter
+
+===== C:\Users\admin\OneDrive\سطح المكتب\ALSAAB - AI\backend\prompt_builder.py | Line 1447 =====
+3) Growth / باقة النمو — 599 درهم شهرياً
+
+===== C:\Users\admin\OneDrive\سطح المكتب\ALSAAB - AI\backend\prompt_builder.py | Line 1450 =====
+- رابط الدفع الداخلي: /pay/growth
+
+===== C:\Users\admin\OneDrive\سطح المكتب\ALSAAB - AI\backend\prompt_builder.py | Line 1455 =====
+- رابط الدفع الداخلي: /pay/elite
+
+===== C:\Users\admin\OneDrive\سطح المكتب\ALSAAB - AI\backend\prompt_builder.py | Line 1460 =====
+- رابط الدفع الداخلي: /pay/diamond
+

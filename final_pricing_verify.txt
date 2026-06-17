@@ -1,0 +1,37 @@
+﻿
+    "diamond": "price_1Tj8T7JbltD9Bsg8bdi7XyiL",
+# ===== ALSAAB_ENTRY_UPGRADE_SAFE_V1 START =====
+# Entry can upgrade only upward: Entry -> Starter/Growth/Elite.
+# Entry is not a downgrade target.
+UPGRADE_PLAN_ORDER = ["entry", "starter", "growth", "elite", "diamond"]
+        "entry": "entry",
+        "Ø¯Ø®ÙˆÙ„": "entry",
+        "Ø§Ù„Ø¯Ø®ÙˆÙ„": "entry",
+        "Ø¨Ø§Ù‚Ø© Ø§Ù„Ø¯Ø®ÙˆÙ„": "entry",
+# ===== ALSAAB_ENTRY_UPGRADE_SAFE_V1 END =====
+a{display:inline-block;margin-top:15px;color:#f0cc68;text-decoration:none;border:
+1px solid rgba(215,184,90,.45);padding:10px 14px;border-radius:999px}
+a.btn,button{border:1px solid 
+rgba(215,184,90,.6);background:#111;color:#f0cc68;padding:10px 
+14px;border-radius:999px;text-decoration:none;font-weight:800;cursor:pointer}
+.badge{display:inline-block;border:1px solid 
+rgba(215,184,90,.45);color:#f0cc68;padding:5px 
+9px;border-radius:999px;font-weight:700;white-space:nowrap}
+      <option value="entry">Ø§Ù„Ø¯Ø®ÙˆÙ„ / Entry â€” 99 AED</option>
+      <option value="starter">Ø§Ù„Ø¨Ø¯Ø§ÙŠØ© / Starter â€” 299 AED</option>
+      <option value="growth">Ø§Ù„Ù†Ù…Ùˆ / Growth â€” 599 AED</option>
+      <option value="elite">Ø§Ù„Ù†Ø®Ø¨Ø© / Elite â€” 1199 AED</option>
+      <option value="diamond">Ø§Ù„Ù…Ø§Ø³ÙŠØ© / Diamond â€” 2399 AED</option>
+      <option value="starter">Ø§Ù„Ø¨Ø¯Ø§ÙŠØ© / Starter â€” 299 AED</option>
+      <option value="growth">Ø§Ù„Ù†Ù…Ùˆ / Growth â€” 599 AED</option>
+      <option value="elite">Ø§Ù„Ù†Ø®Ø¨Ø© / Elite â€” 1199 AED</option>
+      <option value="diamond">Ø§Ù„Ù…Ø§Ø³ÙŠØ© / Diamond â€” 2399 AED</option>
+.alsaab-upgrade-section button{margin-top:14px;border:1px solid rgba(215,184,90,.
+75);background:linear-gradient(135deg,#d7b85a,#a88425);color:#0b0b0b;border-radiu
+s:999px;padding:12px 18px;font-weight:900;cursor:pointer}
+      <a href="/admin/upgrade-requests?key={key}" 
+style="display:inline-block;margin-top:10px;border:1px solid rgba(215,184,90,.65)
+;color:#f0cc68;background:#111;border-radius:999px;padding:10px 
+14px;text-decoration:none;font-weight:900;">
+
+

@@ -1,0 +1,1161 @@
+﻿
+
+Path       : C:\Users\admin\OneDrive\سطح المكتب\ALSAAB - AI\backend\brain.py
+LineNumber : 53
+Line       : def normalize_source_partner_id(value):
+
+Path       : C:\Users\admin\OneDrive\سطح المكتب\ALSAAB - AI\backend\brain.py
+LineNumber : 70
+Line       : def apply_source_partner_to_state(current_state, source_partner_id):
+
+Path       : C:\Users\admin\OneDrive\سطح المكتب\ALSAAB - AI\backend\brain.py
+LineNumber : 71
+Line       :     normalized_source_partner_id = 
+             normalize_source_partner_id(source_partner_id)
+
+Path       : C:\Users\admin\OneDrive\سطح المكتب\ALSAAB - AI\backend\brain.py
+LineNumber : 73
+Line       :     if normalized_source_partner_id:
+
+Path       : C:\Users\admin\OneDrive\سطح المكتب\ALSAAB - AI\backend\brain.py
+LineNumber : 74
+Line       :         current_state["source_partner_id"] = 
+             normalized_source_partner_id
+
+Path       : C:\Users\admin\OneDrive\سطح المكتب\ALSAAB - AI\backend\brain.py
+LineNumber : 75
+Line       :         current_state["referrer_partner_id"] = 
+             normalized_source_partner_id
+
+Path       : C:\Users\admin\OneDrive\سطح المكتب\ALSAAB - AI\backend\brain.py
+LineNumber : 79
+Line       :         existing_source_partner_id = normalize_source_partner_id(
+
+Path       : C:\Users\admin\OneDrive\سطح المكتب\ALSAAB - AI\backend\brain.py
+LineNumber : 80
+Line       :             current_state.get("source_partner_id")
+
+Path       : C:\Users\admin\OneDrive\سطح المكتب\ALSAAB - AI\backend\brain.py
+LineNumber : 85
+Line       :         if existing_source_partner_id:
+
+Path       : C:\Users\admin\OneDrive\سطح المكتب\ALSAAB - AI\backend\brain.py
+LineNumber : 86
+Line       :             current_state["source_partner_id"] = 
+             existing_source_partner_id
+
+Path       : C:\Users\admin\OneDrive\سطح المكتب\ALSAAB - AI\backend\brain.py
+LineNumber : 87
+Line       :             current_state["referrer_partner_id"] = 
+             existing_source_partner_id
+
+Path       : C:\Users\admin\OneDrive\سطح المكتب\ALSAAB - AI\backend\brain.py
+LineNumber : 483
+Line       : def think(message, session_id, source_partner_id=""):
+
+Path       : C:\Users\admin\OneDrive\سطح المكتب\ALSAAB - AI\backend\brain.py
+LineNumber : 491
+Line       :     current_state = apply_source_partner_to_state(current_state, 
+             source_partner_id)
+
+Path       : C:\Users\admin\OneDrive\سطح المكتب\ALSAAB - AI\backend\brain.py
+LineNumber : 495
+Line       :     print(f"SOURCE PARTNER STATE ✅ 
+             source_partner_id={current_state.get('source_partner_id')}", 
+             flush=True)
+
+Path       : C:\Users\admin\OneDrive\سطح المكتب\ALSAAB - AI\backend\brain.py
+LineNumber : 664
+Line       :     existing_source_partner_id = 
+             current_state.get("source_partner_id", "")
+
+Path       : C:\Users\admin\OneDrive\سطح المكتب\ALSAAB - AI\backend\brain.py
+LineNumber : 692
+Line       :     if existing_source_partner_id:
+
+Path       : C:\Users\admin\OneDrive\سطح المكتب\ALSAAB - AI\backend\brain.py
+LineNumber : 693
+Line       :         current_state["source_partner_id"] = 
+             existing_source_partner_id
+
+Path       : C:\Users\admin\OneDrive\سطح المكتب\ALSAAB - AI\backend\brain.py
+LineNumber : 698
+Line       :     current_state = apply_source_partner_to_state(current_state, 
+             source_partner_id)
+
+Path       : C:\Users\admin\OneDrive\سطح المكتب\ALSAAB - AI\backend\database.py
+LineNumber : 99
+Line       :         source_partner_id TEXT,
+
+Path       : C:\Users\admin\OneDrive\سطح المكتب\ALSAAB - AI\backend\database.py
+LineNumber : 116
+Line       :     add_column_if_missing(c, "leads", "source_partner_id", "TEXT")
+
+Path       : C:\Users\admin\OneDrive\سطح المكتب\ALSAAB - AI\backend\database.py
+LineNumber : 154
+Line       :         source_partner_id TEXT,
+
+Path       : C:\Users\admin\OneDrive\سطح المكتب\ALSAAB - AI\backend\database.py
+LineNumber : 172
+Line       :     add_column_if_missing(c, "client_subscriptions", 
+             "source_partner_id", "TEXT")
+
+Path       : C:\Users\admin\OneDrive\سطح المكتب\ALSAAB - AI\backend\database.py
+LineNumber : 326
+Line       : def get_source_partner_id_from_state(state):
+
+Path       : C:\Users\admin\OneDrive\سطح المكتب\ALSAAB - AI\backend\database.py
+LineNumber : 327
+Line       :     source_partner_id = (
+
+Path       : C:\Users\admin\OneDrive\سطح المكتب\ALSAAB - AI\backend\database.py
+LineNumber : 328
+Line       :         get_state_value(state, "source_partner_id", "")
+
+Path       : C:\Users\admin\OneDrive\سطح المكتب\ALSAAB - AI\backend\database.py
+LineNumber : 334
+Line       :     return normalize_partner_id(source_partner_id)
+
+Path       : C:\Users\admin\OneDrive\سطح المكتب\ALSAAB - AI\backend\database.py
+LineNumber : 337
+Line       : def get_source_partner_id_for_session(session_id):
+
+Path       : C:\Users\admin\OneDrive\سطح المكتب\ALSAAB - AI\backend\database.py
+LineNumber : 339
+Line       :     يرجع source_partner_id المرتبط بالجلسة.
+
+Path       : C:\Users\admin\OneDrive\سطح المكتب\ALSAAB - AI\backend\database.py
+LineNumber : 353
+Line       :             SELECT source_partner_id
+
+Path       : C:\Users\admin\OneDrive\سطح المكتب\ALSAAB - AI\backend\database.py
+LineNumber : 369
+Line       :             SELECT source_partner_id
+
+Path       : C:\Users\admin\OneDrive\سطح المكتب\ALSAAB - AI\backend\database.py
+LineNumber : 371
+Line       :             WHERE session_id=? AND source_partner_id IS NOT NULL 
+             AND source_partner_id != ''
+
+Path       : C:\Users\admin\OneDrive\سطح المكتب\ALSAAB - AI\backend\database.py
+LineNumber : 606
+Line       :     source_partner_id = get_source_partner_id_from_state(state)
+
+Path       : C:\Users\admin\OneDrive\سطح المكتب\ALSAAB - AI\backend\database.py
+LineNumber : 612
+Line       :         "source_partner_id": source_partner_id or "",
+
+Path       : C:\Users\admin\OneDrive\سطح المكتب\ALSAAB - AI\backend\database.py
+LineNumber : 686
+Line       :     source_partner_id,
+
+Path       : C:\Users\admin\OneDrive\سطح المكتب\ALSAAB - AI\backend\database.py
+LineNumber : 689
+Line       :     if not source_partner_id:
+
+Path       : C:\Users\admin\OneDrive\سطح المكتب\ALSAAB - AI\backend\database.py
+LineNumber : 690
+Line       :         print("REFERRAL NOT SAVED ⚠️ no source_partner_id", 
+             flush=True)
+
+Path       : C:\Users\admin\OneDrive\سطح المكتب\ALSAAB - AI\backend\database.py
+LineNumber : 712
+Line       :         source_partner_id=source_partner_id,
+
+Path       : C:\Users\admin\OneDrive\سطح المكتب\ALSAAB - AI\backend\database.py
+LineNumber : 713
+Line       :         partner_id=source_partner_id,
+
+Path       : C:\Users\admin\OneDrive\سطح المكتب\ALSAAB - AI\backend\database.py
+LineNumber : 729
+Line       :             f"REFERRAL SAVED ✅ 
+             source_partner_id={source_partner_id} lead_id={lead_id}",
+
+Path       : C:\Users\admin\OneDrive\سطح المكتب\ALSAAB - AI\backend\database.py
+LineNumber : 743
+Line       :     source_partner_id = get_source_partner_id_from_state(state)
+
+Path       : C:\Users\admin\OneDrive\سطح المكتب\ALSAAB - AI\backend\database.py
+LineNumber : 756
+Line       :             source_partner_id,
+
+Path       : C:\Users\admin\OneDrive\سطح المكتب\ALSAAB - AI\backend\database.py
+LineNumber : 771
+Line       :         existing_source_partner_id = existing[1] or ""
+
+Path       : C:\Users\admin\OneDrive\سطح المكتب\ALSAAB - AI\backend\database.py
+LineNumber : 774
+Line       :         final_source_partner_id = source_partner_id or 
+             existing_source_partner_id
+
+Path       : C:\Users\admin\OneDrive\سطح المكتب\ALSAAB - AI\backend\database.py
+LineNumber : 781
+Line       :                 source_partner_id=?,
+
+Path       : C:\Users\admin\OneDrive\سطح المكتب\ALSAAB - AI\backend\database.py
+LineNumber : 794
+Line       :                 final_source_partner_id,
+
+Path       : C:\Users\admin\OneDrive\سطح المكتب\ALSAAB - AI\backend\database.py
+LineNumber : 807
+Line       :         source_partner_id = final_source_partner_id
+
+Path       : C:\Users\admin\OneDrive\سطح المكتب\ALSAAB - AI\backend\database.py
+LineNumber : 814
+Line       :                 source_partner_id,
+
+Path       : C:\Users\admin\OneDrive\سطح المكتب\ALSAAB - AI\backend\database.py
+LineNumber : 830
+Line       :                 source_partner_id,
+
+Path       : C:\Users\admin\OneDrive\سطح المكتب\ALSAAB - AI\backend\database.py
+LineNumber : 867
+Line       :         source_partner_id=source_partner_id,
+
+Path       : C:\Users\admin\OneDrive\سطح المكتب\ALSAAB - AI\backend\database.py
+LineNumber : 882
+Line       :             source_partner_id,
+
+Path       : C:\Users\admin\OneDrive\سطح المكتب\ALSAAB - AI\backend\database.py
+LineNumber : 912
+Line       :             "source_partner_id": row[3],
+
+Path       : C:\Users\admin\OneDrive\سطح المكتب\ALSAAB - AI\backend\database.py
+LineNumber : 1371
+Line       :             source_partner_id,
+
+Path       : C:\Users\admin\OneDrive\سطح المكتب\ALSAAB - AI\backend\database.py
+LineNumber : 1388
+Line       :            OR source_partner_id=?
+
+Path       : C:\Users\admin\OneDrive\سطح المكتب\ALSAAB - AI\backend\database.py
+LineNumber : 1417
+Line       :         "source_partner_id": row[4],
+
+Path       : C:\Users\admin\OneDrive\سطح المكتب\ALSAAB - AI\backend\database.py
+LineNumber : 1533
+Line       : def normalize_auto_partner_source(source_partner_id, session_id=""):
+
+Path       : C:\Users\admin\OneDrive\سطح المكتب\ALSAAB - AI\backend\database.py
+LineNumber : 1535
+Line       :         source_partner_id
+
+Path       : C:\Users\admin\OneDrive\سطح المكتب\ALSAAB - AI\backend\database.py
+LineNumber : 1536
+Line       :         or get_source_partner_id_for_session(session_id)
+
+Path       : C:\Users\admin\OneDrive\سطح المكتب\ALSAAB - AI\backend\database.py
+LineNumber : 1555
+Line       :     source_partner_id="",
+
+Path       : C:\Users\admin\OneDrive\سطح المكتب\ALSAAB - AI\backend\database.py
+LineNumber : 1582
+Line       :     source_partner_id = normalize_auto_partner_source(
+
+Path       : C:\Users\admin\OneDrive\سطح المكتب\ALSAAB - AI\backend\database.py
+LineNumber : 1583
+Line       :         source_partner_id,
+
+Path       : C:\Users\admin\OneDrive\سطح المكتب\ALSAAB - AI\backend\database.py
+LineNumber : 1611
+Line       :         f"source_partner_id={source_partner_id}",
+
+Path       : C:\Users\admin\OneDrive\سطح المكتب\ALSAAB - AI\backend\database.py
+LineNumber : 1621
+Line       :             f"AUTO PARTNER CREATE START session_id={session_id} 
+             client_id={client_id} sponsor={source_partner_id}",
+
+Path       : C:\Users\admin\OneDrive\سطح المكتب\ALSAAB - AI\backend\database.py
+LineNumber : 1630
+Line       :             invited_by=source_partner_id,
+
+Path       : C:\Users\admin\OneDrive\سطح المكتب\ALSAAB - AI\backend\database.py
+LineNumber : 1635
+Line       :             sponsor_partner_id=source_partner_id,
+
+Path       : C:\Users\admin\OneDrive\سطح المكتب\ALSAAB - AI\backend\database.py
+LineNumber : 1636
+Line       :             parent_partner_id=source_partner_id,
+
+Path       : C:\Users\admin\OneDrive\سطح المكتب\ALSAAB - AI\backend\database.py
+LineNumber : 1645
+Line       :                 sponsor_partner_id=source_partner_id,
+
+Path       : C:\Users\admin\OneDrive\سطح المكتب\ALSAAB - AI\backend\database.py
+LineNumber : 1687
+Line       :             "source_partner_id": source_partner_id
+
+Path       : C:\Users\admin\OneDrive\سطح المكتب\ALSAAB - AI\backend\database.py
+LineNumber : 1702
+Line       :     source_partner_id=""
+
+Path       : C:\Users\admin\OneDrive\سطح المكتب\ALSAAB - AI\backend\database.py
+LineNumber : 1707
+Line       :     source_partner_id = normalize_auto_partner_source(
+
+Path       : C:\Users\admin\OneDrive\سطح المكتب\ALSAAB - AI\backend\database.py
+LineNumber : 1708
+Line       :         source_partner_id,
+
+Path       : C:\Users\admin\OneDrive\سطح المكتب\ALSAAB - AI\backend\database.py
+LineNumber : 1735
+Line       :                     source_partner_id=?,
+
+Path       : C:\Users\admin\OneDrive\سطح المكتب\ALSAAB - AI\backend\database.py
+LineNumber : 1752
+Line       :                     source_partner_id,
+
+Path       : C:\Users\admin\OneDrive\سطح المكتب\ALSAAB - AI\backend\database.py
+LineNumber : 1772
+Line       :                     source_partner_id=?,
+
+Path       : C:\Users\admin\OneDrive\سطح المكتب\ALSAAB - AI\backend\database.py
+LineNumber : 1786
+Line       :                     source_partner_id,
+
+Path       : C:\Users\admin\OneDrive\سطح المكتب\ALSAAB - AI\backend\database.py
+LineNumber : 1804
+Line       :                 source_partner_id,
+
+Path       : C:\Users\admin\OneDrive\سطح المكتب\ALSAAB - AI\backend\database.py
+LineNumber : 1822
+Line       :                 source_partner_id,
+
+Path       : C:\Users\admin\OneDrive\سطح المكتب\ALSAAB - AI\backend\database.py
+LineNumber : 1840
+Line       :         f"SUBSCRIPTION SAVED ✅ session_id={session_id} 
+             client_id={client_id} source_partner_id={source_partner_id} 
+             plan={plan_name} limit={monthly_reply_limit} status={status}",
+
+Path       : C:\Users\admin\OneDrive\سطح المكتب\ALSAAB - AI\backend\database.py
+LineNumber : 1850
+Line       :             source_partner_id=subscription.get("source_partner_id") 
+             or source_partner_id,
+
+Path       : C:\Users\admin\OneDrive\سطح المكتب\ALSAAB - AI\backend\database.py
+LineNumber : 1874
+Line       :                 source_partner_id=source_partner_id,
+
+Path       : C:\Users\admin\OneDrive\سطح المكتب\ALSAAB - AI\backend\database.py
+LineNumber : 1894
+Line       :         if source_partner_id and str(source_partner_id).lower() != 
+             str(COMPANY_OWNER_PARTNER_ID).lower():
+
+Path       : C:\Users\admin\OneDrive\سطح المكتب\ALSAAB - AI\backend\database.py
+LineNumber : 1895
+Line       :             
+             sync_partner_level_progress_to_google_sheet(source_partner_id)
+
+Path       : C:\Users\admin\OneDrive\سطح المكتب\ALSAAB - AI\backend\database.py
+LineNumber : 2088
+Line       :     client_id = subscription.get("client_id") or 
+             subscription.get("source_partner_id") or 
+             subscription.get("session_id") or session_id
+
+Path       : C:\Users\admin\OneDrive\سطح المكتب\ALSAAB - AI\backend\database.py
+LineNumber : 2189
+Line       :         "source_partner_id": subscription.get("source_partner_id"),
+
+Path       : C:\Users\admin\OneDrive\سطح المكتب\ALSAAB - AI\backend\database.py
+LineNumber : 2258
+Line       :             source_partner_id,
+
+Path       : C:\Users\admin\OneDrive\سطح المكتب\ALSAAB - AI\backend\database.py
+LineNumber : 2289
+Line       :             "source_partner_id": row[4],
+
+Path       : C:\Users\admin\OneDrive\سطح المكتب\ALSAAB - AI\backend\database.py
+LineNumber : 2336
+Line       :             lead["source_partner_id"],
+
+Path       : C:\Users\admin\OneDrive\سطح المكتب\ALSAAB - AI\backend\database.py
+LineNumber : 2437
+Line       :             subscription["source_partner_id"],
+
+Path       : C:\Users\admin\OneDrive\سطح المكتب\ALSAAB - AI\backend\database.py
+LineNumber : 2472
+Line       :     sponsor_partner_id="",
+
+Path       : C:\Users\admin\OneDrive\سطح المكتب\ALSAAB - AI\backend\database.py
+LineNumber : 2473
+Line       :     parent_partner_id="",
+
+Path       : C:\Users\admin\OneDrive\سطح المكتب\ALSAAB - AI\backend\database.py
+LineNumber : 2479
+Line       :     يدعم الشجرة عن طريق sponsor_partner_id و parent_partner_id.
+
+Path       : C:\Users\admin\OneDrive\سطح المكتب\ALSAAB - AI\backend\database.py
+LineNumber : 2482
+Line       :     normalized_sponsor = normalize_partner_id(sponsor_partner_id or 
+             invited_by)
+
+Path       : C:\Users\admin\OneDrive\سطح المكتب\ALSAAB - AI\backend\database.py
+LineNumber : 2483
+Line       :     normalized_parent = normalize_partner_id(parent_partner_id or 
+             normalized_sponsor)
+
+Path       : C:\Users\admin\OneDrive\سطح المكتب\ALSAAB - AI\backend\database.py
+LineNumber : 2495
+Line       :         "sponsor_partner_id": normalized_sponsor or "",
+
+Path       : C:\Users\admin\OneDrive\سطح المكتب\ALSAAB - AI\backend\database.py
+LineNumber : 2497
+Line       :         "parent_partner_id": normalized_parent or "",
+
+Path       : C:\Users\admin\OneDrive\سطح المكتب\ALSAAB - AI\backend\database.py
+LineNumber : 2511
+Line       : def send_partner_tree_to_google_sheet(
+
+Path       : C:\Users\admin\OneDrive\سطح المكتب\ALSAAB - AI\backend\database.py
+LineNumber : 2519
+Line       :     يحفظ علاقة في شجرة الشركاء PartnerTree.
+
+Path       : C:\Users\admin\OneDrive\سطح المكتب\ALSAAB - AI\backend\database.py
+LineNumber : 2523
+Line       :         "action": "partner_tree",
+
+Path       : C:\Users\admin\OneDrive\سطح المكتب\ALSAAB - AI\backend\database.py
+LineNumber : 2534
+Line       :     return post_to_google_sheet_json(payload, label="partner_tree")
+
+Path       : C:\Users\admin\OneDrive\سطح المكتب\ALSAAB - AI\backend\database.py
+LineNumber : 2549
+Line       :     source_partner_id="",
+
+Path       : C:\Users\admin\OneDrive\سطح المكتب\ALSAAB - AI\backend\database.py
+LineNumber : 2555
+Line       :     source_partner_id هو الاسم الأدق للنظام الجديد.
+
+Path       : C:\Users\admin\OneDrive\سطح المكتب\ALSAAB - AI\backend\database.py
+LineNumber : 2557
+Line       :     normalized_source_partner_id = 
+             normalize_partner_id(source_partner_id or partner_id)
+
+Path       : C:\Users\admin\OneDrive\سطح المكتب\ALSAAB - AI\backend\database.py
+LineNumber : 2562
+Line       :         "source_partner_id": normalized_source_partner_id or "",
+
+Path       : C:\Users\admin\OneDrive\سطح المكتب\ALSAAB - AI\backend\database.py
+LineNumber : 2563
+Line       :         "partner_id": normalized_source_partner_id or "",
+
+Path       : C:\Users\admin\OneDrive\سطح المكتب\ALSAAB - AI\backend\database.py
+LineNumber : 2564
+Line       :         "ref": normalized_source_partner_id or "",
+
+Path       : C:\Users\admin\OneDrive\سطح المكتب\ALSAAB - AI\backend\database.py
+LineNumber : 2588
+Line       :     source_partner_id="",
+
+Path       : C:\Users\admin\OneDrive\سطح المكتب\ALSAAB - AI\backend\database.py
+LineNumber : 2602
+Line       :     normalized_source_partner_id = 
+             normalize_partner_id(source_partner_id)
+
+Path       : C:\Users\admin\OneDrive\سطح المكتب\ALSAAB - AI\backend\database.py
+LineNumber : 2609
+Line       :         "source_partner_id": normalized_source_partner_id or "",
+
+Path       : C:\Users\admin\OneDrive\سطح المكتب\ALSAAB - AI\backend\database.py
+LineNumber : 2610
+Line       :         "partner_id": normalized_source_partner_id or "",
+
+Path       : C:\Users\admin\OneDrive\سطح المكتب\ALSAAB - AI\backend\database.py
+LineNumber : 2611
+Line       :         "ref": normalized_source_partner_id or "",
+
+Path       : C:\Users\admin\OneDrive\سطح المكتب\ALSAAB - AI\backend\database.py
+LineNumber : 2644
+Line       :     source_partner_id="",
+
+Path       : C:\Users\admin\OneDrive\سطح المكتب\ALSAAB - AI\backend\database.py
+LineNumber : 2667
+Line       :     normalized_source = normalize_partner_id(source_partner_id)
+
+Path       : C:\Users\admin\OneDrive\سطح المكتب\ALSAAB - AI\backend\database.py
+LineNumber : 2789
+Line       :         "source_partner_id": normalized_source or "",
+
+Path       : C:\Users\admin\OneDrive\سطح المكتب\ALSAAB - AI\backend\database.py
+LineNumber : 2919
+Line       :         CREATE TABLE IF NOT EXISTS partner_client_map (
+
+Path       : C:\Users\admin\OneDrive\سطح المكتب\ALSAAB - AI\backend\database.py
+LineNumber : 2924
+Line       :             sponsor_partner_id TEXT,
+
+Path       : C:\Users\admin\OneDrive\سطح المكتب\ALSAAB - AI\backend\database.py
+LineNumber : 2961
+Line       :         CREATE TABLE IF NOT EXISTS partner_level_progress (
+
+Path       : C:\Users\admin\OneDrive\سطح المكتب\ALSAAB - AI\backend\database.py
+LineNumber : 3024
+Line       :     sponsor_partner_id="",
+
+Path       : C:\Users\admin\OneDrive\سطح المكتب\ALSAAB - AI\backend\database.py
+LineNumber : 3046
+Line       :     sponsor_partner_id = normalize_partner_id(sponsor_partner_id or 
+             COMPANY_OWNER_PARTNER_ID)
+
+Path       : C:\Users\admin\OneDrive\سطح المكتب\ALSAAB - AI\backend\database.py
+LineNumber : 3057
+Line       :             sponsor_partner_id,
+
+Path       : C:\Users\admin\OneDrive\سطح المكتب\ALSAAB - AI\backend\database.py
+LineNumber : 3072
+Line       :             
+             sponsor_partner_id=COALESCE(NULLIF(excluded.sponsor_partner_id, 
+             ''), partner_client_map.sponsor_partner_id),
+
+Path       : C:\Users\admin\OneDrive\سطح المكتب\ALSAAB - AI\backend\database.py
+LineNumber : 3086
+Line       :             sponsor_partner_id,
+
+Path       : C:\Users\admin\OneDrive\سطح المكتب\ALSAAB - AI\backend\database.py
+LineNumber : 3105
+Line       :         "sponsor_partner_id": sponsor_partner_id,
+
+Path       : C:\Users\admin\OneDrive\سطح المكتب\ALSAAB - AI\backend\database.py
+LineNumber : 3113
+Line       :     sponsor_partner_id="",
+
+Path       : C:\Users\admin\OneDrive\سطح المكتب\ALSAAB - AI\backend\database.py
+LineNumber : 3136
+Line       :         sponsor_partner_id=sponsor_partner_id,
+
+Path       : C:\Users\admin\OneDrive\سطح المكتب\ALSAAB - AI\backend\database.py
+LineNumber : 3170
+Line       :             sponsor_partner_id,
+
+Path       : C:\Users\admin\OneDrive\سطح المكتب\ALSAAB - AI\backend\database.py
+LineNumber : 3197
+Line       :         "sponsor_partner_id": row[3],
+
+Path       : C:\Users\admin\OneDrive\سطح المكتب\ALSAAB - AI\backend\database.py
+LineNumber : 3348
+Line       :         ["source_partner_id", "sponsor_partner_id", "partner_id", 
+             "ref_partner_id"]
+
+Path       : C:\Users\admin\OneDrive\سطح المكتب\ALSAAB - 
+             AI\backend\entry_payment_routes.py
+LineNumber : 46
+Line       :             or request.args.get("source_partner_id")
+
+Path       : C:\Users\admin\OneDrive\سطح المكتب\ALSAAB - AI\backend\main.py
+LineNumber : 15
+Line       :     get_source_partner_id_for_session,
+
+Path       : C:\Users\admin\OneDrive\سطح المكتب\ALSAAB - AI\backend\main.py
+LineNumber : 95
+Line       : def normalize_source_partner_id(value):
+
+Path       : C:\Users\admin\OneDrive\سطح المكتب\ALSAAB - AI\backend\main.py
+LineNumber : 112
+Line       : def build_stripe_client_reference_id(session_id, plan_name, 
+             source_partner_id=""):
+
+Path       : C:\Users\admin\OneDrive\سطح المكتب\ALSAAB - AI\backend\main.py
+LineNumber : 113
+Line       :     source_partner_id = 
+             normalize_source_partner_id(source_partner_id)
+
+Path       : C:\Users\admin\OneDrive\سطح المكتب\ALSAAB - AI\backend\main.py
+LineNumber : 115
+Line       :     if source_partner_id:
+
+Path       : C:\Users\admin\OneDrive\سطح المكتب\ALSAAB - AI\backend\main.py
+LineNumber : 119
+Line       :             f"{SAFE_STRIPE_REFERENCE_SEPARATOR}{source_partner_id}"
+
+Path       : C:\Users\admin\OneDrive\سطح المكتب\ALSAAB - AI\backend\main.py
+LineNumber : 138
+Line       :                 normalize_source_partner_id(parts[2])
+
+Path       : C:\Users\admin\OneDrive\سطح المكتب\ALSAAB - AI\backend\main.py
+LineNumber : 151
+Line       :                 normalize_source_partner_id(parts[2])
+
+Path       : C:\Users\admin\OneDrive\سطح المكتب\ALSAAB - AI\backend\main.py
+LineNumber : 1238
+Line       : let sourcePartnerId = localStorage.getItem("source_partner_id") || 
+             "";
+
+Path       : C:\Users\admin\OneDrive\سطح المكتب\ALSAAB - AI\backend\main.py
+LineNumber : 1264
+Line       :             params.get("source_partner_id") ||
+
+Path       : C:\Users\admin\OneDrive\سطح المكتب\ALSAAB - AI\backend\main.py
+LineNumber : 1266
+Line       :             params.get("sponsor_partner_id") ||
+
+Path       : C:\Users\admin\OneDrive\سطح المكتب\ALSAAB - AI\backend\main.py
+LineNumber : 1273
+Line       :             localStorage.setItem("source_partner_id", 
+             normalizedRef);
+
+Path       : C:\Users\admin\OneDrive\سطح المكتب\ALSAAB - AI\backend\main.py
+LineNumber : 1281
+Line       :             localStorage.setItem("source_partner_id", 
+             sourcePartnerId);
+
+Path       : C:\Users\admin\OneDrive\سطح المكتب\ALSAAB - AI\backend\main.py
+LineNumber : 1420
+Line       :                 source_partner_id: sourcePartnerId
+
+Path       : C:\Users\admin\OneDrive\سطح المكتب\ALSAAB - AI\backend\main.py
+LineNumber : 1429
+Line       :         if (data.source_partner_id) {
+
+Path       : C:\Users\admin\OneDrive\سطح المكتب\ALSAAB - AI\backend\main.py
+LineNumber : 1430
+Line       :             sourcePartnerId = 
+             normalizeSourcePartnerId(data.source_partner_id);
+
+Path       : C:\Users\admin\OneDrive\سطح المكتب\ALSAAB - AI\backend\main.py
+LineNumber : 1433
+Line       :                 localStorage.setItem("source_partner_id", 
+             sourcePartnerId);
+
+Path       : C:\Users\admin\OneDrive\سطح المكتب\ALSAAB - AI\backend\main.py
+LineNumber : 1550
+Line       :     source_partner_id = normalize_source_partner_id(
+
+Path       : C:\Users\admin\OneDrive\سطح المكتب\ALSAAB - AI\backend\main.py
+LineNumber : 1552
+Line       :         or request.args.get("source_partner_id")
+
+Path       : C:\Users\admin\OneDrive\سطح المكتب\ALSAAB - AI\backend\main.py
+LineNumber : 1612
+Line       :     if not source_partner_id:
+
+Path       : C:\Users\admin\OneDrive\سطح المكتب\ALSAAB - AI\backend\main.py
+LineNumber : 1614
+Line       :             source_partner_id = 
+             get_source_partner_id_for_session(session_id)
+
+Path       : C:\Users\admin\OneDrive\سطح المكتب\ALSAAB - AI\backend\main.py
+LineNumber : 1617
+Line       :             source_partner_id = ""
+
+Path       : C:\Users\admin\OneDrive\سطح المكتب\ALSAAB - AI\backend\main.py
+LineNumber : 1619
+Line       :     source_partner_id = 
+             normalize_source_partner_id(source_partner_id)
+
+Path       : C:\Users\admin\OneDrive\سطح المكتب\ALSAAB - AI\backend\main.py
+LineNumber : 1633
+Line       :         source_partner_id=source_partner_id
+
+Path       : C:\Users\admin\OneDrive\سطح المكتب\ALSAAB - AI\backend\main.py
+LineNumber : 1644
+Line       :         f"PAYMENT REDIRECT ✅ session_id={session_id} 
+             plan={plan_name} source_partner_id={source_partner_id} 
+             reference={client_reference_id}",
+
+Path       : C:\Users\admin\OneDrive\سطح المكتب\ALSAAB - AI\backend\main.py
+LineNumber : 1690
+Line       :         session_id, plan_name, source_partner_id = 
+             parse_stripe_client_reference_id(client_reference_id)
+
+Path       : C:\Users\admin\OneDrive\سطح المكتب\ALSAAB - AI\backend\main.py
+LineNumber : 1713
+Line       :         if not source_partner_id:
+
+Path       : C:\Users\admin\OneDrive\سطح المكتب\ALSAAB - AI\backend\main.py
+LineNumber : 1715
+Line       :                 source_partner_id = 
+             get_source_partner_id_for_session(session_id)
+
+Path       : C:\Users\admin\OneDrive\سطح المكتب\ALSAAB - AI\backend\main.py
+LineNumber : 1718
+Line       :                 source_partner_id = ""
+
+Path       : C:\Users\admin\OneDrive\سطح المكتب\ALSAAB - AI\backend\main.py
+LineNumber : 1720
+Line       :         source_partner_id = 
+             normalize_source_partner_id(source_partner_id)
+
+Path       : C:\Users\admin\OneDrive\سطح المكتب\ALSAAB - AI\backend\main.py
+LineNumber : 1740
+Line       :             source_partner_id=source_partner_id
+
+Path       : C:\Users\admin\OneDrive\سطح المكتب\ALSAAB - AI\backend\main.py
+LineNumber : 1749
+Line       :                 source_partner_id=source_partner_id,
+
+Path       : C:\Users\admin\OneDrive\سطح المكتب\ALSAAB - AI\backend\main.py
+LineNumber : 1770
+Line       :             f"STRIPE SUBSCRIPTION ACTIVATED ✅ 
+             session_id={session_id} plan={plan_name} 
+             source_partner_id={source_partner_id}",
+
+Path       : C:\Users\admin\OneDrive\سطح المكتب\ALSAAB - AI\backend\main.py
+LineNumber : 1825
+Line       :         source_partner_id = normalize_source_partner_id(
+
+Path       : C:\Users\admin\OneDrive\سطح المكتب\ALSAAB - AI\backend\main.py
+LineNumber : 1826
+Line       :             existing_subscription.get("source_partner_id") or ""
+
+Path       : C:\Users\admin\OneDrive\سطح المكتب\ALSAAB - AI\backend\main.py
+LineNumber : 1849
+Line       :             source_partner_id=source_partner_id
+
+Path       : C:\Users\admin\OneDrive\سطح المكتب\ALSAAB - AI\backend\main.py
+LineNumber : 1856
+Line       :                 source_partner_id=source_partner_id,
+
+Path       : C:\Users\admin\OneDrive\سطح المكتب\ALSAAB - AI\backend\main.py
+LineNumber : 1873
+Line       :             f"STRIPE INVOICE PAID HANDLED ✅ session_id={session_id} 
+             plan={plan_name} source_partner_id={source_partner_id} 
+             invoice_id={invoice_id}",
+
+Path       : C:\Users\admin\OneDrive\سطح المكتب\ALSAAB - AI\backend\main.py
+LineNumber : 1930
+Line       :         source_partner_id = normalize_source_partner_id(
+
+Path       : C:\Users\admin\OneDrive\سطح المكتب\ALSAAB - AI\backend\main.py
+LineNumber : 1931
+Line       :             existing_subscription.get("source_partner_id") or ""
+
+Path       : C:\Users\admin\OneDrive\سطح المكتب\ALSAAB - AI\backend\main.py
+LineNumber : 1954
+Line       :             source_partner_id=source_partner_id
+
+Path       : C:\Users\admin\OneDrive\سطح المكتب\ALSAAB - AI\backend\main.py
+LineNumber : 1958
+Line       :             f"STRIPE INVOICE PAYMENT FAILED HANDLED ⚠️ 
+             session_id={session_id} plan={plan_name} 
+             source_partner_id={source_partner_id} invoice_id={invoice_id}",
+
+Path       : C:\Users\admin\OneDrive\سطح المكتب\ALSAAB - AI\backend\main.py
+LineNumber : 2007
+Line       :         source_partner_id = normalize_source_partner_id(
+
+Path       : C:\Users\admin\OneDrive\سطح المكتب\ALSAAB - AI\backend\main.py
+LineNumber : 2008
+Line       :             existing_subscription.get("source_partner_id") or ""
+
+Path       : C:\Users\admin\OneDrive\سطح المكتب\ALSAAB - AI\backend\main.py
+LineNumber : 2031
+Line       :             source_partner_id=source_partner_id
+
+Path       : C:\Users\admin\OneDrive\سطح المكتب\ALSAAB - AI\backend\main.py
+LineNumber : 2035
+Line       :             f"STRIPE SUBSCRIPTION DELETED HANDLED ⚠️ 
+             session_id={session_id} plan={plan_name} 
+             source_partner_id={source_partner_id} 
+             stripe_subscription_id={stripe_subscription_id}",
+
+Path       : C:\Users\admin\OneDrive\سطح المكتب\ALSAAB - AI\backend\main.py
+LineNumber : 2109
+Line       :         source_partner_id = normalize_source_partner_id(
+
+Path       : C:\Users\admin\OneDrive\سطح المكتب\ALSAAB - AI\backend\main.py
+LineNumber : 2110
+Line       :             existing_subscription.get("source_partner_id") or ""
+
+Path       : C:\Users\admin\OneDrive\سطح المكتب\ALSAAB - AI\backend\main.py
+LineNumber : 2133
+Line       :             source_partner_id=source_partner_id
+
+Path       : C:\Users\admin\OneDrive\سطح المكتب\ALSAAB - AI\backend\main.py
+LineNumber : 2285
+Line       :     source_partner_id = normalize_source_partner_id(
+
+Path       : C:\Users\admin\OneDrive\سطح المكتب\ALSAAB - AI\backend\main.py
+LineNumber : 2286
+Line       :         data.get("source_partner_id")
+
+Path       : C:\Users\admin\OneDrive\سطح المكتب\ALSAAB - AI\backend\main.py
+LineNumber : 2294
+Line       :     print(f"MAIN SOURCE PARTNER ✅ {source_partner_id}", flush=True)
+
+Path       : C:\Users\admin\OneDrive\سطح المكتب\ALSAAB - AI\backend\main.py
+LineNumber : 2305
+Line       :             "source_partner_id": source_partner_id
+
+Path       : C:\Users\admin\OneDrive\سطح المكتب\ALSAAB - AI\backend\main.py
+LineNumber : 2325
+Line       :                 "source_partner_id": source_partner_id,
+
+Path       : C:\Users\admin\OneDrive\سطح المكتب\ALSAAB - AI\backend\main.py
+LineNumber : 2350
+Line       :                     "source_partner_id": source_partner_id,
+
+Path       : C:\Users\admin\OneDrive\سطح المكتب\ALSAAB - AI\backend\main.py
+LineNumber : 2364
+Line       :                 source_partner_id=source_partner_id
+
+Path       : C:\Users\admin\OneDrive\سطح المكتب\ALSAAB - AI\backend\main.py
+LineNumber : 2367
+Line       :             if "source_partner_id" in str(type_error) or 
+             "unexpected keyword argument" in str(type_error):
+
+Path       : C:\Users\admin\OneDrive\سطح المكتب\ALSAAB - AI\backend\main.py
+LineNumber : 2368
+Line       :                 print("THINK FALLBACK ⚠️ brain.py does not accept 
+             source_partner_id yet", flush=True)
+
+Path       : C:\Users\admin\OneDrive\سطح المكتب\ALSAAB - AI\backend\main.py
+LineNumber : 2385
+Line       :             "source_partner_id": source_partner_id
+
+Path       : C:\Users\admin\OneDrive\سطح المكتب\ALSAAB - AI\backend\main.py
+LineNumber : 2394
+Line       :             "source_partner_id": source_partner_id,
+
+Path       : C:\Users\admin\OneDrive\سطح المكتب\ALSAAB - AI\backend\main.py
+LineNumber : 2414
+Line       :                 "source_partner_id optional",
+
+Path       : C:\Users\admin\OneDrive\سطح المكتب\ALSAAB - AI\backend\main.py
+LineNumber : 2421
+Line       :                 "source_partner_id": "ALS-P00001",
+
+Path       : C:\Users\admin\OneDrive\سطح المكتب\ALSAAB - AI\backend\main.py
+LineNumber : 2436
+Line       :     source_partner_id = normalize_source_partner_id(
+
+Path       : C:\Users\admin\OneDrive\سطح المكتب\ALSAAB - AI\backend\main.py
+LineNumber : 2437
+Line       :         get_payload_value(payload, "source_partner_id")
+
+Path       : C:\Users\admin\OneDrive\سطح المكتب\ALSAAB - AI\backend\main.py
+LineNumber : 2462
+Line       :     if not source_partner_id:
+
+Path       : C:\Users\admin\OneDrive\سطح المكتب\ALSAAB - AI\backend\main.py
+LineNumber : 2464
+Line       :             source_partner_id = 
+             get_source_partner_id_for_session(session_id)
+
+Path       : C:\Users\admin\OneDrive\سطح المكتب\ALSAAB - AI\backend\main.py
+LineNumber : 2467
+Line       :             source_partner_id = ""
+
+Path       : C:\Users\admin\OneDrive\سطح المكتب\ALSAAB - AI\backend\main.py
+LineNumber : 2479
+Line       :         source_partner_id=source_partner_id
+
+Path       : C:\Users\admin\OneDrive\سطح المكتب\ALSAAB - AI\backend\main.py
+LineNumber : 2487
+Line       :                 source_partner_id=source_partner_id,
+
+Path       : C:\Users\admin\OneDrive\سطح المكتب\ALSAAB - AI\backend\main.py
+LineNumber : 2579
+Line       :         or get_payload_value(payload, "sponsor_partner_id")
+
+Path       : C:\Users\admin\OneDrive\سطح المكتب\ALSAAB - AI\backend\main.py
+LineNumber : 2581
+Line       :         or get_payload_value(payload, "parent_partner_id")
+
+Path       : C:\Users\admin\OneDrive\سطح المكتب\ALSAAB - AI\backend\main.py
+LineNumber : 2583
+Line       :         or get_payload_value(payload, "source_partner_id")
+
+Path       : C:\Users\admin\OneDrive\سطح المكتب\ALSAAB - AI\backend\main.py
+LineNumber : 2605
+Line       :             "message": "invited_by / sponsor_partner_id is required"
+
+Path       : C:\Users\admin\OneDrive\سطح المكتب\ALSAAB - AI\backend\main.py
+LineNumber : 2619
+Line       :             sponsor_partner_id=invited_by,
+
+Path       : C:\Users\admin\OneDrive\سطح المكتب\ALSAAB - AI\backend\main.py
+LineNumber : 2620
+Line       :             parent_partner_id=invited_by,
+
+Path       : C:\Users\admin\OneDrive\سطح المكتب\ALSAAB - AI\backend\main.py
+LineNumber : 2641
+Line       :             "sponsor_partner_id": result.get("sponsor_partner_id", 
+             invited_by),
+
+Path       : C:\Users\admin\OneDrive\سطح المكتب\ALSAAB - AI\backend\main.py
+LineNumber : 2642
+Line       :             "parent_partner_id": result.get("parent_partner_id", 
+             invited_by),
+
+Path       : C:\Users\admin\OneDrive\سطح المكتب\ALSAAB - AI\backend\main.py
+LineNumber : 3674
+Line       :       <div class="info-row"><div class="label">{{ t.sponsor 
+             }}</div><div class="value">{{ profile.sponsor_partner_id or "-" 
+             }}</div></div>
+
+Path       : C:\Users\admin\OneDrive\سطح المكتب\ALSAAB - AI\backend\main.py
+LineNumber : 5128
+Line       :                     source_partner_id: partnerId,
+
+Path       : C:\Users\admin\OneDrive\سطح المكتب\ALSAAB - AI\backend\main.py
+LineNumber : 6183
+Line       :             <div class="kv"><span>Sponsor</span><strong>{{ 
+             search_profile.get("sponsor_partner_id") or "-" }}</strong></div>
+
+Path       : C:\Users\admin\OneDrive\سطح المكتب\ALSAAB - AI\backend\main.py
+LineNumber : 6499
+Line       :                   <td>{{ c.source_partner_id or "-" }}</td>
+
+Path       : C:\Users\admin\OneDrive\سطح المكتب\ALSAAB - AI\backend\main.py
+LineNumber : 6708
+Line       :               <td>{{ p.sponsor_partner_id or "-" }}</td>
+
+Path       : C:\Users\admin\OneDrive\سطح المكتب\ALSAAB - AI\backend\main.py
+LineNumber : 6742
+Line       :               <td>{{ s.source_partner_id or "-" }}</td>
+
+Path       : C:\Users\admin\OneDrive\سطح المكتب\ALSAAB - AI\backend\main.py
+LineNumber : 6776
+Line       :               <td>{{ c.source_partner_id or "-" }}</td>
+
+Path       : C:\Users\admin\OneDrive\سطح المكتب\ALSAAB - AI\backend\main.py
+LineNumber : 7745
+Line       :               <td>{{ child.current_sponsor_partner_id or "-" }}</td>
+
+Path       : C:\Users\admin\OneDrive\سطح المكتب\ALSAAB - AI\backend\main.py
+LineNumber : 7746
+Line       :               <td>{{ child.current_parent_partner_id or "-" }}</td>
+
+Path       : C:\Users\admin\OneDrive\سطح المكتب\ALSAAB - AI\backend\main.py
+LineNumber : 7796
+Line       :         هذا الإجراء سيغير Sponsor / Parent للشركاء المباشرين تحت 
+             هذا الشريك إلى alsaab، وسيعيد بناء PartnerTree. لا تستخدمه إلا بعد 
+             التأكد من المعاينة.
+
+Path       : C:\Users\admin\OneDrive\سطح المكتب\ALSAAB - AI\backend\main.py
+LineNumber : 7880
+Line       :     - Apps Script logs AuditLogs and rebuilds PartnerTree.
+
+Path       : C:\Users\admin\OneDrive\سطح المكتب\ALSAAB - 
+             AI\backend\partner_engine.py
+LineNumber : 247
+Line       : def apply_sponsor_referral_to_state(state, sponsor_partner_id, 
+             source_type="", source_description=""):
+
+Path       : C:\Users\admin\OneDrive\سطح المكتب\ALSAAB - 
+             AI\backend\partner_engine.py
+LineNumber : 252
+Line       :     normalized_sponsor = normalize_partner_id(sponsor_partner_id)
+
+Path       : C:\Users\admin\OneDrive\سطح المكتب\ALSAAB - 
+             AI\backend\partner_engine.py
+LineNumber : 257
+Line       :     state["source_partner_id"] = normalized_sponsor
+
+Path       : C:\Users\admin\OneDrive\سطح المكتب\ALSAAB - 
+             AI\backend\partner_engine.py
+LineNumber : 778
+Line       :                 data["sponsor_partner_id"] = partner_id_in_message
+
+Path       : C:\Users\admin\OneDrive\سطح المكتب\ALSAAB - 
+             AI\backend\partner_engine.py
+LineNumber : 779
+Line       :                 data["parent_partner_id"] = partner_id_in_message
+
+Path       : C:\Users\admin\OneDrive\سطح المكتب\ALSAAB - 
+             AI\backend\partner_engine.py
+LineNumber : 784
+Line       :                     sponsor_partner_id=partner_id_in_message,
+
+Path       : C:\Users\admin\OneDrive\سطح المكتب\ALSAAB - 
+             AI\backend\partner_engine.py
+LineNumber : 795
+Line       :             data["sponsor_partner_id"] = owner_partner_id
+
+Path       : C:\Users\admin\OneDrive\سطح المكتب\ALSAAB - 
+             AI\backend\partner_engine.py
+LineNumber : 796
+Line       :             data["parent_partner_id"] = owner_partner_id
+
+Path       : C:\Users\admin\OneDrive\سطح المكتب\ALSAAB - 
+             AI\backend\partner_engine.py
+LineNumber : 802
+Line       :                 sponsor_partner_id=owner_partner_id,
+
+Path       : C:\Users\admin\OneDrive\سطح المكتب\ALSAAB - 
+             AI\backend\partner_engine.py
+LineNumber : 808
+Line       :         sponsor_partner_id = extract_partner_id(raw_message)
+
+Path       : C:\Users\admin\OneDrive\سطح المكتب\ALSAAB - 
+             AI\backend\partner_engine.py
+LineNumber : 810
+Line       :         if not sponsor_partner_id:
+
+Path       : C:\Users\admin\OneDrive\سطح المكتب\ALSAAB - 
+             AI\backend\partner_engine.py
+LineNumber : 820
+Line       :         data["sponsor_partner_id"] = sponsor_partner_id
+
+Path       : C:\Users\admin\OneDrive\سطح المكتب\ALSAAB - 
+             AI\backend\partner_engine.py
+LineNumber : 821
+Line       :         data["parent_partner_id"] = sponsor_partner_id
+
+Path       : C:\Users\admin\OneDrive\سطح المكتب\ALSAAB - 
+             AI\backend\partner_engine.py
+LineNumber : 825
+Line       :             sponsor_partner_id=sponsor_partner_id,
+
+Path       : C:\Users\admin\OneDrive\سطح المكتب\ALSAAB - 
+             AI\backend\partner_engine.py
+LineNumber : 846
+Line       :     if data.get("sponsor_partner_id"):
+
+Path       : C:\Users\admin\OneDrive\سطح المكتب\ALSAAB - 
+             AI\backend\partner_engine.py
+LineNumber : 847
+Line       :         notes_parts.append(f"sponsor_partner_id={data.get('sponsor_p
+             artner_id')}")
+
+Path       : C:\Users\admin\OneDrive\سطح المكتب\ALSAAB - 
+             AI\backend\partner_engine.py
+LineNumber : 863
+Line       :     sponsor_partner_id = data.get("sponsor_partner_id", "")
+
+Path       : C:\Users\admin\OneDrive\سطح المكتب\ALSAAB - 
+             AI\backend\partner_engine.py
+LineNumber : 864
+Line       :     parent_partner_id = data.get("parent_partner_id", "")
+
+Path       : C:\Users\admin\OneDrive\سطح المكتب\ALSAAB - 
+             AI\backend\partner_engine.py
+LineNumber : 880
+Line       :     if MLM_SPONSOR_RULES.get("prevent_empty_sponsor", True) and not 
+             sponsor_partner_id:
+
+Path       : C:\Users\admin\OneDrive\سطح المكتب\ALSAAB - 
+             AI\backend\partner_engine.py
+LineNumber : 890
+Line       :         sponsor_partner_id=sponsor_partner_id,
+
+Path       : C:\Users\admin\OneDrive\سطح المكتب\ALSAAB - 
+             AI\backend\partner_engine.py
+LineNumber : 905
+Line       :         sponsor_partner_id=sponsor_partner_id,
+
+Path       : C:\Users\admin\OneDrive\سطح المكتب\ALSAAB - 
+             AI\backend\partner_engine.py
+LineNumber : 906
+Line       :         parent_partner_id=parent_partner_id,
+
+Path       : C:\Users\admin\OneDrive\سطح المكتب\ALSAAB - 
+             AI\backend\partner_engine.py
+LineNumber : 919
+Line       :     sponsor_partner_id = result.get("sponsor_partner_id", 
+             sponsor_partner_id)
+
+Path       : C:\Users\admin\OneDrive\سطح المكتب\ALSAAB - 
+             AI\backend\partner_engine.py
+LineNumber : 928
+Line       :     if sponsor_partner_id:
+
+Path       : C:\Users\admin\OneDrive\سطح المكتب\ALSAAB - 
+             AI\backend\partner_engine.py
+LineNumber : 931
+Line       :             sponsor_partner_id=sponsor_partner_id,
+
+Path       : C:\Users\admin\OneDrive\سطح المكتب\ALSAAB - 
+             AI\backend\partner_engine.py
+LineNumber : 963
+Line       :     if sponsor_partner_id:
+
+Path       : C:\Users\admin\OneDrive\سطح المكتب\ALSAAB - 
+             AI\backend\partner_engine.py
+LineNumber : 964
+Line       :         if sponsor_partner_id == COMPANY_OWNER_PARTNER_ID:
+
+Path       : C:\Users\admin\OneDrive\سطح المكتب\ALSAAB - 
+             AI\backend\partner_engine.py
+LineNumber : 966
+Line       :                 f"\n\nتم ربط تسجيلك بمصدر 
+             الشركة:\n{sponsor_partner_id}"
+
+Path       : C:\Users\admin\OneDrive\سطح المكتب\ALSAAB - 
+             AI\backend\partner_engine.py
+LineNumber : 970
+Line       :                 f"\n\nتم ربطك تحت الشريك:\n{sponsor_partner_id}"
+
+Path       : C:\Users\admin\OneDrive\سطح المكتب\ALSAAB - 
+             AI\backend\prompt_builder.py
+LineNumber : 45
+Line       : def normalize_source_partner_id(value):
+
+Path       : C:\Users\admin\OneDrive\سطح المكتب\ALSAAB - 
+             AI\backend\prompt_builder.py
+LineNumber : 62
+Line       : def get_payment_source_partner_id(state):
+
+Path       : C:\Users\admin\OneDrive\سطح المكتب\ALSAAB - 
+             AI\backend\prompt_builder.py
+LineNumber : 63
+Line       :     source_partner_id = (
+
+Path       : C:\Users\admin\OneDrive\سطح المكتب\ALSAAB - 
+             AI\backend\prompt_builder.py
+LineNumber : 64
+Line       :         state.get("source_partner_id")
+
+Path       : C:\Users\admin\OneDrive\سطح المكتب\ALSAAB - 
+             AI\backend\prompt_builder.py
+LineNumber : 70
+Line       :     return normalize_source_partner_id(source_partner_id)
+
+Path       : C:\Users\admin\OneDrive\سطح المكتب\ALSAAB - 
+             AI\backend\prompt_builder.py
+LineNumber : 75
+Line       :     source_partner_id = get_payment_source_partner_id(state)
+
+Path       : C:\Users\admin\OneDrive\سطح المكتب\ALSAAB - 
+             AI\backend\prompt_builder.py
+LineNumber : 87
+Line       :         if source_partner_id:
+
+Path       : C:\Users\admin\OneDrive\سطح المكتب\ALSAAB - 
+             AI\backend\prompt_builder.py
+LineNumber : 88
+Line       :             params["ref"] = source_partner_id
+
+Path       : C:\Users\admin\OneDrive\سطح المكتب\ALSAAB - 
+             AI\backend\prompt_builder.py
+LineNumber : 89
+Line       :             params["source_partner_id"] = source_partner_id
+
+Path       : C:\Users\admin\OneDrive\سطح المكتب\ALSAAB - 
+             AI\backend\smart_link_event_filter_routes.py
+LineNumber : 121
+Line       :                 or payload.get("source_partner_id")
+
+Path       : C:\Users\admin\OneDrive\سطح المكتب\ALSAAB - 
+             AI\backend\smart_link_protection_routes.py
+LineNumber : 238
+Line       :                 or payload.get("source_partner_id")
+
+Path       : C:\Users\admin\OneDrive\سطح المكتب\ALSAAB - 
+             AI\backend\smart_link_routes.py
+LineNumber : 106
+Line       :                 payload.source_partner_id = 
+             payload.source_partner_id || smartRef;
+
+Path       : C:\Users\admin\OneDrive\سطح المكتب\ALSAAB - 
+             AI\backend\smart_link_routes.py
+LineNumber : 644
+Line       :             source_partner_id: ref,
+
+Path       : C:\Users\admin\OneDrive\سطح المكتب\ALSAAB - 
+             AI\backend\smart_link_routes.py
+LineNumber : 753
+Line       :                 or payload.get("source_partner_id")
+
+Path       : C:\Users\admin\OneDrive\سطح المكتب\ALSAAB - 
+             AI\backend\smart_link_routes.py
+LineNumber : 775
+Line       :                 payload.setdefault("source_partner_id", ref)
+
+Path       : C:\Users\admin\OneDrive\سطح المكتب\ALSAAB - 
+             AI\backend\smart_link_routes.py
+LineNumber : 1307
+Line       :                 or payload.get("source_partner_id")
+
+
+

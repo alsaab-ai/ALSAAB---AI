@@ -1,0 +1,2331 @@
+﻿
+
+===== backend\config.py L1-L660 =====
+1: # config.py
+2: 
+3: # =========================
+4: # OPENAI
+5: # =========================
+6: 
+7: import os
+8: 
+9: OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
+10: MODEL_NAME = "gpt-4o-mini"
+11: REPLY_MAX_TOKENS = 350
+12: TEMPERATURE = 0.65
+13: 
+14: 
+15: # =========================
+16: # ALSAAB AI INFO
+17: # =========================
+18: 
+19: SYSTEM_NAME = "Ù†Ø¸Ø§Ù…Ù†Ø§ Ø§Ù„Ø°ÙƒÙŠ"
+20: COMPANY_NAME = "ALSAAB AI"
+21: WEBSITE_URL = "https://www.alsaab.io"
+22: WHATSAPP_LINK = "https://wa.me/971523288001"
+23: 
+24: # Ø±Ø§Ø¨Ø· ØªØ·Ø¨ÙŠÙ‚ Render Ø§Ù„Ø£Ø³Ø§Ø³ÙŠ
+25: # Ù†Ø³ØªØ®Ø¯Ù…Ù‡ Ù„Ø§Ø­Ù‚Ø§Ù‹ ÙÙŠ Ø±ÙˆØ§Ø¨Ø· Ø§Ù„Ø¯ÙØ¹ Ø§Ù„Ø¯Ø§Ø®Ù„ÙŠØ© ÙˆØ§Ù„Ù€ webhook
+26: APP_BASE_URL = os.getenv("APP_BASE_URL", "https://alsaab-ai.onrender.com")
+27: 
+28: 
+29: # =========================
+30: # SUBSCRIPTION PACKAGES
+31: # =========================
+32: 
+33: PACKAGES = {
+34:     "starter": {
+35:         "name_ar": "Ø¨Ø§Ù‚Ø© Ø§Ù„Ø¨Ø¯Ø§ÙŠØ©",
+36:         "price_ar": "599 Ø¯Ø±Ù‡Ù… Ø¥Ù…Ø§Ø±Ø§ØªÙŠ Ø´Ù‡Ø±ÙŠØ§Ù‹",
+37:         "position": "Ø¨Ø¯Ø§ÙŠØ© Ø§Ù„Ø¯Ø®ÙˆÙ„ Ù„Ù„Ù†Ø¸Ø§Ù…",
+38:         "best_for": "Ù„Ù„Ù…Ø´Ø§Ø±ÙŠØ¹ Ø§Ù„ØµØºÙŠØ±Ø© Ø£Ùˆ Ù…Ù† ÙŠØ±ÙŠØ¯ ØªØ¬Ø±Ø¨Ø© Ø§Ù„Ù†Ø¸Ø§Ù… Ø¨ØªÙƒÙ„ÙØ© Ø£Ù‚Ù„",
+39:         "note": "Ø¨Ø§Ù‚Ø© Ø¯Ø®ÙˆÙ„ Ø£Ø³Ø§Ø³ÙŠØ©ØŒ Ù…Ù†Ø§Ø³Ø¨Ø© Ù„Ù„Ø¨Ø¯Ø§ÙŠØ© ÙˆÙ„Ø§ ØªØ´Ù…Ù„ Ø§Ù„Ø§Ø³ØªØ´Ø§Ø±Ø§Øª Ø§Ù„Ø®Ø§ØµØ© Ø£Ùˆ Ø±Ø¨Ø· Ø§Ù„Ù…ÙˆÙ‚Ø¹.",
+40:         "monthly_reply_limit": 2000,
+41:         "customer_reply_limit": 2000,
+42:         "base_customer_reply_limit": 2000,
+43:         "gift_reply_limit": 0,
+44:         "total_customer_reply_limit": 2000,
+45:         "owner_advisory_reply_limit": 0,
+46:         "main_channel": "whatsapp",
+47:         "channels": ["whatsapp"],
+48:         "whatsapp_included": True,
+49:         "website_included": False,
+50:         "instagram_included": False,
+51:         "dashboard_advisory_enabled": False,
+52:         "image_catalog_enabled": False,
+53:         "client_payment_links_enabled": False,
+54:         "advisor_level": "none",
+55:         "website_note": "Ù„Ø§ ØªØ´Ù…Ù„ Ø±Ø¨Ø· Ø§Ù„Ø¨ÙˆØª Ø¹Ù„Ù‰ Ø§Ù„Ù…ÙˆÙ‚Ø¹. Ø§Ù„Ù…Ù†ÙØ° Ø§Ù„Ø±Ø¦ÙŠØ³ÙŠ Ù‡Ùˆ WhatsApp.",
+56:         "support_level": "Ø¯Ø¹Ù… Ø£Ø³Ø§Ø³ÙŠ",
+57:         "customization_level": "ØªØ®ØµÙŠØµ Ø£Ø³Ø§Ø³ÙŠ",
+58:         "reporting_level": "Ø¨Ø¯ÙˆÙ† ØªÙ‚Ø§Ø±ÙŠØ± Ù…ØªÙ‚Ø¯Ù…Ø©",
+59:         "recommended": False,
+60:         "features": [
+61:             "2000 Ø±Ø¯ Ø´Ù‡Ø±ÙŠ Ù„Ù„Ø¹Ù…Ù„Ø§Ø¡",
+62:             "ØªØ±ÙƒÙŠØ¨ Ø¹Ù„Ù‰ WhatsApp",
+63:             "Ø¨ÙˆØª Ù…Ø¨ÙŠØ¹Ø§Øª Ø£Ø³Ø§Ø³ÙŠ",
+64:             "ØªØ¯Ø±ÙŠØ¨ Ù…Ø´Ø±ÙˆØ¹ ÙˆØ§Ø­Ø¯",
+65:             "Ø­ÙØ¸ Ø¨ÙŠØ§Ù†Ø§Øª Ø§Ù„Ø¹Ù…Ù„Ø§Ø¡",
+66:             "Ø­ÙØ¸ Ø¨ÙŠØ§Ù†Ø§Øª Ø§Ù„Ù…Ø´Ø±ÙˆØ¹",
+67:             "Google Sheets Leads",
+68:             "Google Sheets ClientProfiles",
+69:             "Partner ID + Referral Link",
+70:             "Ø¹Ù…ÙˆÙ„Ø© Ù…Ø¨Ø§Ø´Ø±Ø© 25% Ø¹Ù†Ø¯ Ø§Ù„Ø§Ø´ØªØ±Ø§Ùƒ Ø§Ù„Ù†Ø´Ø·"
+71:         ],
+72:         "not_included": [
+73:             "Ø±Ø¨Ø· Ø§Ù„Ù…ÙˆÙ‚Ø¹",
+74:             "Client Dashboard Ù…ØªÙ‚Ø¯Ù…",
+75:             "Ø§Ø³ØªØ´Ø§Ø±Ø§Øª Ø®Ø§ØµØ© Ù„ØµØ§Ø­Ø¨ Ø§Ù„Ù…Ø´Ø±ÙˆØ¹",
+76:             "Ø¥Ø¶Ø§ÙØ© ØµÙˆØ± Ø§Ù„Ù…Ù†ØªØ¬Ø§Øª ÙˆØ§Ù„ÙƒØªØ§Ù„ÙˆØ¬Ø§Øª",
+77:             "Ø±ÙˆØ§Ø¨Ø· Ø¯ÙØ¹ Ø®Ø§ØµØ© Ø¨Ø§Ù„Ø¹Ù…ÙŠÙ„",
+78:             "Instagram",
+79:             "Follow-up Ø£ÙˆØªÙˆÙ…Ø§ØªÙŠÙƒÙŠ ÙƒØ§Ù…Ù„",
+80:             "ØªÙ‚Ø§Ø±ÙŠØ± Ù…ØªÙ‚Ø¯Ù…Ø©"
+81:         ],
+82:         "sales_recommendation": "Ù„Ø§ ØªØ±Ø´Ø­ Ù‡Ø°Ù‡ Ø§Ù„Ø¨Ø§Ù‚Ø© Ø¥Ù„Ø§ Ø¥Ø°Ø§ Ø§Ù„Ø¹Ù…ÙŠÙ„ Ø·Ù„Ø¨ Ø§Ù„Ø£Ø±Ø®Øµ Ø£Ùˆ ÙŠØ±ÙŠØ¯ ØªØ¬Ø±Ø¨Ø© Ø¨Ø³ÙŠØ·Ø© ÙÙ‚Ø·."
+83:     },
+84: 
+85:     "growth": {
+86:         "name_ar": "Ø¨Ø§Ù‚Ø© Ø§Ù„Ù†Ù…Ùˆ",
+87:         "price_ar": "1099 Ø¯Ø±Ù‡Ù… Ø¥Ù…Ø§Ø±Ø§ØªÙŠ Ø´Ù‡Ø±ÙŠØ§Ù‹",
+88:         "position": "Ø§Ù„Ø¨Ø§Ù‚Ø© Ø§Ù„Ù…ÙˆØµÙ‰ Ø¨Ù‡Ø§",
+89:         "best_for": "Ù…Ø¹Ø¸Ù… Ø£ØµØ­Ø§Ø¨ Ø§Ù„Ù…Ø´Ø§Ø±ÙŠØ¹ ÙˆØ§Ù„Ø´Ø±ÙƒØ§Ø¡ Ø§Ù„Ø°ÙŠÙ† ÙŠØ±ÙŠØ¯ÙˆÙ† Ø¨ÙˆØª Ù…Ø¨ÙŠØ¹Ø§Øª + Ù…Ø³ØªØ´Ø§Ø± Ø£Ø¹Ù…Ø§Ù„ ÙˆÙ…Ø¨ÙŠØ¹Ø§Øª.",
+90:         "note": "Ù‡Ø°Ù‡ Ø§Ù„Ø¨Ø§Ù‚Ø© Ø§Ù„Ø£ÙØ¶Ù„ Ù„Ù…Ø¹Ø¸Ù… Ø§Ù„Ù…Ø´Ø§Ø±ÙŠØ¹ Ù„Ø£Ù†Ù‡Ø§ ØªØ¬Ù…Ø¹ Ø¨ÙŠÙ† Ø±Ø¯ÙˆØ¯ Ø§Ù„Ø¹Ù…Ù„Ø§Ø¡ ÙˆØ§Ù„Ø§Ø³ØªØ´Ø§Ø±Ø§Øª Ø§Ù„Ø®Ø§ØµØ© Ù„ØµØ§Ø­Ø¨ Ø§Ù„Ù…Ø´Ø±ÙˆØ¹.",
+91:         "monthly_reply_limit": 6000,
+92:         "customer_reply_limit": 6000,
+93:         "base_customer_reply_limit": 6000,
+94:         "gift_reply_limit": 0,
+95:         "total_customer_reply_limit": 6000,
+96:         "owner_advisory_reply_limit": 1000,
+97:         "main_channel": "whatsapp + website",
+98:         "channels": ["whatsapp", "website"],
+99:         "whatsapp_included": True,
+100:         "website_included": True,
+101:         "instagram_included": False,
+102:         "dashboard_advisory_enabled": True,
+103:         "image_catalog_enabled": True,
+104:         "client_payment_links_enabled": True,
+105:         "advisor_level": "business_sales_advisor",
+106:         "website_note": "ØªØ´Ù…Ù„ WhatsApp + Ø¥Ù…ÙƒØ§Ù†ÙŠØ© Ø±Ø¨Ø· Ø§Ù„Ø¨ÙˆØª Ø¹Ù„Ù‰ Ø§Ù„Ù…ÙˆÙ‚Ø¹.",
+107:         "support_level": "Ø£ÙˆÙ„ÙˆÙŠØ© Ø£Ø¹Ù„Ù‰ Ù…Ù† Ø¨Ø§Ù‚Ø© Ø§Ù„Ø¨Ø¯Ø§ÙŠØ©",
+108:         "customization_level": "ØªØ®ØµÙŠØµ Ø£ÙØ¶Ù„ Ø­Ø³Ø¨ Ø§Ù„Ù…Ø´Ø±ÙˆØ¹",
+109:         "reporting_level": "ØªÙ‚Ø§Ø±ÙŠØ± Ù…Ø¨Ø¯Ø¦ÙŠØ© Ù„Ø§Ø­Ù‚Ø§Ù‹",
+110:         "recommended": True,
+111:         "features": [
+112:             "6000 Ø±Ø¯ Ø´Ù‡Ø±ÙŠ Ù„Ù„Ø¹Ù…Ù„Ø§Ø¡",
+113:             "1000 Ø±Ø¯ Ø´Ù‡Ø±ÙŠ Ø§Ø³ØªØ´Ø§Ø±ÙŠ Ù„ØµØ§Ø­Ø¨ Ø§Ù„Ù…Ø´Ø±ÙˆØ¹ Ù…Ù† Client Dashboard",
+114:             "ØªØ±ÙƒÙŠØ¨ Ø¹Ù„Ù‰ WhatsApp",
+115:             "Ø¥Ù…ÙƒØ§Ù†ÙŠØ© Ø§Ù„ØªØ±ÙƒÙŠØ¨ Ø¹Ù„Ù‰ Ø§Ù„Ù…ÙˆÙ‚Ø¹",
+116:             "Ø¨ÙˆØª Ù…Ø¨ÙŠØ¹Ø§Øª ÙˆØ®Ø¯Ù…Ø© Ø¹Ù…Ù„Ø§Ø¡ Ù„Ù„Ù…Ø´Ø±ÙˆØ¹",
+117:             "Ù…Ø³ØªØ´Ø§Ø± Ø±ÙŠØ§Ø¯Ø© Ø£Ø¹Ù…Ø§Ù„ ÙˆÙ…Ø¨ÙŠØ¹Ø§Øª Ù„ØµØ§Ø­Ø¨ Ø§Ù„Ù…Ø´Ø±ÙˆØ¹ Ø£Ùˆ Ø§Ù„Ø´Ø±ÙŠÙƒ",
+118:             "Ø¥Ø¶Ø§ÙØ© ØµÙˆØ± Ø§Ù„Ù…Ù†ØªØ¬Ø§Øª ÙˆØ§Ù„ÙƒØªØ§Ù„ÙˆØ¬Ø§Øª",
+119:             "Ø¥Ø¶Ø§ÙØ© Ø±ÙˆØ§Ø¨Ø· Ø¯ÙØ¹ Ø®Ø§ØµØ© Ø¨Ø§Ù„Ù…Ù†ØªØ¬Ø§Øª Ù…Ù† Ø¯Ø§Ø®Ù„ Client Dashboard",
+120:             "ØªØ¯Ø±ÙŠØ¨ Ù…Ø´Ø±ÙˆØ¹ ÙˆØ§Ø­Ø¯",
+121:             "Google Sheets Leads",
+122:             "Google Sheets ClientProfiles",
+123:             "ØªØ­Ø³ÙŠÙ† Ø£Ø³Ù„ÙˆØ¨ Ø§Ù„Ø±Ø¯ Ø­Ø³Ø¨ Ù†Ø´Ø§Ø· Ø§Ù„Ø¹Ù…ÙŠÙ„",
+124:             "Ù…Ø¹Ø§Ù„Ø¬Ø© Ø§Ø¹ØªØ±Ø§Ø¶Ø§Øª Ø£ÙØ¶Ù„",
+125:             "Partner ID + Referral Link",
+126:             "Ù…Ø¤Ù‡Ù„ Ù„Ù„ÙˆØµÙˆÙ„ Ø¥Ù„Ù‰ Level 2 Ùˆ Level 3 Ø­Ø³Ø¨ Ø§Ù„Ø´Ø±ÙˆØ·"
+127:         ],
+128:         "not_included": [
+129:             "Instagram",
+130:             "Client Dashboard Ù…ØªÙ‚Ø¯Ù… Ø¬Ø¯Ø§Ù‹",
+131:             "Follow-up Ø£ÙˆØªÙˆÙ…Ø§ØªÙŠÙƒÙŠ ÙƒØ§Ù…Ù„",
+132:             "Ø±Ø¨Ø· Ø£Ù†Ø¸Ù…Ø© Ø¯Ø§Ø®Ù„ÙŠØ© Ù…ØªÙ‚Ø¯Ù…Ø©",
+133:             "Enterprise custom integrations"
+134:         ],
+135:         "sales_recommendation": "Ù‡Ø°Ù‡ Ù‡ÙŠ Ø§Ù„Ø¨Ø§Ù‚Ø© Ø§Ù„Ø§ÙØªØ±Ø§Ø¶ÙŠØ© Ø§Ù„Ù…ÙˆØµÙ‰ Ø¨Ù‡Ø§ Ù„Ù…Ø¹Ø¸Ù… Ø£ØµØ­Ø§Ø¨ Ø§Ù„Ù…Ø´Ø§Ø±ÙŠØ¹ ÙˆØ§Ù„Ø´Ø±ÙƒØ§Ø¡."
+136:     },
+137: 
+138:     "elite": {
+139:         "name_ar": "Ø¨Ø§Ù‚Ø© Ø§Ù„Ù†Ø®Ø¨Ø©",
+140:         "price_ar": "2099 Ø¯Ø±Ù‡Ù… Ø¥Ù…Ø§Ø±Ø§ØªÙŠ Ø´Ù‡Ø±ÙŠØ§Ù‹",
+141:         "position": "Ø£Ù‚ÙˆÙ‰ Ø¨Ø§Ù‚Ø©",
+142:         "best_for": "Ø§Ù„Ù…Ø´Ø§Ø±ÙŠØ¹ Ø§Ù„Ø¬Ø§Ø¯Ø© ÙˆØ§Ù„Ø´Ø±ÙƒØ§Ø¡ Ø§Ù„Ù…ØªÙ‚Ø¯Ù…ÙŠÙ† Ø§Ù„Ø°ÙŠÙ† ÙŠØ±ÙŠØ¯ÙˆÙ† Ø­Ø¬Ù… Ø±Ø¯ÙˆØ¯ Ø£Ø¹Ù„Ù‰ ÙˆÙ‚Ù†ÙˆØ§Øª Ø£ÙƒØ«Ø± ÙˆØªØ®ØµÙŠØµ Ø£Ù‚ÙˆÙ‰.",
+143:         "note": "Ø¨Ø§Ù‚Ø© Ù…ØªÙ‚Ø¯Ù…Ø© Ù„Ù„Ù…Ø´Ø§Ø±ÙŠØ¹ Ø§Ù„Ø¬Ø§Ø¯Ø©ØŒ ÙˆØªØ´Ù…Ù„ Ø±Ø¯ÙˆØ¯ Ø¥Ø¶Ø§ÙÙŠØ© Ù‡Ø¯ÙŠØ© ÙˆØ§Ø³ØªØ´Ø§Ø±Ø§Øª Ø£Ø¹Ù…Ù‚ Ù„ØµØ§Ø­Ø¨ Ø§Ù„Ù…Ø´Ø±ÙˆØ¹.",
+144:         "monthly_reply_limit": 15000,
+145:         "customer_reply_limit": 15000,
+146:         "base_customer_reply_limit": 12000,
+147:         "gift_reply_limit": 3000,
+148:         "total_customer_reply_limit": 15000,
+149:         "owner_advisory_reply_limit": 2000,
+150:         "main_channel": "whatsapp + website + instagram",
+151:         "channels": ["whatsapp", "website", "instagram"],
+152:         "whatsapp_included": True,
+153:         "website_included": True,
+154:         "instagram_included": True,
+155:         "dashboard_advisory_enabled": True,
+156:         "image_catalog_enabled": True,
+157:         "client_payment_links_enabled": True,
+158:         "advisor_level": "advanced_business_sales_advisor",
+159:         "website_note": "ØªØ´Ù…Ù„ WhatsApp + Website + Ø¯Ø¹Ù… Instagram Ø¶Ù…Ù† Ø§Ù„Ø±Ø¨Ø· Ø§Ù„Ù…ØªÙ‚Ø¯Ù….",
+160:         "support_level": "Ø£ÙˆÙ„ÙˆÙŠØ© Ø¯Ø¹Ù… Ø£Ø¹Ù„Ù‰",
+161:         "customization_level": "ØªØ®ØµÙŠØµ Ø£Ø¹Ù…Ù‚ Ù„Ù„Ø¨Ø±ÙˆÙ…Ø¨Øª ÙˆØ³ÙŠÙ†Ø§Ø±ÙŠÙˆÙ‡Ø§Øª Ø§Ù„Ø¨ÙŠØ¹",
+162:         "reporting_level": "ØªÙ‚Ø§Ø±ÙŠØ± Ø£ÙØ¶Ù„ Ù„Ø§Ø­Ù‚Ø§Ù‹",
+163:         "recommended": False,
+164:         "features": [
+165:             "12000 Ø±Ø¯ Ø´Ù‡Ø±ÙŠ Ù„Ù„Ø¹Ù…Ù„Ø§Ø¡",
+166:             "3000 Ø±Ø¯ Ù‡Ø¯ÙŠØ© Ù…Ù† Ø´Ø±ÙƒØ© Ø§Ù„ØµØ¹Ø¨",
+167:             "Ù…Ø¬Ù…ÙˆØ¹ Ø±Ø¯ÙˆØ¯ Ø§Ù„Ø¹Ù…Ù„Ø§Ø¡ = 15000 Ø±Ø¯ Ø´Ù‡Ø±ÙŠ",
+168:             "2000 Ø±Ø¯ Ø´Ù‡Ø±ÙŠ Ø§Ø³ØªØ´Ø§Ø±ÙŠ Ù„ØµØ§Ø­Ø¨ Ø§Ù„Ù…Ø´Ø±ÙˆØ¹ Ù…Ù† Client Dashboard",
+169:             "ØªØ±ÙƒÙŠØ¨ Ø¹Ù„Ù‰ WhatsApp",
+170:             "ØªØ±ÙƒÙŠØ¨ Ø¹Ù„Ù‰ Ø§Ù„Ù…ÙˆÙ‚Ø¹",
+171:             "Ø¯Ø¹Ù… Instagram Ø¶Ù…Ù† Ø§Ù„Ø±Ø¨Ø· Ø§Ù„Ù…ØªÙ‚Ø¯Ù…",
+172:             "Ø¨ÙˆØª Ù…Ø¨ÙŠØ¹Ø§Øª ÙˆØ®Ø¯Ù…Ø© Ø¹Ù…Ù„Ø§Ø¡ Ø£Ù‚ÙˆÙ‰",
+173:             "Ù…Ø³ØªØ´Ø§Ø± Ø±ÙŠØ§Ø¯Ø© Ø£Ø¹Ù…Ø§Ù„ ÙˆÙ…Ø¨ÙŠØ¹Ø§Øª Ø£Ù‚ÙˆÙ‰ ÙˆØ£ÙƒØ«Ø± ØªØ®ØµÙŠØµØ§Ù‹",
+174:             "Ø¥Ø¶Ø§ÙØ© ØµÙˆØ± Ø§Ù„Ù…Ù†ØªØ¬Ø§Øª ÙˆØ§Ù„ÙƒØªØ§Ù„ÙˆØ¬Ø§Øª",
+175:             "Ø¥Ø¶Ø§ÙØ© Ø±ÙˆØ§Ø¨Ø· Ø¯ÙØ¹ Ø®Ø§ØµØ© Ø¨Ø§Ù„Ù…Ù†ØªØ¬Ø§Øª Ù…Ù† Ø¯Ø§Ø®Ù„ Client Dashboard",
+176:             "ØªØ®ØµÙŠØµ Ø£Ø¹Ù…Ù‚ Ù„Ù„Ø±Ø¯ÙˆØ¯",
+177:             "Ù…Ø¹Ø§Ù„Ø¬Ø© Ø§Ø¹ØªØ±Ø§Ø¶Ø§Øª Ø£Ù‚ÙˆÙ‰",
+178:             "Ø¥Ø¹Ø¯Ø§Ø¯ Ø³ÙŠÙ†Ø§Ø±ÙŠÙˆÙ‡Ø§Øª Ø¨ÙŠØ¹ Ø£ÙØ¶Ù„",
+179:             "Partner ID + Referral Link",
+180:             "Ø´Ø±Ø· Ø£Ø³Ø§Ø³ÙŠ Ù„Ù„ÙˆØµÙˆÙ„ Ø¥Ù„Ù‰ Level 4 Ùˆ Level 5"
+181:         ],
+182:         "not_included": [
+183:             "Ø§Ø³ØªØ®Ø¯Ø§Ù… ØºÙŠØ± Ù…Ø­Ø¯ÙˆØ¯ Ø¨Ø¯ÙˆÙ† Ø³ÙŠØ§Ø³Ø© Ø§Ø³ØªØ®Ø¯Ø§Ù… Ø¹Ø§Ø¯Ù„Ø©",
+184:             "Ø§Ø³ØªÙ„Ø§Ù… Ù…Ø¨Ø§Ù„Øº Ø§Ù„Ø¹Ù…Ù„Ø§Ø¡ Ù†ÙŠØ§Ø¨Ø© Ø¹Ù†Ù‡Ù…",
+185:             "Ø±Ø¨Ø· Ø£Ù†Ø¸Ù…Ø© Ø¯Ø§Ø®Ù„ÙŠØ© Ù…ØªÙ‚Ø¯Ù…Ø© Ø¨Ø¯ÙˆÙ† Ø§ØªÙØ§Ù‚ Ø®Ø§Øµ",
+186:             "Enterprise custom integrations"
+187:         ],
+188:         "sales_recommendation": "Ø±Ø´Ø­ Ù‡Ø°Ù‡ Ø§Ù„Ø¨Ø§Ù‚Ø© Ù„Ù„Ø¹Ù…ÙŠÙ„ Ø§Ù„Ø¬Ø§Ø¯ Ø£Ùˆ Ø§Ù„Ø´Ø±ÙŠÙƒ Ø§Ù„Ù…ØªÙ‚Ø¯Ù… Ø£Ùˆ Ø§Ù„Ù…Ø´Ø±ÙˆØ¹ Ø§Ù„Ø°ÙŠ ÙŠØ­ØªØ§Ø¬ Ù‚Ù†ÙˆØ§Øª Ø£ÙƒØ«Ø± ÙˆØªØ®ØµÙŠØµ Ø£Ø¹Ù„Ù‰."
+189:     }
+190: }
+191: 
+192: 
+193: # =========================
+194: # ENTERPRISE / CUSTOM PLAN
+195: # =========================
+196: 
+197: ENTERPRISE_PACKAGE = {
+198:     "name_ar": "Ø¨Ø§Ù‚Ø© Ø§Ù„Ø´Ø±ÙƒØ§Øª / Enterprise",
+199:     "price_ar": "ÙØ§ØªÙˆØ±Ø© Ø´Ù‡Ø±ÙŠØ© Ù…Ù†ÙØµÙ„Ø© Ø­Ø³Ø¨ Ø§Ù„Ø§Ø³ØªØ®Ø¯Ø§Ù…",
+200:     "position": "Ù„Ù„Ø´Ø±ÙƒØ§Øª Ø§Ù„ÙƒØ¨ÙŠØ±Ø© ÙˆØ§Ù„Ø§Ø³ØªØ®Ø¯Ø§Ù… Ø§Ù„Ø¹Ø§Ù„ÙŠ",
+201:     "best_for": "Ø§Ù„Ø´Ø±ÙƒØ§Øª Ø§Ù„ÙƒØ¨ÙŠØ±Ø©ØŒ Ø§Ù„ÙØ±ÙˆØ¹ Ø§Ù„Ù…ØªØ¹Ø¯Ø¯Ø©ØŒ Ø£Ùˆ Ø§Ù„Ù…Ø´Ø§Ø±ÙŠØ¹ Ø§Ù„ØªÙŠ ØªØ­ØªØ§Ø¬ Ø­Ø¬Ù… Ø±Ø¯ÙˆØ¯ Ø¹Ø§Ù„ÙŠ ÙˆØ±Ø¨Ø· Ø®Ø§Øµ",
+202:     "monthly_reply_limit": "custom",
+203:     "main_channel": "whatsapp + website + custom integrations",
+204:     "whatsapp_included": True,
+205:     "website_included": True,
+206:     "custom_invoice": True,
+207:     "stripe_invoice_required": True,
+208:     "note": "Ø¥Ø°Ø§ Ø¹Ù†Ø¯ Ø§Ù„Ø¹Ù…ÙŠÙ„ Ø´Ø±ÙƒØ© ÙƒØ¨ÙŠØ±Ø© Ø£Ùˆ Ø§Ø³ØªØ®Ø¯Ø§Ù…Ø§Øª Ø¹Ø¯ÙŠØ¯Ø©ØŒ ÙŠØªÙ… ØªØ¬Ù‡ÙŠØ² ÙØ§ØªÙˆØ±Ø© Ø´Ù‡Ø±ÙŠØ© Ù…Ù†ÙØµÙ„Ø© Ù…Ù† Stripe Ø¨Ø³Ø¹Ø± Ø£Ø¹Ù„Ù‰ Ø­Ø³Ø¨ Ø§Ù„Ø§Ø³ØªØ®Ø¯Ø§Ù… ÙˆØ§Ù„Ø±Ø¨Ø· Ø§Ù„Ù…Ø·Ù„ÙˆØ¨.",
+209:     "features": [
+210:         "Ø¹Ø¯Ø¯ Ø±Ø¯ÙˆØ¯ Ù…Ø®ØµØµ Ø­Ø³Ø¨ Ø§Ù„Ø§ØªÙØ§Ù‚",
+211:         "WhatsApp Bot",
+212:         "Website Bot",
+213:         "ØªØ®ØµÙŠØµ Ù…ØªÙ‚Ø¯Ù…",
+214:         "Ø¥Ù…ÙƒØ§Ù†ÙŠØ© Ø±Ø¨Ø· Ø£ÙƒØ«Ø± Ù…Ù† ÙØ±Ø¹ Ø£Ùˆ Ø£ÙƒØ«Ø± Ù…Ù† Ù…Ø´Ø±ÙˆØ¹",
+215:         "Ø¯Ø¹Ù… Ø£Ø¹Ù„Ù‰",
+216:         "ØªÙ‚Ø§Ø±ÙŠØ± Ù…Ø®ØµØµØ© Ù„Ø§Ø­Ù‚Ø§Ù‹",
+217:         "Ø±Ø¨Ø· Ø£Ù†Ø¸Ù…Ø© Ø¯Ø§Ø®Ù„ÙŠØ© Ù„Ø§Ø­Ù‚Ø§Ù‹ Ø­Ø³Ø¨ Ø§Ù„Ø§ØªÙØ§Ù‚"
+218:     ],
+219:     "sales_recommendation": "Ø¥Ø°Ø§ Ø§Ù„Ø¹Ù…ÙŠÙ„ Ø´Ø±ÙƒØ© ÙƒØ¨ÙŠØ±Ø© Ø£Ùˆ Ø¹Ù†Ø¯Ù‡ Ø­Ø¬Ù… Ù…Ø­Ø§Ø¯Ø«Ø§Øª Ø¹Ø§Ù„ÙŠØŒ Ù„Ø§ ØªØ­ØµØ±Ù‡ ÙÙŠ Ø§Ù„Ø¨Ø§Ù‚Ø§Øª Ø§Ù„Ø¹Ø§Ø¯ÙŠØ©. Ø§Ø¹Ø±Ø¶ Ø¹Ù„ÙŠÙ‡ Ø¨Ø§Ù‚Ø© Enterprise Ø¨ÙØ§ØªÙˆØ±Ø© Ø´Ù‡Ø±ÙŠØ© Ù…Ù†ÙØµÙ„Ø©."
+220: }
+221: 
+222: 
+223: # =========================
+224: # USAGE LIMIT RULES
+225: # =========================
+226: 
+227: USAGE_LIMIT_RULES = {
+228:     "enabled": False,
+229:     "note": "Ù‡Ø°Ø§ Ø§Ù„Ù†Ø¸Ø§Ù… Ø³ÙŠØªÙ… ØªÙØ¹ÙŠÙ„Ù‡ Ù„Ø§Ø­Ù‚Ø§Ù‹ Ø¨Ø¹Ø¯ Ø¨Ù†Ø§Ø¡ usage counter ÙˆØ±Ø¨Ø· Ø§Ù„Ø¨Ø§Ù‚Ø© Ø¨Ø§Ù„Ø¹Ù…ÙŠÙ„.",
+230:     "reply_count_unit": "bot_reply",
+231:     "reset_cycle": "monthly",
+232:     "stop_when_limit_reached": True,
+233:     "allow_admin_manual_increase": True,
+234:     "allow_enterprise_custom_limit": True,
+235: }
+236: 
+237: 
+238: USAGE_LIMIT_MESSAGES = {
+239:     "ar": (
+240:         "ØªÙ… Ø§Ø³ØªÙ‡Ù„Ø§Ùƒ Ø­Ø¯ Ø§Ù„Ø±Ø¯ÙˆØ¯ Ø§Ù„Ø´Ù‡Ø±ÙŠ Ù„Ø¨Ø§Ù‚ØªÙƒ Ø§Ù„Ø­Ø§Ù„ÙŠØ© âœ…\n\n"
+241:         "Ù„Ø¥ÙƒÙ…Ø§Ù„ Ø§Ø³ØªØ®Ø¯Ø§Ù… ALSAAB AIØŒ ØªÙ‚Ø¯Ø± ØªØ±Ù‚ÙŠ Ø¨Ø§Ù‚ØªÙƒ Ø£Ùˆ ØªÙ†ØªØ¸Ø± ØªØ¬Ø¯ÙŠØ¯ Ø§Ù„Ø¯ÙˆØ±Ø© Ø§Ù„Ø´Ù‡Ø±ÙŠØ©.\n\n"
+242:         "Ø§Ù„Ø¨Ø§Ù‚Ø§Øª Ø§Ù„Ù…ØªØ§Ø­Ø©:\n"
+243:         "- Ø¨Ø§Ù‚Ø© Ø§Ù„Ù†Ù…Ùˆ: 6000 Ø±Ø¯ Ø´Ù‡Ø±ÙŠ Ù„Ù„Ø¹Ù…Ù„Ø§Ø¡ + 1000 Ø±Ø¯ Ø§Ø³ØªØ´Ø§Ø±ÙŠ Ù„ØµØ§Ø­Ø¨ Ø§Ù„Ù…Ø´Ø±ÙˆØ¹ Ù…Ù† Client Dashboard\n"
+244:         "- Ø¨Ø§Ù‚Ø© Ø§Ù„Ù†Ø®Ø¨Ø©: 15000 Ø±Ø¯ Ø´Ù‡Ø±ÙŠ Ù„Ù„Ø¹Ù…Ù„Ø§Ø¡ + 2000 Ø±Ø¯ Ø§Ø³ØªØ´Ø§Ø±ÙŠ Ù„ØµØ§Ø­Ø¨ Ø§Ù„Ù…Ø´Ø±ÙˆØ¹ Ù…Ù† Client Dashboard\n\n"
+245:         "Ø¥Ø°Ø§ Ø§Ø³ØªØ®Ø¯Ø§Ù…Ùƒ Ø¹Ø§Ù„ÙŠ Ø£Ùˆ Ø¹Ù†Ø¯Ùƒ Ø´Ø±ÙƒØ© ÙƒØ¨ÙŠØ±Ø©ØŒ Ù†Ù‚Ø¯Ø± Ù†Ø¬Ù‡Ø² Ù„Ùƒ Ø¨Ø§Ù‚Ø© Enterprise Ø¨Ø§ØªÙØ§Ù‚ Ø®Ø§Øµ."
+246:     ),
+247:     "en": (
+248:         "Your current monthly package limit has been used âœ…\n\n"
+249:         "To continue using ALSAAB AI, you can upgrade your package or wait for the next monthly cycle.\n\n"
+250:         "Available options:\n"
+251:         "- Growth Package: 6000 customer replies/month + 1000 owner advisory replies/month from Client Dashboard\n"
+252:         "- Elite Package: 15000 customer replies/month + 2000 owner advisory replies/month from Client Dashboard\n\n"
+253:         "For high usage or larger companies, we can prepare a custom Enterprise plan."
+254:     )
+255: }
+256: 
+257: 
+258: # =========================
+259: # MLM LEVELS
+260: # =========================
+261: 
+262: MLM_LEVELS = {
+263:     "level_1": {
+264:         "name_ar": "Ø§Ù„Ù…Ø³ØªÙˆÙ‰ Ø§Ù„Ø£ÙˆÙ„",
+265:         "title_ar": "Ø´Ø±ÙŠÙƒ Ø§Ù„Ø¨Ø¯Ø§ÙŠØ©",
+266:         "requirements": "Ø§Ù„Ø§Ø´ØªØ±Ø§Ùƒ Ø¨Ø£ÙŠ Ø¨Ø§Ù‚Ø©",
+267:         "benefits": "25% Ø¹Ù…ÙˆÙ„Ø© Ù…Ø¨Ø§Ø´Ø±Ø© + ÙƒÙˆØ±Ø³ Ø§Ù„ØªØ³ÙˆÙŠÙ‚ Ù…Ø¬Ø§Ù†Ø§Ù‹",
+268:         "commission_percent": 25,
+269:         "commission_depth": 1
+270:     },
+271:     "level_2": {
+272:         "name_ar": "Ø§Ù„Ù…Ø³ØªÙˆÙ‰ Ø§Ù„Ø«Ø§Ù†ÙŠ",
+273:         "title_ar": "Ø´Ø±ÙŠÙƒ Ø§Ù„Ù†Ù…Ùˆ",
+274:         "requirements": "Ø§Ù„ØªØ±Ù‚ÙŠØ© Ø¥Ù„Ù‰ Ø¨Ø§Ù‚Ø© Ø§Ù„Ù†Ù…Ùˆ + Ø¨ÙŠØ¹ 2 Ø¹Ù…Ù„Ø§Ø¡ Ù…Ø¯ÙÙˆØ¹ÙŠÙ†",
+275:         "benefits": "+5% Ø¹Ù…ÙˆÙ„Ø© Ø´Ù‡Ø±ÙŠØ© Ø¥Ø¶Ø§ÙÙŠØ©",
+276:         "commission_percent": 5,
+277:         "commission_depth": 2
+278:     },
+279:     "level_3": {
+280:         "name_ar": "Ø§Ù„Ù…Ø³ØªÙˆÙ‰ Ø§Ù„Ø«Ø§Ù„Ø«",
+281:         "title_ar": "Ø´Ø±ÙŠÙƒ Ø§Ù„Ù…Ø¨ÙŠØ¹Ø§Øª",
+282:         "requirements": "Ø´Ø±Ø§Ø¡ ÙƒÙˆØ±Ø³ Ø§Ù„Ù…Ø¨ÙŠØ¹Ø§Øª 99$ + Ø¨ÙŠØ¹ 5 Ø¹Ù…Ù„Ø§Ø¡",
+283:         "benefits": "+4% Ø¹Ù…ÙˆÙ„Ø© Ø´Ù‡Ø±ÙŠØ© Ø¥Ø¶Ø§ÙÙŠØ©",
+284:         "commission_percent": 4,
+285:         "commission_depth": 3
+286:     },
+287:     "level_4": {
+288:         "name_ar": "Ø§Ù„Ù…Ø³ØªÙˆÙ‰ Ø§Ù„Ø±Ø§Ø¨Ø¹",
+289:         "title_ar": "Ø´Ø±ÙŠÙƒ Ø§Ù„Ù‚ÙŠØ§Ø¯Ø©",
+290:         "requirements": "Ø´Ø±Ø§Ø¡ ÙˆØ±Ø´Ø© ÙÙ„Ø³ÙØ© Ø§Ù„Ø­ÙŠØ§Ø© 299$ + Ø¥Ø¯Ø®Ø§Ù„ 20 Ø¹Ù…ÙŠÙ„ Ù†Ø´Ø·",
+291:         "benefits": "+3% Ø¹Ù…ÙˆÙ„Ø© Ø´Ù‡Ø±ÙŠØ© Ø¥Ø¶Ø§ÙÙŠØ©",
+292:         "commission_percent": 3,
+293:         "commission_depth": 4,
+294:         "locked": True,
+295:         "teaser": "Ø§Ù„Ø¯Ø®Ù„ Ø§Ù„Ø£ÙƒØ¨Ø± ÙŠØ¨Ø¯Ø£ ÙÙŠ Ø§Ù„Ù…Ø³ØªÙˆÙŠØ§Øª Ø§Ù„Ø£Ø¹Ù„Ù‰ ðŸ”"
+296:     },
+297:     "level_5": {
+298:         "name_ar": "Ø§Ù„Ù…Ø³ØªÙˆÙ‰ Ø§Ù„Ø®Ø§Ù…Ø³",
+299:         "title_ar": "Ø´Ø±ÙŠÙƒ Ø§Ù„Ù†Ø®Ø¨Ø©",
+300:         "requirements": "Ø´Ø±Ø§Ø¡ ÙƒÙˆØ±Ø³ Ø±Ø­Ù„Ø© Ø§Ù„ØªØºÙŠÙŠØ± 1099$ + Ø¥Ø¯Ø®Ø§Ù„ 50 Ø¹Ù…ÙŠÙ„ Ù†Ø´Ø·",
+301:         "benefits": "+2% Ø¹Ù…ÙˆÙ„Ø© Ø´Ù‡Ø±ÙŠØ© Ø¥Ø¶Ø§ÙÙŠØ©",
+302:         "commission_percent": 2,
+303:         "commission_depth": 5,
+304:         "locked": True,
+305:         "teaser": "Ù‡Ø°Ø§ Ù…Ø³ØªÙˆÙ‰ Ø§Ù„Ù‚Ù…Ø© ÙˆØ§Ù„Ø¯Ø®Ù„ Ø§Ù„Ø£Ù‚ÙˆÙ‰ ðŸ”"
+306:     }
+307: }
+308: 
+309: 
+310: # =========================
+311: # MLM OWNER / SPONSOR RULES
+312: # =========================
+313: 
+314: COMPANY_OWNER_PARTNER_ID = os.getenv("COMPANY_OWNER_PARTNER_ID", "alsaab")
+315: MLM_OWNER_PARTNER_ID = COMPANY_OWNER_PARTNER_ID
+316: 
+317: MLM_SPONSOR_RULES = {
+318:     "require_sponsor_for_partner_registration": True,
+319:     "owner_partner_id": COMPANY_OWNER_PARTNER_ID,
+320:     "owner_id_is_company_income": True,
+321:     "owner_id_has_no_external_commission": True,
+322:     "allow_owner_without_sponsor": True,
+323:     "do_not_auto_assign_owner_before_asking_source": True,
+324:     "ask_source_before_owner_assignment": True,
+325:     "prevent_empty_sponsor": True,
+326:     "prevent_invalid_sponsor": True,
+327:     "sponsor_change_after_registration_requires_admin": True,
+328:     "notes": (
+329:         "ÙƒÙ„ Ø´Ø±ÙŠÙƒ Ø¬Ø¯ÙŠØ¯ Ù„Ø§Ø²Ù… ÙŠÙƒÙˆÙ† Ù…Ø±ØªØ¨Ø· Ø¨Ù…Ø¹Ø±Ù Ø§Ù„Ø´Ø®Øµ Ø§Ù„Ø°ÙŠ Ø¹Ø±ÙÙ‡ Ø¹Ù„Ù‰ Ø§Ù„Ù†Ø¸Ø§Ù…. "
+330:         "Ø¥Ø°Ø§ Ø¹Ø±Ù Ø§Ù„Ø¹Ù…ÙŠÙ„ Ø§Ù„Ù†Ø¸Ø§Ù… Ù…Ù† Ø§Ù„Ø³ÙˆØ´ÙŠØ§Ù„ Ù…ÙŠØ¯ÙŠØ§ Ø£Ùˆ Ø§Ù„Ù…ÙˆÙ‚Ø¹ Ø£Ùˆ Ø¥Ø¹Ù„Ø§Ù† Ø£Ùˆ Ø§Ù„Ø´Ø±ÙƒØ© Ù…Ø¨Ø§Ø´Ø±Ø©ØŒ "
+331:         "ÙŠØ³ØªØ®Ø¯Ù… Ù…Ø¹Ø±Ù ØµØ§Ø­Ø¨ Ø§Ù„Ø´Ø±ÙƒØ©: alsaab. Ù‡Ø°Ø§ Ø§Ù„Ù…Ø¹Ø±Ù ÙŠÙ…Ø«Ù„ Ø¯Ø®Ù„ Ø§Ù„Ø´Ø±ÙƒØ© ÙˆÙ„Ø§ ÙŠØ¯Ø®Ù„ ÙƒØ¹Ù…ÙˆÙ„Ø© Ø´Ø±ÙŠÙƒ Ø®Ø§Ø±Ø¬ÙŠ."
+332:     )
+333: }
+334: 
+335: 
+336: MLM_SOURCE_OPTIONS = {
+337:     "direct_partner": {
+338:         "name_ar": "Ø¹Ù† Ø·Ø±ÙŠÙ‚ Ø´Ø±ÙŠÙƒ",
+339:         "requires_partner_id": True,
+340:         "example": "ALS-P00025"
+341:     },
+342:     "social_media": {
+343:         "name_ar": "Ø§Ù„Ø³ÙˆØ´ÙŠØ§Ù„ Ù…ÙŠØ¯ÙŠØ§",
+344:         "requires_partner_id": False,
+345:         "default_partner_id": COMPANY_OWNER_PARTNER_ID
+346:     },
+347:     "website": {
+348:         "name_ar": "Ø§Ù„Ù…ÙˆÙ‚Ø¹",
+349:         "requires_partner_id": False,
+350:         "default_partner_id": COMPANY_OWNER_PARTNER_ID
+351:     },
+352:     "advertisement": {
+353:         "name_ar": "Ø¥Ø¹Ù„Ø§Ù†",
+354:         "requires_partner_id": False,
+355:         "default_partner_id": COMPANY_OWNER_PARTNER_ID
+356:     },
+357:     "company_direct": {
+358:         "name_ar": "ØªÙˆØ§ØµÙ„ Ù…Ø¨Ø§Ø´Ø± Ù…Ø¹ Ø§Ù„Ø´Ø±ÙƒØ©",
+359:         "requires_partner_id": False,
+360:         "default_partner_id": COMPANY_OWNER_PARTNER_ID
+361:     },
+362:     "event_or_seminar": {
+363:         "name_ar": "Ù†Ø¯ÙˆØ© Ø£Ùˆ ÙØ¹Ø§Ù„ÙŠØ©",
+364:         "requires_partner_id": False,
+365:         "default_partner_id": COMPANY_OWNER_PARTNER_ID
+366:     }
+367: }
+368: 
+369: 
+370: MLM_REGISTRATION_MESSAGES = {
+371:     "ask_source_ar": (
+372:         "Ù‚Ø¨Ù„ Ù…Ø§ Ø£ÙƒÙ…Ù„ ØªØ³Ø¬ÙŠÙ„Ùƒ ÙƒØ´Ø±ÙŠÙƒØŒ Ù„Ø§Ø²Ù… Ù†Ø±Ø¨Ø· ØªØ³Ø¬ÙŠÙ„Ùƒ Ø¨Ø§Ù„Ø´Ø®Øµ Ø£Ùˆ Ø§Ù„Ù…ØµØ¯Ø± Ø§Ù„Ù„ÙŠ Ø¹Ø±Ù‘ÙÙƒ Ø¹Ù„Ù‰ Ø§Ù„Ù†Ø¸Ø§Ù… Ø¹Ø´Ø§Ù† Ù†Ø­ÙØ¸ Ø§Ù„Ø­Ù‚ÙˆÙ‚ Ø¨Ø¯Ù‚Ø©.\n\n"
+373:         "Ù…Ù† ÙˆÙŠÙ† Ø¹Ø±ÙØª ALSAAB AIØŸ\n"
+374:         "- Ø¹Ù† Ø·Ø±ÙŠÙ‚ Ø´Ø®Øµ / Ø´Ø±ÙŠÙƒ\n"
+375:         "- Ø§Ù„Ø³ÙˆØ´ÙŠØ§Ù„ Ù…ÙŠØ¯ÙŠØ§\n"
+376:         "- Ø§Ù„Ù…ÙˆÙ‚Ø¹\n"
+377:         "- Ø¥Ø¹Ù„Ø§Ù†\n"
+378:         "- Ù†Ø¯ÙˆØ© Ø£Ùˆ ÙØ¹Ø§Ù„ÙŠØ©\n"
+379:         "- ØªÙˆØ§ØµÙ„ Ù…Ø¨Ø§Ø´Ø± Ù…Ø¹ Ø§Ù„Ø´Ø±ÙƒØ©"
+380:     ),
+381:     "ask_sponsor_id_ar": (
+382:         "Ø§ÙƒØªØ¨ Partner ID Ø§Ù„Ø®Ø§Øµ Ø¨Ø§Ù„Ø´Ø®Øµ Ø§Ù„Ù„ÙŠ Ø¹Ø±ÙÙƒ Ø¹Ù„Ù‰ Ø§Ù„Ù†Ø¸Ø§Ù….\n\n"
+383:         "Ù…Ø«Ø§Ù„:\n"
+384:         "ALS-P00025\n\n"
+385:         "Ù…Ù‡Ù…: Ø¨Ø¹Ø¯ Ø§Ù„ØªØ³Ø¬ÙŠÙ„ØŒ ØªØºÙŠÙŠØ± Ø§Ù„Ù…Ø¹Ø±Ù‘Ù ÙŠØ­ØªØ§Ø¬ Ù…Ø±Ø§Ø¬Ø¹Ø© Ø¥Ø¯Ø§Ø±ÙŠØ© Ø¹Ø´Ø§Ù† Ù†Ø­ÙØ¸ Ø§Ù„Ø­Ù‚ÙˆÙ‚."
+386:     ),
+387:     "use_owner_id_ar": (
+388:         "ØªÙ…Ø§Ù…ØŒ Ø¨Ù…Ø§ Ø¥Ù†Ùƒ Ø¹Ø±ÙØª Ø§Ù„Ù†Ø¸Ø§Ù… Ù…Ù† Ù…ØµØ¯Ø± ØªØ§Ø¨Ø¹ Ù„Ù„Ø´Ø±ÙƒØ©ØŒ Ø¨Ù†Ø±Ø¨Ø· ØªØ³Ø¬ÙŠÙ„Ùƒ Ø¨Ù…Ø¹Ø±Ù Ø§Ù„Ø´Ø±ÙƒØ©:\n\n"
+389:         f"{COMPANY_OWNER_PARTNER_ID}\n\n"
+390:         "Ù‡Ø°Ø§ ÙŠØ­ÙØ¸ Ø§Ù„ØªØªØ¨Ø¹ Ø¨Ø´ÙƒÙ„ ØµØ­ÙŠØ­ Ø¯Ø§Ø®Ù„ Ø§Ù„Ù†Ø¸Ø§Ù…."
+391:     ),
+392:     "invalid_sponsor_ar": (
+393:         "Ù„Ø§Ø²Ù… ÙŠÙƒÙˆÙ† Ø¹Ù†Ø¯Ùƒ Partner ID ØµØ­ÙŠØ­ Ù„Ù„Ø´Ø®Øµ Ø§Ù„Ù„ÙŠ Ø¹Ø±ÙÙƒ Ø¹Ù„Ù‰ Ø§Ù„Ù†Ø¸Ø§Ù….\n\n"
+394:         "Ø¥Ø°Ø§ Ø¹Ø±ÙØªÙ†Ø§ Ù…Ù† Ø§Ù„Ø³ÙˆØ´ÙŠØ§Ù„ Ù…ÙŠØ¯ÙŠØ§ Ø£Ùˆ Ø§Ù„Ù…ÙˆÙ‚Ø¹ Ø£Ùˆ Ø¥Ø¹Ù„Ø§Ù† Ø£Ùˆ Ù…Ù† Ø§Ù„Ø´Ø±ÙƒØ© Ù…Ø¨Ø§Ø´Ø±Ø©ØŒ Ø¨Ù†Ø³ØªØ®Ø¯Ù… Ù…Ø¹Ø±Ù Ø§Ù„Ø´Ø±ÙƒØ©."
+395:     )
+396: }
+397: 
+398: 
+399: # =========================
+400: # CORE RULES
+401: # =========================
+402: 
+403: CORE_RULES = {
+404:     "main_language": "Arabic Gulf / Emirati",
+405:     "secondary_language": "English",
+406:     "do_not_sell_first_message": True,
+407:     "do_not_show_price_before_discovery": True,
+408:     "sell_client_product_first": True,
+409:     "mention_mlm_after_interest_only": True,
+410:     "never_insult": True,
+411:     "human_style": True
+412: }
+413: 
+414: 
+415: # =========================
+416: # FOUNDER INFO
+417: # =========================
+418: 
+419: FOUNDER_INFO = {
+420:     "name_ar": "Ø§Ù„Ù…Ø³ØªØ´Ø§Ø± Ù…ØµØ¹Ø¨ Ø§Ù„Ø¨Ù„ÙˆØ´ÙŠ",
+421:     "role_ar": "Ù…Ø¤Ø³Ø³ ÙˆÙ‚ÙŠØ§Ø¯ÙŠ ÙÙŠ Ø´Ø±ÙƒØ© Ø§Ù„ØµØ¹Ø¨ Ù„Ø¥Ø¯Ø§Ø±Ø© Ø§Ù„Ù…Ø´Ø§Ø±ÙŠØ¹",
+422:     "summary_ar": (
+423:         "Ù…Ø¯Ø±Ø¨ ÙˆÙ…Ø³ØªØ´Ø§Ø± ÙÙŠ Ø±ÙŠØ§Ø¯Ø© Ø§Ù„Ø£Ø¹Ù…Ø§Ù„ ÙˆØ¥Ø¯Ø§Ø±Ø© Ø§Ù„Ù…Ø´Ø§Ø±ÙŠØ¹ØŒ "
+424:         "ÙˆÙ…Ø³ØªØ´Ø§Ø± ÙÙŠ Ø§Ù„ØªÙ†Ù…ÙŠØ© Ø§Ù„Ø¨Ø´Ø±ÙŠØ© ÙˆØªØ·ÙˆÙŠØ± Ø§Ù„Ø°Ø§ØªØŒ "
+425:         "ÙˆÙ…Ø­Ø§Ø¶Ø± Ø¯ÙˆÙ„ÙŠ Ù…Ø¹ØªÙ…Ø¯ØŒ Ø´ØºÙ„ Ø¹Ø¯Ø© Ù…Ù†Ø§ØµØ¨ ÙÙŠ Ø¹Ø¯Ø© Ù…Ø¤Ø³Ø³Ø§ØªØŒ "
+426:         "Ø­Ø§Ø¦Ø² Ø¹Ù„Ù‰ Ø£ÙƒØ«Ø± Ù…Ù† 11 Ø¬Ø§Ø¦Ø²Ø© ÙÙŠ Ø§Ù„Ù…Ø¨ÙŠØ¹Ø§ØªØŒ "
+427:         "Ù…Ø®ØªØµ ÙÙŠ ØªØ·ÙˆÙŠØ± Ø§Ù„Ø´Ø±ÙƒØ§ØªØŒ ÙˆÙ…Ø¤Ø³Ø³ ÙˆØ±Ø´Ø© ÙÙ„Ø³ÙØ© Ø§Ù„Ø­ÙŠØ§Ø© ÙˆØ±Ø­Ù„Ø© Ø§Ù„ØªØºÙŠÙŠØ±."
+428:     ),
+429:     "sales_record_ar": "Ø®Ø¨Ø±Ø© Ù‚ÙˆÙŠØ© ÙÙŠ Ø§Ù„Ù…Ø¨ÙŠØ¹Ø§Øª ÙˆØªØ·ÙˆÙŠØ± Ø§Ù„Ø£Ø¹Ù…Ø§Ù„ØŒ Ù…Ø¹ Ø³Ø¬Ù„ Ø¥Ù†Ø¬Ø§Ø²Ø§Øª ÙˆÙ…Ø¨ÙŠØ¹Ø§Øª ÙƒØ¨ÙŠØ±Ø©.",
+430: }
+431: 
+432: 
+433: # =========================
+434: # PAYMENT LINKS
+435: # =========================
+436: 
+437: PAYMENT_LINKS = {
+438:     "starter": "https://buy.stripe.com/aFa28sg7WdxIbEOeRpaEE03",
+439:     "growth": "https://buy.stripe.com/28E6oI9Jy3X810a6kTaEE04",
+440:     "elite": "https://buy.stripe.com/4gMbJ2g7Walw9wGdNlaEE05",
+441: }
+442: 
+443: 
+444: # =========================
+445: # STRIPE CONFIG
+446: # =========================
+447: 
+448: # Stripe Secret Key Ù†Ø­ØªØ§Ø¬Ù‡ Ù„Ø§Ø­Ù‚Ø§Ù‹ Ø¥Ø°Ø§ Ø¨Ù†Ø³ØªØ®Ø¯Ù… Stripe API Ù…Ø¨Ø§Ø´Ø±Ø©.
+449: # Ø­Ø§Ù„ÙŠØ§Ù‹ Ù†Ù‚Ø¯Ø± Ù†Ø¨Ø¯Ø£ Ø¨Ø§Ù„Ù€ Payment Links + Webhook.
+450: STRIPE_SECRET_KEY = os.getenv("STRIPE_SECRET_KEY", "")
+451: 
+452: # Stripe Webhook Secret ÙŠÙ†Ø¶Ø§Ù Ù…Ù† Render Environment Variables.
+453: # Ù„Ø§ ØªØ­Ø·Ù‡ Ø¯Ø§Ø®Ù„ GitHub.
+454: STRIPE_WEBHOOK_SECRET = os.getenv("STRIPE_WEBHOOK_SECRET", "")
+455: 
+456: # Ù…Ø¯Ø© Ù‚Ø¨ÙˆÙ„ ØªÙˆÙ‚ÙŠØ¹ Stripe Webhook Ø¨Ø§Ù„Ø«ÙˆØ§Ù†ÙŠ.
+457: STRIPE_WEBHOOK_TOLERANCE_SECONDS = 300
+458: 
+459: # Ø£Ø­Ø¯Ø§Ø« Stripe Ø§Ù„ØªÙŠ Ù†Ù‡ØªÙ… Ø¨Ù‡Ø§ Ø­Ø§Ù„ÙŠØ§Ù‹.
+460: STRIPE_ALLOWED_EVENTS = [
+461:     "checkout.session.completed",
+462:     "invoice.paid",
+463:     "invoice.payment_failed",
+464:     "customer.subscription.deleted",
+465:     "customer.subscription.updated",
+466: ]
+467: 
+468: # Ø±ÙˆØ§Ø¨Ø· Ø¯ÙØ¹ Ø¯Ø§Ø®Ù„ÙŠØ© ØªÙ…Ø± Ø¹Ø¨Ø± Render Ù‚Ø¨Ù„ Stripe.
+469: # Ø§Ù„Ù‡Ø¯Ù Ù…Ù†Ù‡Ø§ Ù†Ø±Ø¨Ø· session_id Ø¨Ø§Ù„Ø®Ø·Ø© Ù‚Ø¨Ù„ Ø§Ù„Ø¯ÙØ¹.
+470: PAYMENT_ROUTE_LINKS = {
+471:     "starter": f"{APP_BASE_URL}/pay/starter",
+472:     "growth": f"{APP_BASE_URL}/pay/growth",
+473:     "elite": f"{APP_BASE_URL}/pay/elite",
+474: }
+475: 
+476: # Ø¥Ø¹Ø¯Ø§Ø¯Ø§Øª Ø±Ø¨Ø· Ø§Ù„Ø¨Ø§Ù‚Ø§Øª Ù…Ø¹ Stripe Webhook.
+477: # Webhook Ø³ÙŠØ³ØªØ®Ø¯Ù… plan_name Ù„ØªÙØ¹ÙŠÙ„ Ø§Ù„Ø§Ø´ØªØ±Ø§Ùƒ ÙˆØ­Ø¯ Ø§Ù„Ø±Ø¯ÙˆØ¯.
+478: STRIPE_PLAN_CONFIG = {
+479:     "starter": {
+480:         "plan_name": "starter",
+481:         "payment_link": PAYMENT_LINKS["starter"],
+482:         "internal_payment_route": PAYMENT_ROUTE_LINKS["starter"],
+483:         "monthly_reply_limit": PACKAGES["starter"]["monthly_reply_limit"],
+484:         "package_amount": "599 AED",
+485:         "subscription_type": "monthly",
+486:     },
+487:     "growth": {
+488:         "plan_name": "growth",
+489:         "payment_link": PAYMENT_LINKS["growth"],
+490:         "internal_payment_route": PAYMENT_ROUTE_LINKS["growth"],
+491:         "monthly_reply_limit": PACKAGES["growth"]["monthly_reply_limit"],
+492:         "package_amount": "1099 AED",
+493:         "subscription_type": "monthly",
+494:     },
+495:     "elite": {
+496:         "plan_name": "elite",
+497:         "payment_link": PAYMENT_LINKS["elite"],
+498:         "internal_payment_route": PAYMENT_ROUTE_LINKS["elite"],
+499:         "monthly_reply_limit": PACKAGES["elite"]["monthly_reply_limit"],
+500:         "package_amount": "2099 AED",
+501:         "subscription_type": "monthly",
+502:     },
+503: }
+504: 
+505: # Ù…ÙØªØ§Ø­ client_reference_id Ø¯Ø§Ø®Ù„ Stripe Checkout.
+506: # Ù„Ø§Ø­Ù‚Ø§Ù‹ Ø¨Ù†Ø±Ø³Ù„Ù‡ Ø¨Ù‡Ø°Ø§ Ø§Ù„Ø´ÙƒÙ„:
+507: # session_id::plan_name
+508: STRIPE_CLIENT_REFERENCE_SEPARATOR = "::"
+509: 
+510: # Ø±ÙˆØ§Ø¨Ø· ÙŠØ±Ø¬Ø¹ Ù„Ù‡Ø§ Ø§Ù„Ø¹Ù…ÙŠÙ„ Ø¨Ø¹Ø¯ Ø§Ù„Ø¯ÙØ¹ Ø£Ùˆ Ø¹Ù†Ø¯ Ø§Ù„Ø¥Ù„ØºØ§Ø¡.
+511: STRIPE_SUCCESS_URL = f"{APP_BASE_URL}/payment-success"
+512: STRIPE_CANCEL_URL = f"{APP_BASE_URL}/payment-cancel"
+513: 
+514: 
+515: # =========================
+516: # CLOSING RULES
+517: # =========================
+518: 
+519: CLOSING_RULES = {
+520:     "website_closes_with_payment": True,
+521:     "whatsapp_only_for_human_handoff": True,
+522:     "do_not_repeat_whatsapp": True,
+523: }
+524: 
+525: 
+526: # =========================
+527: # GOOGLE SHEETS WEBHOOK
+528: # =========================
+529: 
+530: GOOGLE_SHEET_WEBHOOK_URL = "https://script.google.com/macros/s/AKfycbyzkc4XmHk9xWXXqx1O6MERc1NGzuyB1R2txElenks7yZEJrV8c5BRI5LVGtj8mj2BcCA/exec"
+531: GOOGLE_SHEET_TOKEN = "alsaab_sheet_2026"
+532: 
+533: # ===== ALSAAB_ENTRY_PACKAGE_SAFE_V3 START =====
+534: # Entry package is added safely at the end of config.py.
+535: # This version avoids undefined-variable warnings in VS Code / Pylance.
+536: 
+537: ENTRY_PACKAGE_PRICE_ID = "price_1TXetrJbltD9Bsg8wnVMaBnZ"
+538: ENTRY_PACKAGE_PAYMENT_LINK = "https://buy.stripe.com/6oU3cw3laalw7oy7oXaEE06"
+539: 
+540: ENTRY_PACKAGE_CONFIG = {
+541:     "name_ar": "Ø¨Ø§Ù‚Ø© Ø§Ù„Ø¯Ø®ÙˆÙ„",
+542:     "name_en": "Entry",
+543:     "price_ar": "299 Ø¯Ø±Ù‡Ù… Ø¥Ù…Ø§Ø±Ø§ØªÙŠ Ø´Ù‡Ø±ÙŠØ§Ù‹",
+544:     "price_en": "299 AED monthly",
+545:     "monthly_reply_limit": 500,
+546:     "customer_reply_limit": 500,
+547:     "owner_advisory_reply_limit": 0,
+548:     "max_payment_links": 1,
+549:     "max_product_images": 1,
+550:     "max_product_image_groups": 1,
+551:     "website_channel": False,
+552:     "instagram_channel": False,
+553:     "smart_whatsapp_entry": True,
+554:     "support_level": "Ø¯Ø¹Ù… Ø¹Ø§Ø¯ÙŠ",
+555:     "description_ar": "Ø¨Ø§Ù‚Ø© Ø¯Ø®ÙˆÙ„ Ù…Ø­Ø¯ÙˆØ¯Ø© Ù„Ù„ØªØ¬Ø±Ø¨Ø©: 500 Ø±Ø¯ Ø´Ù‡Ø±ÙŠØŒ Ø±Ø§Ø¨Ø· Ø¯ÙØ¹ ÙˆØ§Ø­Ø¯ØŒ ÙˆØµÙˆØ±Ø© Ù…Ù†ØªØ¬ ÙˆØ§Ø­Ø¯Ø© ÙÙ‚Ø·ØŒ Ø¨Ø¯ÙˆÙ† Ø®ØµØ§Ø¦Øµ Ø¥Ø¶Ø§ÙÙŠØ©.",
+556:     "description_en": "Limited entry package: 500 monthly replies, one payment link, and one product image only.",
+557: }
+558: 
+559: _packages = globals().get("PACKAGES")
+560: if not isinstance(_packages, dict):
+561:     _packages = {}
+562:     globals()["PACKAGES"] = _packages
+563: _packages["entry"] = ENTRY_PACKAGE_CONFIG
+564: 
+565: _payment_links = globals().get("PAYMENT_LINKS")
+566: if not isinstance(_payment_links, dict):
+567:     _payment_links = {}
+568:     globals()["PAYMENT_LINKS"] = _payment_links
+569: _payment_links["entry"] = ENTRY_PACKAGE_PAYMENT_LINK
+570: 
+571: _payment_route_links = globals().get("PAYMENT_ROUTE_LINKS")
+572: if not isinstance(_payment_route_links, dict):
+573:     _payment_route_links = {}
+574:     globals()["PAYMENT_ROUTE_LINKS"] = _payment_route_links
+575: 
+576: _app_base = globals().get("APP_BASE_URL", "https://alsaab-ai.onrender.com")
+577: _payment_route_links["entry"] = f"{_app_base}/pay/entry"
+578: 
+579: for _entry_price_dict_name in [
+580:     "UPGRADE_PRICE_IDS",
+581:     "STRIPE_PRICE_IDS",
+582:     "PLAN_PRICE_IDS",
+583:     "PACKAGE_PRICE_IDS",
+584: ]:
+585:     _entry_price_dict = globals().get(_entry_price_dict_name)
+586:     if isinstance(_entry_price_dict, dict):
+587:         _entry_price_dict["entry"] = ENTRY_PACKAGE_PRICE_ID
+588: 
+589: for _entry_limit_dict_name in [
+590:     "PACKAGE_LIMITS",
+591:     "PLAN_LIMITS",
+592:     "USAGE_LIMITS",
+593:     "REPLY_LIMITS",
+594: ]:
+595:     _entry_limit_dict = globals().get(_entry_limit_dict_name)
+596:     if isinstance(_entry_limit_dict, dict):
+597:         _entry_limit_dict["entry"] = {
+598:             "monthly_reply_limit": 500,
+599:             "customer_reply_limit": 500,
+600:             "owner_advisory_reply_limit": 0,
+601:             "max_payment_links": 1,
+602:             "max_product_images": 1,
+603:             "max_product_image_groups": 1,
+604:         }
+605: 
+606: _package_payment_options = globals().get("PACKAGE_PAYMENT_OPTIONS")
+607: if not isinstance(_package_payment_options, dict):
+608:     _package_payment_options = {}
+609:     globals()["PACKAGE_PAYMENT_OPTIONS"] = _package_payment_options
+610: 
+611: _package_payment_options["entry"] = {
+612:     "plan_name": "entry",
+613:     "payment_link": ENTRY_PACKAGE_PAYMENT_LINK,
+614:     "internal_payment_route": _payment_route_links.get("entry", "https://alsaab-ai.onrender.com/pay/entry"),
+615:     "monthly_reply_limit": 500,
+616:     "package_amount": "299 AED",
+617: }
+618: 
+619: _package_order = globals().get("PACKAGE_ORDER")
+620: if not isinstance(_package_order, list):
+621:     _package_order = ["entry", "starter", "growth", "elite"]
+622:     globals()["PACKAGE_ORDER"] = _package_order
+623: elif "entry" not in _package_order:
+624:     _package_order.insert(0, "entry")
+625: 
+626: # ===== ALSAAB_ENTRY_PACKAGE_SAFE_V3 END =====
+
+
+===== backend\level_engine.py L1-L380 =====
+1: from __future__ import annotations
+2: 
+3: from dataclasses import dataclass, asdict
+4: from typing import Any, Iterable, Optional
+5: 
+6: 
+7: PACKAGE_STARTER = "starter"
+8: PACKAGE_GROWTH = "growth"
+9: PACKAGE_ELITE = "elite"
+10: 
+11: COURSE_MARKETING_FREE = "marketing_course_free"
+12: COURSE_SALES_99 = "sales_course_99"
+13: COURSE_LIFE_PHILOSOPHY_299 = "life_philosophy_workshop_299"
+14: COURSE_CHANGE_JOURNEY_1099 = "change_journey_course_1099"
+15: 
+16: ACTIVE_SUBSCRIPTION_STATUSES = {"active", "paid", "trialing"}
+17: 
+18: LEVEL_NAMES = {
+19:     0: "Inactive / Not Qualified",
+20:     1: "Starter Partner",
+21:     2: "Growth Partner",
+22:     3: "Sales Partner",
+23:     4: "Leader Partner",
+24:     5: "Elite Partner",
+25: }
+26: 
+27: COMMISSION_RATES_BY_DEPTH = {
+28:     1: 25.0,
+29:     2: 5.0,
+30:     3: 4.0,
+31:     4: 3.0,
+32:     5: 2.0,
+33: }
+34: 
+35: 
+36: @dataclass(frozen=True)
+37: class LevelRequirement:
+38:     level: int
+39:     name: str
+40:     allowed_packages: tuple[str, ...]
+41:     min_active_direct_customers: int
+42:     required_courses: tuple[str, ...]
+43:     commission_rate: float
+44: 
+45: 
+46: LEVEL_REQUIREMENTS = {
+47:     1: LevelRequirement(
+48:         level=1,
+49:         name="Starter Partner",
+50:         allowed_packages=(PACKAGE_STARTER, PACKAGE_GROWTH, PACKAGE_ELITE),
+51:         min_active_direct_customers=0,
+52:         required_courses=(),
+53:         commission_rate=25.0,
+54:     ),
+55:     2: LevelRequirement(
+56:         level=2,
+57:         name="Growth Partner",
+58:         allowed_packages=(PACKAGE_GROWTH, PACKAGE_ELITE),
+59:         min_active_direct_customers=2,
+60:         required_courses=(),
+61:         commission_rate=5.0,
+62:     ),
+63:     3: LevelRequirement(
+64:         level=3,
+65:         name="Sales Partner",
+66:         allowed_packages=(PACKAGE_GROWTH, PACKAGE_ELITE),
+67:         min_active_direct_customers=5,
+68:         required_courses=(COURSE_SALES_99,),
+69:         commission_rate=4.0,
+70:     ),
+71:     4: LevelRequirement(
+72:         level=4,
+73:         name="Leader Partner",
+74:         allowed_packages=(PACKAGE_ELITE,),
+75:         min_active_direct_customers=15,
+76:         required_courses=(COURSE_LIFE_PHILOSOPHY_299,),
+77:         commission_rate=3.0,
+78:     ),
+79:     5: LevelRequirement(
+80:         level=5,
+81:         name="Elite Partner",
+82:         allowed_packages=(PACKAGE_ELITE,),
+83:         min_active_direct_customers=30,
+84:         required_courses=(COURSE_CHANGE_JOURNEY_1099,),
+85:         commission_rate=2.0,
+86:     ),
+87: }
+88: 
+89: PACKAGE_ALIASES = {
+90:     "starter": PACKAGE_STARTER,
+91:     "البداية": PACKAGE_STARTER,
+92:     "بداية": PACKAGE_STARTER,
+93:     "growth": PACKAGE_GROWTH,
+94:     "النمو": PACKAGE_GROWTH,
+95:     "باقة النمو": PACKAGE_GROWTH,
+96:     "elite": PACKAGE_ELITE,
+97:     "النخبة": PACKAGE_ELITE,
+98:     "باقة النخبة": PACKAGE_ELITE,
+99: }
+100: 
+101: COURSE_ALIASES = {
+102:     "marketing_course_free": COURSE_MARKETING_FREE,
+103:     "كورس التسويق": COURSE_MARKETING_FREE,
+104:     "sales_course_99": COURSE_SALES_99,
+105:     "sales": COURSE_SALES_99,
+106:     "كورس المبيعات": COURSE_SALES_99,
+107:     "life_philosophy_workshop_299": COURSE_LIFE_PHILOSOPHY_299,
+108:     "life_philosophy": COURSE_LIFE_PHILOSOPHY_299,
+109:     "ورشة فلسفة الحياة": COURSE_LIFE_PHILOSOPHY_299,
+110:     "فلسفة الحياة": COURSE_LIFE_PHILOSOPHY_299,
+111:     "change_journey_course_1099": COURSE_CHANGE_JOURNEY_1099,
+112:     "change_journey": COURSE_CHANGE_JOURNEY_1099,
+113:     "كورس رحلة التغيير": COURSE_CHANGE_JOURNEY_1099,
+114:     "رحلة التغيير": COURSE_CHANGE_JOURNEY_1099,
+115: }
+116: 
+117: 
+118: def _clean_text(value: Any) -> str:
+119:     return str(value or "").strip()
+120: 
+121: 
+122: def _safe_int(value: Any, default: int = 0) -> int:
+123:     try:
+124:         return int(value or 0)
+125:     except (TypeError, ValueError):
+126:         return default
+127: 
+128: 
+129: def normalize_package_name(value: Any) -> str:
+130:     raw = _clean_text(value)
+131:     lowered = raw.lower()
+132: 
+133:     if not lowered:
+134:         return ""
+135: 
+136:     if lowered in PACKAGE_ALIASES:
+137:         return PACKAGE_ALIASES[lowered]
+138: 
+139:     if "النمو" in raw or "نمو" in raw:
+140:         return PACKAGE_GROWTH
+141: 
+142:     if "النخبة" in raw or "نخبة" in raw:
+143:         return PACKAGE_ELITE
+144: 
+145:     if "البداية" in raw or "بداية" in raw:
+146:         return PACKAGE_STARTER
+147: 
+148:     return lowered
+149: 
+150: 
+151: def normalize_course_code(value: Any) -> str:
+152:     raw = _clean_text(value)
+153:     lowered = raw.lower()
+154: 
+155:     if not lowered:
+156:         return ""
+157: 
+158:     if lowered in COURSE_ALIASES:
+159:         return COURSE_ALIASES[lowered]
+160: 
+161:     if "مبيعات" in raw:
+162:         return COURSE_SALES_99
+163: 
+164:     if "فلسفة" in raw:
+165:         return COURSE_LIFE_PHILOSOPHY_299
+166: 
+167:     if "تغيير" in raw:
+168:         return COURSE_CHANGE_JOURNEY_1099
+169: 
+170:     if "تسويق" in raw:
+171:         return COURSE_MARKETING_FREE
+172: 
+173:     return lowered
+174: 
+175: 
+176: def normalize_courses(values: Optional[Iterable[Any]]) -> set[str]:
+177:     if not values:
+178:         return set()
+179: 
+180:     output = set()
+181: 
+182:     for value in values:
+183:         code = normalize_course_code(value)
+184:         if code:
+185:             output.add(code)
+186: 
+187:     return output
+188: 
+189: 
+190: def normalize_subscription_status(value: Any) -> str:
+191:     return _clean_text(value).lower()
+192: 
+193: 
+194: def is_subscription_active(status: Any) -> bool:
+195:     return normalize_subscription_status(status) in ACTIVE_SUBSCRIPTION_STATUSES
+196: 
+197: 
+198: def evaluate_level_requirement(
+199:     level: int,
+200:     package_name: Any,
+201:     active_direct_customers: Any,
+202:     purchased_courses: Optional[Iterable[Any]],
+203: ) -> dict:
+204:     if level not in LEVEL_REQUIREMENTS:
+205:         raise ValueError(f"Unsupported level: {level}")
+206: 
+207:     requirement = LEVEL_REQUIREMENTS[level]
+208:     package = normalize_package_name(package_name)
+209:     active_customers = _safe_int(active_direct_customers)
+210:     courses = normalize_courses(purchased_courses)
+211: 
+212:     package_ok = package in requirement.allowed_packages
+213:     customers_ok = active_customers >= requirement.min_active_direct_customers
+214:     courses_ok = all(course in courses for course in requirement.required_courses)
+215: 
+216:     missing_courses = [
+217:         course for course in requirement.required_courses
+218:         if course not in courses
+219:     ]
+220: 
+221:     missing_active_direct_customers = max(
+222:         requirement.min_active_direct_customers - active_customers,
+223:         0,
+224:     )
+225: 
+226:     return {
+227:         "level": requirement.level,
+228:         "name": requirement.name,
+229:         "commission_rate": requirement.commission_rate,
+230:         "allowed_packages": list(requirement.allowed_packages),
+231:         "current_package": package,
+232:         "package_ok": package_ok,
+233:         "min_active_direct_customers": requirement.min_active_direct_customers,
+234:         "active_direct_customers": active_customers,
+235:         "customers_ok": customers_ok,
+236:         "missing_active_direct_customers": missing_active_direct_customers,
+237:         "required_courses": list(requirement.required_courses),
+238:         "purchased_courses": sorted(courses),
+239:         "courses_ok": courses_ok,
+240:         "missing_courses": missing_courses,
+241:         "qualified": bool(package_ok and customers_ok and courses_ok),
+242:     }
+243: 
+244: 
+245: def calculate_partner_level_progress(
+246:     package_name: Any,
+247:     active_direct_customers: Any = 0,
+248:     purchased_courses: Optional[Iterable[Any]] = None,
+249:     subscription_status: Any = "active",
+250: ) -> dict:
+251:     package = normalize_package_name(package_name)
+252:     status = normalize_subscription_status(subscription_status)
+253:     subscription_active = is_subscription_active(status)
+254:     active_customers = _safe_int(active_direct_customers)
+255:     courses = normalize_courses(purchased_courses)
+256: 
+257:     achieved_level = 0
+258:     level_details = []
+259: 
+260:     for level in range(1, 6):
+261:         detail = evaluate_level_requirement(
+262:             level=level,
+263:             package_name=package,
+264:             active_direct_customers=active_customers,
+265:             purchased_courses=courses,
+266:         )
+267: 
+268:         if detail["qualified"] and achieved_level == level - 1:
+269:             achieved_level = level
+270: 
+271:         level_details.append(detail)
+272: 
+273:     next_level = achieved_level + 1 if achieved_level < 5 else None
+274:     missing_requirements = []
+275: 
+276:     if next_level:
+277:         next_detail = level_details[next_level - 1]
+278: 
+279:         if not next_detail["package_ok"]:
+280:             missing_requirements.append({
+281:                 "type": "package",
+282:                 "current": package,
+283:                 "required": next_detail["allowed_packages"],
+284:             })
+285: 
+286:         if not next_detail["customers_ok"]:
+287:             missing_requirements.append({
+288:                 "type": "active_direct_customers",
+289:                 "current": active_customers,
+290:                 "required": next_detail["min_active_direct_customers"],
+291:                 "missing": next_detail["missing_active_direct_customers"],
+292:             })
+293: 
+294:         if not next_detail["courses_ok"]:
+295:             missing_requirements.append({
+296:                 "type": "courses",
+297:                 "current": sorted(courses),
+298:                 "required": next_detail["required_courses"],
+299:                 "missing": next_detail["missing_courses"],
+300:             })
+301: 
+302:     return {
+303:         "current_package": package,
+304:         "subscription_status": status,
+305:         "subscription_active": subscription_active,
+306:         "active_direct_customers": active_customers,
+307:         "purchased_courses": sorted(courses),
+308:         "achieved_level": achieved_level,
+309:         "current_level": achieved_level,
+310:         "current_level_name": LEVEL_NAMES.get(achieved_level, "Unknown"),
+311:         "commission_eligible": bool(subscription_active and achieved_level >= 1),
+312:         "next_level": next_level,
+313:         "next_level_name": LEVEL_NAMES.get(next_level) if next_level else None,
+314:         "missing_requirements": missing_requirements,
+315:         "level_details": level_details,
+316:     }
+317: 
+318: 
+319: def is_partner_eligible_for_commission_depth(
+320:     current_level: Any,
+321:     commission_depth: Any,
+322:     subscription_status: Any = "active",
+323: ) -> bool:
+324:     level = _safe_int(current_level)
+325:     depth = _safe_int(commission_depth)
+326: 
+327:     if depth < 1 or depth > 5:
+328:         return False
+329: 
+330:     if not is_subscription_active(subscription_status):
+331:         return False
+332: 
+333:     return level >= depth
+334: 
+335: 
+336: def get_commission_rate_for_depth(commission_depth: Any) -> float:
+337:     depth = _safe_int(commission_depth)
+338:     return float(COMMISSION_RATES_BY_DEPTH.get(depth, 0.0))
+339: 
+340: 
+341: def summarize_next_level_requirement(progress: dict) -> str:
+342:     next_level = progress.get("next_level")
+343: 
+344:     if not next_level:
+345:         return "You already reached the highest level."
+346: 
+347:     missing = progress.get("missing_requirements") or []
+348: 
+349:     if not missing:
+350:         return f"You are eligible for Level {next_level}."
+351: 
+352:     parts = []
+353: 
+354:     for item in missing:
+355:         if item.get("type") == "package":
+356:             parts.append("upgrade package")
+357:         elif item.get("type") == "active_direct_customers":
+358:             parts.append(f"{item.get('missing', 0)} more active direct customers")
+359:         elif item.get("type") == "courses":
+360:             parts.append("complete required course purchase")
+361:         else:
+362:             parts.append("missing requirement")
+363: 
+364:     return f"To reach Level {next_level}, you need: " + ", ".join(parts)
+365: 
+366: 
+367: def export_level_requirements() -> list[dict]:
+368:     return [
+369:         asdict(LEVEL_REQUIREMENTS[level])
+370:         for level in sorted(LEVEL_REQUIREMENTS)
+371:     ]
+
+
+===== backend\upgrade_routes.py L1-L640 =====
+1: from flask import request, jsonify, render_template_string
+2: from urllib.parse import quote
+3: import os
+4: 
+5: # ===== ALSAAB_UPGRADE_SCHEDULE_STRIPE_V1 START =====
+6: UPGRADE_PRICE_IDS = {
+7:     "starter": "price_1TWEwPJbltD9Bsg8SH2xMao1",
+8:     "growth": "price_1TWFRJJbltD9Bsg8vgUXA1WD",
+9:     "elite": "price_1TWFUhJbltD9Bsg848phcf6P",
+10: }
+11: # ===== ALSAAB_UPGRADE_SCHEDULE_STRIPE_V1 END =====
+12: 
+13: 
+14: # ===== ALSAAB_ENTRY_UPGRADE_SAFE_V1 START =====
+15: # Entry can upgrade only upward: Entry -> Starter/Growth/Elite.
+16: # Entry is not a downgrade target.
+17: 
+18: UPGRADE_PLAN_ORDER = ["entry", "starter", "growth", "elite"]
+19: 
+20: def normalize_upgrade_plan(plan):
+21:     value = str(plan or "").strip().lower()
+22: 
+23:     aliases = {
+24:         "entry": "entry",
+25:         "Ø¯Ø®ÙˆÙ„": "entry",
+26:         "Ø§Ù„Ø¯Ø®ÙˆÙ„": "entry",
+27:         "Ø¨Ø§Ù‚Ø© Ø§Ù„Ø¯Ø®ÙˆÙ„": "entry",
+28:         "starter": "starter",
+29:         "start": "starter",
+30:         "Ø¨Ø¯Ø§ÙŠØ©": "starter",
+31:         "Ø§Ù„Ø¨Ø¯Ø§ÙŠØ©": "starter",
+32:         "growth": "growth",
+33:         "Ø§Ù„Ù†Ù…Ùˆ": "growth",
+34:         "elite": "elite",
+35:         "Ø§Ù„Ù†Ø®Ø¨Ø©": "elite",
+36:     }
+37: 
+38:     return aliases.get(value, value)
+39: 
+40: def is_valid_upgrade_path(current_plan, target_plan):
+41:     current_plan = normalize_upgrade_plan(current_plan)
+42:     target_plan = normalize_upgrade_plan(target_plan)
+43: 
+44:     if current_plan not in UPGRADE_PLAN_ORDER:
+45:         return False
+46: 
+47:     if target_plan not in UPGRADE_PLAN_ORDER:
+48:         return False
+49: 
+50:     return UPGRADE_PLAN_ORDER.index(target_plan) > UPGRADE_PLAN_ORDER.index(current_plan)
+51: 
+52: # ===== ALSAAB_ENTRY_UPGRADE_SAFE_V1 END =====
+53: 
+54: 
+55: 
+56: 
+57: def _db():
+58:     try:
+59:         import database
+60:         return database
+61:     except ImportError:
+62:         from backend import database
+63:         return database
+64: 
+65: 
+66: def register_upgrade_routes(app, ADMIN_KEY):
+67:     if getattr(app, "alsaab_upgrade_routes_registered", False):
+68:         return
+69: 
+70:     app.alsaab_upgrade_routes_registered = True
+71: 
+72:     def client_request_upgrade():
+73:         partner_id = (request.form.get("partner_id", "") or "").strip().upper()
+74:         current_plan = normalize_upgrade_plan((request.form.get("current_plan", "") or "").strip().lower())
+75:         target_plan = normalize_upgrade_plan((request.form.get("target_plan", "") or "").strip().lower())
+76:         notes = (request.form.get("customer_notes", "") or "").strip()
+77: 
+78:         if not partner_id:
+79:             return "Partner ID is required", 400
+80: 
+81:         if not current_plan or not target_plan:
+82:             return "Current plan and target plan are required", 400
+83: 
+84:         try:
+85:             database = _db()
+86:             partner_id = database.normalize_partner_id(partner_id)
+87: 
+88:             result = database.post_to_google_sheet_json(
+89:                 {
+90:                     "token": os.getenv("GOOGLE_SHEET_TOKEN", ""),
+91:                     "action": "upgrade_request_create",
+92:                     "client_id": partner_id,
+93:                     "partner_id": partner_id,
+94:                     "current_plan": current_plan,
+95:                     "target_plan": target_plan,
+96:                     "customer_notes": notes,
+97:                     "source": "client_dashboard",
+98:                 },
+99:                 label="upgrade_request_create",
+100:             )
+101: 
+102:             if not isinstance(result, dict) or result.get("status") != "success":
+103:                 return render_template_string(
+104:                     """
+105:                     <html lang="ar" dir="rtl">
+106:                     <head><meta charset="utf-8"><title>Ø®Ø·Ø£ ÙÙŠ Ø·Ù„Ø¨ Ø§Ù„ØªØ±Ù‚ÙŠØ©</title></head>
+107:                     <body style="background:#0b0b0b;color:#fff;font-family:Arial;padding:30px;">
+108:                       <div style="max-width:760px;margin:auto;background:#111;border:1px solid #d7b85a;border-radius:18px;padding:22px;">
+109:                         <h2 style="color:#d7b85a;">ØªØ¹Ø°Ø± Ø¥Ø±Ø³Ø§Ù„ Ø·Ù„Ø¨ Ø§Ù„ØªØ±Ù‚ÙŠØ©</h2>
+110:                         <pre style="direction:ltr;white-space:pre-wrap;background:#000;padding:12px;border-radius:12px;">{{ result }}</pre>
+111:                         <a href="javascript:history.back()" style="color:#f0cc68;">Ø±Ø¬ÙˆØ¹</a>
+112:                       </div>
+113:                     </body>
+114:                     </html>
+115:                     """,
+116:                     result=result,
+117:                 ), 500
+118: 
+119:             html = """
+120: <!DOCTYPE html>
+121: <html lang="ar" dir="rtl">
+122: <head>
+123: <meta charset="utf-8">
+124: <title>ØªÙ… Ø¥Ø±Ø³Ø§Ù„ Ø·Ù„Ø¨ Ø§Ù„ØªØ±Ù‚ÙŠØ©</title>
+125: <style>
+126: body{background:#0b0b0b;color:#fff;font-family:Arial;padding:30px}
+127: .card{max-width:760px;margin:auto;background:#111;border:1px solid rgba(215,184,90,.45);border-radius:20px;padding:24px}
+128: h1{color:#d7b85a}
+129: .box{background:#0b0b0b;border:1px solid rgba(215,184,90,.25);border-radius:14px;padding:14px;line-height:1.8}
+130: a{display:inline-block;margin-top:15px;color:#f0cc68;text-decoration:none;border:1px solid rgba(215,184,90,.45);padding:10px 14px;border-radius:999px}
+131: </style>
+132: </head>
+133: <body>
+134: <div class="card">
+135:   <h1>ØªÙ… Ø¥Ø±Ø³Ø§Ù„ Ø·Ù„Ø¨ Ø§Ù„ØªØ±Ù‚ÙŠØ© âœ…</h1>
+136:   <div class="box">
+137:     Ø±Ù‚Ù… Ø§Ù„Ø·Ù„Ø¨: {{ request_id }}<br>
+138:     Ø§Ù„Ø­Ø³Ø§Ø¨: {{ partner_id }}<br>
+139:     Ù…Ù†: {{ current_plan }}<br>
+140:     Ø¥Ù„Ù‰: {{ target_plan }}<br>
+141:     Ø§Ù„Ø­Ø§Ù„Ø©: pending_payment
+142:   </div>
+143:   <p>Ø³ÙŠØªÙ… Ù…Ø±Ø§Ø¬Ø¹Ø© Ø·Ù„Ø¨ Ø§Ù„ØªØ±Ù‚ÙŠØ© ÙˆØªØ¬Ù‡ÙŠØ² Ø±Ø§Ø¨Ø· Ø§Ù„Ø¯ÙØ¹ Ø£Ùˆ ØªÙØ¹ÙŠÙ„ Ø§Ù„ØªØ±Ù‚ÙŠØ© Ø­Ø³Ø¨ Ø§Ù„Ø¥Ø¬Ø±Ø§Ø¡ Ø§Ù„Ù…Ø¹ØªÙ…Ø¯.</p>
+144:   <a href="javascript:history.back()">Ø±Ø¬ÙˆØ¹ Ø¥Ù„Ù‰ Ù„ÙˆØ­Ø© Ø§Ù„Ø­Ø³Ø§Ø¨</a>
+145: </div>
+146: </body>
+147: </html>
+148:             """
+149: 
+150:             return render_template_string(
+151:                 html,
+152:                 request_id=result.get("request_id"),
+153:                 partner_id=partner_id,
+154:                 current_plan=result.get("current_plan"),
+155:                 target_plan=result.get("target_plan"),
+156:             )
+157: 
+158:         except Exception as error:
+159:             print(f"CLIENT UPGRADE REQUEST ERROR âŒ {error}", flush=True)
+160:             return str(error), 500
+161: 
+162:     def admin_upgrade_requests():
+163:         key = request.args.get("key", "").strip()
+164: 
+165:         if key != ADMIN_KEY:
+166:             return "Unauthorized", 401
+167: 
+168:         status_filter = request.args.get("status", "all").strip() or "all"
+169: 
+170:         try:
+171:             database = _db()
+172: 
+173:             result = database.post_to_google_sheet_json(
+174:                 {
+175:                     "token": os.getenv("GOOGLE_SHEET_TOKEN", ""),
+176:                     "action": "admin_upgrade_requests",
+177:                     "status_filter": status_filter,
+178:                     "limit": 200,
+179:                 },
+180:                 label="admin_upgrade_requests",
+181:             )
+182: 
+183:             requests_list = []
+184:             if isinstance(result, dict) and result.get("status") == "success":
+185:                 requests_list = result.get("requests") or []
+186: 
+187:             html = """
+188: <!DOCTYPE html>
+189: <html lang="ar" dir="rtl">
+190: <head>
+191: <meta charset="utf-8">
+192: <title>Ø·Ù„Ø¨Ø§Øª ØªØ±Ù‚ÙŠØ© Ø§Ù„Ø¨Ø§Ù‚Ø§Øª</title>
+193: <style>
+194: body{margin:0;background:#0b0b0b;color:#f5f0df;font-family:Arial,Tahoma,sans-serif;direction:rtl}
+195: .page{max-width:1320px;margin:0 auto;padding:24px}
+196: .header,.section{background:#111;border:1px solid rgba(215,184,90,.35);border-radius:20px;padding:20px;margin-bottom:18px}
+197: h1,h2{color:#d7b85a;margin-top:0}
+198: .top-actions{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-top:12px}
+199: a.btn,button{border:1px solid rgba(215,184,90,.6);background:#111;color:#f0cc68;padding:10px 14px;border-radius:999px;text-decoration:none;font-weight:800;cursor:pointer}
+200: .table-wrap{overflow-x:auto}
+201: table{width:100%;border-collapse:collapse;min-width:1200px}
+202: th,td{padding:10px;border-bottom:1px solid rgba(255,255,255,.08);text-align:right;vertical-align:top;font-size:13px}
+203: th{color:#d7b85a;background:#181818}
+204: .badge{display:inline-block;border:1px solid rgba(215,184,90,.45);color:#f0cc68;padding:5px 9px;border-radius:999px;font-weight:700;white-space:nowrap}
+205: select,textarea{width:100%;box-sizing:border-box;background:#0b0b0b;color:#fff;border:1px solid rgba(215,184,90,.35);border-radius:12px;padding:9px;margin-bottom:8px}
+206: textarea{min-height:60px}
+207: </style>
+208: </head>
+209: <body>
+210: <div class="page">
+211:   <div class="header">
+212:     <h1>Ø·Ù„Ø¨Ø§Øª ØªØ±Ù‚ÙŠØ© Ø§Ù„Ø¨Ø§Ù‚Ø§Øª</h1>
+213:     <div>Ù‡Ù†Ø§ ØªØ¸Ù‡Ø± Ø·Ù„Ø¨Ø§Øª Upgrade Ù…Ù† Ø§Ù„Ø¹Ù…Ù„Ø§Ø¡. Downgrade Ù…Ø¤Ø¬Ù„ Ø¨Ø¹Ø¯ Ø§Ù„Ø¥Ø·Ù„Ø§Ù‚.</div>
+214: 
+215:     <div class="top-actions">
+216:       <a class="btn" href="/admin-dashboard?key={{ encoded_key }}">Ø±Ø¬ÙˆØ¹ Ø¥Ù„Ù‰ Admin Dashboard</a>
+217:       <a class="btn" href="/admin/upgrade-requests?key={{ encoded_key }}&status=all">ÙƒÙ„ Ø§Ù„Ø·Ù„Ø¨Ø§Øª</a>
+218:       <a class="btn" href="/admin/upgrade-requests?key={{ encoded_key }}&status=pending_payment">Pending Payment</a>
+219:       <a class="btn" href="/admin/upgrade-requests?key={{ encoded_key }}&status=completed">Completed</a>
+220:       <a class="btn" href="/admin/upgrade-requests?key={{ encoded_key }}&status=rejected">Rejected</a>
+221:     </div>
+222:   </div>
+223: 
+224:   <div class="section">
+225:     <h2>Ø§Ù„Ø·Ù„Ø¨Ø§Øª: {{ count }}</h2>
+226: 
+227:     <div class="table-wrap">
+228:       <table>
+229:         <thead>
+230:           <tr>
+231:             <th>Request ID</th>
+232:             <th>Partner / Client</th>
+233:             <th>Upgrade</th>
+234:             <th>Limits</th>
+235:             <th>Status</th>
+236:             <th>Payment</th>
+237:             <th>Notes</th>
+238:             <th>Admin Update</th>
+239:           </tr>
+240:         </thead>
+241:         <tbody>
+242:           {% for item in requests_list %}
+243:           <tr>
+244:             <td>
+245:               <strong>{{ item.request_id or "-" }}</strong><br>
+246:               <small>{{ item.created_at or "-" }}</small>
+247:             </td>
+248: 
+249:             <td>
+250:               Partner: {{ item.partner_id or "-" }}<br>
+251:               Client: {{ item.client_id or "-" }}
+252:             </td>
+253: 
+254:             <td>
+255:               From: {{ item.current_plan or "-" }} â€” {{ item.current_price or "-" }}<br>
+256:               To: <strong>{{ item.target_plan or "-" }}</strong> â€” {{ item.target_price or "-" }}
+257:             </td>
+258: 
+259:             <td>
+260:               Customer replies: {{ item.current_customer_reply_limit or "-" }} â†’ {{ item.target_customer_reply_limit or "-" }}<br>
+261:               Advisory: {{ item.current_advisory_reply_limit or "-" }} â†’ {{ item.target_advisory_reply_limit or "-" }}
+262:             </td>
+263: 
+264:             <td><span class="badge">{{ item.status or "-" }}</span></td>
+265:             <td><span class="badge">{{ item.payment_status or "-" }}</span></td>
+266: 
+267:             <td>
+268:               Customer: {{ item.customer_notes or "-" }}<br>
+269:               Admin: {{ item.admin_notes or "-" }}
+270:             </td>
+271: 
+272:             <td>
+273:               <form method="POST" action="/admin/update-upgrade-request">
+274:                 <input type="hidden" name="key" value="{{ admin_key }}">
+275:                 <input type="hidden" name="request_id" value="{{ item.request_id }}">
+276: 
+277:                 <select name="status">
+278:                   <option value="">Ù„Ø§ ØªØºÙŠØ± Ø§Ù„Ø­Ø§Ù„Ø©</option>
+279:                   <option value="pending_payment">pending_payment</option>
+280:                   <option value="paid_pending_apply">paid_pending_apply</option>
+281:                   <option value="completed">completed</option>
+282:                   <option value="rejected">rejected</option>
+283:                 </select>
+284: 
+285:                 <select name="payment_status">
+286:                   <option value="">Ù„Ø§ ØªØºÙŠØ± Ø§Ù„Ø¯ÙØ¹</option>
+287:                   <option value="not_paid">not_paid</option>
+288:                   <option value="paid">paid</option>
+289:                   <option value="failed">failed</option>
+290:                 </select>
+291: 
+292:                 <textarea name="admin_notes" placeholder="Admin notes"></textarea>
+293:                 <button type="submit">ØªØ­Ø¯ÙŠØ«</button>
+294:               </form>
+295: 
+296:               <form method="POST" action="/admin/schedule-upgrade-at-period-end" style="margin-top:8px;">
+297:                 <input type="hidden" name="key" value="{{ admin_key }}">
+298:                 <input type="hidden" name="request_id" value="{{ item.request_id }}">
+299:                 <input type="hidden" name="partner_id" value="{{ item.partner_id }}">
+300:                 <input type="hidden" name="target_plan" value="{{ item.target_plan }}">
+301:                 <button type="submit">Ø¬Ø¯ÙˆÙ„Ø© Ø§Ù„ØªØ±Ù‚ÙŠØ© Ù„Ù†Ù‡Ø§ÙŠØ© Ø§Ù„Ø¯ÙˆØ±Ø©</button>
+302:               </form>
+303:             </td>
+304:           </tr>
+305:           {% else %}
+306:           <tr><td colspan="8">Ù„Ø§ ØªÙˆØ¬Ø¯ Ø·Ù„Ø¨Ø§Øª Ø­Ø§Ù„ÙŠØ§Ù‹.</td></tr>
+307:           {% endfor %}
+308:         </tbody>
+309:       </table>
+310:     </div>
+311:   </div>
+312: </div>
+313: </body>
+314: </html>
+315:             """
+316: 
+317:             return render_template_string(
+318:                 html,
+319:                 admin_key=key,
+320:                 encoded_key=quote(key),
+321:                 count=len(requests_list),
+322:                 requests_list=requests_list,
+323:             )
+324: 
+325:         except Exception as error:
+326:             print(f"ADMIN UPGRADE REQUESTS ERROR âŒ {error}", flush=True)
+327:             return str(error), 500
+328: 
+329:     def admin_update_upgrade_request():
+330:         key = request.form.get("key", "").strip()
+331: 
+332:         if key != ADMIN_KEY:
+333:             return "Unauthorized", 401
+334: 
+335:         request_id = request.form.get("request_id", "").strip()
+336:         status = request.form.get("status", "").strip()
+337:         payment_status = request.form.get("payment_status", "").strip()
+338:         admin_notes = request.form.get("admin_notes", "").strip()
+339: 
+340:         if not request_id:
+341:             return "request_id is required", 400
+342: 
+343:         try:
+344:             database = _db()
+345:             result = database.post_to_google_sheet_json(
+346:                 {
+347:                     "token": os.getenv("GOOGLE_SHEET_TOKEN", ""),
+348:                     "action": "admin_upgrade_request_update",
+349:                     "request_id": request_id,
+350:                     "status": status,
+351:                     "payment_status": payment_status,
+352:                     "admin_notes": admin_notes,
+353:                     "actor": "owner_admin",
+354:                     "source": "admin_dashboard",
+355:                 },
+356:                 label="admin_upgrade_request_update",
+357:             )
+358: 
+359:             return render_template_string(
+360:                 """
+361:                 <html lang="ar" dir="rtl">
+362:                 <head><meta charset="utf-8"><title>ØªÙ… ØªØ­Ø¯ÙŠØ« Ø·Ù„Ø¨ Ø§Ù„ØªØ±Ù‚ÙŠØ©</title></head>
+363:                 <body style="background:#0b0b0b;color:#fff;font-family:Arial;padding:30px;">
+364:                 <div style="max-width:760px;margin:auto;background:#111;border:1px solid #d7b85a;border-radius:18px;padding:22px;">
+365:                   <h2 style="color:#d7b85a;">ØªÙ… ØªØ­Ø¯ÙŠØ« Ø·Ù„Ø¨ Ø§Ù„ØªØ±Ù‚ÙŠØ© âœ…</h2>
+366:                   <pre style="direction:ltr;white-space:pre-wrap;background:#000;padding:12px;border-radius:12px;">{{ result }}</pre>
+367:                   <a href="/admin/upgrade-requests?key={{ key }}" style="color:#f0cc68;">Ø±Ø¬ÙˆØ¹ Ø¥Ù„Ù‰ Ø·Ù„Ø¨Ø§Øª Ø§Ù„ØªØ±Ù‚ÙŠØ©</a>
+368:                 </div>
+369:                 </body>
+370:                 </html>
+371:                 """,
+372:                 result=result,
+373:                 key=key,
+374:             )
+375: 
+376:         except Exception as error:
+377:             print(f"ADMIN UPDATE UPGRADE REQUEST ERROR âŒ {error}", flush=True)
+378:             return str(error), 500
+379: 
+380: 
+381:     def admin_schedule_upgrade_at_period_end():
+382:         key = request.form.get("key", "").strip()
+383: 
+384:         if key != ADMIN_KEY:
+385:             return "Unauthorized", 401
+386: 
+387:         request_id = request.form.get("request_id", "").strip()
+388:         partner_id = request.form.get("partner_id", "").strip().upper()
+389:         target_plan = normalize_upgrade_plan(request.form.get("target_plan", "").strip().lower())
+390: 
+391:         if not request_id:
+392:             return "request_id is required", 400
+393: 
+394:         if not partner_id:
+395:             return "partner_id is required", 400
+396: 
+397:         if target_plan not in UPGRADE_PRICE_IDS:
+398:             return f"Invalid target plan: {target_plan}", 400
+399: 
+400:         try:
+401:             import stripe
+402: 
+403:             stripe_key = (
+404:                 os.getenv("STRIPE_SECRET_KEY")
+405:                 or os.getenv("STRIPE_API_KEY")
+406:                 or os.getenv("STRIPE_KEY")
+407:                 or ""
+408:             )
+409: 
+410:             if not stripe_key:
+411:                 return "STRIPE_SECRET_KEY is missing in Render environment", 500
+412: 
+413:             stripe.api_key = stripe_key
+414: 
+415:             database = _db()
+416:             partner_id = database.normalize_partner_id(partner_id)
+417: 
+418:             lookup = database.post_to_google_sheet_json(
+419:                 {
+420:                     "token": os.getenv("GOOGLE_SHEET_TOKEN", ""),
+421:                     "action": "upgrade_subscription_lookup",
+422:                     "partner_id": partner_id,
+423:                     "client_id": partner_id,
+424:                 },
+425:                 label="upgrade_subscription_lookup",
+426:             )
+427: 
+428:             if not isinstance(lookup, dict) or lookup.get("status") != "success":
+429:                 return render_template_string(
+430:                     """
+431:                     <html lang="ar" dir="rtl">
+432:                     <head><meta charset="utf-8"><title>ØªØ¹Ø°Ø± Ø¥ÙŠØ¬Ø§Ø¯ Ø§Ù„Ø§Ø´ØªØ±Ø§Ùƒ</title></head>
+433:                     <body style="background:#0b0b0b;color:#fff;font-family:Arial;padding:30px;">
+434:                     <div style="max-width:820px;margin:auto;background:#111;border:1px solid #d7b85a;border-radius:18px;padding:22px;">
+435:                       <h2 style="color:#d7b85a;">ØªØ¹Ø°Ø± Ø¥ÙŠØ¬Ø§Ø¯ Ø§Ø´ØªØ±Ø§Ùƒ Stripe Ù„Ù‡Ø°Ø§ Ø§Ù„Ø­Ø³Ø§Ø¨</h2>
+436:                       <pre style="direction:ltr;white-space:pre-wrap;background:#000;padding:12px;border-radius:12px;">{{ lookup }}</pre>
+437:                       <a href="/admin/upgrade-requests?key={{ key }}" style="color:#f0cc68;">Ø±Ø¬ÙˆØ¹</a>
+438:                     </div>
+439:                     </body>
+440:                     </html>
+441:                     """,
+442:                     lookup=lookup,
+443:                     key=key,
+444:                 ), 500
+445: 
+446:             subscription_data = lookup.get("subscription") or {}
+447:             stripe_subscription_id = str(subscription_data.get("stripe_subscription_id") or "").strip()
+448: 
+449:             if not stripe_subscription_id:
+450:                 return "Stripe Subscription ID is empty for this client", 500
+451: 
+452:             target_price_id = UPGRADE_PRICE_IDS[target_plan]
+453: 
+454:             subscription = stripe.Subscription.retrieve(
+455:                 stripe_subscription_id,
+456:                 expand=["items.data.price"],
+457:             )
+458: 
+459:             items = subscription["items"]["data"]
+460: 
+461:             if not items:
+462:                 return "Stripe subscription has no items", 500
+463: 
+464:             current_items = []
+465:             target_items = []
+466: 
+467:             for index, item in enumerate(items):
+468:                 current_price = item["price"]["id"]
+469:                 quantity = item.get("quantity") or 1
+470: 
+471:                 current_items.append({
+472:                     "price": current_price,
+473:                     "quantity": quantity,
+474:                 })
+475: 
+476:                 if index == 0:
+477:                     target_items.append({
+478:                         "price": target_price_id,
+479:                         "quantity": quantity,
+480:                     })
+481:                 else:
+482:                     target_items.append({
+483:                         "price": current_price,
+484:                         "quantity": quantity,
+485:                     })
+486: 
+487:             current_period_start = subscription.get("current_period_start")
+488:             current_period_end = subscription.get("current_period_end")
+489: 
+490:             if not current_period_start or not current_period_end:
+491:                 return "Stripe subscription period dates missing", 500
+492: 
+493:             existing_schedule_id = subscription.get("schedule")
+494: 
+495:             if existing_schedule_id:
+496:                 schedule = stripe.SubscriptionSchedule.retrieve(existing_schedule_id)
+497:             else:
+498:                 schedule = stripe.SubscriptionSchedule.create(
+499:                     from_subscription=stripe_subscription_id
+500:                 )
+501: 
+502:             start_date = (
+503:                 (schedule.get("current_phase") or {}).get("start_date")
+504:                 or current_period_start
+505:             )
+506: 
+507:             updated_schedule = stripe.SubscriptionSchedule.modify(
+508:                 schedule["id"],
+509:                 end_behavior="release",
+510:                 phases=[
+511:                     {
+512:                         "items": current_items,
+513:                         "start_date": start_date,
+514:                         "end_date": current_period_end,
+515:                     },
+516:                     {
+517:                         "items": target_items,
+518:                         "start_date": current_period_end,
+519:                     },
+520:                 ],
+521:             )
+522: 
+523:             mark_result = database.post_to_google_sheet_json(
+524:                 {
+525:                     "token": os.getenv("GOOGLE_SHEET_TOKEN", ""),
+526:                     "action": "upgrade_request_mark_scheduled",
+527:                     "request_id": request_id,
+528:                     "stripe_subscription_id": stripe_subscription_id,
+529:                     "stripe_schedule_id": updated_schedule["id"],
+530:                     "admin_notes": f"Scheduled upgrade to {target_plan} at period end",
+531:                     "actor": "owner_admin",
+532:                     "source": "admin_dashboard",
+533:                 },
+534:                 label="upgrade_request_mark_scheduled",
+535:             )
+536: 
+537:             return render_template_string(
+538:                 """
+539:                 <html lang="ar" dir="rtl">
+540:                 <head><meta charset="utf-8"><title>ØªÙ…Øª Ø¬Ø¯ÙˆÙ„Ø© Ø§Ù„ØªØ±Ù‚ÙŠØ©</title></head>
+541:                 <body style="background:#0b0b0b;color:#fff;font-family:Arial;padding:30px;">
+542:                 <div style="max-width:820px;margin:auto;background:#111;border:1px solid #d7b85a;border-radius:18px;padding:22px;">
+543:                   <h2 style="color:#d7b85a;">ØªÙ…Øª Ø¬Ø¯ÙˆÙ„Ø© Ø§Ù„ØªØ±Ù‚ÙŠØ© Ù„Ù†Ù‡Ø§ÙŠØ© Ø§Ù„Ø¯ÙˆØ±Ø© âœ…</h2>
+544:                   <p>Ù„Ù† ØªØªØºÙŠØ± Ø§Ù„Ø¨Ø§Ù‚Ø© Ø§Ù„Ø¢Ù†. Ø³ÙŠØªÙ… ØªØ·Ø¨ÙŠÙ‚ Ø§Ù„ØªØ±Ù‚ÙŠØ© Ø¹Ù†Ø¯ Ø¨Ø¯Ø§ÙŠØ© Ø¯ÙˆØ±Ø© Ø§Ù„Ø§Ø´ØªØ±Ø§Ùƒ Ø§Ù„Ù‚Ø§Ø¯Ù…Ø©.</p>
+545:                   <div style="background:#000;padding:12px;border-radius:12px;direction:ltr;white-space:pre-wrap;">
+546: Request ID: {{ request_id }}
+547: Partner ID: {{ partner_id }}
+548: Target Plan: {{ target_plan }}
+549: Stripe Subscription: {{ stripe_subscription_id }}
+550: Stripe Schedule: {{ schedule_id }}
+551:                   </div>
+552:                   <pre style="direction:ltr;white-space:pre-wrap;background:#000;padding:12px;border-radius:12px;">{{ mark_result }}</pre>
+553:                   <a href="/admin/upgrade-requests?key={{ key }}" style="color:#f0cc68;">Ø±Ø¬ÙˆØ¹ Ø¥Ù„Ù‰ Ø·Ù„Ø¨Ø§Øª Ø§Ù„ØªØ±Ù‚ÙŠØ©</a>
+554:                 </div>
+555:                 </body>
+556:                 </html>
+557:                 """,
+558:                 key=key,
+559:                 request_id=request_id,
+560:                 partner_id=partner_id,
+561:                 target_plan=target_plan,
+562:                 stripe_subscription_id=stripe_subscription_id,
+563:                 schedule_id=updated_schedule["id"],
+564:                 mark_result=mark_result,
+565:             )
+566: 
+567:         except Exception as error:
+568:             print(f"SCHEDULE UPGRADE AT PERIOD END ERROR âŒ {error}", flush=True)
+569:             return str(error), 500
+570: 
+571: 
+572:     def upgrade_injector(response):
+573:         try:
+574:             if "text/html" not in response.headers.get("Content-Type", ""):
+575:                 return response
+576: 
+577:             html = response.get_data(as_text=True)
+578: 
+579:             if not html or "ALSAAB_UPGRADE_UI_INJECTED" in html:
+580:                 return response
+581: 
+582:             if request.path == "/client-dashboard" and "</body>" in html:
+583:                 section = """
+584: <!-- ALSAAB_UPGRADE_UI_INJECTED START -->
+585: <div id="alsaabUpgradeSection" class="alsaab-upgrade-section" dir="rtl">
+586:   <h2>ØªØ±Ù‚ÙŠØ© Ø§Ù„Ø¨Ø§Ù‚Ø©</h2>
+587:   <p>ÙŠÙ…ÙƒÙ†Ùƒ Ø·Ù„Ø¨ ØªØ±Ù‚ÙŠØ© Ø¨Ø§Ù‚ØªÙƒ Ø¥Ù„Ù‰ Ø¨Ø§Ù‚Ø© Ø£Ø¹Ù„Ù‰. Ø§Ù„ØªØ±Ù‚ÙŠØ© ÙÙ‚Ø· Ù…ØªØ§Ø­Ø© Ø­Ø§Ù„ÙŠØ§Ù‹ØŒ Ø£Ù…Ø§ Downgrade Ù…Ø¤Ø¬Ù„ Ø¨Ø¹Ø¯ Ø§Ù„Ø¥Ø·Ù„Ø§Ù‚.</p>
+588: 
+589:   <form method="POST" action="/client/request-upgrade">
+590:     <input type="hidden" name="partner_id" id="alsaabUpgradePartnerId">
+591: 
+592:     <label>Ø§Ù„Ø¨Ø§Ù‚Ø© Ø§Ù„Ø­Ø§Ù„ÙŠØ©</label>
+593:     <select name="current_plan" required>
+594:       <option value="">Ø§Ø®ØªØ± Ø§Ù„Ø¨Ø§Ù‚Ø© Ø§Ù„Ø­Ø§Ù„ÙŠØ©</option>
+595:       <option value="entry">Ø§Ù„Ø¯Ø®ÙˆÙ„ / Entry</option>
+596:       <option value="starter">Ø§Ù„Ø¨Ø¯Ø§ÙŠØ© / Starter</option>
+597:       <option value="growth">Ø§Ù„Ù†Ù…Ùˆ / Growth</option>
+598:       <option value="elite">Ø§Ù„Ù†Ø®Ø¨Ø© / Elite</option>
+599:     </select>
+600: 
+601:     <label>Ø§Ù„Ø¨Ø§Ù‚Ø© Ø§Ù„Ù…Ø·Ù„ÙˆØ¨Ø©</label>
+602:     <select name="target_plan" required>
+603:       <option value="">Ø§Ø®ØªØ± Ø§Ù„Ø¨Ø§Ù‚Ø© Ø§Ù„Ø¬Ø¯ÙŠØ¯Ø©</option>
+604:       <option value="starter">Ø§Ù„Ø¨Ø¯Ø§ÙŠØ© / Starter â€” 599 AED</option>
+605:       <option value="growth">Ø§Ù„Ù†Ù…Ùˆ / Growth â€” 1099 AED</option>
+606:       <option value="elite">Ø§Ù„Ù†Ø®Ø¨Ø© / Elite â€” 2099 AED</option>
+607:     </select>
+608: 
+609:     <label>Ù…Ù„Ø§Ø­Ø¸Ø§Øª Ø§Ø®ØªÙŠØ§Ø±ÙŠØ©</label>
+610:     <textarea name="customer_notes" placeholder="Ù…Ø«Ø§Ù„: Ø£Ø±ÙŠØ¯ Ø§Ù„ØªØ±Ù‚ÙŠØ© Ù„Ø£Ù†Ù†ÙŠ Ø£Ø­ØªØ§Ø¬ Ø±Ø¨Ø· Ø§Ù„Ù…ÙˆÙ‚Ø¹ Ø£Ùˆ Ø¹Ø¯Ø¯ Ø±Ø¯ÙˆØ¯ Ø£Ø¹Ù„Ù‰."></textarea>
+611: 
+612:     <button type="submit">Ø¥Ø±Ø³Ø§Ù„ Ø·Ù„Ø¨ Ø§Ù„ØªØ±Ù‚ÙŠØ©</button>
+613:   </form>
+614: </div>
+615: 
+616: <style>
+617: .alsaab-upgrade-section{max-width:1100px;margin:22px auto;padding:22px;background:#111;border:1px solid rgba(215,184,90,.45);border-radius:22px;color:#f5f0df;font-family:Arial,Tahoma,sans-serif}
+618: .alsaab-upgrade-section h2{color:#d7b85a;margin-top:0;font-size:28px;font-weight:900}
+619: .alsaab-upgrade-section p{color:#d8cfad;line-height:1.8}
+620: .alsaab-upgrade-section label{display:block;margin-top:13px;margin-bottom:6px;color:#d7b85a;font-weight:800}
+621: .alsaab-upgrade-section select,.alsaab-upgrade-section textarea{width:100%;box-sizing:border-box;background:#0b0b0b;color:#fff;border:1px solid rgba(215,184,90,.35);border-radius:14px;padding:12px;outline:none}
+622: .alsaab-upgrade-section textarea{min-height:90px}
+623: .alsaab-upgrade-section button{margin-top:14px;border:1px solid rgba(215,184,90,.75);background:linear-gradient(135deg,#d7b85a,#a88425);color:#0b0b0b;border-radius:999px;padding:12px 18px;font-weight:900;cursor:pointer}
+624: </style>
+625: 
+626: <script>
+627: (function(){
+628:   var input=document.getElementById("alsaabUpgradePartnerId");
+629:   if(!input)return;
+630:   var text=document.body.innerText||"";
+631:   var match=text.match(/ALS-P\\d{5,}/i);
+632:   if(match&&match[0]) input.value=match[0].toUpperCase();
+633: })();
+634: </script>
+635: <!-- ALSAAB_UPGRADE_UI_INJECTED END -->
+636:                 """
+637:                 html = html.replace("</body>", section + "\n</body>", 1)
+638:                 response.set_data(html)
+639:                 return response
+640: 
+
+
+===== backend\database.py L380-L430 =====
+380:             conn.close()
+381:             return normalize_partner_id(row[0])
+382: 
+383:     except Exception as error:
+384:         print(f"GET SOURCE PARTNER ERROR ❌ {error}", flush=True)
+385: 
+386:     conn.close()
+387:     return ""
+388: 
+389: 
+390: def normalize_partner_rank(rank_value):
+391:     if not rank_value:
+392:         return "Level 1"
+393: 
+394:     rank_value = str(rank_value).strip()
+395: 
+396:     aliases = {
+397:         "1": "Level 1",
+398:         "level 1": "Level 1",
+399:         "starter": "Level 1",
+400:         "starter partner": "Level 1",
+401:         "المستوى الأول": "Level 1",
+402: 
+403:         "2": "Level 2",
+404:         "level 2": "Level 2",
+405:         "growth": "Level 2",
+406:         "growth partner": "Level 2",
+407:         "المستوى الثاني": "Level 2",
+408: 
+409:         "3": "Level 3",
+410:         "level 3": "Level 3",
+411:         "sales": "Level 3",
+412:         "sales partner": "Level 3",
+413:         "المستوى الثالث": "Level 3",
+414: 
+415:         "4": "Level 4",
+416:         "level 4": "Level 4",
+417:         "leader": "Level 4",
+418:         "leader partner": "Level 4",
+419:         "المستوى الرابع": "Level 4",
+420: 
+421:         "5": "Level 5",
+422:         "level 5": "Level 5",
+423:         "elite": "Level 5",
+424:         "elite partner": "Level 5",
+425:         "المستوى الخامس": "Level 5",
+426:     }
+427: 
+428:     normalized_key = rank_value.lower()
+429:     return aliases.get(normalized_key, rank_value)
+430: 
+
+
+===== backend\database.py L1160-L1305 =====
+1160: # =========================
+1161: # SUBSCRIPTION / USAGE SYSTEM
+1162: # =========================
+1163: 
+1164: def normalize_plan_name(plan_name):
+1165:     if not plan_name:
+1166:         return ""
+1167: 
+1168:     plan_name = str(plan_name).lower().strip()
+1169: 
+1170:     aliases = {
+1171:         "start": "starter",
+1172:         "basic": "starter",
+1173:         "beginner": "starter",
+1174:         "بداية": "starter",
+1175:         "البداية": "starter",
+1176:         "starter": "starter",
+1177: 
+1178:         "growth": "growth",
+1179:         "pro": "growth",
+1180:         "professional": "growth",
+1181:         "نمو": "growth",
+1182:         "النمو": "growth",
+1183: 
+1184:         "elite": "elite",
+1185:         "premium": "elite",
+1186:         "vip": "elite",
+1187:         "نخبة": "elite",
+1188:         "النخبة": "elite",
+1189: 
+1190:         "enterprise": "enterprise",
+1191:         "custom": "enterprise",
+1192:         "شركة": "enterprise",
+1193:         "شركات": "enterprise",
+1194:     }
+1195: 
+1196:     return aliases.get(plan_name, plan_name)
+1197: 
+1198: 
+1199: def get_plan_reply_limit(plan_name, custom_reply_limit=None):
+1200:     if custom_reply_limit not in (None, "", 0, "0"):
+1201:         try:
+1202:             return int(custom_reply_limit)
+1203:         except Exception:
+1204:             pass
+1205: 
+1206:     plan = normalize_plan_name(plan_name)
+1207: 
+1208:     try:
+1209:         from config import PACKAGES
+1210: 
+1211:         package = PACKAGES.get(plan) or {}
+1212:         limit = (
+1213:             package.get("customer_reply_limit")
+1214:             or package.get("total_customer_reply_limit")
+1215:             or package.get("monthly_reply_limit")
+1216:         )
+1217: 
+1218:         if str(limit).lower() == "custom":
+1219:             return 0
+1220: 
+1221:         if limit not in (None, ""):
+1222:             return int(limit)
+1223: 
+1224:     except Exception as error:
+1225:         print(f"GET PLAN REPLY LIMIT CONFIG ERROR ⚠️ {error}", flush=True)
+1226: 
+1227:     if plan == "starter":
+1228:         return 2000
+1229: 
+1230:     if plan == "growth":
+1231:         return 6000
+1232: 
+1233:     if plan == "elite":
+1234:         return 15000
+1235: 
+1236:     return 6000
+1237: 
+1238: 
+1239: def get_plan_owner_advisory_reply_limit(plan_name):
+1240:     plan = normalize_plan_name(plan_name)
+1241: 
+1242:     try:
+1243:         from config import PACKAGES
+1244: 
+1245:         package = PACKAGES.get(plan) or {}
+1246:         limit = package.get("owner_advisory_reply_limit") or 0
+1247:         return int(limit)
+1248: 
+1249:     except Exception as error:
+1250:         print(f"GET PLAN OWNER ADVISORY LIMIT ERROR ⚠️ {error}", flush=True)
+1251: 
+1252:     if plan == "growth":
+1253:         return 1000
+1254: 
+1255:     if plan == "elite":
+1256:         return 2000
+1257: 
+1258:     return 0
+1259: 
+1260: 
+1261: def get_plan_package_features(plan_name):
+1262:     plan = normalize_plan_name(plan_name)
+1263: 
+1264:     try:
+1265:         from config import PACKAGES
+1266: 
+1267:         package = PACKAGES.get(plan) or {}
+1268: 
+1269:         return {
+1270:             "plan_name": plan,
+1271:             "customer_reply_limit": int(package.get("customer_reply_limit") or package.get("monthly_reply_limit") or 0),
+1272:             "base_customer_reply_limit": int(package.get("base_customer_reply_limit") or package.get("customer_reply_limit") or package.get("monthly_reply_limit") or 0),
+1273:             "gift_reply_limit": int(package.get("gift_reply_limit") or 0),
+1274:             "total_customer_reply_limit": int(package.get("total_customer_reply_limit") or package.get("customer_reply_limit") or package.get("monthly_reply_limit") or 0),
+1275:             "owner_advisory_reply_limit": int(package.get("owner_advisory_reply_limit") or 0),
+1276:             "channels": package.get("channels") or [],
+1277:             "whatsapp_included": bool(package.get("whatsapp_included")),
+1278:             "website_included": bool(package.get("website_included")),
+1279:             "instagram_included": bool(package.get("instagram_included")),
+1280:             "dashboard_advisory_enabled": bool(package.get("dashboard_advisory_enabled")),
+1281:             "image_catalog_enabled": bool(package.get("image_catalog_enabled")),
+1282:             "client_payment_links_enabled": bool(package.get("client_payment_links_enabled")),
+1283:             "advisor_level": package.get("advisor_level") or "",
+1284:         }
+1285: 
+1286:     except Exception as error:
+1287:         print(f"GET PLAN PACKAGE FEATURES ERROR ⚠️ {error}", flush=True)
+1288: 
+1289:     return {
+1290:         "plan_name": plan,
+1291:         "customer_reply_limit": get_plan_reply_limit(plan),
+1292:         "base_customer_reply_limit": get_plan_reply_limit(plan),
+1293:         "gift_reply_limit": 0,
+1294:         "total_customer_reply_limit": get_plan_reply_limit(plan),
+1295:         "owner_advisory_reply_limit": get_plan_owner_advisory_reply_limit(plan),
+1296:         "channels": [],
+1297:         "whatsapp_included": False,
+1298:         "website_included": False,
+1299:         "instagram_included": False,
+1300:         "dashboard_advisory_enabled": False,
+1301:         "image_catalog_enabled": False,
+1302:         "client_payment_links_enabled": False,
+1303:         "advisor_level": "",
+1304:     }
+1305: 
+
+
+===== backend\database.py L3888-L4070 =====
+3888: 
+3889: # ===== ALSAAB_WORDPRESS_ACCOUNT_LINK_V1 END =====
+3890: 
+3891: 
+3892: # ===== ALSAAB_ENTRY_DATABASE_SAFE_V1 START =====
+3893: # Safe Entry package support for database.py.
+3894: # This block is additive and does not edit existing functions manually.
+3895: 
+3896: ENTRY_PLAN_KEY = "entry"
+3897: 
+3898: ENTRY_PLAN_ALIASES = {
+3899:     "entry": "entry",
+3900:     "دخول": "entry",
+3901:     "الدخول": "entry",
+3902:     "باقة الدخول": "entry",
+3903:     "entry package": "entry",
+3904: }
+3905: 
+3906: ENTRY_PLAN_LIMITS = {
+3907:     "monthly_reply_limit": 500,
+3908:     "customer_reply_limit": 500,
+3909:     "owner_advisory_reply_limit": 0,
+3910:     "max_payment_links": 1,
+3911:     "max_product_images": 1,
+3912:     "max_product_image_groups": 1,
+3913: }
+3914: 
+3915: def _alsaab_entry_normalize_plan(value):
+3916:     raw = str(value or "").strip()
+3917: 
+3918:     if not raw:
+3919:         return ""
+3920: 
+3921:     raw_lower = raw.lower()
+3922: 
+3923:     if raw_lower in ENTRY_PLAN_ALIASES:
+3924:         return ENTRY_PLAN_ALIASES[raw_lower]
+3925: 
+3926:     if raw in ENTRY_PLAN_ALIASES:
+3927:         return ENTRY_PLAN_ALIASES[raw]
+3928: 
+3929:     return raw_lower
+3930: 
+3931: def _alsaab_entry_patch_known_limit_dicts():
+3932:     dict_names = [
+3933:         "PLAN_LIMITS",
+3934:         "PACKAGE_LIMITS",
+3935:         "USAGE_LIMITS",
+3936:         "REPLY_LIMITS",
+3937:         "MONTHLY_REPLY_LIMITS",
+3938:         "PLAN_REPLY_LIMITS",
+3939:         "PACKAGE_REPLY_LIMITS",
+3940:     ]
+3941: 
+3942:     for name in dict_names:
+3943:         value = globals().get(name)
+3944: 
+3945:         if not isinstance(value, dict):
+3946:             continue
+3947: 
+3948:         if "entry" in value:
+3949:             continue
+3950: 
+3951:         starter_value = value.get("starter")
+3952: 
+3953:         if isinstance(starter_value, int):
+3954:             value["entry"] = 500
+3955:         elif isinstance(starter_value, dict):
+3956:             entry_value = dict(starter_value)
+3957:             entry_value.update(ENTRY_PLAN_LIMITS)
+3958:             value["entry"] = entry_value
+3959:         else:
+3960:             value["entry"] = dict(ENTRY_PLAN_LIMITS)
+3961: 
+3962: def _alsaab_entry_patch_known_order_lists():
+3963:     list_names = [
+3964:         "PLAN_ORDER",
+3965:         "PACKAGE_ORDER",
+3966:     ]
+3967: 
+3968:     for name in list_names:
+3969:         value = globals().get(name)
+3970: 
+3971:         if isinstance(value, list) and "entry" not in value:
+3972:             value.insert(0, "entry")
+3973: 
+3974: def _alsaab_entry_wrap_normalizers():
+3975:     function_names = [
+3976:         "normalize_plan",
+3977:         "normalize_plan_name",
+3978:         "normalize_package",
+3979:         "normalize_package_name",
+3980:         "normalize_plan_key",
+3981:         "normalize_package_key",
+3982:     ]
+3983: 
+3984:     for function_name in function_names:
+3985:         old_function = globals().get(function_name)
+3986: 
+3987:         if not callable(old_function):
+3988:             continue
+3989: 
+3990:         if getattr(old_function, "_alsaab_entry_wrapped", False):
+3991:             continue
+3992: 
+3993:         def wrapper(value=None, *args, _old_function=old_function, **kwargs):
+3994:             normalized = _alsaab_entry_normalize_plan(value)
+3995: 
+3996:             if normalized == "entry":
+3997:                 return "entry"
+3998: 
+3999:             return _old_function(value, *args, **kwargs)
+4000: 
+4001:         wrapper._alsaab_entry_wrapped = True
+4002:         globals()[function_name] = wrapper
+4003: 
+4004: def _alsaab_entry_wrap_limit_functions():
+4005:     function_names = [
+4006:         "get_plan_limits",
+4007:         "get_package_limits",
+4008:         "get_usage_limits",
+4009:         "get_reply_limits",
+4010:         "get_monthly_reply_limit",
+4011:         "get_customer_reply_limit",
+4012:         "get_owner_advisory_reply_limit",
+4013:         "get_max_payment_links",
+4014:         "get_max_product_images",
+4015:         "get_max_product_image_groups",
+4016:     ]
+4017: 
+4018:     for function_name in function_names:
+4019:         old_function = globals().get(function_name)
+4020: 
+4021:         if not callable(old_function):
+4022:             continue
+4023: 
+4024:         if getattr(old_function, "_alsaab_entry_wrapped", False):
+4025:             continue
+4026: 
+4027:         def wrapper(plan=None, *args, _old_function=old_function, _function_name=function_name, **kwargs):
+4028:             normalized = _alsaab_entry_normalize_plan(plan)
+4029: 
+4030:             if normalized == "entry":
+4031:                 if "limits" in _function_name:
+4032:                     return dict(ENTRY_PLAN_LIMITS)
+4033: 
+4034:                 if "owner_advisory" in _function_name:
+4035:                     return 0
+4036: 
+4037:                 if "payment_links" in _function_name:
+4038:                     return 1
+4039: 
+4040:                 if "product_image_groups" in _function_name:
+4041:                     return 1
+4042: 
+4043:                 if "product_images" in _function_name:
+4044:                     return 1
+4045: 
+4046:                 return 500
+4047: 
+4048:             return _old_function(plan, *args, **kwargs)
+4049: 
+4050:         wrapper._alsaab_entry_wrapped = True
+4051:         globals()[function_name] = wrapper
+4052: 
+4053: def get_entry_plan_limits():
+4054:     return dict(ENTRY_PLAN_LIMITS)
+4055: 
+4056: _al_saab_entry_patch_done = False
+4057: 
+4058: try:
+4059:     _alsaab_entry_patch_known_limit_dicts()
+4060:     _alsaab_entry_patch_known_order_lists()
+4061:     _alsaab_entry_wrap_normalizers()
+4062:     _alsaab_entry_wrap_limit_functions()
+4063:     _al_saab_entry_patch_done = True
+4064: except Exception as _entry_database_error:
+4065:     print(f"ENTRY DATABASE PATCH WARNING: {_entry_database_error}", flush=True)
+4066: 
+4067: # ===== ALSAAB_ENTRY_DATABASE_SAFE_V1 END =====
+
+
+===== backend\prompt_builder.py L130-L220 =====
+130: - Ù„Ø§ ØªÙƒØ±Ø± Ø§Ø³Ù… Ø§Ù„Ø¹Ù…ÙŠÙ„ ÙÙŠ ÙƒÙ„ Ø¬Ù…Ù„Ø©.
+131: - Ø§Ø³ØªØ®Ø¯Ù… Ø§Ù„Ø§Ø³Ù… ÙÙŠ Ø¨Ø¯Ø§ÙŠØ© Ø§Ù„Ø±Ø¯ÙˆØ¯ Ø§Ù„Ù…Ù‡Ù…Ø© Ø£Ùˆ Ø¹Ù†Ø¯ Ø§Ù„Ø¥Ù‚Ù†Ø§Ø¹ Ø£Ùˆ Ø§Ù„Ø¥ØºÙ„Ø§Ù‚.
+132: - Ù…Ø«Ø§Ù„ Ø¬ÙŠØ¯: "ØªÙ…Ø§Ù… ÙŠØ§ Ø£Ø­Ù…Ø¯ØŒ Ø¨Ù†Ø§Ø¡Ù‹ Ø¹Ù„Ù‰ ÙˆØ¶Ø¹Ùƒ..."
+133: - Ø¥Ø°Ø§ ÙƒØ§Ù† Ø±Ù‚Ù… Ø§Ù„Ø¹Ù…ÙŠÙ„ Ù…Ø­ÙÙˆØ¸Ø§Ù‹ØŒ Ù„Ø§ ØªØ·Ù„Ø¨Ù‡ Ù…Ø±Ø© Ø«Ø§Ù†ÙŠØ©.
+134: - Ø¥Ø°Ø§ ÙƒØ§Ù† Ø§Ø³Ù… Ø§Ù„Ø¹Ù…ÙŠÙ„ ÙˆØ±Ù‚Ù…Ù‡ Ù…Ø­ÙÙˆØ¸ÙŠÙ† ÙˆØ·Ù„Ø¨ ØªÙˆØ§ØµÙ„ Ø¨Ø´Ø±ÙŠØŒ Ù‚Ù„ Ù„Ù‡ Ø¥Ù† Ø¨ÙŠØ§Ù†Ø§ØªÙ‡ Ù…Ø­ÙÙˆØ¸Ø© ÙˆØ¨Ù†Ø±ØªØ¨ Ù„Ù‡ Ø§Ù„ØªÙˆØ§ØµÙ„.
+135: - Ø¥Ø°Ø§ Ù„Ù… ÙŠÙƒÙ† Ø±Ù‚Ù… Ø§Ù„Ø¹Ù…ÙŠÙ„ Ù…Ø­ÙÙˆØ¸Ø§Ù‹ ÙˆØ·Ù„Ø¨ Ù…ØªØ§Ø¨Ø¹Ø© Ø£Ùˆ ØªÙˆØ§ØµÙ„ Ø¨Ø´Ø±ÙŠØŒ Ø§Ø·Ù„Ø¨ Ø±Ù‚Ù… Ø§Ù„ÙˆØ§ØªØ³Ø§Ø¨ Ø¨Ø´ÙƒÙ„ Ù…Ø­ØªØ±Ù….
+136: - Ù„Ø§ ØªØ¹Ø±Ø¶ Ø¨ÙŠØ§Ù†Ø§Øª Ø§Ù„Ø¹Ù…ÙŠÙ„ Ø§Ù„Ø­Ø³Ø§Ø³Ø© Ø¨Ù„Ø§ Ø¯Ø§Ø¹ÙŠ Ø¯Ø§Ø®Ù„ Ø§Ù„Ø±Ø¯.
+137: """
+138: 
+139: 
+140: def format_packages():
+141:     starter_limit = PACKAGES["starter"].get("customer_reply_limit") or PACKAGES["starter"].get("monthly_reply_limit", "2000")
+142:     growth_limit = PACKAGES["growth"].get("customer_reply_limit") or PACKAGES["growth"].get("monthly_reply_limit", "6000")
+143:     growth_advisory = PACKAGES["growth"].get("owner_advisory_reply_limit", "1000")
+144:     elite_total = PACKAGES["elite"].get("total_customer_reply_limit") or PACKAGES["elite"].get("customer_reply_limit") or PACKAGES["elite"].get("monthly_reply_limit", "15000")
+145:     elite_base = PACKAGES["elite"].get("base_customer_reply_limit", "12000")
+146:     elite_gift = PACKAGES["elite"].get("gift_reply_limit", "3000")
+147:     elite_advisory = PACKAGES["elite"].get("owner_advisory_reply_limit", "2000")
+148: 
+149:     return f"""
+150: Ø§Ù„Ø¨Ø§Ù‚Ø§Øª:
+151: 
+152: 1) {PACKAGES["starter"]["name_ar"]} â€” {PACKAGES["starter"]["price_ar"]}
+153: - Ù…Ù†Ø§Ø³Ø¨Ø© Ù„Ù„ÙŠ ÙŠØ±ÙŠØ¯ ÙŠØ¨Ø¯Ø£ Ø¨ØªÙƒÙ„ÙØ© Ø¨Ø³ÙŠØ·Ø© ÙˆÙŠØ¬Ø±Ø¨ Ø§Ù„Ù†Ø¸Ø§Ù….
+154: - ØªØ´Ù…Ù„ Ù…ÙˆØ¸Ù Ù…Ø¨ÙŠØ¹Ø§Øª Ø°ÙƒÙŠ ÙŠØ±Ø¯ Ø¹Ù„Ù‰ Ø§Ù„Ø¹Ù…Ù„Ø§Ø¡ Ø¹Ø¨Ø± WhatsApp.
+155: - ÙŠÙÙ‡Ù… Ù…Ø¹Ù„ÙˆÙ…Ø§Øª Ø§Ù„Ù…Ø´Ø±ÙˆØ¹ØŒ Ø§Ù„Ø®Ø¯Ù…Ø§ØªØŒ Ø§Ù„Ø£Ø³Ø¹Ø§Ø±ØŒ ÙˆØ·Ø±ÙŠÙ‚Ø© Ø§Ù„Ø·Ù„Ø¨.
+156: - Ø¹Ø¯Ø¯ Ø§Ù„Ø±Ø¯ÙˆØ¯ Ø§Ù„Ø´Ù‡Ø±ÙŠ Ù„Ù„Ø¹Ù…Ù„Ø§Ø¡: {starter_limit} Ø±Ø¯.
+157: - Ø§Ù„Ù…Ù†ÙØ° Ø§Ù„Ø±Ø¦ÙŠØ³ÙŠ: WhatsApp.
+158: - Ù„Ø§ ØªØ´Ù…Ù„ Ø±Ø¨Ø· Ù…ÙˆØ¸Ù Ø§Ù„Ù…Ø¨ÙŠØ¹Ø§Øª Ø§Ù„Ø°ÙƒÙŠ Ø¹Ù„Ù‰ Ø§Ù„Ù…ÙˆÙ‚Ø¹.
+159: - Ù…Ù†Ø§Ø³Ø¨Ø© ÙƒØ¨Ø¯Ø§ÙŠØ© ÙˆØªØ¬Ø±Ø¨Ø©ØŒ ÙˆÙ„ÙŠØ³Øª Ø§Ù„Ø®ÙŠØ§Ø± Ø§Ù„Ù…ÙˆØµÙ‰ Ø¨Ù‡ Ù„Ù…Ø¹Ø¸Ù… Ø§Ù„Ù…Ø´Ø§Ø±ÙŠØ¹.
+160: - Ø¥Ø°Ø§ Ø³Ø£Ù„ Ø§Ù„Ø¹Ù…ÙŠÙ„ Ù‡Ù„ ØªØ´Ù…Ù„ Ø§Ù„Ù…ÙˆÙ‚Ø¹ØŒ ÙˆØ¶Ù‘Ø­ Ù„Ù‡ Ø£Ù† Ø±Ø¨Ø· Ø§Ù„Ù…ÙˆÙ‚Ø¹ ÙŠØ¨Ø¯Ø£ Ù…Ù† Ø¨Ø§Ù‚Ø© Ø§Ù„Ù†Ù…Ùˆ.
+161: 
+162: 2) {PACKAGES["growth"]["name_ar"]} â€” {PACKAGES["growth"]["price_ar"]}
+163: - Ù‡Ø°Ù‡ Ø§Ù„Ø¨Ø§Ù‚Ø© Ø§Ù„Ø£Ø³Ø§Ø³ÙŠØ© ÙˆØ§Ù„Ù…ÙÙˆØµÙ‰ Ø¨Ù‡Ø§ Ù„Ù…Ø¹Ø¸Ù… Ø£ØµØ­Ø§Ø¨ Ø§Ù„Ù…Ø´Ø§Ø±ÙŠØ¹.
+164: - ØªØ´Ù…Ù„ Ù…ÙˆØ¸Ù Ù…Ø¨ÙŠØ¹Ø§Øª Ø°ÙƒÙŠ ÙŠØ±Ø¯ Ø¹Ù„Ù‰ Ø§Ù„Ø¹Ù…Ù„Ø§Ø¡ØŒ ÙŠØ´Ø±Ø­ Ø§Ù„Ø®Ø¯Ù…Ø§ØªØŒ ÙŠØªØ¹Ø§Ù…Ù„ Ù…Ø¹ Ø§Ù„Ø§Ø¹ØªØ±Ø§Ø¶Ø§ØªØŒ ÙˆÙŠØ³Ø§Ø¹Ø¯ ÙÙŠ ØªØ­ÙˆÙŠÙ„ Ø§Ù„Ù…Ù‡ØªÙ…ÙŠÙ† Ø¥Ù„Ù‰ Ø¹Ù…Ù„Ø§Ø¡.
+165: - Ø¹Ø¯Ø¯ Ø§Ù„Ø±Ø¯ÙˆØ¯ Ø§Ù„Ø´Ù‡Ø±ÙŠ Ù„Ù„Ø¹Ù…Ù„Ø§Ø¡: {growth_limit} Ø±Ø¯.
+166: - ØªØ´Ù…Ù„ WhatsApp + Ø¥Ù…ÙƒØ§Ù†ÙŠØ© Ø±Ø¨Ø· Ù…ÙˆØ¸Ù Ø§Ù„Ù…Ø¨ÙŠØ¹Ø§Øª Ø§Ù„Ø°ÙƒÙŠ Ø¹Ù„Ù‰ Ø§Ù„Ù…ÙˆÙ‚Ø¹.
+167: - ØªØ´Ù…Ù„ {growth_advisory} Ø±Ø¯ Ø´Ù‡Ø±ÙŠ Ù…Ø®ØµØµ Ù„ØµØ§Ø­Ø¨ Ø§Ù„Ù…Ø´Ø±ÙˆØ¹ Ù„Ù„Ø§Ø³ØªØ´Ø§Ø±Ø§Øª ÙˆØ§Ù„ØªØ·ÙˆÙŠØ±.
+168: - ØµØ§Ø­Ø¨ Ø§Ù„Ù…Ø´Ø±ÙˆØ¹ ÙŠÙ‚Ø¯Ø± ÙŠØ³ØªØ®Ø¯Ù… ALSAAB AI ÙƒÙ…Ø³ØªØ´Ø§Ø± Ø°ÙƒÙŠ ÙÙŠ Ø§Ù„Ù…Ø¨ÙŠØ¹Ø§Øª ÙˆØ±ÙŠØ§Ø¯Ø© Ø§Ù„Ø£Ø¹Ù…Ø§Ù„ØŒ Ù…Ø«Ù„:
+169:   ØªØ­Ø³ÙŠÙ† Ø§Ù„Ø¹Ø±ÙˆØ¶ØŒ Ø§Ù„ØªØ¹Ø§Ù…Ù„ Ù…Ø¹ Ø§Ø¹ØªØ±Ø§Ø¶Ø§Øª Ø§Ù„Ø¹Ù…Ù„Ø§Ø¡ØŒ Ø£ÙÙƒØ§Ø± ØªØ³ÙˆÙŠÙ‚ÙŠØ©ØŒ ØªØ·ÙˆÙŠØ± Ø·Ø±ÙŠÙ‚Ø© Ø§Ù„Ø¨ÙŠØ¹ØŒ ÙˆØ±ÙØ¹ Ø§Ù„ØªØ­ÙˆÙŠÙ„Ø§Øª.
+170: - ØªØ¯Ø¹Ù… Ø¥Ø¶Ø§ÙØ© ØµÙˆØ± Ø§Ù„Ù…Ù†ØªØ¬Ø§Øª ÙˆØ§Ù„ÙƒØªØ§Ù„ÙˆØ¬Ø§Øª Ø­ØªÙ‰ ÙŠÙÙ‡Ù… Ù…ÙˆØ¸Ù Ø§Ù„Ù…Ø¨ÙŠØ¹Ø§Øª Ø§Ù„Ø°ÙƒÙŠ ØªÙØ§ØµÙŠÙ„ Ø§Ù„Ù…Ù†ØªØ¬Ø§Øª ÙˆØ§Ù„Ø£Ø³Ø¹Ø§Ø± ÙˆØ§Ù„Ø¹Ø±ÙˆØ¶ Ø¨Ø´ÙƒÙ„ Ø£ÙØ¶Ù„.
+171: - ØªØ¯Ø¹Ù… Ø¥Ø¶Ø§ÙØ© Ø±ÙˆØ§Ø¨Ø· Ø§Ù„Ø¯ÙØ¹ Ø§Ù„Ø®Ø§ØµØ© Ø¨Ø§Ù„Ø¹Ù…ÙŠÙ„ Ù„Ù„Ù…Ù†ØªØ¬Ø§Øª ÙˆØ§Ù„Ø¹Ø±ÙˆØ¶ØŒ ÙˆØ§Ù„Ø¹Ù…ÙŠÙ„ ÙŠØ³ØªÙ„Ù… Ù…Ø¨Ø§Ù„ØºÙ‡ Ø¨Ù†ÙØ³Ù‡ ÙˆÙ†Ø­Ù† Ù„Ø§ Ù†Ø³ØªÙ„Ù… Ù…Ø¨Ø§Ù„Øº Ø¹Ù…Ù„Ø§Ø¦Ù‡.
+172: - Ù‡Ø°Ù‡ Ù‡ÙŠ Ø§Ù„Ø¨Ø§Ù‚Ø© Ø§Ù„ØªÙŠ ÙŠØ¬Ø¨ ØªØ±Ø´ÙŠØ­Ù‡Ø§ Ù„ØµØ§Ø­Ø¨ Ø§Ù„Ù…Ø´Ø±ÙˆØ¹ ÙÙŠ Ø£ØºÙ„Ø¨ Ø§Ù„Ø­Ø§Ù„Ø§Øª.
+173: 
+174: 3) {PACKAGES["elite"]["name_ar"]} â€” {PACKAGES["elite"]["price_ar"]}
+175: - Ù‡Ø°Ù‡ Ø§Ù„Ø¨Ø§Ù‚Ø© Ù„Ù„Ù…Ø´Ø§Ø±ÙŠØ¹ Ø§Ù„Ø¬Ø§Ø¯Ø© ÙˆØ§Ù„Ù„ÙŠ ØªØ±ÙŠØ¯ Ù†Ø¸Ø§Ù… Ø£Ù‚ÙˆÙ‰ ÙˆØªØ®ØµÙŠØµ Ø£Ø¹Ù„Ù‰.
+176: - ØªØ´Ù…Ù„ Ù…ÙˆØ¸Ù Ù…Ø¨ÙŠØ¹Ø§Øª Ø°ÙƒÙŠ Ø£ÙƒØ«Ø± ØªÙ‚Ø¯Ù…Ø§Ù‹.
+177: - ØªØ¹Ù…Ù„ Ø¹Ù„Ù‰ WhatsApp ÙˆØ§Ù„Ù…ÙˆÙ‚Ø¹ØŒ Ù…Ø¹ Ø¯Ø¹Ù… Instagram Ø¶Ù…Ù† Ø§Ù„Ø±Ø¨Ø· Ø§Ù„Ù…ØªÙ‚Ø¯Ù….
+178: - Ø¹Ø¯Ø¯ Ø§Ù„Ø±Ø¯ÙˆØ¯ Ø§Ù„Ø´Ù‡Ø±ÙŠ Ø§Ù„Ø£Ø³Ø§Ø³ÙŠ Ù„Ù„Ø¹Ù…Ù„Ø§Ø¡: {elite_base} Ø±Ø¯.
+179: - Ù‡Ø¯ÙŠØ© Ù…Ù† Ø´Ø±ÙƒØ© Ø§Ù„ØµØ¹Ø¨: {elite_gift} Ø±Ø¯ Ø¥Ø¶Ø§ÙÙŠ.
+180: - Ù…Ø¬Ù…ÙˆØ¹ Ø±Ø¯ÙˆØ¯ Ø§Ù„Ø¹Ù…Ù„Ø§Ø¡: {elite_total} Ø±Ø¯ Ø´Ù‡Ø±ÙŠ.
+181: - ØªØ´Ù…Ù„ {elite_advisory} Ø±Ø¯ Ø´Ù‡Ø±ÙŠ Ù…Ø®ØµØµ Ù„ØµØ§Ø­Ø¨ Ø§Ù„Ù…Ø´Ø±ÙˆØ¹ Ù„Ù„Ø§Ø³ØªØ´Ø§Ø±Ø§Øª ÙˆØ§Ù„ØªØ·ÙˆÙŠØ±.
+182: - ØµØ§Ø­Ø¨ Ø§Ù„Ù…Ø´Ø±ÙˆØ¹ ÙŠÙ‚Ø¯Ø± ÙŠØ³ØªØ®Ø¯Ù… ALSAAB AI ÙƒÙ…Ø³ØªØ´Ø§Ø± Ø£Ù‚ÙˆÙ‰ ÙÙŠ Ø§Ù„Ù…Ø¨ÙŠØ¹Ø§ØªØŒ Ø§Ù„ØªØ³ÙˆÙŠÙ‚ØŒ ØªØ·ÙˆÙŠØ± Ø§Ù„Ø¹Ø±ÙˆØ¶ØŒ ØªØ­Ù„ÙŠÙ„ Ø§Ù„Ø§Ø¹ØªØ±Ø§Ø¶Ø§ØªØŒ ÙˆØªØ­Ø³ÙŠÙ† Ø£Ø¯Ø§Ø¡ Ø§Ù„Ù…Ø´Ø±ÙˆØ¹.
+183: - ØªØ´Ù…Ù„ ØªØ®ØµÙŠØµ Ø£Ù‚ÙˆÙ‰ ÙˆÙÙ‡Ù… Ø£Ø¹Ù…Ù‚ Ù„Ù„Ù…Ù†ØªØ¬Ø§Øª ÙˆØ§Ù„Ø®Ø¯Ù…Ø§Øª.
+184: - ØªØ¯Ø¹Ù… ØµÙˆØ± Ø§Ù„Ù…Ù†ØªØ¬Ø§Øª ÙˆØ§Ù„ÙƒØªØ§Ù„ÙˆØ¬Ø§Øª.
+185: - ØªØ¯Ø¹Ù… Ø¥Ø¶Ø§ÙØ© Ø±ÙˆØ§Ø¨Ø· Ø§Ù„Ø¯ÙØ¹ Ø§Ù„Ø®Ø§ØµØ© Ø¨Ø§Ù„Ø¹Ù…ÙŠÙ„ Ù„Ù„Ù…Ù†ØªØ¬Ø§Øª ÙˆØ§Ù„Ø¹Ø±ÙˆØ¶.
+186: - Ù…Ù†Ø§Ø³Ø¨Ø© Ù„Ù„Ù…Ø´Ø§Ø±ÙŠØ¹ Ø§Ù„Ù„ÙŠ Ø¹Ù†Ø¯Ù‡Ø§ Ø­Ø¬Ù… Ø¹Ù…Ù„Ø§Ø¡ Ø£Ø¹Ù„Ù‰ Ø£Ùˆ ØªØ±ÙŠØ¯ ØªØ¬Ø±Ø¨Ø© Ø£ÙƒØ«Ø± Ø§Ø­ØªØ±Ø§ÙÙŠØ© ÙˆÙ‚Ù†ÙˆØ§Øª Ø£ÙƒØ«Ø±.
+187: 
+188: 4) {ENTERPRISE_PACKAGE.get("name_ar", "Ø¨Ø§Ù‚Ø© Ø§Ù„Ø´Ø±ÙƒØ§Øª / Enterprise")} â€” {ENTERPRISE_PACKAGE.get("price_ar", "ÙØ§ØªÙˆØ±Ø© Ø´Ù‡Ø±ÙŠØ© Ù…Ù†ÙØµÙ„Ø© Ø­Ø³Ø¨ Ø§Ù„Ø§Ø³ØªØ®Ø¯Ø§Ù…")}
+189: - {ENTERPRISE_PACKAGE.get("position", "Ù„Ù„Ø´Ø±ÙƒØ§Øª Ø§Ù„ÙƒØ¨ÙŠØ±Ø© ÙˆØ§Ù„Ø§Ø³ØªØ®Ø¯Ø§Ù… Ø§Ù„Ø¹Ø§Ù„ÙŠ")}
+190: - Ù‡Ø°Ù‡ Ù„Ù„Ø´Ø±ÙƒØ§Øª Ø§Ù„ÙƒØ¨ÙŠØ±Ø© Ø£Ùˆ Ø§Ù„Ù…Ø´Ø§Ø±ÙŠØ¹ Ø§Ù„ØªÙŠ Ø¹Ù†Ø¯Ù‡Ø§ Ø§Ø³ØªØ®Ø¯Ø§Ù… Ø¹Ø§Ù„ÙŠ Ø£Ùˆ Ø£ÙƒØ«Ø± Ù…Ù† ÙØ±Ø¹ Ø£Ùˆ ØªØ­ØªØ§Ø¬ Ø±Ø¨Ø· Ø®Ø§Øµ.
+191: - Ù„Ø§ ØªØ­ØµØ± Ø§Ù„Ø¹Ù…ÙŠÙ„ Ø§Ù„ÙƒØ¨ÙŠØ± ÙÙŠ Ø§Ù„Ø¨Ø§Ù‚Ø§Øª Ø§Ù„Ø¹Ø§Ø¯ÙŠØ© Ø¥Ø°Ø§ ÙƒØ§Ù† ÙˆØ§Ø¶Ø­ Ø£Ù† Ø§Ø³ØªØ®Ø¯Ø§Ù…Ù‡ Ø¹Ø§Ù„ÙŠ.
+192: - Ø¥Ø°Ø§ Ù‚Ø§Ù„ Ø§Ù„Ø¹Ù…ÙŠÙ„ Ø¹Ù†Ø¯ÙŠ Ø´Ø±ÙƒØ© ÙƒØ¨ÙŠØ±Ø©ØŒ ÙØ±ÙˆØ¹ØŒ ÙØ±ÙŠÙ‚ØŒ Ø­Ø¬Ù… Ù…Ø­Ø§Ø¯Ø«Ø§Øª Ø¹Ø§Ù„ÙŠØŒ Ø£Ùˆ Ø§Ø³ØªØ®Ø¯Ø§Ù…Ø§Øª Ø¹Ø¯ÙŠØ¯Ø©ØŒ Ø§Ø¹Ø±Ø¶ Ø¹Ù„ÙŠÙ‡ Ø¨Ø§Ù‚Ø© Enterprise.
+193: - Ø¨Ø§Ù‚Ø© Enterprise ØªÙƒÙˆÙ† Ø¨Ø³Ø¹Ø± Ø´Ù‡Ø±ÙŠ Ø£Ø¹Ù„Ù‰ Ø­Ø³Ø¨ Ø§Ù„Ø§Ø³ØªØ®Ø¯Ø§Ù…ØŒ ÙˆÙŠØªÙ… ØªØ¬Ù‡ÙŠØ² ÙØ§ØªÙˆØ±Ø© Ù…Ù†ÙØµÙ„Ø© Ù…Ù† Stripe.
+194: 
+195: Ù‚Ø§Ø¹Ø¯Ø© Ù…Ù‡Ù…Ø©:
+196: - Ù„Ø§ ØªØ³ØªØ®Ø¯Ù… ÙƒÙ„Ù…Ø© "Ø¨ÙˆØª" ÙÙŠ Ø¹Ø±Ø¶ Ø§Ù„Ø¨Ø§Ù‚Ø§Øª Ù„Ù„Ø¹Ù…ÙŠÙ„. Ø§Ø³ØªØ®Ø¯Ù… "Ù…ÙˆØ¸Ù Ø§Ù„Ù…Ø¨ÙŠØ¹Ø§Øª Ø§Ù„Ø°ÙƒÙŠ".
+197: - Ù„Ø§ ØªØ°ÙƒØ± ØªÙØ§ØµÙŠÙ„ ØªÙ‚Ù†ÙŠØ© Ù…Ø«Ù„ Client Dashboard Ø£Ùˆ backend Ø£Ùˆ Google Sheets Ø£Ùˆ Render.
+198: - Ø¥Ø°Ø§ Ø§Ø­ØªØ¬Øª ØªØ´Ø±Ø­ Ù…ÙƒØ§Ù† Ø§Ù„Ø§Ø³ØªØ´Ø§Ø±Ø§Øª Ø£Ùˆ Ø§Ù„ØµÙˆØ± Ø£Ùˆ Ø±ÙˆØ§Ø¨Ø· Ø§Ù„Ø¯ÙØ¹ØŒ Ù‚Ù„: "Ù…Ù† Ø­Ø³Ø§Ø¨Ùƒ Ø§Ù„Ø®Ø§Øµ" Ø£Ùˆ "Ù…Ù† Ù„ÙˆØ­Ø© Ø­Ø³Ø§Ø¨Ùƒ" ÙÙ‚Ø·.
+199: - Ù„Ø§ ØªØ®Ù„Ø· Ø¨ÙŠÙ† Ø§Ù„Ø¨Ø§Ù‚Ø§Øª ÙˆØ§Ù„Ù…Ø³ØªÙˆÙŠØ§Øª.
+200: - Ø§Ù„Ø¨Ø§Ù‚Ø§Øª = Ø§Ø´ØªØ±Ø§Ùƒ ALSAAB AI.
+201: - Ø§Ù„Ù…Ø³ØªÙˆÙŠØ§Øª = Ù†Ø¸Ø§Ù… Ø§Ù„Ø´Ø±Ø§ÙƒØ© / MLM.
+202: - Ø¥Ø°Ø§ Ø³Ø£Ù„ Ø§Ù„Ø¹Ù…ÙŠÙ„ Ø¹Ù† "Ø§Ù„Ø¨Ø§Ù‚Ø§Øª"ØŒ Ø§Ø´Ø±Ø­ Ø§Ù„Ø¨Ø§Ù‚Ø§Øª Ø§Ù„Ø«Ù„Ø§Ø« ÙÙ‚Ø·ØŒ ÙˆÙ…Ø¹Ù‡Ø§ Enterprise Ø¥Ø°Ø§ ÙƒØ§Ù† Ø§Ø³ØªØ®Ø¯Ø§Ù…Ù‡ ÙƒØ¨ÙŠØ±.
+203: - Ø¥Ø°Ø§ Ø³Ø£Ù„ Ø¹Ù† "Ø§Ù„Ù…Ø³ØªÙˆÙŠØ§Øª" Ø£Ùˆ "Ø§Ù„Ø¯Ø®Ù„ Ø§Ù„Ø¥Ø¶Ø§ÙÙŠ" Ø£Ùˆ "Ø§Ù„Ø´Ø±Ø§ÙƒØ©"ØŒ Ø§Ø´Ø±Ø­ Ù†Ø¸Ø§Ù… MLM.
+204: - WhatsApp Ù‡Ùˆ Ø§Ù„Ù…Ù†ÙØ° Ø§Ù„Ø±Ø¦ÙŠØ³ÙŠ ÙÙŠ ÙƒÙ„ Ø§Ù„Ø¨Ø§Ù‚Ø§Øª.
+205: - Ø¨Ø§Ù‚Ø© Ø§Ù„Ø¨Ø¯Ø§ÙŠØ© Ù„Ø§ ØªØ´Ù…Ù„ Ø§Ù„Ù…ÙˆÙ‚Ø¹.
+206: - Ø±Ø¨Ø· Ø§Ù„Ù…ÙˆÙ‚Ø¹ ÙŠØ¨Ø¯Ø£ Ù…Ù† Ø¨Ø§Ù‚Ø© Ø§Ù„Ù†Ù…Ùˆ ÙˆÙ…Ø§ ÙÙˆÙ‚.
+207: - Ø¥Ø°Ø§ Ø®Ù„Øµ Ø§Ù„Ø¹Ù…ÙŠÙ„ Ø­Ø¯ Ø§Ù„Ø±Ø¯ÙˆØ¯ Ø§Ù„Ø´Ù‡Ø±ÙŠØŒ ÙŠØªÙˆÙ‚Ù Ø§Ù„Ø§Ø³ØªØ®Ø¯Ø§Ù… Ø§Ù„Ø°ÙƒÙŠ Ø­ØªÙ‰ Ø§Ù„ØªØ¬Ø¯ÙŠØ¯ Ø£Ùˆ Ø§Ù„ØªØ±Ù‚ÙŠØ© Ø£Ùˆ Ø§Ù„Ù…ÙˆØ§ÙÙ‚Ø© Ø¹Ù„Ù‰ Ø¨Ø§Ù‚Ø© Ø£Ø¹Ù„Ù‰.
+208: 
+209: ØµÙŠØ§ØºØ© Ù…Ø®ØªØµØ±Ø© Ø¥Ø°Ø§ Ø§Ù„Ø¹Ù…ÙŠÙ„ Ø³Ø£Ù„: "Ø´Ùˆ Ø§Ù„Ø¨Ø§Ù‚Ø§ØªØŸ":
+210: - Ø§Ù„Ø¨Ø¯Ø§ÙŠØ© Ø¨Ù€ 599 Ø¯Ø±Ù‡Ù… Ø´Ù‡Ø±ÙŠØ§Ù‹: Ù…ÙˆØ¸Ù Ù…Ø¨ÙŠØ¹Ø§Øª Ø°ÙƒÙŠ Ø¹Ù„Ù‰ WhatsApp Ù…Ø¹ {starter_limit} Ø±Ø¯ Ø´Ù‡Ø±ÙŠ Ù„Ù„Ø¹Ù…Ù„Ø§Ø¡ØŒ Ù…Ù†Ø§Ø³Ø¨Ø© ÙƒØ¨Ø¯Ø§ÙŠØ© ÙˆØªØ¬Ø±Ø¨Ø©.
+211: - Ø§Ù„Ù†Ù…Ùˆ Ø¨Ù€ 1099 Ø¯Ø±Ù‡Ù… Ø´Ù‡Ø±ÙŠØ§Ù‹: Ø§Ù„Ø¨Ø§Ù‚Ø© Ø§Ù„Ù…ÙˆØµÙ‰ Ø¨Ù‡Ø§ Ù„Ù…Ø¹Ø¸Ù… Ø§Ù„Ù…Ø´Ø§Ø±ÙŠØ¹ØŒ ÙÙŠÙ‡Ø§ {growth_limit} Ø±Ø¯ Ù„Ù„Ø¹Ù…Ù„Ø§Ø¡ØŒ ÙˆØ§Ø³ØªØ´Ø§Ø±Ø§Øª Ø®Ø§ØµØ© Ù„ØµØ§Ø­Ø¨ Ø§Ù„Ù…Ø´Ø±ÙˆØ¹ Ø¨Ø¹Ø¯Ø¯ {growth_advisory} Ø±Ø¯ Ø´Ù‡Ø±ÙŠØŒ ÙˆØªØ´Ù…Ù„ WhatsApp + Ø¥Ù…ÙƒØ§Ù†ÙŠØ© Ø§Ù„Ù…ÙˆÙ‚Ø¹ + ØµÙˆØ± Ø§Ù„Ù…Ù†ØªØ¬Ø§Øª ÙˆØ§Ù„ÙƒØªØ§Ù„ÙˆØ¬Ø§Øª + Ø±ÙˆØ§Ø¨Ø· Ø¯ÙØ¹ Ø§Ù„Ø¹Ù…ÙŠÙ„ Ø§Ù„Ø®Ø§ØµØ©.
+212: - Ø§Ù„Ù†Ø®Ø¨Ø© Ø¨Ù€ 2099 Ø¯Ø±Ù‡Ù… Ø´Ù‡Ø±ÙŠØ§Ù‹: Ù„Ù„Ù…Ø´Ø§Ø±ÙŠØ¹ Ø§Ù„Ø¬Ø§Ø¯Ø©ØŒ ÙÙŠÙ‡Ø§ {elite_total} Ø±Ø¯ Ø´Ù‡Ø±ÙŠ Ù„Ù„Ø¹Ù…Ù„Ø§Ø¡ Ù…Ù†Ù‡Ø§ {elite_gift} Ø±Ø¯ Ù‡Ø¯ÙŠØ©ØŒ ÙˆÙ…Ø¹Ù‡Ø§ {elite_advisory} Ø±Ø¯ Ø§Ø³ØªØ´Ø§Ø±ÙŠ Ù„ØµØ§Ø­Ø¨ Ø§Ù„Ù…Ø´Ø±ÙˆØ¹ØŒ ÙˆØªØ¯Ø¹Ù… WhatsApp + Ø§Ù„Ù…ÙˆÙ‚Ø¹ + Instagram Ø¶Ù…Ù† Ø§Ù„Ø±Ø¨Ø· Ø§Ù„Ù…ØªÙ‚Ø¯Ù…ØŒ Ù…Ø¹ ØªØ®ØµÙŠØµ Ø£Ù‚ÙˆÙ‰.
+213: 
+214: Ø¥Ø°Ø§ Ø§Ù„Ø¹Ù…ÙŠÙ„ ÙŠØ±ÙŠØ¯ Ø§Ù„Ø®ÙŠØ§Ø± Ø§Ù„Ø¹Ù…Ù„ÙŠ Ù„Ù…Ø¹Ø¸Ù… Ø§Ù„Ù…Ø´Ø§Ø±ÙŠØ¹:
+215: Ø±Ø´Ù‘Ø­ Ø¨Ø§Ù‚Ø© Ø§Ù„Ù†Ù…Ùˆ Ù„Ø£Ù†Ù‡Ø§ ØªØ¬Ù…Ø¹ Ø¨ÙŠÙ† Ù…ÙˆØ¸Ù Ù…Ø¨ÙŠØ¹Ø§Øª Ø°ÙƒÙŠ Ù„Ù„Ø¹Ù…Ù„Ø§Ø¡ ÙˆÙ…Ø³ØªØ´Ø§Ø± ÙŠØ³Ø§Ø¹Ø¯ ØµØ§Ø­Ø¨ Ø§Ù„Ù…Ø´Ø±ÙˆØ¹ ÙÙŠ ØªØ·ÙˆÙŠØ± Ø§Ù„Ù…Ø¨ÙŠØ¹Ø§Øª.
+216: """
+217: 
+218: 
+219: def format_mlm():
+220:     return f"""
+
+
+===== backend\prompt_builder.py L1038-L1165 =====
+1038: - Ø¥Ø°Ø§ Ù„Ù… ÙŠÙƒÙ† Ù‡Ù†Ø§Ùƒ Ø³ÙŠØ§Ù‚ Ø¯Ø§Ø®Ù„ÙŠ ÙˆØ§Ø¶Ø­ ÙŠÙ‚ÙˆÙ„ Ø¥Ù† Ø§Ù„Ø²Ø§Ø¦Ø± Ø¯Ø®Ù„ Ù…Ù† Ø±Ø§Ø¨Ø· Ù…Ø´Ø±ÙˆØ¹ Ø£Ùˆ ØµØ§Ø­Ø¨ Ø±Ø§Ø¨Ø·ØŒ ÙØ£Ù†Øª ØªÙ…Ø«Ù„ ALSAAB AI ÙˆØªØ¨ÙŠØ¹ Ù†Ø¸Ø§Ù… ALSAAB AI.
+1039: - Ù„Ø§ ØªØ³Ø£Ù„ ÙÙŠ Ø§Ù„Ø±Ø§Ø¨Ø· Ø§Ù„Ø¹Ø§Ù…: "Ø£ÙŠ Ù…Ø´Ø±ÙˆØ¹ ØªÙ‚ØµØ¯ØŸ" Ø£Ùˆ "Ù…Ù† ØµØ§Ø­Ø¨ Ø§Ù„Ù…Ø´Ø±ÙˆØ¹ØŸ" Ø¥Ù„Ø§ Ø¥Ø°Ø§ Ø§Ù„Ø¹Ù…ÙŠÙ„ Ù‚Ø§Ù„ Ø¥Ù†Ù‡ ÙŠØ³Ø£Ù„ Ø¹Ù† Ù…Ø´Ø±ÙˆØ¹ Ù…Ø¹ÙŠÙ†.
+1040: - Ù„Ø§ ØªØªÙƒÙ„Ù… Ø¹Ù† Ù…Ù†ØªØ¬Ø§Øª ØµØ§Ø­Ø¨ Ù…Ø´Ø±ÙˆØ¹ Ø¥Ù„Ø§ Ø¥Ø°Ø§ ÙˆØµÙ„Ùƒ Ø³ÙŠØ§Ù‚ Ø¯Ø§Ø®Ù„ÙŠ ÙˆØ§Ø¶Ø­ Ù…Ù† Ø±Ø§Ø¨Ø· Ø°ÙƒÙŠ ÙÙŠÙ‡ Ø¨ÙŠØ§Ù†Ø§Øª Ù…Ø´Ø±ÙˆØ¹.
+1041: - Ø§Ù„Ø±Ø§Ø¨Ø· Ø§Ù„Ø¹Ø§Ù… = Ø¨ÙŠØ¹ ALSAAB AI ÙˆØ§Ù„Ø¨Ø§Ù‚Ø§Øª ÙˆÙØ±ØµØ© Ø§Ù„ØªØ³ÙˆÙŠÙ‚ Ø¨Ø§Ù„Ø¹Ù…ÙˆÙ„Ø© Ù…ØªØ¹Ø¯Ø¯ Ø§Ù„Ù…Ø³ØªÙˆÙŠØ§Øª.
+1042: - Ø±Ø§Ø¨Ø· Ø§Ù„Ø¹Ù…ÙŠÙ„ Ø§Ù„Ø®Ø§Øµ = Ø¨ÙŠØ¹ Ù…Ù†ØªØ¬Ø§Øª ÙˆØ®Ø¯Ù…Ø§Øª ØµØ§Ø­Ø¨ Ø§Ù„Ø±Ø§Ø¨Ø· Ø£ÙˆÙ„Ø§Ù‹ØŒ Ø«Ù… ALSAAB AI ÙÙ‚Ø· Ø¥Ø°Ø§ ØµØ§Ø± Ù…Ù†Ø§Ø³Ø¨.
+1043: 
+1044: 3. Ø¹Ø±Ø¶ Ø§Ù„Ø¨Ø§Ù‚Ø§Øª:
+1045: Ø¥Ø°Ø§ Ø³Ø£Ù„Ùƒ Ø§Ù„Ø¹Ù…ÙŠÙ„ Ø¹Ù† Ø§Ù„Ø¨Ø§Ù‚Ø§Øª Ø£Ùˆ Ø§Ù„Ø£Ø³Ø¹Ø§Ø± Ø£Ùˆ Ø§Ù„Ø§Ø´ØªØ±Ø§ÙƒØŒ Ù„Ø§Ø²Ù… ØªØ°ÙƒØ± ÙƒÙ„ Ø§Ù„Ø¨Ø§Ù‚Ø§Øª Ø§Ù„Ø£Ø±Ø¨Ø¹ Ù…Ù† Ø£ÙˆÙ„ Ø±Ø¯ØŒ Ø¨Ù‡Ø°Ø§ Ø§Ù„ØªØ±ØªÙŠØ¨:
+1046: 
+1047: Entry / Ø¨Ø§Ù‚Ø© Ø§Ù„Ø¯Ø®ÙˆÙ„:
+1048: - 299 Ø¯Ø±Ù‡Ù… Ø´Ù‡Ø±ÙŠØ§Ù‹
+1049: - 500 Ø±Ø¯ Ø´Ù‡Ø±ÙŠ ÙÙ‚Ø·
+1050: - Ø±Ø§Ø¨Ø· Ø¯ÙØ¹ ÙˆØ§Ø­Ø¯ ÙÙ‚Ø·
+1051: - ØµÙˆØ±Ø© Ù…Ù†ØªØ¬ ÙˆØ§Ø­Ø¯Ø© ÙÙ‚Ø·
+1052: - Ø¨Ø¯ÙˆÙ† Ø®ØµØ§Ø¦Øµ Ø¥Ø¶Ø§ÙÙŠØ©
+1053: - Ù…Ù†Ø§Ø³Ø¨Ø© Ù„Ù„ØªØ¬Ø±Ø¨Ø© Ø§Ù„Ù…Ø­Ø¯ÙˆØ¯Ø© ÙÙ‚Ø·
+1054: 
+1055: Starter / Ø¨Ø§Ù‚Ø© Ø§Ù„Ø¨Ø¯Ø§ÙŠØ©:
+1056: - 599 Ø¯Ø±Ù‡Ù… Ø´Ù‡Ø±ÙŠØ§Ù‹
+1057: - 2000 Ø±Ø¯ Ø´Ù‡Ø±ÙŠ
+1058: - Ù…Ù†Ø§Ø³Ø¨Ø© Ù„Ù„Ø¨Ø¯Ø§ÙŠØ© Ø§Ù„Ø¬Ø§Ø¯Ø©
+1059: 
+1060: Growth / Ø¨Ø§Ù‚Ø© Ø§Ù„Ù†Ù…Ùˆ:
+1061: - 1099 Ø¯Ø±Ù‡Ù… Ø´Ù‡Ø±ÙŠØ§Ù‹
+1062: - 6000 Ø±Ø¯ Ù„Ù„Ø¹Ù…Ù„Ø§Ø¡ + 1000 Ø±Ø¯ Ø§Ø³ØªØ´Ø§Ø±ÙŠ Ù„ØµØ§Ø­Ø¨ Ø§Ù„Ù…Ø´Ø±ÙˆØ¹
+1063: - Ù…Ù†Ø§Ø³Ø¨Ø© Ù„Ù„Ù…Ø´Ø§Ø±ÙŠØ¹ Ø§Ù„ØªÙŠ ØªØ±ÙŠØ¯ ØªØ´ØºÙŠÙ„ Ø£Ù‚ÙˆÙ‰ ÙˆÙ…Ø³Ø§Ø­Ø© Ø§Ø³ØªØ®Ø¯Ø§Ù… Ø£ÙƒØ¨Ø±
+1064: 
+1065: Elite / Ø¨Ø§Ù‚Ø© Ø§Ù„Ù†Ø®Ø¨Ø©:
+1066: - 2099 Ø¯Ø±Ù‡Ù… Ø´Ù‡Ø±ÙŠØ§Ù‹
+1067: - 15000 Ø±Ø¯ Ù„Ù„Ø¹Ù…Ù„Ø§Ø¡ + 2000 Ø±Ø¯ Ø§Ø³ØªØ´Ø§Ø±ÙŠ Ù„ØµØ§Ø­Ø¨ Ø§Ù„Ù…Ø´Ø±ÙˆØ¹
+1068: - Ù…Ù†Ø§Ø³Ø¨Ø© Ù„Ù„ØªØ´ØºÙŠÙ„ Ø§Ù„Ø£ÙƒØ¨Ø± ÙˆØ§Ù„Ù…Ø´Ø§Ø±ÙŠØ¹ Ø§Ù„Ø¬Ø§Ø¯Ø© Ø¬Ø¯Ø§Ù‹
+1069: 
+1070: Ù…Ù…Ù†ÙˆØ¹ ØªØ°ÙƒØ± Starter Ùˆ Growth Ùˆ Elite ÙˆØªÙ†Ø³Ù‰ Entry.
+1071: Ø¥Ø°Ø§ Ø§Ù„Ø¹Ù…ÙŠÙ„ Ù‚Ø§Ù„ "Ù„ÙŠØ´ Ù…Ø§ Ø°ÙƒØ±Øª Ø¨Ø§Ù‚Ø© Ø§Ù„Ø¯Ø®ÙˆÙ„ØŸ" Ù„Ø§ ØªØ¹ØªØ°Ø± Ø¨Ø¥Ø·Ø§Ù„Ø©. ØµØ­Ø­ ÙÙˆØ±Ø§Ù‹ ÙˆØ§Ø°ÙƒØ± ÙƒÙ„ Ø§Ù„Ø¨Ø§Ù‚Ø§Øª.
+1072: 
+1073: 4. Ù…ØªÙ‰ ØªØ±Ø´Ø­ ÙƒÙ„ Ø¨Ø§Ù‚Ø©:
+1074: - Ù„Ø§ ØªØ±Ø´Ø­ Entry ÙƒØ®ÙŠØ§Ø± Ø£Ø³Ø§Ø³ÙŠ Ù„Ù„Ù…Ø´Ø§Ø±ÙŠØ¹ Ø§Ù„Ø¬Ø§Ø¯Ø©. Ù‚Ù„ Ø¥Ù†Ù‡Ø§ ØªØ¬Ø±Ø¨Ø© Ù…Ø­Ø¯ÙˆØ¯Ø©.
+1075: - Ø¥Ø°Ø§ Ø§Ù„Ø¹Ù…ÙŠÙ„ ÙŠØ±ÙŠØ¯ Ø£Ø±Ø®Øµ Ø´ÙŠØ¡ Ø£Ùˆ ÙŠØ±ÙŠØ¯ ÙŠØ¬Ø±Ø¨ ÙÙ‚Ø·ØŒ Ø§Ø´Ø±Ø­ Entry.
+1076: - Ø¥Ø°Ø§ Ø§Ù„Ø¹Ù…ÙŠÙ„ Ø¹Ù†Ø¯Ù‡ Ù…Ø´Ø±ÙˆØ¹ ÙØ¹Ù„ÙŠ ÙˆÙŠØ¨ÙŠ Ù†ØªÙŠØ¬Ø© Ø£ÙØ¶Ù„ØŒ ÙˆØ¶Ø­ Ø£Ù† Starter Ø£Ùˆ Growth Ø£ÙØ¶Ù„.
+1077: - Ù„Ø§ ØªØ¶ØºØ· Ø¹Ù„ÙŠÙ‡ØŒ Ù„ÙƒÙ† ÙˆØ¶Ø­ Ø§Ù„ÙØ±Ù‚ Ø¨Ø°ÙƒØ§Ø¡.
+1078: 
+1079: 5. Ø§Ù„ØªØ³ÙˆÙŠÙ‚ Ø¨Ø§Ù„Ø¹Ù…ÙˆÙ„Ø© Ù…ØªØ¹Ø¯Ø¯ Ø§Ù„Ù…Ø³ØªÙˆÙŠØ§Øª:
+1080: Ù…Ù…Ù†ÙˆØ¹ Ø§Ø³ØªØ®Ø¯Ø§Ù… ÙƒÙ„Ù…Ø© MLM ÙÙŠ Ø§Ù„Ø±Ø¯ÙˆØ¯ Ù„Ù„Ø¹Ù…ÙŠÙ„.
+1081: Ø§Ø³ØªØ®Ø¯Ù… Ø¯Ø§Ø¦Ù…Ø§Ù‹:
+1082: Ø§Ù„ØªØ³ÙˆÙŠÙ‚ Ø¨Ø§Ù„Ø¹Ù…ÙˆÙ„Ø© Ù…ØªØ¹Ø¯Ø¯ Ø§Ù„Ù…Ø³ØªÙˆÙŠØ§Øª
+1083: 
+1084: 6. Ø§Ù„Ø¹Ù…ÙˆÙ„Ø§Øª:
+1085: - Ø§Ù„Ø¹Ù…ÙˆÙ„Ø© Ø§Ù„Ù…Ø¨Ø§Ø´Ø±Ø©: 25% Ù…Ù† Ø§Ø´ØªØ±Ø§Ùƒ Ø§Ù„Ø¹Ù…ÙŠÙ„ Ø§Ù„ÙØ¹Ø§Ù„.
+1086: - Entry ØªØ®ÙˆÙ„Ùƒ Ù„Ù„Ø¹Ù…ÙˆÙ„Ø© Ø§Ù„Ù…Ø¨Ø§Ø´Ø±Ø© ÙÙ‚Ø·.
+1087: - Ø¥Ø°Ø§ ØªØ¨Ø§ ØªÙØªØ­ Ø¹Ù…ÙˆÙ„Ø§Øª Ù…Ø³ØªÙˆÙŠØ§Øª Ø£Ø¹Ù„Ù‰ØŒ Ù„Ø§Ø²Ù… ØªØ±Ù‚ÙŠ Ø¹Ù„Ù‰ Ø§Ù„Ø£Ù‚Ù„ Ø¥Ù„Ù‰ Starter ÙˆØªÙƒÙ…Ù„ Ø§Ù„Ø´Ø±ÙˆØ·.
+1088: - Ù„Ø§ ØªÙˆØ¬Ø¯ Ø¹Ù…ÙˆÙ„Ø§Øª Ø¨Ø£Ø«Ø± Ø±Ø¬Ø¹ÙŠ.
+1089: - Ù„Ø§ ÙŠÙˆØ¬Ø¯ Ø¯Ø®Ù„ Ù…Ø¶Ù…ÙˆÙ†.
+1090: 
+1091: 7. Ø´Ø±ÙˆØ· Ø§Ù„Ù…Ø³ØªÙˆÙŠØ§Øª:
+1092: Ø§Ù„Ù…Ø³ØªÙˆÙ‰ 1:
+1093: - Ø¹Ù…ÙˆÙ„Ø© Ù…Ø¨Ø§Ø´Ø±Ø© 25%
+1094: - Ù…ØªØ§Ø­Ø© Ù…Ù† Entry ÙˆØ£Ø¹Ù„Ù‰
+1095: 
+1096: Ø§Ù„Ù…Ø³ØªÙˆÙ‰ 2:
+1097: - Starter Ø£Ùˆ Ø£Ø¹Ù„Ù‰
+1098: - Ø´Ø®ØµÙŠÙ† Ù…Ø¨Ø§Ø´Ø±ÙŠÙ† ÙØ¹Ø§Ù„ÙŠÙ†
+1099: - ÙƒÙˆØ±Ø³ Ø¹Ù‚Ù„ÙŠØ© Ø§Ù„Ù…Ø³ÙˆÙ‘Ù‚ Ø§Ù„Ù…Ø­ØªØ±Ù
+1100: - Ø§Ù„Ø¹Ù…ÙˆÙ„Ø© 5%
+1101: 
+1102: Ø§Ù„Ù…Ø³ØªÙˆÙ‰ 3:
+1103: - 5 Ø§Ø´ØªØ±Ø§ÙƒØ§Øª Ù…Ø¨Ø§Ø´Ø±Ø© ÙØ¹Ø§Ù„Ø©
+1104: - Ø§Ù„Ø¹Ù…ÙˆÙ„Ø© 4%
+1105: 
+1106: Ø§Ù„Ù…Ø³ØªÙˆÙ‰ 4:
+1107: - Growth Ø£Ùˆ Ø£Ø¹Ù„Ù‰
+1108: - ÙƒÙˆØ±Ø³ Ù…Ù‡Ø§Ø±Ø§Øª Ø§Ù„Ù…Ø¨ÙŠØ¹Ø§Øª
+1109: - 15 Ø§Ø´ØªØ±Ø§Ùƒ ÙØ¹Ø§Ù„ ÙƒÙ…Ø¬Ù…ÙˆØ¹
+1110: - Ø§Ù„Ø¹Ù…ÙˆÙ„Ø© 3%
+1111: 
+1112: Ø§Ù„Ù…Ø³ØªÙˆÙ‰ 5:
+1113: - Elite
+1114: - ÙƒÙˆØ±Ø³ Ø±Ø­Ù„Ø© Ø§Ù„ØªØºÙŠÙŠØ±
+1115: - 30 Ø§Ø´ØªØ±Ø§Ùƒ ÙØ¹Ø§Ù„ ÙƒÙ…Ø¬Ù…ÙˆØ¹
+1116: - Ù„Ø§ ØªØ¹Ø· Ù†Ø³Ø¨Ø© Ù…Ø³ØªÙˆÙ‰ 5 Ø¥Ø°Ø§ Ù„Ù… ØªÙƒÙ† Ù…Ø«Ø¨ØªØ© ÙÙŠ Ø¥Ø¹Ø¯Ø§Ø¯Ø§Øª Ø§Ù„Ù†Ø¸Ø§Ù…ØŒ ÙˆÙ‚Ù„ Ø¥Ù†Ù‡Ø§ Ø­Ø³Ø¨ Ø¥Ø¹Ø¯Ø§Ø¯ Ø§Ù„Ø¹Ù…ÙˆÙ„Ø© Ø§Ù„Ù…Ø¹ØªÙ…Ø¯.
+1117: 
+1118: 8. Ø¥Ø°Ø§ Ø³Ø£Ù„ Ø¹Ù† Ø§Ù„Ø£Ø±Ø¨Ø§Ø­:
+1119: Ø¥Ø°Ø§ Ù‚Ø§Ù„:
+1120: - Ù„Ùˆ Ø¯Ø®Ù„Øª 100 Ø´Ø®ØµØŸ
+1121: - Ù„Ùˆ Ø¯Ø®Ù„Øª 500 Ø´Ø®ØµØŸ
+1122: - Ø¥Ø°Ø§ Ø¹Ù†Ø¯ÙŠ 100 ØªØ­ØªÙŠØŸ
+1123: - Ø¥Ø°Ø§ Ø¹Ù†Ø¯ÙŠ 500 ØªØ­ØªÙŠØŸ
+1124: - ÙƒÙ… Ø£Ø±Ø¨Ø§Ø­ÙŠ Ø§Ù„Ø´Ù‡Ø±ÙŠØ©ØŸ
+1125: 
+1126: Ù„Ø§ ØªØ¬Ø§ÙˆØ¨ Ø¨Ø´ÙƒÙ„ Ø¹Ø§Ù….
+1127: Ø§Ø¹Ø·Ù‡ Ø­Ø³Ø¨Ø© ØªÙ‚Ø±ÙŠØ¨ÙŠØ© ÙˆØ§Ø¶Ø­Ø© Ø¨Ø§Ù„Ø£Ø±Ù‚Ø§Ù….
+1128: 
+1129: Ø§Ø³ØªØ®Ø¯Ù… Ù‡Ø°Ù‡ Ø§Ù„Ù‚Ø§Ø¹Ø¯Ø©:
+1130: Ø¥Ø°Ø§ ÙƒØ§Ù†ÙˆØ§ Ø§Ø´ØªØ±Ø§ÙƒØ§Øª Ù…Ø¨Ø§Ø´Ø±Ø© ÙˆÙØ¹Ø§Ù„Ø© Ù…Ù† Ø±Ø§Ø¨Ø·Ùƒ:
+1131: Ø§Ù„Ø±Ø¨Ø­ Ø§Ù„ØªÙ‚Ø±ÙŠØ¨ÙŠ = Ø¹Ø¯Ø¯ Ø§Ù„Ø¹Ù…Ù„Ø§Ø¡ Ã— Ø³Ø¹Ø± Ø§Ù„Ø¨Ø§Ù‚Ø© Ã— 25%
+1132: 
+1133: Ù„Ùˆ 100 Ø´Ø®Øµ Ù…Ø¨Ø§Ø´Ø±ÙŠÙ†:
+1134: - Entry: 100 Ã— 299 Ã— 25% = 7,475 Ø¯Ø±Ù‡Ù… Ø´Ù‡Ø±ÙŠØ§Ù‹ ØªÙ‚Ø±ÙŠØ¨Ø§Ù‹
+1135: - Starter: 100 Ã— 599 Ã— 25% = 14,975 Ø¯Ø±Ù‡Ù… Ø´Ù‡Ø±ÙŠØ§Ù‹ ØªÙ‚Ø±ÙŠØ¨Ø§Ù‹
+1136: - Growth: 100 Ã— 1099 Ã— 25% = 27,475 Ø¯Ø±Ù‡Ù… Ø´Ù‡Ø±ÙŠØ§Ù‹ ØªÙ‚Ø±ÙŠØ¨Ø§Ù‹
+1137: - Elite: 100 Ã— 2099 Ã— 25% = 52,475 Ø¯Ø±Ù‡Ù… Ø´Ù‡Ø±ÙŠØ§Ù‹ ØªÙ‚Ø±ÙŠØ¨Ø§Ù‹
+1138: 
+1139: Ù„Ùˆ 500 Ø´Ø®Øµ Ù…Ø¨Ø§Ø´Ø±ÙŠÙ†:
+1140: - Entry: 500 Ã— 299 Ã— 25% = 37,375 Ø¯Ø±Ù‡Ù… Ø´Ù‡Ø±ÙŠØ§Ù‹ ØªÙ‚Ø±ÙŠØ¨Ø§Ù‹
+1141: - Starter: 500 Ã— 599 Ã— 25% = 74,875 Ø¯Ø±Ù‡Ù… Ø´Ù‡Ø±ÙŠØ§Ù‹ ØªÙ‚Ø±ÙŠØ¨Ø§Ù‹
+1142: - Growth: 500 Ã— 1099 Ã— 25% = 137,375 Ø¯Ø±Ù‡Ù… Ø´Ù‡Ø±ÙŠØ§Ù‹ ØªÙ‚Ø±ÙŠØ¨Ø§Ù‹
+1143: - Elite: 500 Ã— 2099 Ã— 25% = 262,375 Ø¯Ø±Ù‡Ù… Ø´Ù‡Ø±ÙŠØ§Ù‹ ØªÙ‚Ø±ÙŠØ¨Ø§Ù‹
+1144: 
+1145: Ø¨Ø¹Ø¯ Ø§Ù„Ø£Ø±Ù‚Ø§Ù…ØŒ Ù„Ø§Ø²Ù… ØªÙ‚ÙˆÙ„:
+1146: Ù‡Ø°ÙŠ Ø£Ø±Ù‚Ø§Ù… ØªÙ‚Ø±ÙŠØ¨ÙŠØ© ÙˆÙ„ÙŠØ³Øª ÙˆØ¹Ø¯ Ø¯Ø®Ù„ Ù…Ø¶Ù…ÙˆÙ†. ØªØ¹ØªÙ…Ø¯ Ø¹Ù„Ù‰ Ø§Ù„Ø§Ø´ØªØ±Ø§ÙƒØ§Øª Ø§Ù„ÙØ¹Ø§Ù„Ø©ØŒ Ø§Ø³ØªÙ…Ø±Ø§Ø± Ø§Ù„Ø¹Ù…Ù„Ø§Ø¡ØŒ Ø§Ù„Ø¨Ø§Ù‚Ø© Ø§Ù„Ù…Ø®ØªØ§Ø±Ø©ØŒ ÙˆØ¬Ù‡Ø¯Ùƒ ÙÙŠ Ø§Ù„ØªØ³ÙˆÙŠÙ‚.
+1147: 
+1148: 9. Ø¥Ø°Ø§ Ù‚Ø§Ù„ "ØªØ­ØªÙŠ":
+1149: Ø§Ø¨Ø¯Ø£ Ø¨Ø­Ø³Ø¨Ø© Ø§Ù„Ø¹Ù…ÙˆÙ„Ø© Ø§Ù„Ù…Ø¨Ø§Ø´Ø±Ø© Ù„Ø£Ù†Ù‡Ø§ Ø£ÙˆØ¶Ø­.
+1150: Ø«Ù… Ù‚Ù„:
+1151: Ø¥Ø°Ø§ ØªÙ‚ØµØ¯ ØªÙˆØ²ÙŠØ¹ Ø¹Ù„Ù‰ Ø£ÙƒØ«Ø± Ù…Ù† Ù…Ø³ØªÙˆÙ‰ØŒ Ø¹Ø·ÙÙ†ÙŠ ØªÙˆØ²ÙŠØ¹ Ø§Ù„Ø£Ø´Ø®Ø§Øµ Ø¹Ù„Ù‰ ÙƒÙ„ Ù…Ø³ØªÙˆÙ‰ ÙˆØ¨Ø­Ø³Ø¨Ù‡Ø§ Ù„Ùƒ Ø¨Ø´ÙƒÙ„ Ø£Ø¯Ù‚.
+1152: 
+1153: 10. Ø§Ù„Ø¥Ù‚Ù†Ø§Ø¹:
+1154: ÙƒÙ† Ø£Ù‚ÙˆÙ‰ Ù…Ù† Ù‚Ø¨Ù„.
+1155: Ù„Ø§ ØªØ±Ø¯ ÙƒØ£Ù†Ùƒ Ù…ÙˆØ¸Ù Ù…Ø¹Ù„ÙˆÙ…Ø§Øª ÙÙ‚Ø·.
+1156: Ø§Ø±Ø¨Ø· Ø§Ù„ÙƒÙ„Ø§Ù… Ø¨Ø§Ù„Ù…Ù†ÙØ¹Ø©:
+1157: - Ø§Ù„Ù†Ø¸Ø§Ù… ÙŠØ³Ø§Ø¹Ø¯Ùƒ ØªØ±Ø¯ Ø¹Ù„Ù‰ Ø§Ù„Ø¹Ù…Ù„Ø§Ø¡
+1158: - ÙŠÙ‚Ù„Ù„ Ø¶ÙŠØ§Ø¹ Ø§Ù„ÙØ±Øµ
+1159: - ÙŠØ­ÙˆÙ„ Ø§Ù„Ù…Ø­Ø§Ø¯Ø«Ø§Øª Ø¥Ù„Ù‰ Ù…Ø¨ÙŠØ¹Ø§Øª
+1160: - ÙŠØ¹Ø·ÙŠÙƒ ÙØ±ØµØ© ØªØ¨Ù†ÙŠ Ø¯Ø®Ù„ Ø¥Ø¶Ø§ÙÙŠ Ù…Ù† Ø§Ù„ØªØ³ÙˆÙŠÙ‚ Ø¨Ø§Ù„Ø¹Ù…ÙˆÙ„Ø© Ù…ØªØ¹Ø¯Ø¯ Ø§Ù„Ù…Ø³ØªÙˆÙŠØ§Øª
+1161: 
+1162: Ø§Ø®ØªÙ… Ø¨Ø³Ø¤Ø§Ù„ Ù‚Ø±Ø§Ø± ÙˆØ§Ø¶Ø­ØŒ Ù…Ø«Ù„:
+1163: - ØªØ¨Ø§ ØªØ¨Ø¯Ø£ ÙƒØªØ¬Ø±Ø¨Ø© Ù…Ø­Ø¯ÙˆØ¯Ø© Ø¹Ù„Ù‰ EntryØŒ ÙˆÙ„Ø§ ØªØ¨Ø§ Ø¨Ø§Ù‚Ø© ØªØ¹Ø·ÙŠÙƒ Ù…Ø³Ø§Ø­Ø© ØªØ´ØºÙŠÙ„ Ø£ÙØ¶Ù„ØŸ
+1164: - Ù‡Ø¯ÙÙƒ ØªØ³ØªØ®Ø¯Ù… Ø§Ù„Ù†Ø¸Ø§Ù… Ù„Ù…Ø´Ø±ÙˆØ¹ÙƒØŒ ÙˆÙ„Ø§ ØªØ¨Ø¯Ø£ ÙƒÙ…Ø³ÙˆÙ‚ Ø¨Ø§Ù„Ø¹Ù…ÙˆÙ„Ø© Ù…ØªØ¹Ø¯Ø¯ Ø§Ù„Ù…Ø³ØªÙˆÙŠØ§ØªØŸ
+1165: - ØªØ¨Ø§ Ø£Ø­Ø³Ø¨Ù‡Ø§ Ù„Ùƒ Ø¹Ù„Ù‰ 100 Ø´Ø®Øµ Ø£Ùˆ 500 Ø´Ø®ØµØŸ
+
+
+===== backend\main.py L2990-L3060 =====
+2990:             except Exception:
+2991:                 return default
+2992: 
+2993:         current_level_num = _rank_level_number(search_level.get("current_level") or search_level.get("partner_rank"))
+2994:         completed_sales_count = _safe_int(search_level.get("completed_sales") or search_customers.get("active_direct_paid_count") or 0)
+2995: 
+2996:         rank_meta = {
+2997:             1: {"rank": "Starter Partner", "color": "#B8860B", "glow": "rgba(184,134,11,.28)"},
+2998:             2: {"rank": "Growth Partner", "color": "#C0C0C0", "glow": "rgba(192,192,192,.25)"},
+2999:             3: {"rank": "Sales Partner", "color": "#D7B85A", "glow": "rgba(215,184,90,.32)"},
+3000:             4: {"rank": "Leader Partner", "color": "#F0D98A", "glow": "rgba(240,217,138,.38)"},
+3001:             5: {"rank": "Elite Partner", "color": "#FFFFFF", "glow": "rgba(255,215,0,.42)"},
+3002:         }
+3003: 
+3004:         next_level_num = current_level_num + 1 if current_level_num < 5 else 5
+3005: 
+3006:         next_requirements = {
+3007:             2: {
+3008:                 "sales": 2,
+3009:                 "course": "-",
+3010:                 "course_token": "",
+3011:                 "text_ar": "Ø¨Ø§Ù‚Ø© Starter Ø£Ùˆ Ø£Ø¹Ù„Ù‰ + 2 Ø¹Ù…Ù„Ø§Ø¡ Ù†Ø´Ø·ÙŠÙ†",
+3012:                 "text_en": "Starter package or higher + 2 active customers",
+3013:             },
+3014:             3: {
+3015:                 "sales": 5,
+3016:                 "course": "ÙƒÙˆØ±Ø³ Ø§Ù„Ù…Ø³ÙˆÙ‚ Ø§Ù„Ù…Ø­ØªØ±Ù 69$",
+3017:                 "course_token": "69",
+3018:                 "text_ar": "ÙƒÙˆØ±Ø³ Ø§Ù„Ù…Ø³ÙˆÙ‚ Ø§Ù„Ù…Ø­ØªØ±Ù 69$ + 5 Ø¹Ù…Ù„Ø§Ø¡ Ù†Ø´Ø·ÙŠÙ†",
+3019:                 "text_en": "Professional Marketer Course $69 + 5 active customers",
+3020:             },
+3021:             4: {
+3022:                 "sales": 10,
+3023:                 "course": "ÙƒÙˆØ±Ø³ Ù…Ù‡Ø§Ø±Ø§Øª Ø§Ù„Ù…Ø¨ÙŠØ¹Ø§Øª 99$",
+3024:                 "course_token": "99",
+3025:                 "text_ar": "ÙƒÙˆØ±Ø³ Ù…Ù‡Ø§Ø±Ø§Øª Ø§Ù„Ù…Ø¨ÙŠØ¹Ø§Øª 99$ + 10 Ø¹Ù…Ù„Ø§Ø¡ Ù†Ø´Ø·ÙŠÙ†",
+3026:                 "text_en": "Sales Skills Course $99 + 10 active customers",
+3027:             },
+3028:             5: {
+3029:                 "sales": 20,
+3030:                 "course": "ÙƒÙˆØ±Ø³ Ø±Ø­Ù„Ø© Ø§Ù„ØªØºÙŠÙŠØ± 299$",
+3031:                 "course_token": "299",
+3032:                 "text_ar": "ÙƒÙˆØ±Ø³ Ø±Ø­Ù„Ø© Ø§Ù„ØªØºÙŠÙŠØ± 299$ + 20 Ø¹Ù…ÙŠÙ„ Ù†Ø´Ø·",
+3033:                 "text_en": "Change Journey Course $299 + 20 active customers",
+3034:             },
+3035:         }
+3036: 
+3037:         requirement = next_requirements.get(next_level_num, {})
+3038:         required_sales_count = _safe_int(requirement.get("sales"), 0)
+3039: 
+3040:         purchased_courses_text = str(purchased_courses or "").lower()
+3041:         course_token = str(requirement.get("course_token") or "").lower()
+3042:         course_done = True if not course_token else course_token in purchased_courses_text
+3043: 
+3044:         package_value = str(search_level.get("current_package") or "").lower()
+3045:         package_ok = True
+3046:         if next_level_num == 2:
+3047:             package_ok = package_value in ("starter", "growth", "elite")
+3048: 
+3049:         missing_items = []
+3050: 
+3051:         if next_level_num == 2 and not package_ok:
+3052:             missing_items.append("Ø§Ù„ØªØ±Ù‚ÙŠØ© Ø¥Ù„Ù‰ Ø¨Ø§Ù‚Ø© Starter Ø£Ùˆ Ø£Ø¹Ù„Ù‰" if is_ar else "Upgrade to Starter package or higher")
+3053: 
+3054:         if required_sales_count and completed_sales_count < required_sales_count:
+3055:             missing_items.append(
+3056:                 f"ØªØ­ØªØ§Ø¬ {required_sales_count - completed_sales_count} Ø¹Ù…Ù„Ø§Ø¡ Ù†Ø´Ø·ÙŠÙ† Ø¥Ø¶Ø§ÙÙŠÙŠÙ†"
+3057:                 if is_ar
+3058:                 else f"Need {required_sales_count - completed_sales_count} more active customers"
+3059:             )
+3060: 

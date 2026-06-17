@@ -1,0 +1,410 @@
+﻿
+===== backend\database.py L1-L35 =====
+1: # database.py
+2: 
+3: import sqlite3
+4: import json
+5: import urllib.request
+6: import urllib.error
+7: from datetime import datetime, timedelta
+8: from uuid import uuid4
+9: 
+10: try:
+11:     from config import GOOGLE_SHEET_WEBHOOK_URL, GOOGLE_SHEET_TOKEN
+12: except Exception:
+13:     GOOGLE_SHEET_WEBHOOK_URL = ""
+14:     GOOGLE_SHEET_TOKEN = ""
+15: 
+16: try:
+17:     from config import COMPANY_OWNER_PARTNER_ID
+18: except Exception:
+19:     COMPANY_OWNER_PARTNER_ID = "alsaab"
+20: 
+21: try:
+22:     from config import PACKAGES, USAGE_LIMIT_MESSAGES
+23: except Exception:
+24:     PACKAGES = {
+25:         "starter": {"monthly_reply_limit": 2000},
+26:         "growth": {"monthly_reply_limit": 6000},
+27:         "elite": {"monthly_reply_limit": 15000},
+28:     }
+29: 
+30:     USAGE_LIMIT_MESSAGES = {
+31:         "ar": (
+32:             "تم استهلاك باقتك الحالية لهذا الشهر ✅\n\n"
+33:             "لإكمال استخدام ALSAAB AI، تقدر ترقّي باقتك أو تنتظر تجديد الدورة الشهرية."
+34:         )
+35:     }
+
+===== backend\database.py L390-L430 =====
+390: def normalize_partner_rank(rank_value):
+391:     if not rank_value:
+392:         return "Level 1"
+393: 
+394:     rank_value = str(rank_value).strip()
+395: 
+396:     aliases = {
+397:         "1": "Level 1",
+398:         "level 1": "Level 1",
+399:         "starter": "Level 1",
+400:         "starter partner": "Level 1",
+401:         "المستوى الأول": "Level 1",
+402: 
+403:         "2": "Level 2",
+404:         "level 2": "Level 2",
+405:         "growth": "Level 2",
+406:         "growth partner": "Level 2",
+407:         "المستوى الثاني": "Level 2",
+408: 
+409:         "3": "Level 3",
+410:         "level 3": "Level 3",
+411:         "sales": "Level 3",
+412:         "sales partner": "Level 3",
+413:         "المستوى الثالث": "Level 3",
+414: 
+415:         "4": "Level 4",
+416:         "level 4": "Level 4",
+417:         "leader": "Level 4",
+418:         "leader partner": "Level 4",
+419:         "المستوى الرابع": "Level 4",
+420: 
+421:         "5": "Level 5",
+422:         "level 5": "Level 5",
+423:         "elite": "Level 5",
+424:         "elite partner": "Level 5",
+425:         "المستوى الخامس": "Level 5",
+426:     }
+427: 
+428:     normalized_key = rank_value.lower()
+429:     return aliases.get(normalized_key, rank_value)
+430: 
+
+===== backend\database.py L1160-L1305 =====
+1160: # =========================
+1161: # SUBSCRIPTION / USAGE SYSTEM
+1162: # =========================
+1163: 
+1164: def normalize_plan_name(plan_name):
+1165:     if not plan_name:
+1166:         return ""
+1167: 
+1168:     plan_name = str(plan_name).lower().strip()
+1169: 
+1170:     aliases = {
+1171:         "start": "starter",
+1172:         "basic": "starter",
+1173:         "beginner": "starter",
+1174:         "بداية": "starter",
+1175:         "البداية": "starter",
+1176:         "starter": "starter",
+1177: 
+1178:         "growth": "growth",
+1179:         "pro": "growth",
+1180:         "professional": "growth",
+1181:         "نمو": "growth",
+1182:         "النمو": "growth",
+1183: 
+1184:         "elite": "elite",
+1185:         "premium": "elite",
+1186:         "vip": "elite",
+1187:         "نخبة": "elite",
+1188:         "النخبة": "elite",
+1189: 
+1190:         "enterprise": "enterprise",
+1191:         "custom": "enterprise",
+1192:         "شركة": "enterprise",
+1193:         "شركات": "enterprise",
+1194:     }
+1195: 
+1196:     return aliases.get(plan_name, plan_name)
+1197: 
+1198: 
+1199: def get_plan_reply_limit(plan_name, custom_reply_limit=None):
+1200:     if custom_reply_limit not in (None, "", 0, "0"):
+1201:         try:
+1202:             return int(custom_reply_limit)
+1203:         except Exception:
+1204:             pass
+1205: 
+1206:     plan = normalize_plan_name(plan_name)
+1207: 
+1208:     try:
+1209:         from config import PACKAGES
+1210: 
+1211:         package = PACKAGES.get(plan) or {}
+1212:         limit = (
+1213:             package.get("customer_reply_limit")
+1214:             or package.get("total_customer_reply_limit")
+1215:             or package.get("monthly_reply_limit")
+1216:         )
+1217: 
+1218:         if str(limit).lower() == "custom":
+1219:             return 0
+1220: 
+1221:         if limit not in (None, ""):
+1222:             return int(limit)
+1223: 
+1224:     except Exception as error:
+1225:         print(f"GET PLAN REPLY LIMIT CONFIG ERROR ⚠️ {error}", flush=True)
+1226: 
+1227:     if plan == "starter":
+1228:         return 2000
+1229: 
+1230:     if plan == "growth":
+1231:         return 6000
+1232: 
+1233:     if plan == "elite":
+1234:         return 15000
+1235: 
+1236:     return 6000
+1237: 
+1238: 
+1239: def get_plan_owner_advisory_reply_limit(plan_name):
+1240:     plan = normalize_plan_name(plan_name)
+1241: 
+1242:     try:
+1243:         from config import PACKAGES
+1244: 
+1245:         package = PACKAGES.get(plan) or {}
+1246:         limit = package.get("owner_advisory_reply_limit") or 0
+1247:         return int(limit)
+1248: 
+1249:     except Exception as error:
+1250:         print(f"GET PLAN OWNER ADVISORY LIMIT ERROR ⚠️ {error}", flush=True)
+1251: 
+1252:     if plan == "growth":
+1253:         return 1000
+1254: 
+1255:     if plan == "elite":
+1256:         return 2000
+1257: 
+1258:     return 0
+1259: 
+1260: 
+1261: def get_plan_package_features(plan_name):
+1262:     plan = normalize_plan_name(plan_name)
+1263: 
+1264:     try:
+1265:         from config import PACKAGES
+1266: 
+1267:         package = PACKAGES.get(plan) or {}
+1268: 
+1269:         return {
+1270:             "plan_name": plan,
+1271:             "customer_reply_limit": int(package.get("customer_reply_limit") or package.get("monthly_reply_limit") or 0),
+1272:             "base_customer_reply_limit": int(package.get("base_customer_reply_limit") or package.get("customer_reply_limit") or package.get("monthly_reply_limit") or 0),
+1273:             "gift_reply_limit": int(package.get("gift_reply_limit") or 0),
+1274:             "total_customer_reply_limit": int(package.get("total_customer_reply_limit") or package.get("customer_reply_limit") or package.get("monthly_reply_limit") or 0),
+1275:             "owner_advisory_reply_limit": int(package.get("owner_advisory_reply_limit") or 0),
+1276:             "channels": package.get("channels") or [],
+1277:             "whatsapp_included": bool(package.get("whatsapp_included")),
+1278:             "website_included": bool(package.get("website_included")),
+1279:             "instagram_included": bool(package.get("instagram_included")),
+1280:             "dashboard_advisory_enabled": bool(package.get("dashboard_advisory_enabled")),
+1281:             "image_catalog_enabled": bool(package.get("image_catalog_enabled")),
+1282:             "client_payment_links_enabled": bool(package.get("client_payment_links_enabled")),
+1283:             "advisor_level": package.get("advisor_level") or "",
+1284:         }
+1285: 
+1286:     except Exception as error:
+1287:         print(f"GET PLAN PACKAGE FEATURES ERROR ⚠️ {error}", flush=True)
+1288: 
+1289:     return {
+1290:         "plan_name": plan,
+1291:         "customer_reply_limit": get_plan_reply_limit(plan),
+1292:         "base_customer_reply_limit": get_plan_reply_limit(plan),
+1293:         "gift_reply_limit": 0,
+1294:         "total_customer_reply_limit": get_plan_reply_limit(plan),
+1295:         "owner_advisory_reply_limit": get_plan_owner_advisory_reply_limit(plan),
+1296:         "channels": [],
+1297:         "whatsapp_included": False,
+1298:         "website_included": False,
+1299:         "instagram_included": False,
+1300:         "dashboard_advisory_enabled": False,
+1301:         "image_catalog_enabled": False,
+1302:         "client_payment_links_enabled": False,
+1303:         "advisor_level": "",
+1304:     }
+1305: 
+
+===== backend\database.py L3888-L4070 =====
+3888: 
+3889: # ===== ALSAAB_WORDPRESS_ACCOUNT_LINK_V1 END =====
+3890: 
+3891: 
+3892: # ===== ALSAAB_ENTRY_DATABASE_SAFE_V1 START =====
+3893: # Safe Entry package support for database.py.
+3894: # This block is additive and does not edit existing functions manually.
+3895: 
+3896: ENTRY_PLAN_KEY = "entry"
+3897: 
+3898: ENTRY_PLAN_ALIASES = {
+3899:     "entry": "entry",
+3900:     "دخول": "entry",
+3901:     "الدخول": "entry",
+3902:     "باقة الدخول": "entry",
+3903:     "entry package": "entry",
+3904: }
+3905: 
+3906: ENTRY_PLAN_LIMITS = {
+3907:     "monthly_reply_limit": 500,
+3908:     "customer_reply_limit": 500,
+3909:     "owner_advisory_reply_limit": 0,
+3910:     "max_payment_links": 1,
+3911:     "max_product_images": 1,
+3912:     "max_product_image_groups": 1,
+3913: }
+3914: 
+3915: def _alsaab_entry_normalize_plan(value):
+3916:     raw = str(value or "").strip()
+3917: 
+3918:     if not raw:
+3919:         return ""
+3920: 
+3921:     raw_lower = raw.lower()
+3922: 
+3923:     if raw_lower in ENTRY_PLAN_ALIASES:
+3924:         return ENTRY_PLAN_ALIASES[raw_lower]
+3925: 
+3926:     if raw in ENTRY_PLAN_ALIASES:
+3927:         return ENTRY_PLAN_ALIASES[raw]
+3928: 
+3929:     return raw_lower
+3930: 
+3931: def _alsaab_entry_patch_known_limit_dicts():
+3932:     dict_names = [
+3933:         "PLAN_LIMITS",
+3934:         "PACKAGE_LIMITS",
+3935:         "USAGE_LIMITS",
+3936:         "REPLY_LIMITS",
+3937:         "MONTHLY_REPLY_LIMITS",
+3938:         "PLAN_REPLY_LIMITS",
+3939:         "PACKAGE_REPLY_LIMITS",
+3940:     ]
+3941: 
+3942:     for name in dict_names:
+3943:         value = globals().get(name)
+3944: 
+3945:         if not isinstance(value, dict):
+3946:             continue
+3947: 
+3948:         if "entry" in value:
+3949:             continue
+3950: 
+3951:         starter_value = value.get("starter")
+3952: 
+3953:         if isinstance(starter_value, int):
+3954:             value["entry"] = 500
+3955:         elif isinstance(starter_value, dict):
+3956:             entry_value = dict(starter_value)
+3957:             entry_value.update(ENTRY_PLAN_LIMITS)
+3958:             value["entry"] = entry_value
+3959:         else:
+3960:             value["entry"] = dict(ENTRY_PLAN_LIMITS)
+3961: 
+3962: def _alsaab_entry_patch_known_order_lists():
+3963:     list_names = [
+3964:         "PLAN_ORDER",
+3965:         "PACKAGE_ORDER",
+3966:     ]
+3967: 
+3968:     for name in list_names:
+3969:         value = globals().get(name)
+3970: 
+3971:         if isinstance(value, list) and "entry" not in value:
+3972:             value.insert(0, "entry")
+3973: 
+3974: def _alsaab_entry_wrap_normalizers():
+3975:     function_names = [
+3976:         "normalize_plan",
+3977:         "normalize_plan_name",
+3978:         "normalize_package",
+3979:         "normalize_package_name",
+3980:         "normalize_plan_key",
+3981:         "normalize_package_key",
+3982:     ]
+3983: 
+3984:     for function_name in function_names:
+3985:         old_function = globals().get(function_name)
+3986: 
+3987:         if not callable(old_function):
+3988:             continue
+3989: 
+3990:         if getattr(old_function, "_alsaab_entry_wrapped", False):
+3991:             continue
+3992: 
+3993:         def wrapper(value=None, *args, _old_function=old_function, **kwargs):
+3994:             normalized = _alsaab_entry_normalize_plan(value)
+3995: 
+3996:             if normalized == "entry":
+3997:                 return "entry"
+3998: 
+3999:             return _old_function(value, *args, **kwargs)
+4000: 
+4001:         wrapper._alsaab_entry_wrapped = True
+4002:         globals()[function_name] = wrapper
+4003: 
+4004: def _alsaab_entry_wrap_limit_functions():
+4005:     function_names = [
+4006:         "get_plan_limits",
+4007:         "get_package_limits",
+4008:         "get_usage_limits",
+4009:         "get_reply_limits",
+4010:         "get_monthly_reply_limit",
+4011:         "get_customer_reply_limit",
+4012:         "get_owner_advisory_reply_limit",
+4013:         "get_max_payment_links",
+4014:         "get_max_product_images",
+4015:         "get_max_product_image_groups",
+4016:     ]
+4017: 
+4018:     for function_name in function_names:
+4019:         old_function = globals().get(function_name)
+4020: 
+4021:         if not callable(old_function):
+4022:             continue
+4023: 
+4024:         if getattr(old_function, "_alsaab_entry_wrapped", False):
+4025:             continue
+4026: 
+4027:         def wrapper(plan=None, *args, _old_function=old_function, _function_name=function_name, **kwargs):
+4028:             normalized = _alsaab_entry_normalize_plan(plan)
+4029: 
+4030:             if normalized == "entry":
+4031:                 if "limits" in _function_name:
+4032:                     return dict(ENTRY_PLAN_LIMITS)
+4033: 
+4034:                 if "owner_advisory" in _function_name:
+4035:                     return 0
+4036: 
+4037:                 if "payment_links" in _function_name:
+4038:                     return 1
+4039: 
+4040:                 if "product_image_groups" in _function_name:
+4041:                     return 1
+4042: 
+4043:                 if "product_images" in _function_name:
+4044:                     return 1
+4045: 
+4046:                 return 500
+4047: 
+4048:             return _old_function(plan, *args, **kwargs)
+4049: 
+4050:         wrapper._alsaab_entry_wrapped = True
+4051:         globals()[function_name] = wrapper
+4052: 
+4053: def get_entry_plan_limits():
+4054:     return dict(ENTRY_PLAN_LIMITS)
+4055: 
+4056: _al_saab_entry_patch_done = False
+4057: 
+4058: try:
+4059:     _alsaab_entry_patch_known_limit_dicts()
+4060:     _alsaab_entry_patch_known_order_lists()
+4061:     _alsaab_entry_wrap_normalizers()
+4062:     _alsaab_entry_wrap_limit_functions()
+4063:     _al_saab_entry_patch_done = True
+4064: except Exception as _entry_database_error:
+4065:     print(f"ENTRY DATABASE PATCH WARNING: {_entry_database_error}", flush=True)
+4066: 
+4067: # ===== ALSAAB_ENTRY_DATABASE_SAFE_V1 END =====

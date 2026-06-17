@@ -1,0 +1,12 @@
+﻿
+Path                                                                     LineNumb
+                                                                               er
+----                                                                     --------
+C:\Users\admin\OneDrive\سطح المكتب\ALSAAB - AI\backend\config.py              167
+C:\Users\admin\OneDrive\سطح المكتب\ALSAAB - AI\backend\config.py              244
+C:\Users\admin\OneDrive\سطح المكتب\ALSAAB - AI\backend\prompt_builder.py      539
+C:\Users\admin\OneDrive\سطح المكتب\ALSAAB - AI\backend\prompt_builder.py      744
+C:\Users\admin\OneDrive\سطح المكتب\ALSAAB - AI\backend\prompt_builder.py      765
+C:\Users\admin\OneDrive\سطح المكتب\ALSAAB - AI\backend\prompt_builder.py     1067
+
+
