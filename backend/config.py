@@ -767,3 +767,64 @@ STRIPE_PLAN_CONFIG = {
 PACKAGE_ORDER = ["entry", "starter", "growth", "elite", "diamond"]
 
 # ===== ALSAAB_PACKAGES_2026_PRICE_RESET_V1 END =====
+
+
+# ===== ALSAAB_OFFICIAL_STRIPE_PACKAGES_V2 START =====
+# Official approved package prices + Stripe links/ids.
+# Do not remove. This block overrides older package/payment values safely.
+
+OFFICIAL_PACKAGE_PRICES_2026 = {
+    "entry": "99 AED",
+    "starter": "299 AED",
+    "growth": "599 AED",
+    "elite": "1199 AED",
+    "diamond": "2399 AED",
+}
+
+PAYMENT_LINKS.update({
+    "entry": "https://buy.stripe.com/4gMcN61d2dxI6ku10zaEE07",
+    "starter": "https://buy.stripe.com/aFa8wQ9Jy8docISeRpaEE08",
+    "growth": "https://buy.stripe.com/7sY14obRG8doaAK5gPaEE09",
+    "elite": "https://buy.stripe.com/28E9AUf3SalwbEO4cLaEE0a",
+    "diamond": "https://buy.stripe.com/aFaeVe7Bq51c4cmcJhaEE0b",
+})
+
+STRIPE_PRICE_IDS = {
+    "entry": "price_1Tj84XJbltD9Bsg8rOGTTn3D",
+    "starter": "price_1Tj8JmJbltD9Bsg81rMyR7lJ",
+    "growth": "price_1Tj8MQJbltD9Bsg8XL7xwOYe",
+    "elite": "price_1Tj8OwJbltD9Bsg8h7DCVKbY",
+    "diamond": "price_1Tj8T7JbltD9Bsg8bdi7XyiL",
+}
+
+STRIPE_PRODUCT_IDS = {
+    "entry": "prod_UiZCqDWqXkzVLL",
+    "starter": "prod_UiZS4ivHpbRIbE",
+    "growth": "prod_UiZVcDRBvn38CN",
+    "elite": "prod_UiZY0MsCbzD3dC",
+    "diamond": "prod_UiZcnUHa54wiu8",
+}
+
+PAYMENT_ROUTE_LINKS.update({
+    "entry": f"{APP_BASE_URL}/pay/entry",
+    "starter": f"{APP_BASE_URL}/pay/starter",
+    "growth": f"{APP_BASE_URL}/pay/growth",
+    "elite": f"{APP_BASE_URL}/pay/elite",
+    "diamond": f"{APP_BASE_URL}/pay/diamond",
+})
+
+STRIPE_PLAN_CONFIG = {
+    plan: {
+        "plan_name": plan,
+        "payment_link": PAYMENT_LINKS[plan],
+        "internal_payment_route": PAYMENT_ROUTE_LINKS[plan],
+        "monthly_reply_limit": PACKAGES[plan]["monthly_reply_limit"],
+        "package_amount": OFFICIAL_PACKAGE_PRICES_2026[plan],
+        "subscription_type": "monthly",
+    }
+    for plan in ["entry", "starter", "growth", "elite", "diamond"]
+}
+
+PACKAGE_ORDER = ["entry", "starter", "growth", "elite", "diamond"]
+# ===== ALSAAB_OFFICIAL_STRIPE_PACKAGES_V2 END =====
+

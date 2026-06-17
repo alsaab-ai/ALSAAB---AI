@@ -207,7 +207,7 @@ def format_packages():
 - إذا خلص العميل حد الردود الشهري، يتوقف الاستخدام الذكي حتى التجديد أو الترقية أو الموافقة على باقة أعلى.
 
 صياغة مختصرة إذا العميل سأل: "شو الباقات؟":
-- البداية بـ 599 درهم شهرياً: موظف مبيعات ذكي على WhatsApp مع {starter_limit} رد شهري للعملاء، مناسبة كبداية وتجربة.
+- البداية بـ 299 درهم شهرياً: موظف مبيعات ذكي على WhatsApp مع {starter_limit} رد شهري للعملاء، مناسبة كبداية وتجربة.
 - النمو بـ 599 درهم شهرياً: الباقة الموصى بها لمعظم المشاريع، فيها {growth_limit} رد للعملاء، واستشارات خاصة لصاحب المشروع بعدد {growth_advisory} رد شهري، وتشمل WhatsApp + إمكانية الموقع + صور المنتجات والكتالوجات + روابط دفع العميل الخاصة.
 - النخبة بـ 1199 درهم شهرياً: للمشاريع الجادة، فيها {elite_total} رد شهري للعملاء منها {elite_gift} رد هدية، ومعها {elite_advisory} رد استشاري لصاحب المشروع، وتدعم WhatsApp + الموقع + Instagram ضمن الربط المتقدم، مع تخصيص أقوى.
 
@@ -1246,7 +1246,7 @@ https://alsaab-ai.onrender.com/pay/entry
 https://alsaab-ai.onrender.com/pay/entry?sid=<sid>
 
 باقة الدخول:
-- السعر: 299 درهم شهرياً
+- السعر: 99 درهم شهرياً
 - 500 رد شهري فقط
 - رابط دفع واحد فقط
 - صورة منتج واحدة فقط
@@ -1426,4 +1426,67 @@ for _fn_name in [
             return _wrapped
         globals()[_fn_name] = _make_language_wrapper(_old_fn)
 # ===== ALSAAB_REPLY_LANGUAGE_RULES_WRAP_V1 END =====
+
+
+# ===== ALSAAB_FORCE_OFFICIAL_PACKAGES_AND_LINKS_V3 START =====
+ALSAAB_FORCE_OFFICIAL_PACKAGES_AND_LINKS_V3 = """
+قاعدة نهائية إلزامية عند ذكر الباقات أو الأسعار أو روابط الدفع:
+
+اعرض هذه الباقات فقط، بنفس الأسعار ونفس روابط الدفع الرسمية:
+
+1) Entry / باقة الدخول — 99 AED شهرياً
+- 500 رد شهري
+- رابط الدفع:
+https://buy.stripe.com/4gMcN61d2dxI6ku10zaEE07
+
+2) Starter / باقة البداية — 299 AED شهرياً
+- 2000 رد شهري
+- رابط الدفع:
+https://buy.stripe.com/aFa8wQ9Jy8docISeRpaEE08
+
+3) Growth / باقة النمو — 599 AED شهرياً
+- 6000 رد للعملاء + 1000 رد استشاري لصاحب المشروع
+- رابط الدفع:
+https://buy.stripe.com/7sY14obRG8doaAK5gPaEE09
+
+4) Elite / باقة النخبة — 1199 AED شهرياً
+- 15000 رد للعملاء + 2000 رد استشاري لصاحب المشروع
+- رابط الدفع:
+https://buy.stripe.com/28E9AUf3SalwbEO4cLaEE0a
+
+5) Diamond / الباقة الماسية — 2399 AED شهرياً
+- 40000 رد للعملاء + 5000 رد استشاري لصاحب المشروع
+- رابط الدفع:
+https://buy.stripe.com/aFaeVe7Bq51c4cmcJhaEE0b
+
+ممنوع نهائياً عرض الأسعار القديمة:
+Entry 299
+Starter 599
+Growth 1099
+Elite 2099
+
+ممنوع تنقص أي باقة إذا العميل طلب كل الباقات.
+ممنوع تخترع روابط دفع.
+"""
+def _alsaab_force_official_packages_and_links_v3(prompt_text):
+    if "ALSAAB_FORCE_OFFICIAL_PACKAGES_AND_LINKS_V3" in str(prompt_text):
+        return prompt_text
+    return str(prompt_text).rstrip() + "\n\n" + ALSAAB_FORCE_OFFICIAL_PACKAGES_AND_LINKS_V3.strip() + "\n"
+
+for _fn_name in [
+    "build_prompt",
+    "build_system_prompt",
+    "build_sales_prompt",
+    "build_alsaab_prompt",
+    "build_project_prompt",
+]:
+    _old_fn = globals().get(_fn_name)
+    if callable(_old_fn) and not getattr(_old_fn, "_alsaab_force_packages_v3_wrapped", False):
+        def _make_wrapper(fn):
+            def _wrapped(*args, **kwargs):
+                return _alsaab_force_official_packages_and_links_v3(fn(*args, **kwargs))
+            _wrapped._alsaab_force_packages_v3_wrapped = True
+            return _wrapped
+        globals()[_fn_name] = _make_wrapper(_old_fn)
+# ===== ALSAAB_FORCE_OFFICIAL_PACKAGES_AND_LINKS_V3 END =====
 
