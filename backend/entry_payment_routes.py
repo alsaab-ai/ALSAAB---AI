@@ -1,62 +1,17 @@
-﻿from flask import request, redirect
-from urllib.parse import urlparse, parse_qsl, urlencode, urlunparse
+﻿from urllib.parse import urlparse, parse_qsl, urlencode, urlunparse
 
-
-ENTRY_PAYMENT_LINK = "https://buy.stripe.com/6oU3cw3laalw7oy7oXaEE06"
+ENTRY_PAYMENT_LINK = "https://buy.stripe.com/4gMcN61d2dxI6ku10zaEE07"
 
 
 def _append_query(url, params):
     parsed = urlparse(url)
-    query = dict(parse_qsl(parsed.query, keep_blank_values=True))
-
-    for key, value in params.items():
-        if value:
-            query[key] = str(value)
-
-    return urlunparse(
-        (
-            parsed.scheme,
-            parsed.netloc,
-            parsed.path,
-            parsed.params,
-            urlencode(query),
-            parsed.fragment,
-        )
-    )
+    query = dict(parse_qsl(parsed.query))
+    query.update({k: v for k, v in params.items() if v})
+    return urlunparse(parsed._replace(query=urlencode(query)))
 
 
-def register_entry_payment_routes(app):
-    if getattr(app, "alsaab_entry_payment_routes_registered", False):
-        return
-
-    app.alsaab_entry_payment_routes_registered = True
-
-    @app.before_request
-    def entry_payment_redirect_guard():
-        path = (request.path or "").strip().lower().rstrip("/")
-
-        if path != "/pay/entry":
-            return None
-
-        sid = (
-            request.args.get("sid")
-            or request.args.get("client_reference_id")
-            or request.args.get("partner_id")
-            or request.args.get("ref")
-            or request.args.get("source_partner_id")
-            or ""
-        )
-
-        source = request.args.get("source") or request.args.get("src") or "entry_payment"
-
-        redirect_url = _append_query(
-            ENTRY_PAYMENT_LINK,
-            {
-                "client_reference_id": sid,
-                "utm_source": source,
-                "utm_campaign": "entry_package",
-                "utm_content": sid,
-            },
-        )
-
-        return redirect(redirect_url, code=302)
+def register_entry_payment_guard(app):
+    # Disabled intentionally.
+    # /pay/entry must be handled by main.py so it keeps:
+    # sid + plan + source_partner_id for MLM / PartnerTree / commissions.
+    return app
