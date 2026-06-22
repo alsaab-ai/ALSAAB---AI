@@ -1623,3 +1623,54 @@ for _fn_name in ["build_prompt", "build_system_prompt", "build_sales_prompt", "b
             return _wrapped
         globals()[_fn_name] = _make_wrapper(_old_fn)
 # ===== ALSAAB_PAYMENT_LINK_PLAIN_URL_GUARD_V1 END =====
+
+# ===== ALSAAB_PAYMENT_LINK_ONLY_REPLACER_V1 START =====
+_ALSAAB_DIRECT_STRIPE_TO_PLAN = {
+    "https://buy.stripe.com/4gMcN61d2dxI6ku10zaEE07": "entry",
+    "https://buy.stripe.com/aFa8wQ9Jy8docISeRpaEE08": "starter",
+    "https://buy.stripe.com/7sY14obRG8doaAK5gPaEE09": "growth",
+    "https://buy.stripe.com/28E9AUf3SalwbEO4cLaEE0a": "elite",
+    "https://buy.stripe.com/aFaeVe7Bq51c4cmcJhaEE0b": "diamond",
+}
+
+def _alsaab_replace_payment_links_only(prompt_text, state=None):
+    if not isinstance(prompt_text, str):
+        return prompt_text
+
+    safe_state = state if isinstance(state, dict) else {}
+
+    for direct_link, plan_name in _ALSAAB_DIRECT_STRIPE_TO_PLAN.items():
+        internal_link = build_internal_payment_link(plan_name, safe_state)
+        prompt_text = prompt_text.replace(direct_link, internal_link)
+
+    return prompt_text
+
+
+def _alsaab_payment_link_only_state(args, kwargs):
+    state = kwargs.get("state")
+    if isinstance(state, dict):
+        return state
+
+    for item in args:
+        if isinstance(item, dict):
+            return item
+
+    return {}
+
+
+for _fn_name in ["build_prompt", "build_system_prompt", "build_sales_prompt", "build_alsaab_prompt", "build_project_prompt"]:
+    _old_fn = globals().get(_fn_name)
+
+    if callable(_old_fn) and not getattr(_old_fn, "_alsaab_payment_link_only_replacer_wrapped", False):
+        def _make_payment_link_only_wrapper(fn):
+            def _wrapped(*args, **kwargs):
+                result = fn(*args, **kwargs)
+                state = _alsaab_payment_link_only_state(args, kwargs)
+                return _alsaab_replace_payment_links_only(result, state)
+
+            _wrapped._alsaab_payment_link_only_replacer_wrapped = True
+            return _wrapped
+
+        globals()[_fn_name] = _make_payment_link_only_wrapper(_old_fn)
+
+# ===== ALSAAB_PAYMENT_LINK_ONLY_REPLACER_V1 END =====
