@@ -15,3 +15,6 @@ def register_entry_payment_guard(app):
     # /pay/entry must be handled by main.py so it keeps:
     # sid + plan + source_partner_id for MLM / PartnerTree / commissions.
     return app
+
+def register_entry_payment_routes(app):
+    return register_entry_payment_guard(app)
