@@ -1781,6 +1781,17 @@ def stripe_webhook():
         invoice = event.get("data", {}).get("object", {})
 
         invoice_id = invoice.get("id", "") or ""
+        billing_reason = invoice.get("billing_reason", "") or ""
+
+        if billing_reason == "subscription_create":
+            print(f"STRIPE INVOICE PAID INITIAL SKIPPED checkout already handled invoice_id={invoice_id} event_id={event_id}", flush=True)
+            return jsonify({
+                "status": "ignored",
+                "reason": "initial_invoice_handled_by_checkout",
+                "invoice_id": invoice_id,
+                "event_id": event_id
+            }), 200
+
         stripe_subscription_id = invoice.get("subscription", "") or ""
 
         if isinstance(stripe_subscription_id, dict):
