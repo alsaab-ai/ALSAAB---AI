@@ -92,6 +92,106 @@ def is_active_subscription(subscription):
     return status == "active"
 
 
+
+# ===== SAFE ALSAAB OPPORTUNITY PAYMENT GATE V1 START =====
+SAFE_ALSAAB_GATE_WORDS = [
+    "alsaab",
+    "alsaab ai",
+    "\u0627\u0644\u0635\u0639\u0628",
+    "\u0646\u0638\u0627\u0645 \u0627\u0644\u0635\u0639\u0628",
+    "\u0627\u0644\u0646\u0638\u0627\u0645 \u0639\u062c\u0628\u0646\u064a",
+    "\u0646\u0641\u0633 \u0627\u0644\u0646\u0638\u0627\u0645",
+    "\u0641\u0631\u0635\u0629 \u062f\u062e\u0644",
+    "\u062f\u062e\u0644 \u0625\u0636\u0627\u0641\u064a",
+    "\u062f\u062e\u0644 \u0627\u0636\u0627\u0641\u064a",
+    "\u0623\u0635\u064a\u0631 \u0634\u0631\u064a\u0643",
+    "\u0627\u0635\u064a\u0631 \u0634\u0631\u064a\u0643",
+    "\u0623\u0628\u063a\u064a \u0623\u0635\u064a\u0631 \u0634\u0631\u064a\u0643",
+    "\u0627\u0628\u063a\u064a \u0627\u0635\u064a\u0631 \u0634\u0631\u064a\u0643",
+]
+
+SAFE_ALSAAB_PAYMENT_WORDS = [
+    "\u062f\u0641\u0639",
+    "\u0623\u062f\u0641\u0639",
+    "\u0627\u062f\u0641\u0639",
+    "\u0631\u0627\u0628\u0637 \u0627\u0644\u062f\u0641\u0639",
+    "\u0631\u0627\u0628\u0637 \u062f\u0641\u0639",
+    "\u0627\u0634\u062a\u0631\u0643",
+    "\u0627\u0634\u062a\u0631\u0627\u0643",
+    "subscribe",
+    "payment",
+    "pay",
+    "checkout",
+]
+
+SAFE_ALSAAB_PLAN_ALIASES = {
+    "entry": ["entry", "\u0627\u0646\u062a\u0631\u064a", "\u0627\u0644\u062f\u062e\u0648\u0644", "\u0628\u0627\u0642\u0629 \u0627\u0644\u062f\u062e\u0648\u0644"],
+    "starter": ["starter", "\u0633\u062a\u0627\u0631\u062a\u0631", "\u0627\u0644\u0628\u062f\u0627\u064a\u0629", "\u0628\u0627\u0642\u0629 \u0627\u0644\u0628\u062f\u0627\u064a\u0629"],
+    "growth": ["growth", "\u062c\u0631\u0648\u062b", "\u0627\u0644\u0646\u0645\u0648", "\u0628\u0627\u0642\u0629 \u0627\u0644\u0646\u0645\u0648"],
+    "elite": ["elite", "\u0627\u064a\u0644\u064a\u062a", "\u0625\u064a\u0644\u064a\u062a", "\u0627\u0644\u0646\u062e\u0628\u0629", "\u0628\u0627\u0642\u0629 \u0627\u0644\u0646\u062e\u0628\u0629"],
+    "diamond": ["diamond", "\u062f\u0627\u064a\u0645\u0648\u0646\u062f", "\u0627\u0644\u0645\u0627\u0633\u064a", "\u0627\u0644\u0645\u0627\u0633\u064a\u0629"],
+}
+
+SAFE_ALSAAB_PLAN_LABELS = {
+    "entry": "Entry",
+    "starter": "Starter",
+    "growth": "Growth",
+    "elite": "Elite",
+    "diamond": "Diamond",
+}
+
+
+def detect_safe_alsaab_opportunity_payment_plan(message):
+    msg = str(message or "").lower().strip()
+
+    if not msg:
+        return ""
+
+    has_alsaab_gate = any(word.lower() in msg for word in SAFE_ALSAAB_GATE_WORDS)
+    has_payment = any(word.lower() in msg for word in SAFE_ALSAAB_PAYMENT_WORDS)
+
+    if not has_alsaab_gate or not has_payment:
+        return ""
+
+    for plan_name, aliases in SAFE_ALSAAB_PLAN_ALIASES.items():
+        if plan_name not in STRIPE_PLAN_CONFIG:
+            continue
+
+        for alias in aliases:
+            if str(alias).lower() in msg:
+                return plan_name
+
+    return ""
+
+
+def build_safe_alsaab_opportunity_payment_reply(plan_name, session_id, source_partner_id=""):
+    plan_name = str(plan_name or "").lower().strip()
+
+    if plan_name not in STRIPE_PLAN_CONFIG:
+        return ""
+
+    if not session_id:
+        return ""
+
+    source_partner_id = normalize_source_partner_id(source_partner_id)
+
+    params = {"sid": session_id}
+
+    if source_partner_id:
+        params["ref"] = source_partner_id
+        params["source_partner_id"] = source_partner_id
+
+    pay_url = f"{request.host_url.rstrip('/')}/pay/{plan_name}?{urlencode(params)}"
+    plan_label = SAFE_ALSAAB_PLAN_LABELS.get(plan_name, plan_name)
+
+    return (
+        "\u062a\u0645\u0627\u0645 \u2705\n"
+        f"\u0647\u0630\u0627 \u0631\u0627\u0628\u0637 \u062f\u0641\u0639 \u0628\u0627\u0642\u0629 {plan_label} \u0641\u064a ALSAAB AI:\n\n"
+        f"{pay_url}\n\n"
+        "\u0628\u0639\u062f \u0627\u0644\u062f\u0641\u0639 \u0628\u064a\u062a\u0641\u0639\u0644 \u0627\u0644\u0627\u0634\u062a\u0631\u0627\u0643 \u062a\u0644\u0642\u0627\u0626\u064a\u0627\u064b\u060c \u0648\u0628\u064a\u062a\u0645 \u0631\u0628\u0637\u0647 \u0628\u0627\u0644\u0634\u0631\u064a\u0643 \u0627\u0644\u0635\u062d\u064a\u062d."
+    )
+# ===== SAFE ALSAAB OPPORTUNITY PAYMENT GATE V1 END =====
+
 def normalize_source_partner_id(value):
     value = str(value or "").strip()
 
@@ -2350,6 +2450,32 @@ def chat():
     try:
         save_message(session_id, "user", message)
         print("MAIN USER MESSAGE SAVED ✅", flush=True)
+
+        safe_alsaab_payment_plan = detect_safe_alsaab_opportunity_payment_plan(message)
+        if safe_alsaab_payment_plan:
+            safe_alsaab_payment_reply = build_safe_alsaab_opportunity_payment_reply(
+                safe_alsaab_payment_plan,
+                session_id,
+                source_partner_id
+            )
+
+            if safe_alsaab_payment_reply:
+                save_message(session_id, "bot", safe_alsaab_payment_reply)
+                print(
+                    f"SAFE ALSAAB OPPORTUNITY PAYMENT LINK REPLY OK session_id={session_id} plan={safe_alsaab_payment_plan} source_partner_id={source_partner_id}",
+                    flush=True
+                )
+
+                return jsonify({
+                    "reply": safe_alsaab_payment_reply,
+                    "session_id": session_id,
+                    "source_partner_id": source_partner_id,
+                    "safe_alsaab_opportunity_payment": {
+                        "plan": safe_alsaab_payment_plan,
+                        "source_partner_id": source_partner_id
+                    }
+                })
+
 
         subscription = get_client_subscription(usage_session_id)
 
