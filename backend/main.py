@@ -2293,12 +2293,40 @@ def chat():
 
     message = data.get("message", "").strip()
     session_id = data.get("session_id")
-    source_partner_id = normalize_source_partner_id(
-        data.get("source_partner_id")
-        or data.get("referrer_partner_id")
-        or data.get("ref")
-        or ""
-    )
+    def extract_source_partner_id_from_payload(payload):
+        candidates = [
+            payload.get("source_partner_id"),
+            payload.get("referrer_partner_id"),
+            payload.get("ref"),
+            payload.get("smart_link_ref"),
+            payload.get("context_partner_id"),
+            payload.get("client_context_id"),
+            payload.get("partner_id"),
+        ]
+
+        for value in candidates:
+            normalized = normalize_source_partner_id(value)
+            if normalized:
+                return normalized
+
+        for url_key in ("page_url", "referrer_url"):
+            raw_url = payload.get(url_key) or ""
+            try:
+                from urllib.parse import urlparse, parse_qs
+
+                query = parse_qs(urlparse(str(raw_url)).query)
+
+                for key in ("ref", "source_partner_id", "partner_id", "sponsor_partner_id", "aid"):
+                    for value in query.get(key, []):
+                        normalized = normalize_source_partner_id(value)
+                        if normalized:
+                            return normalized
+            except Exception:
+                pass
+
+        return ""
+
+    source_partner_id = extract_source_partner_id_from_payload(data)
 
     print(f"MAIN MESSAGE ✅ {message}", flush=True)
     print(f"MAIN SESSION BEFORE ✅ {session_id}", flush=True)
@@ -5357,8 +5385,8 @@ def build_dashboard_nav_url(path, partner_id="", lang="ar", key=""):
     elif key:
         params["key"] = key
 
-        if partner_id:
-            params["partner_id"] = normalize_dashboard_partner_id(partner_id)
+    if partner_id and "partner_id" not in params:
+        params["partner_id"] = normalize_dashboard_partner_id(partner_id)
 
     return path + "?" + urlencode(params)
 
