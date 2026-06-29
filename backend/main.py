@@ -3138,6 +3138,13 @@ def partner_dashboard_view():
         client_dashboard_url = build_dashboard_nav_url("/client-dashboard", partner_id, lang, key)
         owner_advisory_url = build_dashboard_nav_url("/owner-advisory", partner_id, lang, key)
 
+        # ALSAAB_FIX_PARTNER_LEVEL_ALIAS_V1
+        search_profile = profile
+        search_level = level
+        search_customers = customers
+        search_commissions = commissions
+        search_courses = courses
+
         # ===== ALSAAB_PARTNER_RANK_UI_V2 START =====
         is_ar = True
 
