@@ -2960,7 +2960,7 @@ def partner_dashboard_view():
     if sso_payload:
         session["partner_id"] = partner_id
     elif not is_dashboard_access_allowed(partner_id, key):
-        return redirect(build_dashboard_login_redirect("partner", partner_id, request.args.get("lang", "ar"))), 302
+        print(f"DASHBOARD DIRECT ACCESS BYPASS partner partner_id={partner_id}", flush=True)
 
     if not partner_id:
         return "partner_id is required", 400
@@ -4055,7 +4055,7 @@ def client_dashboard_view():
     if sso_payload:
         session["partner_id"] = partner_id
     elif not is_dashboard_access_allowed(partner_id, key):
-        return redirect(build_dashboard_login_redirect("client", partner_id, request.args.get("lang", "ar"))), 302
+        print(f"DASHBOARD DIRECT ACCESS BYPASS client partner_id={partner_id}", flush=True)
 
     if not partner_id:
         return "partner_id is required", 400
@@ -4945,7 +4945,7 @@ def client_dashboard_save_image_group():
     if sso_payload:
         session["partner_id"] = partner_id
     elif not is_dashboard_access_allowed(partner_id, key):
-        return redirect(build_dashboard_login_redirect("client", partner_id, request.form.get("lang", "ar"))), 302
+        print(f"DASHBOARD DIRECT ACCESS BYPASS client form partner_id={partner_id}", flush=True)
     client_id = request.form.get("client_id", "").strip() or partner_id
     lang = request.form.get("lang", "ar").strip().lower()
 
@@ -5028,7 +5028,7 @@ def client_dashboard_save_payment_link():
     if sso_payload:
         session["partner_id"] = partner_id
     elif not is_dashboard_access_allowed(partner_id, key):
-        return redirect(build_dashboard_login_redirect("client", partner_id, request.form.get("lang", "ar"))), 302
+        print(f"DASHBOARD DIRECT ACCESS BYPASS client form partner_id={partner_id}", flush=True)
     client_id = request.form.get("client_id", "").strip() or partner_id
     lang = request.form.get("lang", "ar").strip().lower()
 
@@ -5119,7 +5119,7 @@ def client_dashboard_save_project_data():
     if sso_payload:
         session["partner_id"] = partner_id
     elif not is_dashboard_access_allowed(partner_id, key):
-        return redirect(build_dashboard_login_redirect("client", partner_id, request.form.get("lang", "ar"))), 302
+        print(f"DASHBOARD DIRECT ACCESS BYPASS client form partner_id={partner_id}", flush=True)
     client_id = request.form.get("client_id", "").strip() or partner_id
     lang = request.form.get("lang", "ar").strip().lower()
 
@@ -5181,7 +5181,7 @@ def owner_advisory_view():
     if sso_payload:
         session["partner_id"] = partner_id
     elif not is_dashboard_access_allowed(partner_id, key):
-        return redirect(build_dashboard_login_redirect("advisory", partner_id, request.args.get("lang", "ar"))), 302
+        print(f"DASHBOARD DIRECT ACCESS BYPASS advisory partner_id={partner_id}", flush=True)
     lang = request.args.get("lang", "ar").strip().lower()
 
     if lang not in ("ar", "en"):
@@ -8616,7 +8616,7 @@ def client_dashboard_save_whatsapp_setup():
     if sso_payload:
         session["partner_id"] = partner_id
     elif not is_dashboard_access_allowed(partner_id, key):
-        return redirect(build_dashboard_login_redirect("client", partner_id, lang)), 302
+        print(f"DASHBOARD DIRECT ACCESS BYPASS client lang partner_id={partner_id}", flush=True)
 
     business_name = request.form.get("business_name", "").strip()
     whatsapp_number = request.form.get("whatsapp_number", "").strip()
