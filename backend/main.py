@@ -1367,15 +1367,22 @@ function captureSourcePartnerId() {
             "";
 
         const normalizedRef = normalizeSourcePartnerId(ref);
+        const storedRef = normalizeSourcePartnerId(localStorage.getItem("source_partner_id") || sourcePartnerId || "");
 
         if (normalizedRef) {
+            if (storedRef && storedRef !== normalizedRef) {
+                localStorage.removeItem("session_id");
+                sessionId = "";
+                console.log("ALSAAB session reset for new referral:", storedRef, "=>", normalizedRef);
+            }
+
             sourcePartnerId = normalizedRef;
             localStorage.setItem("source_partner_id", normalizedRef);
             console.log("ALSAAB referral captured:", normalizedRef);
             return normalizedRef;
         }
 
-        sourcePartnerId = normalizeSourcePartnerId(sourcePartnerId);
+        sourcePartnerId = storedRef;
 
         if (sourcePartnerId) {
             localStorage.setItem("source_partner_id", sourcePartnerId);
@@ -1387,6 +1394,8 @@ function captureSourcePartnerId() {
         return "";
     }
 }
+
+sourcePartnerId = captureSourcePartnerId();
 
 function escapeHtml(text) {
     return String(text)
@@ -1517,7 +1526,12 @@ async function sendMsg() {
             body: JSON.stringify({
                 message: text,
                 session_id: sessionId,
-                source_partner_id: sourcePartnerId
+                source_partner_id: sourcePartnerId,
+                ref: sourcePartnerId,
+                smart_link_ref: sourcePartnerId,
+                page_url: window.location.href,
+                referrer_url: document.referrer || "",
+                src: new URLSearchParams(window.location.search).get("src") || ""
             })
         });
 
