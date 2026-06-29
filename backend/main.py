@@ -626,6 +626,21 @@ html, body {
     overflow: hidden;
 }
 
+
+/* ALSAAB_IOS_WHATSAPP_SAFE_TOP_V1 */
+@supports (padding-top: env(safe-area-inset-top)) {
+    body {
+        padding-top: env(safe-area-inset-top);
+    }
+}
+
+@media (max-width: 760px) {
+    .chat-header {
+        padding-top: calc(22px + env(safe-area-inset-top, 0px));
+        min-height: 118px;
+    }
+}
+
 .chat-header {
     min-height: 92px;
     padding: 18px 22px;
