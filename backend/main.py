@@ -2566,6 +2566,76 @@ def alsaab_guard_auto_payment_links(reply, user_message):
     )
 
 
+
+# ALSAAB_FINAL_HARD_PAYMENT_LOCK_V3
+def alsaab_exact_payment_request_plan_v3(message):
+    msg = str(message or "").lower()
+
+    payment_words = [
+        "pay", "payment", "checkout", "subscribe",
+        "\u062f\u0641\u0639",        # دفع
+        "\u0627\u062f\u0641\u0639",  # ادفع
+        "\u0623\u062f\u0641\u0639",  # أدفع
+        "\u0631\u0627\u0628\u0637",  # رابط
+        "\u0627\u0634\u062a\u0631\u0643", # اشترك
+        "\u0627\u0634\u062a\u0631\u0627\u0643", # اشتراك
+    ]
+
+    plans = [
+        ("diamond", ["diamond", "2399", "\u0627\u0644\u0645\u0627\u0633\u064a\u0629", "\u0645\u0627\u0633\u064a\u0629"]),
+        ("elite", ["elite", "1199", "\u0627\u0644\u0646\u062e\u0628\u0629", "\u0646\u062e\u0628\u0629"]),
+        ("growth", ["growth", "599", "\u0627\u0644\u0646\u0645\u0648", "\u0646\u0645\u0648"]),
+        ("starter", ["starter", "299", "\u0627\u0644\u0628\u062f\u0627\u064a\u0629", "\u0628\u062f\u0627\u064a\u0629"]),
+        ("entry", ["entry", "99", "\u0627\u0644\u062f\u062e\u0648\u0644", "\u062f\u062e\u0648\u0644"]),
+    ]
+
+    has_payment = any(w in msg for w in payment_words)
+
+    selected_plan = None
+    for plan, aliases in plans:
+        if any(alias.lower() in msg for alias in aliases):
+            selected_plan = plan
+            break
+
+    if has_payment and selected_plan:
+        return selected_plan
+
+    return None
+
+
+def detect_safe_alsaab_opportunity_payment_plan(message):
+    return alsaab_exact_payment_request_plan_v3(message)
+
+
+def alsaab_guard_auto_payment_links(reply, user_message):
+    import re
+
+    reply_text = str(reply or "")
+
+    has_pay_link = bool(re.search(
+        r"https?://\S*(?:/pay/(?:entry|starter|growth|elite|diamond)|buy\.stripe\.com)\S*|/pay/(?:entry|starter|growth|elite|diamond)\S*",
+        reply_text,
+        flags=re.IGNORECASE
+    ))
+
+    if not has_pay_link:
+        return reply_text
+
+    if alsaab_exact_payment_request_plan_v3(user_message):
+        return reply_text
+
+    return (
+        "أقدر أرسل لك رابط الدفع، لكن لازم تحدد الباقة أولاً عشان ما أرسل لك رابط غلط.\n\n"
+        "الباقات المتوفرة:\n"
+        "• Entry — 99 درهم شهرياً\n"
+        "• Starter — 299 درهم شهرياً\n"
+        "• Growth — 599 درهم شهرياً\n"
+        "• Elite — 1199 درهم شهرياً\n"
+        "• Diamond — 2399 درهم شهرياً\n\n"
+        "أي باقة تريد؟"
+    )
+
+
 @app.route("/chat", methods=["POST"])
 def chat():
     print("MAIN CHAT ROUTE HIT ✅", flush=True)
@@ -2633,7 +2703,7 @@ def chat():
         save_message(session_id, "user", message)
         print("MAIN USER MESSAGE SAVED ✅", flush=True)
 
-        safe_alsaab_payment_plan = detect_safe_alsaab_opportunity_payment_plan(message)
+        safe_alsaab_payment_plan = alsaab_exact_payment_request_plan_v3(message)
         if safe_alsaab_payment_plan:
             safe_alsaab_payment_reply = build_safe_alsaab_opportunity_payment_reply(
                 safe_alsaab_payment_plan,
