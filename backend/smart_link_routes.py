@@ -219,10 +219,60 @@ SMART_LINK_JS = r"""
       /* ALSAAB_SMART_CHAT_UNIFIED_DASHBOARD_EXCLUDE_V2 END */
     }
 
+
+    function escapeSmartHtml(value) {
+      return String(value || "").replace(/[&<>"']/g, function (ch) {
+        return {
+          "&": "&amp;",
+          "<": "&lt;",
+          ">": "&gt;",
+          "\"": "&quot;",
+          "'": "&#39;"
+        }[ch];
+      });
+    }
+
+    function renderSmartText(text) {
+      var raw = String(text || "");
+      var urlRegex = /(https?:\/\/[^\s<>"']+)/g;
+      var out = "";
+      var last = 0;
+      var match;
+
+      while ((match = urlRegex.exec(raw)) !== null) {
+        out += escapeSmartHtml(raw.slice(last, match.index)).replace(/\n/g, "<br>");
+
+        var fullUrl = match[0] || "";
+        var cleanUrl = fullUrl;
+        var tail = "";
+
+        var tailMatch = cleanUrl.match(/[)\].,،؛:]+$/);
+        if (tailMatch) {
+          tail = tailMatch[0];
+          cleanUrl = cleanUrl.slice(0, -tail.length);
+        }
+
+        var href = cleanUrl.replace(/^http:\/\/alsaab-ai\.onrender\.com/i, "https://alsaab-ai.onrender.com");
+        var isPayment = /\/pay\/(entry|starter|growth|elite|diamond)/i.test(href) || /buy\.stripe\.com/i.test(href);
+
+        if (isPayment) {
+          out += '<a class="alsaab-smart-pay-link" href="' + escapeSmartHtml(href) + '" target="_self" rel="noopener noreferrer">اضغط هنا للدفع</a>';
+        } else {
+          out += '<a class="alsaab-smart-text-link" href="' + escapeSmartHtml(href) + '" target="_blank" rel="noopener noreferrer">' + escapeSmartHtml(cleanUrl) + '</a>';
+        }
+
+        out += escapeSmartHtml(tail).replace(/\n/g, "<br>");
+        last = urlRegex.lastIndex;
+      }
+
+      out += escapeSmartHtml(raw.slice(last)).replace(/\n/g, "<br>");
+      return out;
+    }
+
     function addMessage(container, who, text) {
       var item = document.createElement("div");
       item.className = "alsaab-smart-msg " + (who === "user" ? "user" : "bot");
-      item.innerHTML = String(text || "").replace(/\n/g, "<br>");
+      item.innerHTML = renderSmartText(text);
       container.appendChild(item);
       container.scrollTop = container.scrollHeight;
       return item;
@@ -581,6 +631,27 @@ SMART_LINK_JS = r"""
         }
         /* ALSAAB_SMART_LINK_VISUAL_SAFE_V1 END */
 
+
+        .alsaab-smart-pay-link{
+          display:inline-flex!important;
+          align-items:center!important;
+          justify-content:center!important;
+          margin:12px 0 6px!important;
+          padding:12px 18px!important;
+          border-radius:999px!important;
+          background:linear-gradient(135deg,#f0cc68,#d7b85a,#aa842a)!important;
+          color:#111!important;
+          font-weight:900!important;
+          text-decoration:none!important;
+          box-shadow:0 10px 24px rgba(215,184,90,.25)!important;
+        }
+
+        .alsaab-smart-text-link{
+          color:#f0cc68!important;
+          text-decoration:underline!important;
+          word-break:break-word!important;
+        }
+
         @media(max-width:720px){
           #alsaabSmartChatOverlay{padding:0;}
           .alsaab-smart-shell{width:100vw;height:100vh;}
@@ -653,7 +724,7 @@ SMART_LINK_JS = r"""
         .then(function (r) { return r.json(); })
         .then(function (data) {
           var reply = data.reply || data.response || data.message || "تم استلام رسالتك.";
-          typing.innerHTML = String(reply).replace(/\n/g, "<br>");
+          typing.innerHTML = renderSmartText(reply);
           messages.scrollTop = messages.scrollHeight;
         })
         .catch(function () {
