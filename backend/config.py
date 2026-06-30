@@ -766,6 +766,20 @@ STRIPE_PLAN_CONFIG = {
 
 PACKAGE_ORDER = ["entry", "starter", "growth", "elite", "diamond"]
 
+
+# ALSAAB_FIX_ENTRY_PAYMENT_OPTION_99_V1
+try:
+    PACKAGE_PAYMENT_OPTIONS["entry"] = {
+        "plan_name": "entry",
+        "payment_link": PAYMENT_LINKS["entry"],
+        "internal_payment_route": PAYMENT_ROUTE_LINKS["entry"],
+        "monthly_reply_limit": PACKAGES["entry"]["monthly_reply_limit"],
+        "package_amount": "99 AED",
+        "subscription_type": "monthly",
+    }
+except Exception:
+    pass
+
 # ===== ALSAAB_PACKAGES_2026_PRICE_RESET_V1 END =====
 
 
