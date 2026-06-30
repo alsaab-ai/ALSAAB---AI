@@ -165,6 +165,51 @@ def detect_safe_alsaab_opportunity_payment_plan(message):
 
 
 def build_safe_alsaab_opportunity_payment_reply(plan_name, session_id, source_partner_id=""):
+    # ALSAAB_SAFE_PAYMENT_FUNCTION_HARD_GUARD_V1
+    try:
+        payload = request.get_json(silent=True) or {}
+    except Exception:
+        payload = {}
+
+    incoming_msg = str(payload.get("message") or "").lower()
+
+    _payment_words = [
+        "pay", "payment", "checkout", "subscribe",
+        "\u062f\u0641\u0639",
+        "\u0627\u062f\u0641\u0639",
+        "\u0623\u062f\u0641\u0639",
+        "\u0631\u0627\u0628\u0637 \u0627\u0644\u062f\u0641\u0639",
+        "\u0631\u0627\u0628\u0637 \u062f\u0641\u0639",
+        "\u0627\u0634\u062a\u0631\u0643",
+        "\u0627\u0634\u062a\u0631\u0627\u0643",
+    ]
+
+    _plan_aliases = [
+        ("diamond", ["diamond", "2399", "\u0627\u0644\u0645\u0627\u0633\u064a\u0629", "\u0645\u0627\u0633\u064a\u0629"]),
+        ("elite", ["elite", "1199", "\u0627\u0644\u0646\u062e\u0628\u0629", "\u0646\u062e\u0628\u0629"]),
+        ("growth", ["growth", "599", "\u0627\u0644\u0646\u0645\u0648", "\u0646\u0645\u0648"]),
+        ("starter", ["starter", "299", "\u0627\u0644\u0628\u062f\u0627\u064a\u0629", "\u0628\u062f\u0627\u064a\u0629"]),
+        ("entry", ["entry", "99", "\u0627\u0644\u062f\u062e\u0648\u0644", "\u062f\u062e\u0648\u0644"]),
+    ]
+
+    _has_payment = any(w in incoming_msg for w in _payment_words)
+    _requested_plan = None
+
+    for _plan, _aliases in _plan_aliases:
+        if any(_alias.lower() in incoming_msg for _alias in _aliases):
+            _requested_plan = _plan
+            break
+
+    if not (_has_payment and _requested_plan):
+        return (
+            "\u0647\u0644\u0627 \u0648\u0633\u0647\u0644\u0627.\n"
+            "\u0623\u0646\u0627 \u0645\u0648\u0638\u0641 \u0645\u0628\u064a\u0639\u0627\u062a \u0630\u0643\u064a \u0623\u0633\u0627\u0639\u062f\u0643 \u062a\u0641\u0647\u0645 \u0627\u0644\u062e\u062f\u0645\u0629 \u0648\u062a\u062e\u062a\u0627\u0631 \u0627\u0644\u0623\u0646\u0633\u0628.\n\n"
+            "\u0645\u0627 \u0628\u0637\u0631\u0634 \u0644\u0643 \u0631\u0627\u0628\u0637 \u062f\u0641\u0639 \u0625\u0644\u0627 \u0625\u0630\u0627 \u0637\u0644\u0628\u062a \u0627\u0644\u062f\u0641\u0639 \u0648\u062d\u062f\u062f\u062a \u0627\u0644\u0628\u0627\u0642\u0629 \u0628\u0648\u0636\u0648\u062d.\n"
+            "\u0634\u0648 \u062d\u0627\u0628 \u062a\u0639\u0631\u0641 \u0628\u0627\u0644\u0636\u0628\u0637\u061f"
+        )
+
+    plan_name = _requested_plan
+    # ALSAAB_SAFE_PAYMENT_FUNCTION_HARD_GUARD_V1_END
     plan_name = str(plan_name or "").lower().strip()
 
     if plan_name not in STRIPE_PLAN_CONFIG:
