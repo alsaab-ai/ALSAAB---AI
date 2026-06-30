@@ -2654,6 +2654,82 @@ def alsaab_guard_auto_payment_links(reply, user_message):
     )
 
 
+
+# ALSAAB_AFTER_RESPONSE_PAYMENT_FIREWALL_V1
+@app.after_request
+def alsaab_after_response_payment_firewall_v1(response):
+    try:
+        if request.path != "/chat":
+            return response
+
+        if response.status_code >= 400:
+            return response
+
+        data = response.get_json(silent=True)
+        if not isinstance(data, dict):
+            return response
+
+        reply = str(data.get("reply") or "")
+        if not reply:
+            return response
+
+        import re
+        has_pay_link = bool(re.search(
+            r"https?://\S*(?:/pay/(?:entry|starter|growth|elite|diamond)|buy\.stripe\.com)\S*|/pay/(?:entry|starter|growth|elite|diamond)\S*",
+            reply,
+            flags=re.IGNORECASE
+        ))
+
+        if not has_pay_link:
+            return response
+
+        payload = request.get_json(silent=True) or {}
+        message = str(payload.get("message") or "").lower()
+
+        payment_words = [
+            "pay", "payment", "checkout", "subscribe",
+            "\u062f\u0641\u0639",
+            "\u0627\u062f\u0641\u0639",
+            "\u0623\u062f\u0641\u0639",
+            "\u0631\u0627\u0628\u0637 \u0627\u0644\u062f\u0641\u0639",
+            "\u0631\u0627\u0628\u0637 \u062f\u0641\u0639",
+            "\u0627\u0634\u062a\u0631\u0643",
+            "\u0627\u0634\u062a\u0631\u0627\u0643",
+        ]
+
+        plan_words = [
+            "entry", "starter", "growth", "elite", "diamond",
+            "99", "299", "599", "1199", "2399",
+            "\u0627\u0644\u062f\u062e\u0648\u0644", "\u062f\u062e\u0648\u0644",
+            "\u0627\u0644\u0628\u062f\u0627\u064a\u0629", "\u0628\u062f\u0627\u064a\u0629",
+            "\u0627\u0644\u0646\u0645\u0648", "\u0646\u0645\u0648",
+            "\u0627\u0644\u0646\u062e\u0628\u0629", "\u0646\u062e\u0628\u0629",
+            "\u0627\u0644\u0645\u0627\u0633\u064a\u0629", "\u0645\u0627\u0633\u064a\u0629",
+        ]
+
+        allowed = any(w in message for w in payment_words) and any(w in message for w in plan_words)
+
+        if allowed:
+            data["reply"] = reply.replace("http://alsaab-ai.onrender.com", "https://alsaab-ai.onrender.com")
+        else:
+            data["reply"] = (
+                "\u0647\u0644\u0627 \u0648\u0633\u0647\u0644\u0627 \ud83d\udc4b\n"
+                "\u0623\u0646\u0627 \u0645\u0648\u0638\u0641 \u0645\u0628\u064a\u0639\u0627\u062a \u0630\u0643\u064a \u0623\u0633\u0627\u0639\u062f\u0643 \u062a\u0641\u0647\u0645 \u0627\u0644\u062e\u062f\u0645\u0629 \u0648\u062a\u062e\u062a\u0627\u0631 \u0627\u0644\u0623\u0646\u0633\u0628.\n\n"
+                "\u0645\u0627 \u0628\u0637\u0631\u0634 \u0644\u0643 \u0631\u0627\u0628\u0637 \u062f\u0641\u0639 \u0625\u0644\u0627 \u0625\u0630\u0627 \u0637\u0644\u0628\u062a \u0627\u0644\u062f\u0641\u0639 \u0648\u062d\u062f\u062f\u062a \u0627\u0644\u0628\u0627\u0642\u0629 \u0628\u0648\u0636\u0648\u062d.\n"
+                "\u0634\u0648 \u062d\u0627\u0628 \u062a\u0639\u0631\u0641 \u0628\u0627\u0644\u0636\u0628\u0637\u061f"
+            )
+
+        import json
+        response.set_data(json.dumps(data, ensure_ascii=False))
+        response.headers["Content-Type"] = "application/json; charset=utf-8"
+        response.headers["Content-Length"] = str(len(response.get_data()))
+        return response
+
+    except Exception as e:
+        print(f"ALSAAB_AFTER_RESPONSE_PAYMENT_FIREWALL_ERROR: {e}", flush=True)
+        return response
+
+
 @app.route("/chat", methods=["POST"])
 def chat():
     print("MAIN CHAT ROUTE HIT ✅", flush=True)
