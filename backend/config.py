@@ -769,7 +769,7 @@ PACKAGE_ORDER = ["entry", "starter", "growth", "elite", "diamond"]
 
 # ALSAAB_FIX_ENTRY_PAYMENT_OPTION_99_V1
 try:
-    PACKAGE_PAYMENT_OPTIONS["entry"] = {
+    globals().setdefault("PACKAGE_PAYMENT_OPTIONS", {})["entry"] = {
         "plan_name": "entry",
         "payment_link": PAYMENT_LINKS["entry"],
         "internal_payment_route": PAYMENT_ROUTE_LINKS["entry"],
