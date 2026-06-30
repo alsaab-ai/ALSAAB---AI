@@ -2787,6 +2787,66 @@ def alsaab_after_response_payment_firewall_v2(response):
         return response
 
 
+
+# ALSAAB_CHAT_PAYMENT_GATE_V5_START
+def alsaab_chat_explicit_payment_plan_v5(message):
+    msg = str(message or "").lower()
+
+    payment_words = [
+        "pay", "payment", "checkout", "subscribe",
+        "\u062f\u0641\u0639",
+        "\u0627\u062f\u0641\u0639",
+        "\u0623\u062f\u0641\u0639",
+        "\u0628\u062f\u0641\u0639",
+        "\u0627\u0634\u062a\u0631\u0643",
+        "\u0628\u0634\u062a\u0631\u0643",
+        "\u0631\u0627\u0628\u0637 \u0627\u0644\u062f\u0641\u0639",
+        "\u0631\u0627\u0628\u0637 \u062f\u0641\u0639",
+    ]
+
+    plan_aliases = [
+        ("diamond", ["diamond", "2399", "\u0627\u0644\u0645\u0627\u0633\u064a\u0629", "\u0645\u0627\u0633\u064a\u0629"]),
+        ("elite", ["elite", "1199", "\u0627\u0644\u0646\u062e\u0628\u0629", "\u0646\u062e\u0628\u0629"]),
+        ("growth", ["growth", "599", "\u0627\u0644\u0646\u0645\u0648", "\u0646\u0645\u0648"]),
+        ("starter", ["starter", "299", "\u0627\u0644\u0628\u062f\u0627\u064a\u0629", "\u0628\u062f\u0627\u064a\u0629"]),
+        ("entry", ["entry", "99", "\u0627\u0644\u062f\u062e\u0648\u0644", "\u062f\u062e\u0648\u0644"]),
+    ]
+
+    if not any(w in msg for w in payment_words):
+        return None
+
+    for plan, aliases in plan_aliases:
+        if any(alias.lower() in msg for alias in aliases):
+            return plan
+
+    return None
+
+
+def alsaab_chat_strip_unwanted_payment_links_v5(reply, message):
+    import re
+
+    reply_text = str(reply or "")
+
+    has_pay_link = bool(re.search(
+        r"https?://\S*(?:/pay/(?:entry|starter|growth|elite|diamond)|buy\.stripe\.com)\S*|/pay/(?:entry|starter|growth|elite|diamond)\S*",
+        reply_text,
+        flags=re.IGNORECASE
+    ))
+
+    if not has_pay_link:
+        return reply_text
+
+    if alsaab_chat_explicit_payment_plan_v5(message):
+        return reply_text.replace("http://alsaab-ai.onrender.com", "https://alsaab-ai.onrender.com")
+
+    return (
+        "\u0647\u0644\u0627 \u0648\u0633\u0647\u0644\u0627.\n"
+        "\u0623\u0646\u0627 \u0645\u0648\u0638\u0641 \u0645\u0628\u064a\u0639\u0627\u062a \u0630\u0643\u064a \u0623\u0633\u0627\u0639\u062f\u0643 \u062a\u0641\u0647\u0645 \u0627\u0644\u062e\u062f\u0645\u0629 \u0648\u062a\u062e\u062a\u0627\u0631 \u0627\u0644\u0623\u0646\u0633\u0628.\n\n"
+        "\u0645\u0627 \u0628\u0637\u0631\u0634 \u0644\u0643 \u0631\u0627\u0628\u0637 \u062f\u0641\u0639 \u0625\u0644\u0627 \u0625\u0630\u0627 \u0637\u0644\u0628\u062a \u0627\u0644\u062f\u0641\u0639 \u0648\u062d\u062f\u062f\u062a \u0627\u0644\u0628\u0627\u0642\u0629 \u0628\u0648\u0636\u0648\u062d.\n"
+        "\u0634\u0648 \u062d\u0627\u0628 \u062a\u0639\u0631\u0641 \u0628\u0627\u0644\u0636\u0628\u0637\u061f"
+    )
+# ALSAAB_CHAT_PAYMENT_GATE_V5_END
+
 @app.route("/chat", methods=["POST"])
 def chat():
     print("MAIN CHAT ROUTE HIT ✅", flush=True)
@@ -2854,7 +2914,7 @@ def chat():
         save_message(session_id, "user", message)
         print("MAIN USER MESSAGE SAVED ✅", flush=True)
 
-        safe_alsaab_payment_plan = alsaab_exact_payment_request_plan_v3(message)
+        safe_alsaab_payment_plan = alsaab_chat_explicit_payment_plan_v5(message)
         if safe_alsaab_payment_plan:
             safe_alsaab_payment_reply = build_safe_alsaab_opportunity_payment_reply(
                 safe_alsaab_payment_plan,
@@ -2863,6 +2923,7 @@ def chat():
             )
 
             if safe_alsaab_payment_reply:
+                safe_alsaab_payment_reply = alsaab_chat_strip_unwanted_payment_links_v5(safe_alsaab_payment_reply, message)
                 save_message(session_id, "bot", safe_alsaab_payment_reply)
                 print(
                     f"SAFE ALSAAB OPPORTUNITY PAYMENT LINK REPLY OK session_id={session_id} plan={safe_alsaab_payment_plan} source_partner_id={source_partner_id}",
@@ -2870,7 +2931,7 @@ def chat():
                 )
 
                 return jsonify({
-                    "reply": safe_alsaab_payment_reply,
+                    "reply": alsaab_chat_strip_unwanted_payment_links_v5(safe_alsaab_payment_reply, message),
                     "session_id": session_id,
                     "source_partner_id": source_partner_id,
                     "safe_alsaab_opportunity_payment": {
@@ -2943,6 +3004,8 @@ def chat():
         reply = alsaab_guard_auto_payment_links(reply, message)
         print(f"MAIN THINK REPLY AFTER PAYMENT GUARD ✅ {reply}", flush=True)
 
+        reply = alsaab_chat_strip_unwanted_payment_links_v5(reply, message)
+
         save_message(session_id, "bot", reply)
         print("MAIN BOT MESSAGE SAVED ✅", flush=True)
 
@@ -2951,7 +3014,7 @@ def chat():
             print("BOT REPLY USAGE RECORDED ✅", flush=True)
 
         return jsonify({
-            "reply": reply,
+            "reply": alsaab_chat_strip_unwanted_payment_links_v5(reply, message),
             "session_id": session_id,
             "source_partner_id": source_partner_id
         })
