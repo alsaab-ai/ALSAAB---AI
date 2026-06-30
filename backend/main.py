@@ -192,6 +192,58 @@ def build_safe_alsaab_opportunity_payment_reply(plan_name, session_id, source_pa
     )
 # ===== SAFE ALSAAB OPPORTUNITY PAYMENT GATE V1 END =====
 
+
+# ALSAAB_NO_AUTO_PAY_LINK_GUARD_V1
+def alsaab_user_explicitly_requested_payment_with_plan(message):
+    msg = str(message or "").lower()
+
+    payment_words = [
+        "رابط الدفع", "ادفع", "أدفع", "دفع", "الدفع", "اشترك", "اشتراك",
+        "باخذ", "بآخذ", "أخذ", "اخذ", "ارسل الرابط", "طرش الرابط",
+        "payment", "pay", "checkout", "subscribe"
+    ]
+
+    plan_words = [
+        "entry", "starter", "growth", "elite", "diamond",
+        "الدخول", "البداية", "النمو", "النخبة", "الماسية",
+        "99", "299", "599", "1199", "2399"
+    ]
+
+    has_payment = any(w.lower() in msg for w in payment_words)
+    has_plan = any(w.lower() in msg for w in plan_words)
+
+    return bool(has_payment and has_plan)
+
+
+def alsaab_guard_auto_payment_links(reply, user_message):
+    import re
+
+    reply_text = str(reply or "")
+
+    has_alsaab_pay_link = re.search(
+        r"https?://[^\s<>'\"]*/pay/(entry|starter|growth|elite|diamond)[^\s<>'\"]*",
+        reply_text,
+        flags=re.IGNORECASE
+    )
+
+    if not has_alsaab_pay_link:
+        return reply_text
+
+    if alsaab_user_explicitly_requested_payment_with_plan(user_message):
+        return reply_text
+
+    return (
+        "أكيد أقدر أرسل لك رابط الدفع، بس قبلها لازم تختار الباقة المناسبة عشان ما أرسل لك رابط غلط.\n\n"
+        "الباقات المتوفرة:\n"
+        "• باقة الدخول Entry — 99 درهم شهرياً\n"
+        "• باقة البداية Starter — 299 درهم شهرياً\n"
+        "• باقة النمو Growth — 599 درهم شهرياً\n"
+        "• باقة النخبة Elite — 1199 درهم شهرياً\n"
+        "• الباقة الماسية Diamond — 2399 درهم شهرياً\n\n"
+        "أي باقة تريد؟"
+    )
+
+
 def normalize_source_partner_id(value):
     value = str(value or "").strip()
 
@@ -2578,6 +2630,9 @@ def chat():
                 raise
 
         print(f"MAIN THINK REPLY ✅ {reply}", flush=True)
+
+        reply = alsaab_guard_auto_payment_links(reply, message)
+        print(f"MAIN THINK REPLY AFTER PAYMENT GUARD ✅ {reply}", flush=True)
 
         save_message(session_id, "bot", reply)
         print("MAIN BOT MESSAGE SAVED ✅", flush=True)
