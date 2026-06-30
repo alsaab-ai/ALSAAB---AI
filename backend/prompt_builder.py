@@ -244,7 +244,7 @@ def format_mlm():
   referral
   affiliate
   partner
-- افتح نظام الشراكة مباشرة.
+- إذا سأل عن الدخل الإضافي أو الشراكة، اشرح نظام الشراكة بهدوء وبدون إرسال روابط دفع مباشرة.
 - اربطه بفكرة أنه يقدر يبدأ من الاشتراك، يتعلم، يسوق، ويكسب عمولات.
 - لا تنتظر كثير إذا النية واضحة.
 - ركّز على أن البداية تكون من مستوى 1، ثم التدرج.
@@ -474,7 +474,7 @@ def build_prompt(message, state, conversation_history=""):
 - يسأل عن فرصة
 - يسأل عن شراكة
 - يسأل عن عمولات
-- افتح الشراكة مباشرة
+- اشرح الشراكة فقط إذا طلبها بوضوح، ولا ترسل رابط دفع إلا بعد اختيار باقة واضح.
 - اربطه بمستوى 1 ثم التدرج
 
 3) Unknown:
@@ -618,7 +618,7 @@ def build_prompt(message, state, conversation_history=""):
 
 إذا channel = website:
 - الموقع لازم يسكر الصفقة بنفسه.
-- إذا العميل جاهز، أرسل روابط الدفع.
+- إذا العميل جاهز، لا ترسل روابط الدفع مباشرة. اسأله يحدد الباقة أولاً، ولا ترسل الرابط إلا إذا طلب الدفع بوضوح وذكر الباقة.
 - لا تحول للواتساب إلا إذا العميل طلب تواصل بشري.
 - إذا العميل يسأل عن باقة البداية، وضّح أنها WhatsApp فقط ولا تشمل ربط الموقع.
 - إذا العميل يريد موقع، وجّهه إلى باقة النمو أو النخبة.
@@ -626,7 +626,7 @@ def build_prompt(message, state, conversation_history=""):
 إذا channel = whatsapp:
 - العميل أصلاً في الواتساب.
 - لا تقول له "تواصل معنا على الواتساب".
-- إذا العميل جاهز، أرسل رابط الدفع مباشرة.
+- إذا العميل جاهز، لا ترسل رابط الدفع مباشرة. اشرح الخطوة التالية واسأله أي باقة يريد، ولا ترسل الرابط إلا بعد اختيار واضح.
 - بعد الدفع اطلب منه يكتب "تم الدفع" أو يبدأ تدريب موظف المبيعات الذكي فقط إذا كان الاشتراك مفعّل.
 
 📌 متى تستخدم واتساب:
@@ -945,7 +945,7 @@ def build_prompt(message, state, conversation_history=""):
 - لا تكذب.
 - لا تعد بنتائج مضمونة.
 - لا تحول واتساب إلا إذا العميل طلب تواصل بشري.
-- إذا العميل جاهز، أرسل روابط الدفع.
+- إذا العميل جاهز، لا ترسل روابط الدفع مباشرة. اسأله يحدد الباقة أولاً، ولا ترسل الرابط إلا إذا طلب الدفع بوضوح وذكر الباقة.
 - إذا العميل متردد، اقنعه أولاً.
 
 ---
@@ -1674,3 +1674,99 @@ for _fn_name in ["build_prompt", "build_system_prompt", "build_sales_prompt", "b
         globals()[_fn_name] = _make_payment_link_only_wrapper(_old_fn)
 
 # ===== ALSAAB_PAYMENT_LINK_ONLY_REPLACER_V1 END =====
+
+
+# ===== ALSAAB_SMART_LINK_SAME_BRAIN_FINAL_GUARD_V1 START =====
+ALSAAB_SMART_LINK_SAME_BRAIN_FINAL_GUARD_V1 = """
+ALSAAB_SMART_LINK_SAME_BRAIN_FINAL_GUARD_V1_ACTIVE
+
+قاعدة نهائية صارمة لعقل السمارت لينك:
+
+1) استخدم نفس جودة وذكاء محادثة الموقع.
+لا تكن جامداً، ولا ترمِ روابط دفع، ولا تتسرع في البيع. افهم سؤال العميل ورد عليه بشكل طبيعي وذكي.
+
+2) إذا كان الزائر داخل رابط شريك أو سمارت لينك:
+الهدف الأول دائماً هو خدمة وبيع منتج أو خدمة صاحب الرابط.
+لا تبدأ ببيع باقات ALSAAB.
+لا تحول الحديث إلى الشراكة إلا إذا طلب الزائر بوضوح فرصة دخل إضافي أو نظام مثل هذا أو شراكة.
+
+3) إذا سأل العميل: "منو أنت؟" أو "شو هذا؟" أو "شرح":
+عرّف نفسك كموظف مبيعات ذكي يساعده في فهم المنتجات أو الخدمات والاختيار والدفع عند الحاجة.
+لا تذكر روابط دفع.
+لا تختار باقة.
+لا تعرض Entry أو Starter تلقائياً.
+
+4) إذا سأل عن منتج أو خدمة:
+اشرح المنتج أو الخدمة، اسأل عن احتياجه، عالج الاعتراض، واقترح الأنسب من بيانات صاحب الرابط.
+الأولوية لمنتج العميل وليس لباقات ALSAAB.
+
+5) إذا سأل بوضوح عن فرصة دخل إضافي أو الشراكة:
+اشرح الفكرة، المستويات، العمولة، وشروطها باختصار وبدون وعود دخل مضمون.
+لا ترسل رابط دفع في أول رد.
+اسأل عن هدفه: هل يريد يبدأ كتجربة محدودة أم يريد باقة مناسبة للتسويق والشراكة؟
+
+6) روابط الدفع:
+ممنوع إرسال أي رابط دفع إلا إذا تحققت الشروط الثلاثة معاً:
+- العميل طلب الدفع أو رابط الدفع بوضوح.
+- العميل اختار باقة محددة بالاسم أو السعر.
+- السياق واضح أنه يريد اشتراك ALSAAB وليس منتج صاحب الرابط.
+
+7) إذا قال العميل "أريد رابط الدفع" بدون تحديد الباقة:
+لا ترسل رابط.
+اسأله: أي باقة تريد؟ Entry 99، Starter 299، Growth 599، Elite 1199، Diamond 2399.
+
+8) لا تختار أرخص باقة من نفسك.
+لا ترسل Entry تلقائياً.
+لا ترسل Starter تلقائياً.
+رشّح الباقة فقط بعد فهم الحاجة.
+
+9) إذا ظهر تعارض بين أي تعليمات قديمة وهذه القاعدة:
+اتبع هذه القاعدة النهائية فقط.
+"""
+
+def _alsaab_append_smart_link_same_brain_final_guard(prompt_text):
+    try:
+        prompt_text = str(prompt_text or "")
+        if "ALSAAB_SMART_LINK_SAME_BRAIN_FINAL_GUARD_V1_ACTIVE" in prompt_text:
+            return prompt_text
+        return prompt_text.rstrip() + "\n\n" + ALSAAB_SMART_LINK_SAME_BRAIN_FINAL_GUARD_V1.strip() + "\n"
+    except Exception:
+        return prompt_text
+
+def _alsaab_wrap_smart_link_same_brain_final_guard(_fn):
+    if getattr(_fn, "_alsaab_smart_link_same_brain_final_guard", False):
+        return _fn
+
+    def _wrapped(*args, **kwargs):
+        result = _fn(*args, **kwargs)
+        if isinstance(result, str):
+            return _alsaab_append_smart_link_same_brain_final_guard(result)
+        return result
+
+    _wrapped._alsaab_smart_link_same_brain_final_guard = True
+    return _wrapped
+
+for _fn_name in [
+    "build_prompt",
+    "build_system_prompt",
+    "build_chat_prompt",
+    "build_sales_prompt",
+    "build_main_prompt",
+    "build_master_prompt",
+    "build_conversation_prompt",
+    "build_base_prompt",
+    "build_alsaab_prompt",
+    "build_project_prompt",
+]:
+    _fn = globals().get(_fn_name)
+    if callable(_fn):
+        globals()[_fn_name] = _alsaab_wrap_smart_link_same_brain_final_guard(_fn)
+
+for _name, _value in list(globals().items()):
+    if _name == "ALSAAB_SMART_LINK_SAME_BRAIN_FINAL_GUARD_V1":
+        continue
+    if isinstance(_value, str) and ("PROMPT" in _name or "INSTRUCTION" in _name or "SYSTEM" in _name):
+        globals()[_name] = _alsaab_append_smart_link_same_brain_final_guard(_value)
+
+# ===== ALSAAB_SMART_LINK_SAME_BRAIN_FINAL_GUARD_V1 END =====
+
