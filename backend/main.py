@@ -2836,7 +2836,7 @@ def alsaab_chat_strip_unwanted_payment_links_v5(reply, payment_decision_message)
     if not has_pay_link:
         return reply_text
 
-    if alsaab_chat_explicit_payment_plan_v5(message):
+    if alsaab_chat_explicit_payment_plan_v5(payment_decision_message):
         return reply_text.replace("http://alsaab-ai.onrender.com", "https://alsaab-ai.onrender.com")
 
     return (
