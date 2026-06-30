@@ -171,7 +171,7 @@ def build_safe_alsaab_opportunity_payment_reply(plan_name, session_id, source_pa
     except Exception:
         payload = {}
 
-    incoming_msg = str(payload.get("message") or "").lower()
+    incoming_msg = str((payload.get("original_user_message") or payload.get("message") or "")).lower()
 
     _payment_words = [
         "pay", "payment", "checkout", "subscribe",
@@ -2741,7 +2741,7 @@ def alsaab_after_response_payment_firewall_v2(response):
         except Exception:
             payload = {}
 
-        message = str(payload.get("message") or "").lower()
+        message = str((payload.get("original_user_message") or payload.get("message") or "")).lower()
 
         payment_words = [
             "pay", "payment", "checkout", "subscribe",
@@ -2822,7 +2822,7 @@ def alsaab_chat_explicit_payment_plan_v5(message):
     return None
 
 
-def alsaab_chat_strip_unwanted_payment_links_v5(reply, message):
+def alsaab_chat_strip_unwanted_payment_links_v5(reply, payment_decision_message):
     import re
 
     reply_text = str(reply or "")
@@ -2855,6 +2855,8 @@ def chat():
     print(f"MAIN REQUEST DATA ✅ {data}", flush=True)
 
     message = data.get("message", "").strip()
+    payment_decision_message = (data.get("original_user_message") or message or "").strip()
+    print(f"PAYMENT DECISION MESSAGE ✅ {payment_decision_message}", flush=True)
     session_id = data.get("session_id")
     def extract_source_partner_id_from_payload(payload):
         candidates = [
@@ -2914,7 +2916,7 @@ def chat():
         save_message(session_id, "user", message)
         print("MAIN USER MESSAGE SAVED ✅", flush=True)
 
-        safe_alsaab_payment_plan = alsaab_chat_explicit_payment_plan_v5(message)
+        safe_alsaab_payment_plan = alsaab_chat_explicit_payment_plan_v5(payment_decision_message)
         if safe_alsaab_payment_plan:
             safe_alsaab_payment_reply = build_safe_alsaab_opportunity_payment_reply(
                 safe_alsaab_payment_plan,
@@ -2923,7 +2925,7 @@ def chat():
             )
 
             if safe_alsaab_payment_reply:
-                safe_alsaab_payment_reply = alsaab_chat_strip_unwanted_payment_links_v5(safe_alsaab_payment_reply, message)
+                safe_alsaab_payment_reply = alsaab_chat_strip_unwanted_payment_links_v5(safe_alsaab_payment_reply, payment_decision_message)
                 save_message(session_id, "bot", safe_alsaab_payment_reply)
                 print(
                     f"SAFE ALSAAB OPPORTUNITY PAYMENT LINK REPLY OK session_id={session_id} plan={safe_alsaab_payment_plan} source_partner_id={source_partner_id}",
@@ -2931,7 +2933,7 @@ def chat():
                 )
 
                 return jsonify({
-                    "reply": alsaab_chat_strip_unwanted_payment_links_v5(safe_alsaab_payment_reply, message),
+                    "reply": alsaab_chat_strip_unwanted_payment_links_v5(safe_alsaab_payment_reply, payment_decision_message),
                     "session_id": session_id,
                     "source_partner_id": source_partner_id,
                     "safe_alsaab_opportunity_payment": {
@@ -3004,7 +3006,7 @@ def chat():
         reply = alsaab_guard_auto_payment_links(reply, message)
         print(f"MAIN THINK REPLY AFTER PAYMENT GUARD ✅ {reply}", flush=True)
 
-        reply = alsaab_chat_strip_unwanted_payment_links_v5(reply, message)
+        reply = alsaab_chat_strip_unwanted_payment_links_v5(reply, payment_decision_message)
 
         save_message(session_id, "bot", reply)
         print("MAIN BOT MESSAGE SAVED ✅", flush=True)
@@ -3014,7 +3016,7 @@ def chat():
             print("BOT REPLY USAGE RECORDED ✅", flush=True)
 
         return jsonify({
-            "reply": alsaab_chat_strip_unwanted_payment_links_v5(reply, message),
+            "reply": alsaab_chat_strip_unwanted_payment_links_v5(reply, payment_decision_message),
             "session_id": session_id,
             "source_partner_id": source_partner_id
         })
