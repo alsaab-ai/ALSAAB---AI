@@ -181,7 +181,7 @@ def build_safe_alsaab_opportunity_payment_reply(plan_name, session_id, source_pa
         params["ref"] = source_partner_id
         params["source_partner_id"] = source_partner_id
 
-    pay_url = f"{request.host_url.rstrip('/')}/pay/{plan_name}?{urlencode(params)}"
+    pay_url = f"{globals().get('APP_BASE_URL', 'https://alsaab-ai.onrender.com').rstrip('/')}/pay/{plan_name}?{urlencode(params)}"
     plan_label = SAFE_ALSAAB_PLAN_LABELS.get(plan_name, plan_name)
 
     return (
@@ -1481,21 +1481,37 @@ function sanitizeBotText(text) {
 }
 
 function linkify(text) {
-    let safeText = escapeHtml(text);
+    const raw = String(text || "");
+
+    const paymentPattern = /(https?:\/\/[^\s<>"']*(?:\/pay\/(?:entry|starter|growth|elite|diamond)|buy\.stripe\.com)[^\s<>"']*)/i;
+    const paymentMatch = raw.match(paymentPattern);
+
+    if (paymentMatch) {
+        let url = paymentMatch[1].replace(/[،,.؛:!?)]$/, "");
+        let href = url.replace(/^http:\/\/alsaab-ai\.onrender\.com/i, "https://alsaab-ai.onrender.com");
+
+        const before = raw.slice(0, raw.indexOf(paymentMatch[1]));
+        const after = raw.slice(raw.indexOf(paymentMatch[1]) + paymentMatch[1].length);
+
+        return escapeHtml(before).replace(/\n/g, "<br>") +
+            '<div style="margin:14px 0;text-align:center;">' +
+            '<a href="' + escapeHtml(href) + '" target="_self" rel="noopener noreferrer" ' +
+            'style="display:inline-flex;align-items:center;justify-content:center;width:88%;max-width:320px;padding:15px 18px;border-radius:18px;background:linear-gradient(135deg,#f7d774,#c99b2e);color:#111;font-weight:900;text-decoration:none;box-shadow:0 10px 28px rgba(214,168,79,.35);font-size:16px;">' +
+            'اضغط هنا للدفع' +
+            '</a>' +
+            '</div>' +
+            escapeHtml(after).replace(/\n/g, "<br>");
+    }
+
+    let safeText = escapeHtml(raw);
 
     safeText = safeText.replace(
         /(https?:\/\/[^\s<>"']+)/g,
         function(url) {
             let cleanUrl = url.replace(/[،,.؛:!?)]$/, "");
             let tail = url.substring(cleanUrl.length);
-            let rawUrl = cleanUrl.replace(/&amp;/g, "&");
-            let isPaymentLink = rawUrl.indexOf("/pay/") !== -1 || rawUrl.toLowerCase().indexOf("buy.stripe.com") !== -1;
-
-            if (isPaymentLink) {
-                return '<a href="' + cleanUrl + '" target="_self" rel="noopener noreferrer" style="display:inline-flex;align-items:center;justify-content:center;margin:12px auto 6px;padding:14px 22px;border-radius:16px;background:linear-gradient(135deg,#f7d774,#c99b2e);color:#111;font-weight:900;text-decoration:none;box-shadow:0 10px 28px rgba(214,168,79,.28);">اضغط هنا للدفع</a>' + tail;
-            }
-
-            return '<a href="' + cleanUrl + '" target="_blank" rel="noopener noreferrer" style="color:#f7d774;text-decoration:underline;">' + cleanUrl + '</a>' + tail;
+            let href = cleanUrl.replace(/^http:\/\/alsaab-ai\.onrender\.com/i, "https://alsaab-ai.onrender.com");
+            return '<a href="' + escapeHtml(href) + '" target="_blank" rel="noopener noreferrer" style="color:#f7d774;text-decoration:underline;">' + escapeHtml(cleanUrl) + '</a>' + escapeHtml(tail);
         }
     );
 
@@ -1533,13 +1549,15 @@ function scrollToBottom() {
 function addMsg(text, type) {
     const box = document.getElementById("messages");
 
+    const isBot = type !== "user";
+
     const row = document.createElement("div");
-    row.className = "msg-row " + (type === "bot" ? "bot-row" : "user-row");
+    row.className = "msg-row " + (isBot ? "bot-row" : "user-row");
 
     const div = document.createElement("div");
-    div.className = "msg-bubble " + type;
+    div.className = "msg-bubble " + (isBot ? "bot" : "user");
 
-    if (type === "bot") {
+    if (isBot) {
         div.innerHTML = linkify(sanitizeBotText(text)) + '<div class="meta-line">' + currentTime() + '</div>';
     } else {
         div.innerHTML = escapeHtml(text).replace(/\n/g, "<br>") + '<div class="meta-line">' + currentTime() + '</div>';
