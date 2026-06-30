@@ -2910,10 +2910,10 @@ def chat():
         })
 
     usage_session_id = session_id
-    brain_message = message
+    brain_message = payment_decision_message
 
     try:
-        save_message(session_id, "user", message)
+        save_message(session_id, "user", payment_decision_message)
         print("MAIN USER MESSAGE SAVED ✅", flush=True)
 
         safe_alsaab_payment_plan = alsaab_chat_explicit_payment_plan_v5(payment_decision_message)
@@ -2945,7 +2945,7 @@ def chat():
 
         subscription = get_client_subscription(usage_session_id)
 
-        if is_training_command(message) and not is_active_subscription(subscription):
+        if is_training_command(payment_decision_message) and not is_active_subscription(subscription):
             print("TRAINING BLOCKED ❌ no active subscription", flush=True)
 
             save_message(session_id, "bot", TRAINING_LOCKED_REPLY)
@@ -2990,7 +2990,7 @@ def chat():
 
         try:
             reply = think(
-                message,
+                brain_message,
                 session_id,
                 source_partner_id=source_partner_id
             )
@@ -3003,7 +3003,7 @@ def chat():
 
         print(f"MAIN THINK REPLY ✅ {reply}", flush=True)
 
-        reply = alsaab_guard_auto_payment_links(reply, message)
+        reply = alsaab_guard_auto_payment_links(reply, payment_decision_message)
         print(f"MAIN THINK REPLY AFTER PAYMENT GUARD ✅ {reply}", flush=True)
 
         reply = alsaab_chat_strip_unwanted_payment_links_v5(reply, payment_decision_message)
