@@ -2655,17 +2655,26 @@ def alsaab_guard_auto_payment_links(reply, user_message):
 
 
 
-# ALSAAB_AFTER_RESPONSE_PAYMENT_FIREWALL_V1
+
+# ALSAAB_AFTER_RESPONSE_PAYMENT_FIREWALL_V2
 @app.after_request
-def alsaab_after_response_payment_firewall_v1(response):
+def alsaab_after_response_payment_firewall_v2(response):
     try:
         if request.path != "/chat":
             return response
 
-        if response.status_code >= 400:
+        raw = response.get_data(as_text=True) or ""
+        if "/pay/" not in raw and "buy.stripe.com" not in raw:
             return response
 
-        data = response.get_json(silent=True)
+        import json
+        import re
+
+        try:
+            data = json.loads(raw)
+        except Exception:
+            return response
+
         if not isinstance(data, dict):
             return response
 
@@ -2673,7 +2682,6 @@ def alsaab_after_response_payment_firewall_v1(response):
         if not reply:
             return response
 
-        import re
         has_pay_link = bool(re.search(
             r"https?://\S*(?:/pay/(?:entry|starter|growth|elite|diamond)|buy\.stripe\.com)\S*|/pay/(?:entry|starter|growth|elite|diamond)\S*",
             reply,
@@ -2683,7 +2691,11 @@ def alsaab_after_response_payment_firewall_v1(response):
         if not has_pay_link:
             return response
 
-        payload = request.get_json(silent=True) or {}
+        try:
+            payload = request.get_json(silent=True) or {}
+        except Exception:
+            payload = {}
+
         message = str(payload.get("message") or "").lower()
 
         payment_words = [
@@ -2694,7 +2706,7 @@ def alsaab_after_response_payment_firewall_v1(response):
             "\u0631\u0627\u0628\u0637 \u0627\u0644\u062f\u0641\u0639",
             "\u0631\u0627\u0628\u0637 \u062f\u0641\u0639",
             "\u0627\u0634\u062a\u0631\u0643",
-            "\u0627\u0634\u062a\u0631\u0627\u0643",
+            "\u0627\u0634\u062a\u0631\u0627\u0643"
         ]
 
         plan_words = [
@@ -2704,7 +2716,7 @@ def alsaab_after_response_payment_firewall_v1(response):
             "\u0627\u0644\u0628\u062f\u0627\u064a\u0629", "\u0628\u062f\u0627\u064a\u0629",
             "\u0627\u0644\u0646\u0645\u0648", "\u0646\u0645\u0648",
             "\u0627\u0644\u0646\u062e\u0628\u0629", "\u0646\u062e\u0628\u0629",
-            "\u0627\u0644\u0645\u0627\u0633\u064a\u0629", "\u0645\u0627\u0633\u064a\u0629",
+            "\u0627\u0644\u0645\u0627\u0633\u064a\u0629", "\u0645\u0627\u0633\u064a\u0629"
         ]
 
         allowed = any(w in message for w in payment_words) and any(w in message for w in plan_words)
@@ -2713,20 +2725,20 @@ def alsaab_after_response_payment_firewall_v1(response):
             data["reply"] = reply.replace("http://alsaab-ai.onrender.com", "https://alsaab-ai.onrender.com")
         else:
             data["reply"] = (
-                "\u0647\u0644\u0627 \u0648\u0633\u0647\u0644\u0627 \ud83d\udc4b\n"
-                "\u0623\u0646\u0627 \u0645\u0648\u0638\u0641 \u0645\u0628\u064a\u0639\u0627\u062a \u0630\u0643\u064a \u0623\u0633\u0627\u0639\u062f\u0643 \u062a\u0641\u0647\u0645 \u0627\u0644\u062e\u062f\u0645\u0629 \u0648\u062a\u062e\u062a\u0627\u0631 \u0627\u0644\u0623\u0646\u0633\u0628.\n\n"
-                "\u0645\u0627 \u0628\u0637\u0631\u0634 \u0644\u0643 \u0631\u0627\u0628\u0637 \u062f\u0641\u0639 \u0625\u0644\u0627 \u0625\u0630\u0627 \u0637\u0644\u0628\u062a \u0627\u0644\u062f\u0641\u0639 \u0648\u062d\u062f\u062f\u062a \u0627\u0644\u0628\u0627\u0642\u0629 \u0628\u0648\u0636\u0648\u062d.\n"
-                "\u0634\u0648 \u062d\u0627\u0628 \u062a\u0639\u0631\u0641 \u0628\u0627\u0644\u0636\u0628\u0637\u061f"
+                "هلا وسهلا.\n"
+                "أنا موظف مبيعات ذكي أساعدك تفهم الخدمة وتختار الأنسب.\n\n"
+                "ما بطرش لك رابط دفع إلا إذا طلبت الدفع وحددت الباقة بوضوح.\n"
+                "شو حاب تعرف بالضبط؟"
             )
 
-        import json
-        response.set_data(json.dumps(data, ensure_ascii=False))
+        new_raw = json.dumps(data, ensure_ascii=False).encode("utf-8")
+        response.set_data(new_raw)
         response.headers["Content-Type"] = "application/json; charset=utf-8"
-        response.headers["Content-Length"] = str(len(response.get_data()))
+        response.headers["Content-Length"] = str(len(new_raw))
         return response
 
     except Exception as e:
-        print(f"ALSAAB_AFTER_RESPONSE_PAYMENT_FIREWALL_ERROR: {e}", flush=True)
+        print("ALSAAB_AFTER_RESPONSE_PAYMENT_FIREWALL_V2_ERROR=" + str(e), flush=True)
         return response
 
 
