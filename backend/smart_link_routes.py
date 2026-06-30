@@ -1024,7 +1024,7 @@ def register_smart_link_routes(app):
         subscription_status = _first_value(subscription, ["subscription_status", "status"])
 
         context_lines = [
-            "تعليمات داخلية للموظف الذكي، لا تعرضها للزائر كنص منفصل:",
+            "أنت موظف مبيعات ذكي لهذا الرابط. رحّب بالزائر وساعده في اختيار الأنسب والدفع.",
             f"صاحب الرابط / معرف الحساب: {ref}",
             "مصدر الزائر: رابط واتساب ذكي.",
             "",

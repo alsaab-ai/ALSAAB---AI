@@ -1421,16 +1421,29 @@ function escapeHtml(text) {
         .replace(/'/g, "&#039;");
 }
 
+function sanitizeBotText(text) {
+    return String(text || "")
+        .replace(/يا\s*تعليمات\s*داخلية[\s،,.!؟]*/g, "")
+        .replace(/تعليمات\s*داخلية[\s،,.!؟]*/g, "")
+        .replace(/internal\s+instructions/gi, "");
+}
+
 function linkify(text) {
     let safeText = escapeHtml(text);
 
     safeText = safeText.replace(
         /(https?:\/\/[^\s<>"']+)/g,
         function(url) {
-            let cleanUrl = url.replace(/[،,.؛:!?)]$/, "");
+            let cleanUrl = url.replace(/[ØŒ,.Ø›:!?)]$/, "");
             let tail = url.substring(cleanUrl.length);
+            let rawUrl = cleanUrl.replace(/&amp;/g, "&");
+            let isPaymentLink = rawUrl.indexOf("/pay/") !== -1 || rawUrl.toLowerCase().indexOf("checkout") !== -1;
 
-            return '<a href="' + cleanUrl + '" target="_blank" rel="noopener noreferrer">' + cleanUrl + '</a>' + tail;
+            if (isPaymentLink) {
+                return '<a href="' + cleanUrl + '" target="_self" rel="noopener noreferrer" style="display:inline-flex;align-items:center;justify-content:center;margin:12px auto 6px;padding:14px 22px;border-radius:16px;background:linear-gradient(135deg,#f7d774,#c99b2e);color:#111;font-weight:900;text-decoration:none;box-shadow:0 10px 28px rgba(214,168,79,.28);">اضغط هنا للدفع</a>' + tail;
+            }
+
+            return '<a href="' + cleanUrl + '" target="_blank" rel="noopener noreferrer" style="color:#f7d774;text-decoration:underline;">' + cleanUrl + '</a>' + tail;
         }
     );
 
@@ -1475,7 +1488,7 @@ function addMsg(text, type) {
     div.className = "msg-bubble " + type;
 
     if (type === "bot") {
-        div.innerHTML = linkify(text) + '<div class="meta-line">' + currentTime() + '</div>';
+        div.innerHTML = linkify(sanitizeBotText(text)) + '<div class="meta-line">' + currentTime() + '</div>';
     } else {
         div.innerHTML = escapeHtml(text).replace(/\n/g, "<br>") + '<div class="meta-line">' + currentTime() + '</div>';
     }
