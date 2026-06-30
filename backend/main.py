@@ -1486,10 +1486,10 @@ function linkify(text) {
     safeText = safeText.replace(
         /(https?:\/\/[^\s<>"']+)/g,
         function(url) {
-            let cleanUrl = url.replace(/[ØŒ,.Ø›:!?)]$/, "");
+            let cleanUrl = url.replace(/[،,.؛:!?)]$/, "");
             let tail = url.substring(cleanUrl.length);
             let rawUrl = cleanUrl.replace(/&amp;/g, "&");
-            let isPaymentLink = rawUrl.indexOf("/pay/") !== -1 || rawUrl.toLowerCase().indexOf("checkout") !== -1;
+            let isPaymentLink = rawUrl.indexOf("/pay/") !== -1 || rawUrl.toLowerCase().indexOf("buy.stripe.com") !== -1;
 
             if (isPaymentLink) {
                 return '<a href="' + cleanUrl + '" target="_self" rel="noopener noreferrer" style="display:inline-flex;align-items:center;justify-content:center;margin:12px auto 6px;padding:14px 22px;border-radius:16px;background:linear-gradient(135deg,#f7d774,#c99b2e);color:#111;font-weight:900;text-decoration:none;box-shadow:0 10px 28px rgba(214,168,79,.28);">اضغط هنا للدفع</a>' + tail;
@@ -2476,6 +2476,94 @@ def payment_cancel():
     </body>
     </html>
     """)
+
+
+
+# ALSAAB_STRICT_PAYMENT_GUARD_V2
+def _alsaab_detect_explicit_plan_from_user_message(message):
+    msg = str(message or "").lower()
+
+    plan_aliases = [
+        ("diamond", ["diamond", "الماسية", "ماسيه", "2399"]),
+        ("elite", ["elite", "النخبة", "نخبة", "1199"]),
+        ("growth", ["growth", "النمو", "نمو", "599"]),
+        ("starter", ["starter", "البداية", "بداية", "299"]),
+        ("entry", ["entry", "الدخول", "دخول", "99"]),
+    ]
+
+    for plan, aliases in plan_aliases:
+        if any(alias.lower() in msg for alias in aliases):
+            return plan
+
+    return None
+
+
+def detect_safe_alsaab_opportunity_payment_plan(message):
+    msg = str(message or "").lower()
+
+    opportunity_words = [
+        "alsaab", "الصعب", "نظام الصعب", "نفس النظام", "فرصة دخل", "دخل اضافي", "دخل إضافي",
+        "الشراكة", "شراكة", "شريك", "ابي اشترك", "أبي اشترك", "ابغي اشترك", "أبغي اشترك"
+    ]
+
+    payment_words = [
+        "رابط الدفع", "ادفع", "أدفع", "دفع", "الدفع", "اشترك", "اشتراك",
+        "باخذ", "بآخذ", "أخذ", "اخذ", "ارسل الرابط", "طرش الرابط",
+        "payment", "pay", "checkout", "subscribe"
+    ]
+
+    has_opportunity_intent = any(w.lower() in msg for w in opportunity_words)
+    has_payment_intent = any(w.lower() in msg for w in payment_words)
+    plan = _alsaab_detect_explicit_plan_from_user_message(msg)
+
+    if has_opportunity_intent and has_payment_intent and plan:
+        return plan
+
+    return None
+
+
+def alsaab_user_explicitly_requested_payment_with_plan(message):
+    msg = str(message or "").lower()
+
+    payment_words = [
+        "رابط الدفع", "ادفع", "أدفع", "دفع", "الدفع", "اشترك", "اشتراك",
+        "باخذ", "بآخذ", "أخذ", "اخذ", "ارسل الرابط", "طرش الرابط",
+        "payment", "pay", "checkout", "subscribe"
+    ]
+
+    plan = _alsaab_detect_explicit_plan_from_user_message(msg)
+    has_payment = any(w.lower() in msg for w in payment_words)
+
+    return bool(has_payment and plan)
+
+
+def alsaab_guard_auto_payment_links(reply, user_message):
+    import re
+
+    reply_text = str(reply or "")
+
+    has_pay_link = bool(re.search(
+        r"(https?://[^\s<>'\"]+)?/pay/(entry|starter|growth|elite|diamond)\b|buy\.stripe\.com",
+        reply_text,
+        flags=re.IGNORECASE
+    ))
+
+    if not has_pay_link:
+        return reply_text
+
+    if alsaab_user_explicitly_requested_payment_with_plan(user_message):
+        return reply_text
+
+    return (
+        "أقدر أرسل لك رابط الدفع، لكن لازم تحدد الباقة أولاً عشان ما أرسل لك رابط غلط.\n\n"
+        "الباقات المتوفرة:\n"
+        "• Entry — 99 درهم شهرياً\n"
+        "• Starter — 299 درهم شهرياً\n"
+        "• Growth — 599 درهم شهرياً\n"
+        "• Elite — 1199 درهم شهرياً\n"
+        "• Diamond — 2399 درهم شهرياً\n\n"
+        "أي باقة تريد؟"
+    )
 
 
 @app.route("/chat", methods=["POST"])
