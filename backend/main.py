@@ -9686,6 +9686,128 @@ except ImportError:
 
 register_cancellation_routes(app, ADMIN_KEY)
 # ===== ALSAAB CANCELLATION ROUTES REGISTER END =====
+
+
+# ===== ALSAAB_PAYMENT_INTENT_V6 START =====
+# Stronger payment intent detector.
+# Fixes phrases like:
+# - طرش رابط الدفع
+# - ارسل رابط الدفع
+# - ابا رابط الدفع
+# - رابط دخول 99
+# - احتاج رابط باقة الدخول 99 درهم
+# It keeps the safe behavior: only explicit payment/link requests trigger a payment link.
+
+def _alsaab_payment_norm_v6(value):
+    text = str(value or "").strip().lower()
+    replacements = {
+        "أ": "ا",
+        "إ": "ا",
+        "آ": "ا",
+        "ى": "ي",
+        "ة": "ه",
+        "ؤ": "و",
+        "ئ": "ي",
+        "ـ": "",
+        "٩": "9",
+        "٨": "8",
+        "٧": "7",
+        "٦": "6",
+        "٥": "5",
+        "٤": "4",
+        "٣": "3",
+        "٢": "2",
+        "١": "1",
+        "٠": "0",
+    }
+    for a, b in replacements.items():
+        text = text.replace(a, b)
+    text = " ".join(text.split())
+    return text
+
+
+def alsaab_chat_explicit_payment_plan_v5(message):
+    text = _alsaab_payment_norm_v6(message)
+    if not text:
+        return None
+
+    direct_payment_intents = [
+        "رابط الدفع",
+        "رابط دفع",
+        "رابط الباقه",
+        "رابط الاشتراك",
+        "طرش رابط",
+        "طرشلي رابط",
+        "ارسل رابط",
+        "ارسلي رابط",
+        "ارسل الرابط",
+        "طرش الرابط",
+        "ابا رابط",
+        "ابي رابط",
+        "ابغي رابط",
+        "احتاج رابط",
+        "عطني رابط",
+        "اعطني رابط",
+        "ادفع",
+        "الدفع",
+        "ابا ادفع",
+        "ابي ادفع",
+        "ابغي ادفع",
+        "اريد ادفع",
+        "احتاج ادفع",
+        "بغيت ادفع",
+        "اشترك",
+        "اشتراك",
+        "ابا اشترك",
+        "ابي اشترك",
+        "ابغي اشترك",
+    ]
+
+    has_payment_intent = any(x in text for x in direct_payment_intents)
+    if not has_payment_intent:
+        return None
+
+    plan_aliases = [
+        ("diamond", ["diamond", "دايموند", "الماسيه", "ماسيه", "2399", "٢٣٩٩"]),
+        ("elite", ["elite", "ايليت", "النخبه", "نخبه", "1199", "١١٩٩"]),
+        ("growth", ["growth", "النمو", "نمو", "599", "٥٩٩"]),
+        ("starter", ["starter", "ستارتر", "البدايه", "بدايه", "299", "٢٩٩"]),
+        ("entry", ["entry", "انتري", "باقة الدخول", "باقه الدخول", "الدخول", "دخول", "99", "٩٩"]),
+    ]
+
+    for plan, aliases in plan_aliases:
+        if any(alias in text for alias in aliases):
+            return plan
+
+    # If the client explicitly asks for a payment link but does not repeat the plan,
+    # default to Entry instead of blocking the sale.
+    # This matches normal chat behavior after the client asks for the 99 AED package.
+    if any(x in text for x in [
+        "رابط الدفع",
+        "رابط دفع",
+        "طرش رابط",
+        "طرشلي رابط",
+        "ارسل رابط",
+        "ارسلي رابط",
+        "ابا رابط",
+        "ابي رابط",
+        "ابغي رابط",
+        "احتاج رابط",
+        "عطني رابط",
+        "اعطني رابط",
+        "ادفع",
+        "ابا ادفع",
+        "ابي ادفع",
+        "ابغي ادفع",
+        "اريد ادفع",
+        "احتاج ادفع",
+    ]):
+        return "entry"
+
+    return None
+# ===== ALSAAB_PAYMENT_INTENT_V6 END =====
+
+
 # ===== ALSAAB ENTRY PAYMENT ROUTES REGISTER START =====
 try:
     from entry_payment_routes import register_entry_payment_routes
