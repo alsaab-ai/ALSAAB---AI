@@ -2790,34 +2790,98 @@ def alsaab_after_response_payment_firewall_v2(response):
 
 # ALSAAB_CHAT_PAYMENT_GATE_V5_START
 def alsaab_chat_explicit_payment_plan_v5(message):
-    msg = str(message or "").lower()
-
-    payment_words = [
-        "pay", "payment", "checkout", "subscribe",
-        "\u062f\u0641\u0639",
-        "\u0627\u062f\u0641\u0639",
-        "\u0623\u062f\u0641\u0639",
-        "\u0628\u062f\u0641\u0639",
-        "\u0627\u0634\u062a\u0631\u0643",
-        "\u0628\u0634\u062a\u0631\u0643",
-        "\u0631\u0627\u0628\u0637 \u0627\u0644\u062f\u0641\u0639",
-        "\u0631\u0627\u0628\u0637 \u062f\u0641\u0639",
-    ]
-
-    plan_aliases = [
-        ("diamond", ["diamond", "2399", "\u0627\u0644\u0645\u0627\u0633\u064a\u0629", "\u0645\u0627\u0633\u064a\u0629"]),
-        ("elite", ["elite", "1199", "\u0627\u0644\u0646\u062e\u0628\u0629", "\u0646\u062e\u0628\u0629"]),
-        ("growth", ["growth", "599", "\u0627\u0644\u0646\u0645\u0648", "\u0646\u0645\u0648"]),
-        ("starter", ["starter", "299", "\u0627\u0644\u0628\u062f\u0627\u064a\u0629", "\u0628\u062f\u0627\u064a\u0629"]),
-        ("entry", ["entry", "99", "\u0627\u0644\u062f\u062e\u0648\u0644", "\u062f\u062e\u0648\u0644"]),
-    ]
-
-    if not any(w in msg for w in payment_words):
+    text = str(message or "").strip().lower()
+    for a, b in {
+        "أ": "ا",
+        "إ": "ا",
+        "آ": "ا",
+        "ى": "ي",
+        "ة": "ه",
+        "ؤ": "و",
+        "ئ": "ي",
+        "ـ": "",
+        "٩": "9",
+        "٨": "8",
+        "٧": "7",
+        "٦": "6",
+        "٥": "5",
+        "٤": "4",
+        "٣": "3",
+        "٢": "2",
+        "١": "1",
+        "٠": "0",
+    }.items():
+        text = text.replace(a, b)
+    text = " ".join(text.split())
+    if not text:
         return None
 
+    plan_aliases = [
+        ("diamond", ["diamond", "دايموند", "الماسيه", "ماسيه", "2399"]),
+        ("elite", ["elite", "ايليت", "النخبه", "نخبه", "1199"]),
+        ("growth", ["growth", "النمو", "نمو", "599"]),
+        ("starter", ["starter", "ستارتر", "البدايه", "بدايه", "299"]),
+        ("entry", ["entry", "انتري", "باقة الدخول", "باقه الدخول", "الدخول", "دخول", "99"]),
+    ]
+
+    selected_plan = None
     for plan, aliases in plan_aliases:
-        if any(alias.lower() in msg for alias in aliases):
-            return plan
+        if any(alias in text for alias in aliases):
+            selected_plan = plan
+            break
+
+    payment_intents = [
+        "رابط الدفع",
+        "رابط دفع",
+        "رابط الباقه",
+        "رابط باقه",
+        "رابط الاشتراك",
+        "رابط اشتراك",
+        "رابط دخول",
+        "رابط باقة الدخول",
+        "رابط باقه الدخول",
+        "طرش رابط",
+        "طرشلي رابط",
+        "طرش الرابط",
+        "ارسل رابط",
+        "ارسلي رابط",
+        "ارسل الرابط",
+        "ابا رابط",
+        "ابي رابط",
+        "ابغي رابط",
+        "ابغا رابط",
+        "احتاج رابط",
+        "محتاج رابط",
+        "عطني رابط",
+        "اعطني رابط",
+        "ادفع",
+        "الدفع",
+        "ابا ادفع",
+        "ابي ادفع",
+        "ابغي ادفع",
+        "ابغا ادفع",
+        "اريد ادفع",
+        "احتاج ادفع",
+        "محتاج ادفع",
+        "بغيت ادفع",
+        "اشترك",
+        "اشتراك",
+        "ابا اشترك",
+        "ابي اشترك",
+        "ابغي اشترك",
+        "ابغا اشترك",
+    ]
+
+    has_payment_intent = any(x in text for x in payment_intents)
+
+    # If the user clearly mentioned a package with link/payment language, send that package.
+    if selected_plan and ("رابط" in text or "دفع" in text or "ادفع" in text or "اشتراك" in text or "اشترك" in text):
+        return selected_plan
+
+    # If the user asks for payment/link without specifying a package, default to Entry.
+    # This avoids killing the sale with "حدد الباقة" when the user just wants to pay.
+    if has_payment_intent:
+        return selected_plan or "entry"
 
     return None
 
