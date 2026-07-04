@@ -1540,7 +1540,7 @@ function linkify(text) {
 
         return escapeHtml(before).replace(/\n/g, "<br>") +
             '<div style="margin:14px 0;text-align:center;">' +
-            '<a href="' + escapeHtml(href) + '" target="_self" rel="noopener noreferrer" ' +
+            '<a href="' + escapeHtml(href) + '" target="_top" rel="noopener noreferrer" onclick="event.preventDefault();event.stopPropagation();try{window.top.location.href=this.href;}catch(e){window.location.href=this.href;}return false;" ' +
             'style="display:inline-flex;align-items:center;justify-content:center;width:88%;max-width:320px;padding:15px 18px;border-radius:18px;background:linear-gradient(135deg,#f7d774,#c99b2e);color:#111;font-weight:900;text-decoration:none;box-shadow:0 10px 28px rgba(214,168,79,.35);font-size:16px;">' +
             'اضغط هنا للدفع' +
             '</a>' +
