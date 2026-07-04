@@ -2704,6 +2704,8 @@ def alsaab_guard_auto_payment_links(reply, user_message):
 # ALSAAB_AFTER_RESPONSE_PAYMENT_FIREWALL_V2
 @app.after_request
 def alsaab_after_response_payment_firewall_v2(response):
+    # ALSAAB_PAYMENT_FIREWALL_DISABLED_FINAL
+    return response
     try:
         if request.path != "/chat":
             return response
