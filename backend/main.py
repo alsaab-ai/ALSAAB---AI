@@ -2765,11 +2765,23 @@ def alsaab_after_response_payment_firewall_v2(response):
         ]
 
         try:
-            decision_message = (data.get("original_user_message") or message or "")
+            req_payload = request.get_json(silent=True) or {}
+        except Exception:
+            req_payload = {}
+        try:
+            decision_message = (
+                req_payload.get("original_user_message")
+                or req_payload.get("message")
+                or message
+                or ""
+            )
         except Exception:
             decision_message = message
         try:
-            allowed = bool(alsaab_chat_explicit_payment_plan_v5(decision_message))
+            allowed = bool(
+                alsaab_payment_plan_v8(decision_message)
+                or alsaab_chat_explicit_payment_plan_v5(decision_message)
+            )
         except Exception:
             allowed = any(w in message for w in payment_words) and any(w in message for w in plan_words)
 
@@ -2793,6 +2805,102 @@ def alsaab_after_response_payment_firewall_v2(response):
         print("ALSAAB_AFTER_RESPONSE_PAYMENT_FIREWALL_V2_ERROR=" + str(e), flush=True)
         return response
 
+
+
+
+# ===== ALSAAB_PAYMENT_PLAN_V8_REQUEST_SAFE START =====
+# Dedicated payment phrase detector used by both /chat and the after-response firewall.
+# Uses unicode escapes to avoid Windows/PowerShell Arabic encoding corruption.
+def alsaab_payment_plan_v8(message):
+    text = str(message or "").strip().lower()
+    replacements = {
+        "\u0623": "\u0627",
+        "\u0625": "\u0627",
+        "\u0622": "\u0627",
+        "\u0649": "\u064a",
+        "\u0629": "\u0647",
+        "\u0624": "\u0648",
+        "\u0626": "\u064a",
+        "\u0640": "",
+        "\u0669": "9",
+        "\u0668": "8",
+        "\u0667": "7",
+        "\u0666": "6",
+        "\u0665": "5",
+        "\u0664": "4",
+        "\u0663": "3",
+        "\u0662": "2",
+        "\u0661": "1",
+        "\u0660": "0",
+    }
+    for a, b in replacements.items():
+        text = text.replace(a, b)
+    text = " ".join(text.split())
+    if not text:
+        return None
+
+    plan_aliases = [
+        ("diamond", ["diamond", "\u062f\u0627\u064a\u0645\u0648\u0646\u062f", "\u0627\u0644\u0645\u0627\u0633\u064a\u0647", "\u0645\u0627\u0633\u064a\u0647", "2399"]),
+        ("elite", ["elite", "\u0627\u064a\u0644\u064a\u062a", "\u0627\u0644\u0646\u062e\u0628\u0647", "\u0646\u062e\u0628\u0647", "1199"]),
+        ("growth", ["growth", "\u0627\u0644\u0646\u0645\u0648", "\u0646\u0645\u0648", "599"]),
+        ("starter", ["starter", "\u0633\u062a\u0627\u0631\u062a\u0631", "\u0627\u0644\u0628\u062f\u0627\u064a\u0647", "\u0628\u062f\u0627\u064a\u0647", "299"]),
+        ("entry", ["entry", "\u0627\u0646\u062a\u0631\u064a", "\u0628\u0627\u0642\u0629 \u0627\u0644\u062f\u062e\u0648\u0644", "\u0628\u0627\u0642\u0647 \u0627\u0644\u062f\u062e\u0648\u0644", "\u0627\u0644\u062f\u062e\u0648\u0644", "\u062f\u062e\u0648\u0644", "99"]),
+    ]
+
+    selected_plan = None
+    for plan, aliases in plan_aliases:
+        if any(alias in text for alias in aliases):
+            selected_plan = plan
+            break
+
+    payment_intents = [
+        "\u0631\u0627\u0628\u0637 \u0627\u0644\u062f\u0641\u0639",
+        "\u0631\u0627\u0628\u0637 \u062f\u0641\u0639",
+        "\u0631\u0627\u0628\u0637 \u062f\u062e\u0648\u0644",
+        "\u0631\u0627\u0628\u0637 \u0628\u0627\u0642\u0629",
+        "\u0631\u0627\u0628\u0637 \u0628\u0627\u0642\u0647",
+        "\u0631\u0627\u0628\u0637 \u0627\u0644\u0628\u0627\u0642\u0647",
+        "\u0631\u0627\u0628\u0637 \u0627\u0634\u062a\u0631\u0627\u0643",
+        "\u0637\u0631\u0634 \u0631\u0627\u0628\u0637",
+        "\u0637\u0631\u0634\u0644\u064a \u0631\u0627\u0628\u0637",
+        "\u0637\u0631\u0634 \u0627\u0644\u0631\u0627\u0628\u0637",
+        "\u0627\u0631\u0633\u0644 \u0631\u0627\u0628\u0637",
+        "\u0627\u0631\u0633\u0644\u064a \u0631\u0627\u0628\u0637",
+        "\u0627\u0631\u0633\u0644 \u0627\u0644\u0631\u0627\u0628\u0637",
+        "\u0627\u0628\u0627 \u0631\u0627\u0628\u0637",
+        "\u0627\u0628\u064a \u0631\u0627\u0628\u0637",
+        "\u0627\u0628\u063a\u064a \u0631\u0627\u0628\u0637",
+        "\u0627\u0628\u063a\u0627 \u0631\u0627\u0628\u0637",
+        "\u0627\u062d\u062a\u0627\u062c \u0631\u0627\u0628\u0637",
+        "\u0645\u062d\u062a\u0627\u062c \u0631\u0627\u0628\u0637",
+        "\u0639\u0637\u0646\u064a \u0631\u0627\u0628\u0637",
+        "\u0627\u0639\u0637\u0646\u064a \u0631\u0627\u0628\u0637",
+        "\u0627\u062f\u0641\u0639",
+        "\u0627\u0644\u062f\u0641\u0639",
+        "\u0627\u0628\u0627 \u0627\u062f\u0641\u0639",
+        "\u0627\u0628\u064a \u0627\u062f\u0641\u0639",
+        "\u0627\u0628\u063a\u064a \u0627\u062f\u0641\u0639",
+        "\u0627\u0628\u063a\u0627 \u0627\u062f\u0641\u0639",
+        "\u0627\u0631\u064a\u062f \u0627\u062f\u0641\u0639",
+        "\u0627\u062d\u062a\u0627\u062c \u0627\u062f\u0641\u0639",
+        "\u0645\u062d\u062a\u0627\u062c \u0627\u062f\u0641\u0639",
+        "\u0627\u0634\u062a\u0631\u0643",
+        "\u0627\u0634\u062a\u0631\u0627\u0643",
+        "\u0627\u0628\u0627 \u0627\u0634\u062a\u0631\u0643",
+        "\u0627\u0628\u064a \u0627\u0634\u062a\u0631\u0643",
+        "\u0627\u0628\u063a\u064a \u0627\u0634\u062a\u0631\u0643",
+    ]
+
+    has_payment_intent = any(x in text for x in payment_intents)
+
+    if selected_plan and ("\u0631\u0627\u0628\u0637" in text or "\u062f\u0641\u0639" in text or "\u0627\u062f\u0641\u0639" in text or "\u0627\u0634\u062a\u0631\u0627\u0643" in text or "\u0627\u0634\u062a\u0631\u0643" in text):
+        return selected_plan
+
+    if has_payment_intent:
+        return selected_plan or "entry"
+
+    return None
+# ===== ALSAAB_PAYMENT_PLAN_V8_REQUEST_SAFE END =====
 
 
 # ALSAAB_CHAT_PAYMENT_GATE_V5_START
@@ -2985,7 +3093,7 @@ def chat():
         save_message(session_id, "user", payment_decision_message)
         print("MAIN USER MESSAGE SAVED ✅", flush=True)
 
-        safe_alsaab_payment_plan = alsaab_chat_explicit_payment_plan_v5(payment_decision_message)
+        safe_alsaab_payment_plan = (alsaab_payment_plan_v8(payment_decision_message) or alsaab_chat_explicit_payment_plan_v5(payment_decision_message))
         if safe_alsaab_payment_plan:
             safe_alsaab_payment_reply = build_safe_alsaab_opportunity_payment_reply(
                 safe_alsaab_payment_plan,
