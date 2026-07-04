@@ -3072,6 +3072,50 @@ def chat():
 
     source_partner_id = extract_source_partner_id_from_payload(data)
 
+    # ===== ALSAAB_DIRECT_PAYMENT_GATE_CLEAN_V1 START =====
+    try:
+        _msg = str(payment_decision_message or "").strip().lower()
+        for _a, _b in {
+            "\u0623": "\u0627", "\u0625": "\u0627", "\u0622": "\u0627",
+            "\u0649": "\u064a", "\u0629": "\u0647", "\u0640": "",
+            "\u0669": "9", "\u0668": "8", "\u0667": "7", "\u0666": "6", "\u0665": "5",
+            "\u0664": "4", "\u0663": "3", "\u0662": "2", "\u0661": "1", "\u0660": "0",
+        }.items():
+            _msg = _msg.replace(_a, _b)
+        _msg = " ".join(_msg.split())
+
+        _is_payment_request = any(x in _msg for x in [
+            "\u0631\u0627\u0628\u0637", "\u062f\u0641\u0639", "\u0627\u062f\u0641\u0639",
+            "\u0627\u0634\u062a\u0631\u0627\u0643", "\u0627\u0634\u062a\u0631\u0643",
+            "\u062f\u062e\u0648\u0644", "99", "entry"
+        ])
+
+        if _is_payment_request:
+            _plan = "entry"
+            if any(x in _msg for x in ["starter", "\u0633\u062a\u0627\u0631\u062a\u0631", "299"]):
+                _plan = "starter"
+            elif any(x in _msg for x in ["growth", "\u0646\u0645\u0648", "599"]):
+                _plan = "growth"
+            elif any(x in _msg for x in ["elite", "\u0646\u062e\u0628\u0647", "1199"]):
+                _plan = "elite"
+            elif any(x in _msg for x in ["diamond", "\u0645\u0627\u0633\u064a\u0647", "2399"]):
+                _plan = "diamond"
+
+            _reply = build_safe_alsaab_opportunity_payment_reply(_plan, session_id, source_partner_id=source_partner_id)
+            return jsonify({
+                "reply": _reply,
+                "session_id": session_id,
+                "source_partner_id": source_partner_id,
+                "safe_alsaab_opportunity_payment": {
+                    "plan": _plan,
+                    "source_partner_id": source_partner_id
+                }
+            })
+    except Exception as _e:
+        print("DIRECT_PAYMENT_GATE_CLEAN_ERROR=" + str(_e), flush=True)
+    # ===== ALSAAB_DIRECT_PAYMENT_GATE_CLEAN_V1 END =====
+
+
     print(f"MAIN MESSAGE ✅ {message}", flush=True)
     print(f"MAIN SESSION BEFORE ✅ {session_id}", flush=True)
     print(f"MAIN SOURCE PARTNER ✅ {source_partner_id}", flush=True)
