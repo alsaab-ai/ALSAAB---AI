@@ -256,7 +256,7 @@ SMART_LINK_JS = r"""
         var isPayment = /\/pay\/(entry|starter|growth|elite|diamond)/i.test(href) || /buy\.stripe\.com/i.test(href);
 
         if (isPayment) {
-          out += '<a class="alsaab-smart-pay-link" href="' + escapeSmartHtml(href) + '" target="_blank" rel="noopener noreferrer">اضغط هنا للدفع</a>';
+          out += '<a class="alsaab-smart-pay-link" href="' + escapeSmartHtml(href) + '" target="_top" rel="noopener noreferrer" onclick="event.preventDefault();event.stopPropagation();try{window.top.location.href=this.href;}catch(e){window.location.href=this.href;}return false;">اضغط هنا للدفع</a>';
         } else {
           out += '<a class="alsaab-smart-text-link" href="' + escapeSmartHtml(href) + '" target="_blank" rel="noopener noreferrer">' + escapeSmartHtml(cleanUrl) + '</a>';
         }
