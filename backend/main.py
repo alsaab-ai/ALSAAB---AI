@@ -2778,12 +2778,14 @@ def alsaab_after_response_payment_firewall_v2(response):
         except Exception:
             decision_message = message
         try:
-            allowed = bool(
+            # If /chat already generated a safe payment reply, never let the firewall kill it.
+            # This keeps random AI-generated payment links blocked, but allows approved payment-gate links.
+            allowed = bool(data.get("safe_alsaab_opportunity_payment")) or bool(
                 alsaab_payment_plan_v8(decision_message)
                 or alsaab_chat_explicit_payment_plan_v5(decision_message)
             )
         except Exception:
-            allowed = any(w in message for w in payment_words) and any(w in message for w in plan_words)
+            allowed = bool(data.get("safe_alsaab_opportunity_payment")) or (any(w in message for w in payment_words) and any(w in message for w in plan_words))
 
         if allowed:
             data["reply"] = reply.replace("http://alsaab-ai.onrender.com", "https://alsaab-ai.onrender.com")
