@@ -2704,8 +2704,6 @@ def alsaab_guard_auto_payment_links(reply, user_message):
 # ALSAAB_AFTER_RESPONSE_PAYMENT_FIREWALL_V2
 @app.after_request
 def alsaab_after_response_payment_firewall_v2(response):
-    # ALSAAB_PAYMENT_FIREWALL_DISABLED_FINAL
-    return response
     try:
         if request.path != "/chat":
             return response
@@ -3074,7 +3072,7 @@ def chat():
 
     source_partner_id = extract_source_partner_id_from_payload(data)
 
-    # ===== ALSAAB_DIRECT_PAYMENT_GATE_CLEAN_V1 START =====
+    # ===== ALSAAB_DIRECT_PAYMENT_GATE_BALANCED_V1 START =====
     try:
         _msg = str(payment_decision_message or "").strip().lower()
         for _a, _b in {
@@ -3086,23 +3084,27 @@ def chat():
             _msg = _msg.replace(_a, _b)
         _msg = " ".join(_msg.split())
 
-        _is_payment_request = any(x in _msg for x in [
+        _plan = None
+        if any(x in _msg for x in ["diamond", "\u062f\u0627\u064a\u0645\u0648\u0646\u062f", "\u0645\u0627\u0633\u064a\u0647", "2399"]):
+            _plan = "diamond"
+        elif any(x in _msg for x in ["elite", "\u0627\u064a\u0644\u064a\u062a", "\u0646\u062e\u0628\u0647", "1199"]):
+            _plan = "elite"
+        elif any(x in _msg for x in ["growth", "\u0646\u0645\u0648", "599"]):
+            _plan = "growth"
+        elif any(x in _msg for x in ["starter", "\u0633\u062a\u0627\u0631\u062a\u0631", "\u0628\u062f\u0627\u064a\u0647", "299"]):
+            _plan = "starter"
+        elif any(x in _msg for x in ["entry", "\u0627\u0646\u062a\u0631\u064a", "\u0627\u0644\u062f\u062e\u0648\u0644", "\u062f\u062e\u0648\u0644", "99"]):
+            _plan = "entry"
+
+        _has_payment_intent = any(x in _msg for x in [
             "\u0631\u0627\u0628\u0637", "\u062f\u0641\u0639", "\u0627\u062f\u0641\u0639",
             "\u0627\u0634\u062a\u0631\u0627\u0643", "\u0627\u0634\u062a\u0631\u0643",
-            "\u062f\u062e\u0648\u0644", "99", "entry"
+            "\u0628\u0627\u062e\u0630", "\u0628\u0627\u062e\u0630", "\u0627\u0628\u0627 \u0627\u062e\u0630",
+            "\u0627\u0628\u064a \u0627\u062e\u0630", "\u0627\u0628\u063a\u064a \u0627\u062e\u0630"
         ])
 
-        if _is_payment_request:
-            _plan = "entry"
-            if any(x in _msg for x in ["starter", "\u0633\u062a\u0627\u0631\u062a\u0631", "299"]):
-                _plan = "starter"
-            elif any(x in _msg for x in ["growth", "\u0646\u0645\u0648", "599"]):
-                _plan = "growth"
-            elif any(x in _msg for x in ["elite", "\u0646\u062e\u0628\u0647", "1199"]):
-                _plan = "elite"
-            elif any(x in _msg for x in ["diamond", "\u0645\u0627\u0633\u064a\u0647", "2399"]):
-                _plan = "diamond"
-
+        # Link only when payment intent + package/price are clear.
+        if _has_payment_intent and _plan:
             _reply = build_safe_alsaab_opportunity_payment_reply(_plan, session_id, source_partner_id=source_partner_id)
             return jsonify({
                 "reply": _reply,
@@ -3113,9 +3115,18 @@ def chat():
                     "source_partner_id": source_partner_id
                 }
             })
+
+        # If payment link requested but package is unclear, ask one clean question. No payment link.
+        if _has_payment_intent and not _plan:
+            return jsonify({
+                "reply": "أكيد أي باقة تريد رابطها\n\nEntry — 99 درهم\nStarter — 299 درهم\nGrowth — 599 درهم\nElite — 1199 درهم\nDiamond — 2399 درهم",
+                "session_id": session_id,
+                "source_partner_id": source_partner_id
+            })
     except Exception as _e:
-        print("DIRECT_PAYMENT_GATE_CLEAN_ERROR=" + str(_e), flush=True)
-    # ===== ALSAAB_DIRECT_PAYMENT_GATE_CLEAN_V1 END =====
+        print("DIRECT_PAYMENT_GATE_BALANCED_ERROR=" + str(_e), flush=True)
+    # ===== ALSAAB_DIRECT_PAYMENT_GATE_BALANCED_V1 END =====
+
 
 
     print(f"MAIN MESSAGE ✅ {message}", flush=True)
