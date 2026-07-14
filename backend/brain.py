@@ -480,6 +480,111 @@ def build_name_context(current_state):
     )
 
 
+
+# ALSAAB_CENTRAL_SESSION_LANGUAGE_V1
+_ALSAAB_GATE_TRANSLATIONS = {
+    "ar": {
+        "name": "هلا وسهلا 👋 قبل لا أساعدك بشكل أدق شو اسمك الكريم",
+        "phone": "تمام يا {name} تشرفت فيك 👋\n\nعشان نقدر نتابع معاك لو انقطع الشات اكتب رقم الواتساب مع مفتاح الخط.\n\nمثال: {phone_example}",
+        "phone_repeat": "اكتب رقم الواتساب مع مفتاح الخط عشان نحفظ بياناتك ونتابع معاك بشكل صحيح ✅\n\nمثال: {phone_example}",
+        "phone_saved": "تمام يا {name} تم حفظ بيانات التواصل ✅\n\nشو أكثر شي تبغي تطوره حاليا: مبيعات مشروعك ولا دخل إضافي لك",
+    },
+    "en": {
+        "name": "Welcome 👋 Before I assist you further, may I know your name?",
+        "phone": "Nice to meet you, {name} 👋\n\nTo stay in touch if the chat is interrupted, please enter your WhatsApp number with the country code.\n\nExample: {phone_example}",
+        "phone_repeat": "Please enter your WhatsApp number with the country code so we can save your contact details and follow up correctly ✅\n\nExample: {phone_example}",
+        "phone_saved": "Thank you, {name}. Your contact details have been saved ✅\n\nWhat would you like to improve most: your business sales or an additional income opportunity?",
+    },
+    "es": {
+        "name": "Bienvenido 👋 Antes de ayudarte mejor, ¿puedo saber tu nombre?",
+        "phone": "Encantado de conocerte, {name} 👋\n\nPara mantenernos en contacto si se interrumpe el chat, escribe tu número de WhatsApp con el código del país.\n\nEjemplo: {phone_example}",
+        "phone_repeat": "Escribe tu número de WhatsApp con el código del país para guardar tus datos de contacto ✅\n\nEjemplo: {phone_example}",
+        "phone_saved": "Gracias, {name}. Tus datos de contacto se han guardado ✅\n\n¿Qué deseas mejorar principalmente: las ventas de tu negocio o una oportunidad de ingresos adicionales?",
+    },
+    "fr": {
+        "name": "Bienvenue 👋 Avant de mieux vous aider, puis-je connaître votre nom ?",
+        "phone": "Ravi de vous rencontrer, {name} 👋\n\nPour rester en contact si le chat est interrompu, saisissez votre numéro WhatsApp avec lindicatif du pays.\n\nExemple : {phone_example}",
+        "phone_repeat": "Saisissez votre numéro WhatsApp avec lindicatif du pays afin denregistrer vos coordonnées ✅\n\nExemple : {phone_example}",
+        "phone_saved": "Merci, {name}. Vos coordonnées ont été enregistrées ✅\n\nQue souhaitez-vous améliorer principalement : les ventes de votre entreprise ou une source de revenus supplémentaire ?",
+    },
+    "de": {
+        "name": "Willkommen 👋 Bevor ich Ihnen genauer helfe: Wie heißen Sie?",
+        "phone": "Freut mich, Sie kennenzulernen, {name} 👋\n\nBitte geben Sie Ihre WhatsApp-Nummer mit Landesvorwahl ein, damit wir bei einer Unterbrechung in Kontakt bleiben können.\n\nBeispiel: {phone_example}",
+        "phone_repeat": "Bitte geben Sie Ihre WhatsApp-Nummer mit Landesvorwahl ein, damit wir Ihre Kontaktdaten speichern können ✅\n\nBeispiel: {phone_example}",
+        "phone_saved": "Vielen Dank, {name}. Ihre Kontaktdaten wurden gespeichert ✅\n\nWas möchten Sie hauptsächlich verbessern: den Umsatz Ihres Unternehmens oder eine zusätzliche Einkommensmöglichkeit?",
+    },
+    "it": {
+        "name": "Benvenuto 👋 Prima di aiutarti meglio, posso sapere il tuo nome?",
+        "phone": "Piacere di conoscerti, {name} 👋\n\nInserisci il tuo numero WhatsApp con il prefisso internazionale per restare in contatto se la chat si interrompe.\n\nEsempio: {phone_example}",
+        "phone_repeat": "Inserisci il tuo numero WhatsApp con il prefisso internazionale per salvare i dati di contatto ✅\n\nEsempio: {phone_example}",
+        "phone_saved": "Grazie, {name}. I tuoi dati di contatto sono stati salvati ✅\n\nCosa vuoi migliorare principalmente: le vendite della tua attività o unopportunità di reddito aggiuntivo?",
+    },
+    "pt": {
+        "name": "Bem-vindo 👋 Antes de ajudá-lo melhor, posso saber o seu nome?",
+        "phone": "Prazer em conhecê-lo, {name} 👋\n\nDigite seu número de WhatsApp com o código do país para mantermos contato se o chat for interrompido.\n\nExemplo: {phone_example}",
+        "phone_repeat": "Digite seu número de WhatsApp com o código do país para salvarmos seus dados de contato ✅\n\nExemplo: {phone_example}",
+        "phone_saved": "Obrigado, {name}. Seus dados de contato foram salvos ✅\n\nO que você deseja melhorar principalmente: as vendas do seu negócio ou uma oportunidade de renda adicional?",
+    },
+    "tr": {
+        "name": "Hoş geldiniz 👋 Size daha iyi yardımcı olmadan önce adınızı öğrenebilir miyim?",
+        "phone": "Tanıştığımıza memnun oldum, {name} 👋\n\nSohbet kesilirse iletişimde kalabilmemiz için ülke koduyla birlikte WhatsApp numaranızı yazın.\n\nÖrnek: {phone_example}",
+        "phone_repeat": "İletişim bilgilerinizi kaydetmemiz için WhatsApp numaranızı ülke koduyla birlikte yazın ✅\n\nÖrnek: {phone_example}",
+        "phone_saved": "Teşekkürler, {name}. İletişim bilgileriniz kaydedildi ✅\n\nEn çok neyi geliştirmek istiyorsunuz: işletmenizin satışlarını mı, ek gelir fırsatını mı?",
+    },
+}
+
+def _alsaab_resolve_session_language(message, current_state):
+    stored = str(
+        current_state.get("conversation_language")
+        or current_state.get("language")
+        or ""
+    ).strip().lower()
+
+    # Never change language because the customer is currently answering
+    # the name or phone question.
+    if stored and (
+        current_state.get("awaiting_customer_name")
+        or current_state.get("awaiting_customer_phone")
+    ):
+        current_state["language"] = stored
+        return stored
+
+    detected = detect_language(message)
+
+    # Lock the language from the first real customer request.
+    if not stored:
+        stored = detected
+        current_state["conversation_language"] = stored
+    else:
+        # Allow a clear language switch after lead capture.
+        text = str(message or "")
+        if len(text.split()) >= 3:
+            stored = detected
+            current_state["conversation_language"] = stored
+
+    current_state["language"] = stored
+    return stored
+
+def _alsaab_gate_reply(kind, current_state, customer_name=""):
+    lang = str(
+        current_state.get("conversation_language")
+        or current_state.get("language")
+        or "en"
+    ).lower()
+
+    translations = _ALSAAB_GATE_TRANSLATIONS.get(lang)
+
+    # Other languages continue safely in English for fixed lead-capture
+    # messages, while the AI response remains in the customer's language.
+    if not translations:
+        translations = _ALSAAB_GATE_TRANSLATIONS["en"]
+
+    return translations[kind].format(
+        name=customer_name or "",
+        phone_example=INTERNATIONAL_PHONE_EXAMPLE,
+    )
+
+
 def think(message, session_id, source_partner_id=""):
     current_state = get_session_state(session_id)
     msg = message.lower().strip()
@@ -488,7 +593,7 @@ def think(message, session_id, source_partner_id=""):
     current_state["session_id"] = session_id
 
     # Detect reply language from the latest customer message.
-    current_state["language"] = detect_language(message)
+    current_state["language"] = _alsaab_resolve_session_language(message, current_state)
 
     # Referral Tracking
     current_state = apply_source_partner_to_state(current_state, source_partner_id)
@@ -605,13 +710,7 @@ def think(message, session_id, source_partner_id=""):
             current_state["awaiting_customer_name"] = True
             current_state["pending_message_after_name"] = message
 
-            _name_gate_text = str(message or "")
-            _name_gate_has_arabic = any("\u0600" <= ch <= "\u06ff" for ch in _name_gate_text)
-            _name_gate_has_english = any(("A" <= ch <= "Z") or ("a" <= ch <= "z") for ch in _name_gate_text)
-            if _name_gate_has_english and not _name_gate_has_arabic:
-                reply = "Welcome 👋 Before I assist you further, may I know your name?"
-            else:
-                reply = "هلا وسهلا 👋 قبل لا أساعدك بشكل أدق شو اسمك الكريم"
+            reply = _alsaab_gate_reply("name", current_state)
             set_session_state(session_id, current_state)
             return reply
 
@@ -628,18 +727,12 @@ def think(message, session_id, source_partner_id=""):
                 message_to_process = pending_message
             else:
                 customer_name = get_customer_name(current_state)
-                reply = (
-                    f"تمام يا {customer_name}، تم حفظ بيانات التواصل ✅\n\n"
-                    "شو أكثر شي تبغي تطوره حالياً: مبيعات مشروعك ولا دخل إضافي لك؟"
-                )
+                reply = _alsaab_gate_reply("phone_saved", current_state, customer_name)
                 set_session_state(session_id, current_state)
                 return reply
 
         elif current_state.get("awaiting_customer_phone"):
-            reply = (
-                "اكتب رقم الواتساب مع فتح الخط عشان نحفظ بياناتك ونتابع معاك بشكل صحيح ✅\n\n"
-                f"مثال: {INTERNATIONAL_PHONE_EXAMPLE}"
-            )
+            reply = _alsaab_gate_reply("phone_repeat", current_state)
             set_session_state(session_id, current_state)
             return reply
 
@@ -651,11 +744,7 @@ def think(message, session_id, source_partner_id=""):
                 current_state["pending_message_after_phone"] = message_to_process
 
             customer_name = get_customer_name(current_state)
-            reply = (
-                f"تمام يا {customer_name}، تشرفت فيك 👋\n\n"
-                "عشان نقدر نتابع معاك لو انقطع الشات، اكتب رقم الواتساب مع فتح الخط؟\n\n"
-                f"مثال: {INTERNATIONAL_PHONE_EXAMPLE}"
-            )
+            reply = _alsaab_gate_reply("phone", current_state, customer_name)
             set_session_state(session_id, current_state)
             return reply
 
@@ -679,7 +768,7 @@ def think(message, session_id, source_partner_id=""):
     current_state["session_id"] = session_id
 
     # Detect reply language from the latest customer message.
-    current_state["language"] = detect_language(message)
+    current_state["language"] = _alsaab_resolve_session_language(message, current_state)
 
     # نحافظ على اسم ورقم العميل إذا update_state رجّع state جديد
     if existing_customer_name:

@@ -1,3 +1,4 @@
+import re
 # state.py
 
 def create_state():
@@ -28,16 +29,47 @@ def create_state():
 
 
 def detect_language(message):
-    msg = message.lower()
-    has_arabic = any("\u0600" <= ch <= "\u06FF" for ch in message)
+    text = str(message or "").strip()
+    msg = text.lower()
 
-    if has_arabic:
+    # Script-based detection first.
+    if re.search(r"[\u3040-\u30ff]", text):
+        return "ja"
+    if re.search(r"[\uac00-\ud7af]", text):
+        return "ko"
+    if re.search(r"[\u4e00-\u9fff]", text):
+        return "zh"
+    if re.search(r"[\u0400-\u04ff]", text):
+        return "ru"
+    if re.search(r"[\u0900-\u097f]", text):
+        return "hi"
+
+    # Arabic-script languages before generic Arabic.
+    if any(ch in text for ch in "پچژگکھیےٹڈڑں"):
+        return "ur"
+    if any(ch in text for ch in "پچژگکی"):
+        if any(word in msg for word in ["سلام", "خوب", "لطفا", "ممنون"]):
+            return "fa"
+
+    if re.search(r"[\u0600-\u06ff]", text):
         return "ar"
 
-    if any(word in msg for word in ["hola", "español", "spanish", "solo español"]):
-        return "es"
+    # Latin-language indicators.
+    language_words = {
+        "es": ["hola", "gracias", "quiero", "necesito", "español", "por favor"],
+        "fr": ["bonjour", "merci", "je veux", "besoin", "français", "s'il vous plaît"],
+        "de": ["hallo", "danke", "ich möchte", "bitte", "deutsch"],
+        "it": ["ciao", "grazie", "vorrei", "italiano", "per favore"],
+        "pt": ["olá", "obrigado", "quero", "preciso", "português", "por favor"],
+        "tr": ["merhaba", "teşekkür", "istiyorum", "lütfen", "türkçe"],
+    }
+
+    for lang, words in language_words.items():
+        if any(word in msg for word in words):
+            return lang
 
     return "en"
+
 
 
 def detect_user_type(message):
