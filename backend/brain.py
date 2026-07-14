@@ -605,7 +605,13 @@ def think(message, session_id, source_partner_id=""):
             current_state["awaiting_customer_name"] = True
             current_state["pending_message_after_name"] = message
 
-            reply = "هلا وسهلا 👋 قبل لا أساعدك بشكل أدق، شو اسمك الكريم؟"
+            _name_gate_text = str(message or "")
+            _name_gate_has_arabic = any("\u0600" <= ch <= "\u06ff" for ch in _name_gate_text)
+            _name_gate_has_english = any(("A" <= ch <= "Z") or ("a" <= ch <= "z") for ch in _name_gate_text)
+            if _name_gate_has_english and not _name_gate_has_arabic:
+                reply = "Welcome 👋 Before I assist you further, may I know your name?"
+            else:
+                reply = "هلا وسهلا 👋 قبل لا أساعدك بشكل أدق شو اسمك الكريم"
             set_session_state(session_id, current_state)
             return reply
 
