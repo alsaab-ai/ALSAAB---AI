@@ -671,6 +671,16 @@ def think(message, session_id, source_partner_id=""):
     # CUSTOMER NAME + PHONE CAPTURE
     # =========================
 
+    # ALSAAB_NON_BLOCKING_LEAD_CAPTURE_V1
+    # Never block the customer's first request to force name/phone collection.
+    # Explicit names and phone numbers are still captured automatically.
+    current_state["name_asked"] = True
+    current_state["phone_asked"] = True
+    current_state["awaiting_customer_name"] = False
+    current_state["awaiting_customer_phone"] = False
+    current_state.pop("pending_message_after_name", None)
+    current_state.pop("pending_message_after_phone", None)
+
     message_to_process = message
 
     extracted_phone_from_message = extract_phone(message)
