@@ -164,6 +164,45 @@ def detect_safe_alsaab_opportunity_payment_plan(message):
     return ""
 
 
+# ALSAAB_PAYMENT_REPLY_LANGUAGE_V1
+_AL_PAY_TERMS=("pay","payment","payment link","pay now","checkout","subscribe","enlace de pago","quiero pagar","pago","suscribirme","lien de paiement","je veux payer","paiement","payer","abonnement","zahlungslink","ich möchte zahlen","bezahlen","zahlung","link di pagamento","voglio pagare","pagare","abbonarmi","link de pagamento","quero pagar","pagamento","assinar","ödeme bağlantısı","ödeme","ödemek","abone","ссылка на оплату","оплатить","оплата","подписаться","भुगतान लिंक","भुगतान","पेमेंट","सदस्यता","ادائیگی کا لنک","ادائیگی","پیمنٹ","سبسکرائب","لینک پرداخت","پرداخت","اشتراک","付款链接","支付链接","付款","支付","订阅","支払いリンク","決済リンク","支払い","決済","購読","결제 링크","결제","지불","구독")
+def _al_pay_lang(message):
+    text=str(message or "").strip(); low=text.lower()
+    hints=(("es",("enlace de pago","quiero pagar","suscribirme")),("fr",("lien de paiement","je veux payer","abonnement")),("de",("zahlungslink","ich möchte zahlen")),("it",("link di pagamento","voglio pagare","abbonarmi")),("pt",("link de pagamento","quero pagar","assinar")),("tr",("ödeme bağlantısı","abone olmak")),("ru",("ссылка на оплату","оплатить","подписаться")),("hi",("भुगतान","पेमेंट","सदस्यता")),("ur",("ادائیگی","پیمنٹ","سبسکرائب")),("fa",("پرداخت","لینک پرداخت")),("zh",("付款","支付","订阅")),("ja",("支払い","決済","購読")),("ko",("결제","지불","구독")))
+    for lang,words in hints:
+        if any(w in low for w in words): return lang
+    try:
+        try: from state import detect_language
+        except ImportError: from backend.state import detect_language
+        lang=str(detect_language(text) or "en").lower()
+    except Exception: lang="en"
+    return lang
+def _al_pay_reply(message,mode,plan_name="",plan_label="",pay_url=""):
+    lang=_al_pay_lang(message); plan=(str(plan_label or plan_name) if lang=="ar" else str(plan_name).title())
+    t={
+    "ar":("أكيد، أي باقة تريد رابط الدفع الخاص بها؟","درهم شهرياً","تمام ✅\nهذا رابط دفع باقة {p} في ALSAAB AI:","بعد الدفع بيتفعل الاشتراك تلقائياً، وبيتم ربطه بالشريك الصحيح."),
+    "en":("Sure. Which package would you like the payment link for?","AED/month","Done ✅\nHere is the payment link for the {p} package in ALSAAB AI:","After payment, the subscription will be activated automatically and linked to the correct partner."),
+    "es":("Claro. ¿Para qué plan desea el enlace de pago?","AED al mes","Listo ✅\nEste es el enlace de pago del plan {p} en ALSAAB AI:","Después del pago, la suscripción se activará automáticamente y quedará vinculada al socio correcto."),
+    "fr":("Bien sûr. Pour quelle offre souhaitez-vous le lien de paiement ?","AED/mois","C'est prêt ✅\nVoici le lien de paiement de l'offre {p} dans ALSAAB AI :","Après le paiement, l'abonnement sera activé automatiquement et rattaché au bon partenaire."),
+    "de":("Für welches Paket möchten Sie den Zahlungslink?","AED/Monat","Erledigt ✅\nHier ist der Zahlungslink für das Paket {p} bei ALSAAB AI:","Nach der Zahlung wird das Abonnement automatisch aktiviert und dem richtigen Partner zugeordnet."),
+    "it":("Per quale piano desidera il link di pagamento?","AED/mese","Fatto ✅\nEcco il link di pagamento per il piano {p} in ALSAAB AI:","Dopo il pagamento, l'abbonamento verrà attivato automaticamente e collegato al partner corretto."),
+    "pt":("Para qual plano deseja o link de pagamento?","AED/mês","Pronto ✅\nEste é o link de pagamento do plano {p} no ALSAAB AI:","Após o pagamento, a assinatura será ativada automaticamente e vinculada ao parceiro correto."),
+    "tr":("Hangi paket için ödeme bağlantısını istiyorsunuz?","AED/ay","Hazır ✅\nALSAAB AI'daki {p} paketi için ödeme bağlantısı:","Ödeme sonrasında abonelik otomatik olarak etkinleştirilecek ve doğru iş ortağına bağlanacaktır."),
+    "ru":("Для какого тарифа вам нужна ссылка на оплату?","AED/месяц","Готово ✅\nВот ссылка на оплату тарифа {p} в ALSAAB AI:","После оплаты подписка активируется автоматически и будет привязана к нужному партнёру."),
+    "hi":("आपको किस पैकेज का भुगतान लिंक चाहिए?","AED/माह","तैयार है ✅\nALSAAB AI में {p} पैकेज का भुगतान लिंक यह है:","भुगतान के बाद सदस्यता अपने आप सक्रिय हो जाएगी और सही पार्टनर से जुड़ जाएगी।"),
+    "ur":("آپ کو کس پیکیج کا ادائیگی لنک چاہیے؟","AED/ماہ","تیار ہے ✅\nALSAAB AI میں {p} پیکیج کا ادائیگی لنک یہ ہے:","ادائیگی کے بعد سبسکرپشن خودکار طور پر فعال ہو جائے گی اور درست پارٹنر سے منسلک ہو گی۔"),
+    "fa":("لینک پرداخت کدام بسته را می‌خواهید؟","AED/ماه","آماده است ✅\nاین لینک پرداخت بسته {p} در ALSAAB AI است:","پس از پرداخت، اشتراک به‌صورت خودکار فعال و به شریک صحیح متصل می‌شود."),
+    "zh":("您需要哪个套餐的付款链接？","AED/月","已准备好 ✅\n这是 ALSAAB AI 中 {p} 套餐的付款链接：","付款后，订阅将自动激活并关联到正确的合作伙伴。"),
+    "ja":("どのプランのお支払いリンクをご希望ですか？","AED/月","準備できました ✅\nALSAAB AIの{p}プランのお支払いリンクです：","お支払い後、サブスクリプションは自動的に有効化され、正しいパートナーに紐付けられます。"),
+    "ko":("어떤 요금제의 결제 링크가 필요하신가요?","AED/월","준비되었습니다 ✅\nALSAAB AI의 {p} 요금제 결제 링크입니다:","결제 후 구독이 자동으로 활성화되고 올바른 파트너에게 연결됩니다.")}
+    if lang not in t: return ("Entry — 99 AED\nStarter — 299 AED\nGrowth — 599 AED\nElite — 1199 AED\nDiamond — 2399 AED" if mode=="choose" else f"✅ ALSAAB AI — {plan}\n\n{pay_url}")
+    intro,suffix,before,after=t[lang]
+    if mode=="choose":
+        lines="\n".join(f"• {n} — {p} {suffix}" for n,p in (("Entry",99),("Starter",299),("Growth",599),("Elite",1199),("Diamond",2399)))
+        return f"{intro}\n\n{lines}"
+    return f"{before.format(p=plan)}\n\n{pay_url}\n\n{after}"
+# ALSAAB_PAYMENT_REPLY_LANGUAGE_V1_END
+
 def build_safe_alsaab_opportunity_payment_reply(plan_name, session_id, source_partner_id=""):
     # ALSAAB_SAFE_PAYMENT_FUNCTION_HARD_GUARD_V1
     try:
@@ -184,6 +223,8 @@ def build_safe_alsaab_opportunity_payment_reply(plan_name, session_id, source_pa
         "\u0627\u0634\u062a\u0631\u0627\u0643",
     ]
 
+    _payment_words.extend(_AL_PAY_TERMS)
+
     _plan_aliases = [
         ("diamond", ["diamond", "2399", "\u0627\u0644\u0645\u0627\u0633\u064a\u0629", "\u0645\u0627\u0633\u064a\u0629"]),
         ("elite", ["elite", "1199", "\u0627\u0644\u0646\u062e\u0628\u0629", "\u0646\u062e\u0628\u0629"]),
@@ -201,12 +242,7 @@ def build_safe_alsaab_opportunity_payment_reply(plan_name, session_id, source_pa
             break
 
     if not (_has_payment and _requested_plan):
-        return (
-            "\u0647\u0644\u0627 \u0648\u0633\u0647\u0644\u0627.\n"
-            "\u0623\u0646\u0627 \u0645\u0648\u0638\u0641 \u0645\u0628\u064a\u0639\u0627\u062a \u0630\u0643\u064a \u0623\u0633\u0627\u0639\u062f\u0643 \u062a\u0641\u0647\u0645 \u0627\u0644\u062e\u062f\u0645\u0629 \u0648\u062a\u062e\u062a\u0627\u0631 \u0627\u0644\u0623\u0646\u0633\u0628.\n\n"
-            "\u0645\u0627 \u0628\u0637\u0631\u0634 \u0644\u0643 \u0631\u0627\u0628\u0637 \u062f\u0641\u0639 \u0625\u0644\u0627 \u0625\u0630\u0627 \u0637\u0644\u0628\u062a \u0627\u0644\u062f\u0641\u0639 \u0648\u062d\u062f\u062f\u062a \u0627\u0644\u0628\u0627\u0642\u0629 \u0628\u0648\u0636\u0648\u062d.\n"
-            "\u0634\u0648 \u062d\u0627\u0628 \u062a\u0639\u0631\u0641 \u0628\u0627\u0644\u0636\u0628\u0637\u061f"
-        )
+        return _al_pay_reply(incoming_msg,"choose")
 
     plan_name = _requested_plan
     # ALSAAB_SAFE_PAYMENT_FUNCTION_HARD_GUARD_V1_END
@@ -229,12 +265,7 @@ def build_safe_alsaab_opportunity_payment_reply(plan_name, session_id, source_pa
     pay_url = f"{globals().get('APP_BASE_URL', 'https://alsaab-ai.onrender.com').rstrip('/')}/pay/{plan_name}?{urlencode(params)}"
     plan_label = SAFE_ALSAAB_PLAN_LABELS.get(plan_name, plan_name)
 
-    return (
-        "\u062a\u0645\u0627\u0645 \u2705\n"
-        f"\u0647\u0630\u0627 \u0631\u0627\u0628\u0637 \u062f\u0641\u0639 \u0628\u0627\u0642\u0629 {plan_label} \u0641\u064a ALSAAB AI:\n\n"
-        f"{pay_url}\n\n"
-        "\u0628\u0639\u062f \u0627\u0644\u062f\u0641\u0639 \u0628\u064a\u062a\u0641\u0639\u0644 \u0627\u0644\u0627\u0634\u062a\u0631\u0627\u0643 \u062a\u0644\u0642\u0627\u0626\u064a\u0627\u064b\u060c \u0648\u0628\u064a\u062a\u0645 \u0631\u0628\u0637\u0647 \u0628\u0627\u0644\u0634\u0631\u064a\u0643 \u0627\u0644\u0635\u062d\u064a\u062d."
-    )
+    return _al_pay_reply(incoming_msg,"success",plan_name,plan_label,pay_url)
 # ===== SAFE ALSAAB OPPORTUNITY PAYMENT GATE V1 END =====
 
 
@@ -2687,16 +2718,7 @@ def alsaab_guard_auto_payment_links(reply, user_message):
     if alsaab_exact_payment_request_plan_v3(user_message):
         return reply_text
 
-    return (
-        "أقدر أرسل لك رابط الدفع، لكن لازم تحدد الباقة أولاً عشان ما أرسل لك رابط غلط.\n\n"
-        "الباقات المتوفرة:\n"
-        "• Entry — 99 درهم شهرياً\n"
-        "• Starter — 299 درهم شهرياً\n"
-        "• Growth — 599 درهم شهرياً\n"
-        "• Elite — 1199 درهم شهرياً\n"
-        "• Diamond — 2399 درهم شهرياً\n\n"
-        "أي باقة تريد؟"
-    )
+    return _al_pay_reply(user_message,"choose")
 
 
 
@@ -3018,12 +3040,7 @@ def alsaab_chat_strip_unwanted_payment_links_v5(reply, payment_decision_message)
     if alsaab_chat_explicit_payment_plan_v5(payment_decision_message):
         return reply_text.replace("http://alsaab-ai.onrender.com", "https://alsaab-ai.onrender.com")
 
-    return (
-        "\u0647\u0644\u0627 \u0648\u0633\u0647\u0644\u0627.\n"
-        "\u0623\u0646\u0627 \u0645\u0648\u0638\u0641 \u0645\u0628\u064a\u0639\u0627\u062a \u0630\u0643\u064a \u0623\u0633\u0627\u0639\u062f\u0643 \u062a\u0641\u0647\u0645 \u0627\u0644\u062e\u062f\u0645\u0629 \u0648\u062a\u062e\u062a\u0627\u0631 \u0627\u0644\u0623\u0646\u0633\u0628.\n\n"
-        "\u0645\u0627 \u0628\u0637\u0631\u0634 \u0644\u0643 \u0631\u0627\u0628\u0637 \u062f\u0641\u0639 \u0625\u0644\u0627 \u0625\u0630\u0627 \u0637\u0644\u0628\u062a \u0627\u0644\u062f\u0641\u0639 \u0648\u062d\u062f\u062f\u062a \u0627\u0644\u0628\u0627\u0642\u0629 \u0628\u0648\u0636\u0648\u062d.\n"
-        "\u0634\u0648 \u062d\u0627\u0628 \u062a\u0639\u0631\u0641 \u0628\u0627\u0644\u0636\u0628\u0637\u061f"
-    )
+    return _al_pay_reply(payment_decision_message,"choose")
 # ALSAAB_CHAT_PAYMENT_GATE_V5_END
 
 @app.route("/chat", methods=["POST"])
@@ -3119,7 +3136,7 @@ def chat():
         # If payment link requested but package is unclear, ask one clean question. No payment link.
         if _has_payment_intent and not _plan:
             return jsonify({
-                "reply": "أكيد أي باقة تريد رابطها\n\nEntry — 99 درهم\nStarter — 299 درهم\nGrowth — 599 درهم\nElite — 1199 درهم\nDiamond — 2399 درهم",
+                "reply": _al_pay_reply(payment_decision_message,"choose"),
                 "session_id": session_id,
                 "source_partner_id": source_partner_id
             })
@@ -10131,6 +10148,8 @@ def alsaab_chat_explicit_payment_plan_v5(message):
         "\u0627\u0628\u063a\u064a \u0627\u0634\u062a\u0631\u0643",
         "\u0627\u0628\u063a\u0627 \u0627\u0634\u062a\u0631\u0643",
     ]
+
+    payment_intents.extend(_AL_PAY_TERMS)
 
     has_payment_intent = any(x in text for x in payment_intents)
 
