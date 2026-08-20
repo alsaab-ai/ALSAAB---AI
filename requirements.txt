@@ -2,6 +2,9 @@ flask
 openai
 
 # PostgreSQL backend (backend/db.py).
-# Both are unused while DATABASE_URL is unset — db.py falls back to SQLite.
 psycopg[binary]>=3.1
 psycopg-pool>=3.2
+
+# Stripe SDK. Imported lazily by upgrade_routes.py, cancellation_routes.py
+# and cancellation_flow.py. Without it those three paths fail at runtime.
+stripe>=7,<13
