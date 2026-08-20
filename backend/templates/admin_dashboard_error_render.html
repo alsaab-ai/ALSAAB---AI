@@ -1,0 +1,82 @@
+<html>
+            <head><meta charset="utf-8"><title>Admin Dashboard Error</title></head>
+            <body style="font-family:Arial; direction:rtl; padding:30px;">
+              <h2>حدث خطأ في عرض Admin Dashboard</h2>
+              <p>{{ error }}</p>
+
+  <!-- ALSAAB_ADMIN_UI_SIMPLIFY_V1 START -->
+  <script>
+    (function simplifyAdminDashboard() {
+      function cleanText(value) {
+        return (value || "").replace(/\s+/g, " ").trim();
+      }
+
+      function hideElement(el) {
+        if (!el) return;
+        el.style.display = "none";
+      }
+
+      function hideClosestFormOrButton(el) {
+        var form = el.closest("form");
+        if (form) {
+          hideElement(form);
+          return;
+        }
+        hideElement(el);
+      }
+
+      // Hide daily approval buttons. Valid commissions are approved automatically now.
+      document.querySelectorAll("button, a").forEach(function(el) {
+        var text = cleanText(el.textContent);
+
+        if (text === "Approve") {
+          hideClosestFormOrButton(el);
+        }
+
+        if (text === "Mark Paid") {
+          hideClosestFormOrButton(el);
+        }
+
+        if (text.indexOf("Auto Approve Old Pending") !== -1) {
+          var sec = el.closest(".section");
+          hideElement(sec || el);
+        }
+
+        if (text.indexOf("Create Payout Batch") !== -1) {
+          var sec = el.closest(".section");
+          hideElement(sec || el);
+        }
+      });
+
+      // Hide old sections if they still exist.
+      document.querySelectorAll(".section").forEach(function(sec) {
+        var text = cleanText(sec.textContent);
+
+        if (text.indexOf("اعتماد العمولات القديمة تلقائياً") !== -1) {
+          hideElement(sec);
+        }
+
+        if (text.indexOf("Payout Workflow MVP") !== -1) {
+          hideElement(sec);
+        }
+      });
+
+      // Remove unnecessary bulk options. Owner uses "تم الدفع للشريك" for payout.
+      document.querySelectorAll("select option").forEach(function(option) {
+        var value = cleanText(option.value).toLowerCase();
+        var text = cleanText(option.textContent).toLowerCase();
+
+        if (value === "approved" || value === "paid") {
+          option.remove();
+        }
+
+        if (text.indexOf("approve selected") !== -1 || text.indexOf("mark selected as paid") !== -1) {
+          option.remove();
+        }
+      });
+    })();
+  </script>
+  <!-- ALSAAB_ADMIN_UI_SIMPLIFY_V1 END -->
+
+</body>
+            </html>

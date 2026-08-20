@@ -1,0 +1,1127 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="utf-8">
+  <title>ALSAAB AI - Admin Dashboard</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <style>
+    body {
+      margin: 0;
+      background: #0b0b0b;
+      color: #f5f0df;
+      font-family: Arial, Tahoma, sans-serif;
+      direction: rtl;
+    }
+
+    .page {
+      max-width: 1320px;
+      margin: 0 auto;
+      padding: 28px;
+    }
+
+    .topbar {
+      display: flex;
+      justify-content: space-between;
+      gap: 14px;
+      align-items: center;
+      margin-bottom: 18px;
+      flex-wrap: wrap;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .logo {
+      width: 56px;
+      height: 56px;
+      border-radius: 16px;
+      border: 1px solid #c8a84b;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #d7b85a;
+      font-weight: 900;
+      background: linear-gradient(135deg, #111, #211c0f);
+      font-size: 12px;
+    }
+
+    .brand-title {
+      color: #d7b85a;
+      font-size: 23px;
+      font-weight: 900;
+    }
+
+    .brand-sub {
+      color: #a99d7b;
+      font-size: 13px;
+      margin-top: 4px;
+    }
+
+    .action-btn {
+      border: 1px solid rgba(215, 184, 90, 0.55);
+      color: #f0cc68;
+      background: #111;
+      padding: 10px 14px;
+      border-radius: 999px;
+      text-decoration: none;
+      font-weight: 700;
+      display: inline-block;
+    }
+
+    .search-panel {
+      background: #111;
+      border: 1px solid rgba(215, 184, 90, 0.35);
+      border-radius: 18px;
+      padding: 18px;
+      margin-bottom: 18px;
+    }
+
+    .search-form {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 10px;
+      margin-top: 12px;
+    }
+
+    .search-input {
+      width: 100%;
+      box-sizing: border-box;
+      background: #0b0b0b;
+      color: #fff;
+      border: 1px solid rgba(215, 184, 90, 0.4);
+      border-radius: 14px;
+      padding: 13px;
+      font-size: 15px;
+      outline: none;
+    }
+
+    .disabled-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 14px;
+    }
+
+    .disabled-actions button {
+      border: 1px solid rgba(215, 184, 90, 0.25);
+      color: #9f967b;
+      background: #0b0b0b;
+      padding: 10px 13px;
+      border-radius: 999px;
+      cursor: not-allowed;
+      opacity: 0.75;
+    }
+
+    .bulk-panel {
+      border: 1px solid rgba(215,184,90,.25);
+      background: rgba(255,255,255,.025);
+      border-radius: 14px;
+      padding: 12px;
+      margin-bottom: 12px;
+      display: grid;
+      grid-template-columns: minmax(150px, 220px) 1fr auto;
+      gap: 10px;
+      align-items: center;
+    }
+
+    .bulk-panel select,
+    .bulk-panel input {
+      width: 100%;
+      box-sizing: border-box;
+      background: #0b0b0b;
+      color: #fff;
+      border: 1px solid rgba(215,184,90,.35);
+      border-radius: 12px;
+      padding: 10px;
+      outline: none;
+    }
+
+    .bulk-panel button {
+      border: 1px solid rgba(215,184,90,.6);
+      color: #f0cc68;
+      background: #111;
+      border-radius: 999px;
+      padding: 10px 14px;
+      cursor: pointer;
+      font-weight: 700;
+    }
+
+    .header {
+      background: linear-gradient(135deg, #111, #1d1a10);
+      border: 1px solid #c8a84b;
+      border-radius: 20px;
+      padding: 24px;
+      margin-bottom: 20px;
+      box-shadow: 0 0 25px rgba(200, 168, 75, 0.12);
+    }
+
+    .header h1 {
+      margin: 0 0 8px;
+      color: #d7b85a;
+      font-size: 30px;
+    }
+
+    .sub {
+      color: #cfc7ad;
+      line-height: 1.7;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 14px;
+      margin-bottom: 20px;
+    }
+
+    .card {
+      background: #121212;
+      border: 1px solid rgba(215, 184, 90, 0.35);
+      border-radius: 16px;
+      padding: 18px;
+      min-height: 104px;
+    }
+
+    .card h3 {
+      margin: 0 0 10px;
+      color: #d7b85a;
+      font-size: 16px;
+    }
+
+    .big {
+      color: #fff;
+      font-size: 27px;
+      font-weight: 900;
+      word-break: break-word;
+    }
+
+    .muted {
+      color: #aaa;
+      font-size: 13px;
+      margin-top: 6px;
+      line-height: 1.5;
+    }
+
+    .section {
+      background: #111;
+      border: 1px solid rgba(215, 184, 90, 0.25);
+      border-radius: 18px;
+      padding: 20px;
+      margin-bottom: 18px;
+    }
+
+    .section h2 {
+      margin: 0 0 14px;
+      color: #d7b85a;
+      font-size: 22px;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 12px;
+      overflow: hidden;
+      border-radius: 12px;
+    }
+
+    th, td {
+      padding: 11px;
+      border-bottom: 1px solid rgba(255,255,255,0.08);
+      text-align: right;
+      font-size: 13px;
+      vertical-align: top;
+    }
+
+    th {
+      color: #d7b85a;
+      background: #181818;
+      white-space: nowrap;
+    }
+
+    td {
+      color: #f5f0df;
+    }
+
+    .badge {
+      display: inline-block;
+      padding: 5px 10px;
+      border-radius: 999px;
+      border: 1px solid rgba(215, 184, 90, 0.45);
+      color: #f0cc68;
+      font-size: 12px;
+      white-space: nowrap;
+    }
+
+    .table-wrap {
+      overflow-x: auto;
+    }
+
+    .two-col {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 14px;
+      margin-bottom: 18px;
+    }
+
+    .small-box {
+      background: #121212;
+      border: 1px solid rgba(215, 184, 90, 0.25);
+      border-radius: 16px;
+      padding: 16px;
+    }
+
+    .small-box h3 {
+      margin: 0 0 10px;
+      color: #d7b85a;
+    }
+
+    .kv {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 7px 0;
+      border-bottom: 1px solid rgba(255,255,255,0.06);
+      color: #f5f0df;
+    }
+
+    .kv span:first-child {
+      color: #c8a84b;
+    }
+
+    @media (max-width: 1000px) {
+      .grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+
+      .two-col {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    @media (max-width: 600px) {
+      .page {
+        padding: 16px;
+      }
+
+      .grid {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <div class="page">
+
+    <div class="topbar">
+      <div class="brand">
+        <div class="logo">ALSAAB</div>
+        <div>
+          <div class="brand-title">ALSAAB AI Admin Dashboard</div>
+          <div class="brand-sub">لوحة إدارة داخلية مؤقتة - MVP</div>
+        </div>
+      </div>
+
+      <div>
+        <a class="action-btn" href="/admin-dashboard?key={{ encoded_key }}">تحديث البيانات</a>
+      </div>
+    </div>
+
+    <div class="header">
+      <h1>Admin Dashboard</h1>
+      <div class="sub">
+        هذه نسخة MVP لعرض بيانات الإدارة من Google Sheets. لاحقاً نضيف أزرار الموافقة على العمولات، الدفع، تعديل الشركاء، وإعادة حساب المستويات.
+      </div>
+    </div>
+
+    {% if admin_action_message %}
+    <div style="background:rgba(128,226,138,.08); border:1px solid rgba(128,226,138,.4); color:#80e28a; border-radius:14px; padding:13px 16px; margin-bottom:18px; font-weight:700;">
+      {{ admin_action_message }}
+    </div>
+    {% endif %}
+
+    <div class="search-panel">
+      <h2 style="color:#d7b85a; margin:0;">بحث شريك / عميل</h2>
+      <div class="sub">
+        ابحث بالـ Partner ID أو الاسم أو الإيميل أو رقم الهاتف. البحث يعرض ملف الشريك التفصيلي من النظام الرسمي.
+      </div>
+
+      <form class="search-form" method="GET" action="/admin-dashboard">
+        <input type="hidden" name="key" value="{{ admin_key }}">
+        <input
+          class="search-input"
+          name="partner_id"
+          value="{{ search_query }}"
+          placeholder="مثال: ALS-P00009 أو email أو phone أو name"
+        >
+        <button class="action-btn" type="submit">بحث</button>
+      </form>
+    </div>
+
+    {% if search_query %}
+    <div class="section">
+      <h2>نتيجة البحث</h2>
+
+      {% if search_lookup and search_lookup.get("found") %}
+        <div class="grid">
+          <div class="card">
+            <h3>Partner ID</h3>
+            <div class="big">{{ search_profile.get("partner_id") or search_lookup.get("partner_id") or "-" }}</div>
+            <div class="muted">{{ search_profile.get("partner_name") or "-" }}</div>
+          </div>
+
+          <div class="card">
+            <h3>المستوى الحالي</h3>
+            <div class="big">{{ search_level.get("current_level") or search_level.get("partner_rank") or "-" }}</div>
+            <div class="muted">التالي: {{ search_level.get("next_rank") or "-" }}</div>
+          </div>
+
+          <div class="card">
+            <h3>العملاء المباشرين النشطين</h3>
+            <div class="big">{{ search_customers.get("active_direct_paid_count") or 0 }}</div>
+            <div class="muted">إجمالي المباشرين: {{ search_customers.get("all_direct_count") or 0 }}</div>
+          </div>
+
+          <div class="card">
+            <h3>العمولات المعلقة</h3>
+            <div class="big">{{ money(search_commission_totals.get("pending")) }}</div>
+            <div class="muted">عددها: {{ search_commission_counts.get("pending") or 0 }}</div>
+          </div>
+        </div>
+
+        <div class="two-col">
+          <div class="small-box">
+            <h3>بيانات الشريك</h3>
+            <div class="kv"><span>الاسم</span><strong>{{ search_profile.get("partner_name") or "-" }}</strong></div>
+            <div class="kv"><span>Status</span><strong>{{ search_profile.get("status") or "-" }}</strong></div>
+            <div class="kv"><span>Sponsor</span><strong>{{ search_profile.get("sponsor_partner_id") or "-" }}</strong></div>
+            <div class="kv"><span>Referral Link</span><strong style="word-break:break-all;">{{ search_profile.get("referral_link") or "-" }}</strong></div>
+            <div class="kv"><span>Downline Count</span><strong>{{ search_tree.get("downline_count") or 0 }}</strong></div>
+          </div>
+
+          <div class="small-box">
+            <h3>المستوى والترقية</h3>
+            <div class="kv"><span>Completed Sales</span><strong>{{ search_level.get("completed_sales") or "-" }}</strong></div>
+            <div class="kv"><span>Required Sales</span><strong>{{ search_level.get("required_sales") or "-" }}</strong></div>
+            <div class="kv"><span>Current Package</span><strong>{{ search_level.get("current_package") or "-" }}</strong></div>
+            <div class="kv"><span>Subscription Status</span><strong>{{ search_level.get("subscription_status") or "-" }}</strong></div>
+            <div class="kv"><span>Commission Eligible</span><strong>{{ search_level.get("commission_eligible") or "-" }}</strong></div>
+          </div>
+        </div>
+
+        <div class="section" style="margin-top:18px;">
+          <h2>حالة عمولات هذا الشريك</h2>
+
+          <div class="grid">
+            <div class="card">
+              <h3>إجمالي العمولات</h3>
+              <div class="big">{{ money(search_commission_totals.get("all")) }}</div>
+              <div class="muted">عدد العمولات: {{ search_commission_counts.get("all") or 0 }}</div>
+            </div>
+
+            <div class="card">
+              <h3>Pending</h3>
+              <div class="big">{{ money(search_commission_totals.get("pending")) }}</div>
+              <div class="muted">تحتاج مراجعة / موافقة: {{ search_commission_counts.get("pending") or 0 }}</div>
+            </div>
+
+            <div class="card">
+              <h3>Approved</h3>
+              <div class="big">{{ money(search_commission_totals.get("approved")) }}</div>
+              <div class="muted">جاهزة للدفع: {{ search_commission_counts.get("approved") or 0 }}</div>
+            </div>
+
+            <div class="card">
+              <h3>Paid</h3>
+              <div class="big">{{ money(search_paid_total) }}</div>
+              <div class="muted">اندفعت للشريك: {{ search_commission_counts.get("paid") or 0 }}</div>
+            </div>
+
+            <div class="card">
+              <h3>غير مدفوع</h3>
+              <div class="big">{{ money(search_unpaid_total) }}</div>
+              <div class="muted">Pending + Approved</div>
+            </div>
+
+            <div class="card">
+              <h3>المستحق للدفع الآن</h3>
+              <div class="big">{{ money(search_payable_now) }}</div>
+              <div class="muted">Approved فقط</div>
+            </div>
+
+            <div class="card">
+              <h3>Rejected / Hold</h3>
+              <div class="big">{{ money(search_rejected_hold_total) }}</div>
+              <div class="muted">
+                Rejected: {{ search_commission_counts.get("rejected") or 0 }}
+                /
+                Hold: {{ search_commission_counts.get("hold") or 0 }}
+              </div>
+            </div>
+
+            <div class="card">
+              <h3>حالة الدفع</h3>
+              <div class="big">
+                {% if search_payable_now and search_payable_now > 0 %}
+                  يحتاج دفع
+                {% elif search_unpaid_total and search_unpaid_total > 0 %}
+                  يحتاج موافقة
+                {% else %}
+                  لا يوجد مستحق
+                {% endif %}
+              </div>
+              <div class="muted">ملخص سريع لحالة عمولات الشريك</div>
+            </div>
+          </div>
+        </div>
+
+
+        <!-- ALSAAB_PARTNER_STATUS_ACTION_PANEL_V2 START -->
+        <div class="small-box" style="margin-top:14px;">
+          <h3>إدارة حالة الشريك</h3>
+          <div class="muted">
+            هذه الأزرار خاصة بالأدمن فقط. تعليق الشريك يوقف أهليته مؤقتاً، والتفعيل يرجعه active مع إعادة حساب مستواه.
+          </div>
+
+          <div class="disabled-actions" style="margin-top:14px;">
+            <form method="POST" action="/admin/update-partner-status" style="display:inline-block;">
+              <input type="hidden" name="key" value="{{ admin_key }}">
+              <input type="hidden" name="partner_id" value="{{ search_profile.get("partner_id") or search_lookup.get("partner_id") }}">
+              <input type="hidden" name="new_status" value="suspended">
+              <input type="hidden" name="reason" value="Manual suspend from Admin Dashboard">
+              <button type="submit" onclick="return confirm('تأكيد تعليق هذا الشريك؟')" style="border:1px solid rgba(255,122,122,.6); color:#ff7a7a; background:#111; padding:10px 13px; border-radius:999px; cursor:pointer;">
+                Suspend Partner
+              </button>
+            </form>
+
+            <form method="POST" action="/admin/update-partner-status" style="display:inline-block;">
+              <input type="hidden" name="key" value="{{ admin_key }}">
+              <input type="hidden" name="partner_id" value="{{ search_profile.get("partner_id") or search_lookup.get("partner_id") }}">
+              <input type="hidden" name="new_status" value="active">
+              <input type="hidden" name="reason" value="Manual activate from Admin Dashboard">
+              <button type="submit" onclick="return confirm('تأكيد تفعيل هذا الشريك؟')" style="border:1px solid rgba(128,226,138,.6); color:#80e28a; background:#111; padding:10px 13px; border-radius:999px; cursor:pointer;">
+                Activate Partner
+              </button>
+            </form>
+          </div>
+        </div>
+        <!-- ALSAAB_PARTNER_STATUS_ACTION_PANEL_V2 END -->
+
+
+        <!-- ALSAAB_AUTO_APPROVE_PENDING_BUTTON_V1 START -->
+        <div class="section" style="margin-top:18px;">
+          <h2>اعتماد العمولات القديمة تلقائياً</h2>
+          <div class="muted">
+            النظام الجديد يعتمد العمولات الصحيحة تلقائياً. هذا الزر فقط لتحويل العمولات القديمة pending لهذا الشريك إلى approved.
+          </div>
+
+          <form method="POST" action="/admin/auto-approve-pending-commissions" style="margin-top:14px;">
+            <input type="hidden" name="key" value="{{ admin_key }}">
+            <input type="hidden" name="partner_id" value="{{ search_profile.get("partner_id") or search_lookup.get("partner_id") }}">
+            <input type="hidden" name="reason" value="Convert old pending commissions to approved for this partner">
+
+            <button
+              type="submit"
+              onclick="return confirm('تأكيد تحويل العمولات القديمة pending لهذا الشريك إلى approved؟')"
+              style="border:1px solid rgba(128,226,138,.6); color:#80e28a; background:#111; padding:12px 16px; border-radius:999px; font-weight:900; cursor:pointer;"
+            >
+              Auto Approve Old Pending
+            </button>
+          </form>
+        </div>
+
+
+        <!-- ALSAAB_PAYOUT_HISTORY_SINGLE_SECTION_V4 START -->
+        <div class="section" style="margin-top:18px;">
+          <h2>سجل دفعات هذا الشريك</h2>
+
+          <div class="grid">
+            <div class="card">
+              <h3>إجمالي المدفوع</h3>
+              <div class="big">{{ money(search_payout_summary.get("total_paid")) }}</div>
+              <div class="muted">كل الدفعات المسجلة في PayoutHistory</div>
+            </div>
+
+            <div class="card">
+              <h3>عدد الدفعات</h3>
+              <div class="big">{{ search_payout_summary.get("payout_count") or 0 }}</div>
+              <div class="muted">عدد مرات الدفع للشريك</div>
+            </div>
+
+            <div class="card">
+              <h3>عمولات مدفوعة</h3>
+              <div class="big">{{ search_payout_summary.get("total_commissions_paid") or 0 }}</div>
+              <div class="muted">عدد العمولات المدفوعة ضمن الدفعات</div>
+            </div>
+
+            <div class="card">
+              <h3>آخر دفعة</h3>
+              <div class="big" style="font-size:18px;">{{ search_payout_summary.get("last_paid_date") or "-" }}</div>
+              <div class="muted">آخر تاريخ دفع مسجل</div>
+            </div>
+          </div>
+
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Payout ID</th>
+                  <th>Amount</th>
+                  <th>Commission Count</th>
+                  <th>Method</th>
+                  <th>Status</th>
+                  <th>Paid Date</th>
+                  <th>Reason</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for payout in search_recent_payouts[:10] %}
+                <tr>
+                  <td>{{ payout.payout_id or "-" }}</td>
+                  <td>{{ money(payout.total_amount) }}</td>
+                  <td>{{ payout.commission_count or 0 }}</td>
+                  <td>{{ payout.payment_method or "-" }}</td>
+                  <td><span class="badge">{{ payout.status or "-" }}</span></td>
+                  <td>{{ payout.paid_date or "-" }}</td>
+                  <td>{{ payout.reason or "-" }}</td>
+                </tr>
+                {% else %}
+                <tr><td colspan="7">لا توجد دفعات مسجلة لهذا الشريك بعد.</td></tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        </div>
+        <!-- ALSAAB_PAYOUT_HISTORY_SINGLE_SECTION_V4 END -->
+
+<!-- ALSAAB_MARK_PARTNER_PAID_BUTTON_V1 START -->
+        <div class="section" style="margin-top:18px;">
+          <h2>تسجيل دفع عمولة الشريك</h2>
+          <div class="muted">
+            بعد ما تحول المبلغ يدوياً للشريك، اضغط هذا الزر. النظام سيحول كل العمولات approved لهذا الشريك إلى paid ويحفظ العملية في PayoutHistory و AuditLogs.
+          </div>
+
+          <form method="POST" action="/admin/mark-partner-paid" style="margin-top:14px;">
+            <input type="hidden" name="key" value="{{ admin_key }}">
+            <input type="hidden" name="partner_id" value="{{ search_profile.get("partner_id") or search_lookup.get("partner_id") }}">
+            <input
+              name="reason"
+              required
+              value="Manual transfer completed by owner"
+              style="width:100%; box-sizing:border-box; background:#0b0b0b; color:#fff; border:1px solid rgba(215,184,90,.35); border-radius:12px; padding:12px; margin-bottom:12px;"
+            >
+
+            <button
+              type="submit"
+              onclick="return confirm('تأكيد: هل حولت المبلغ يدوياً للشريك وتريد تحويل كل approved إلى paid؟')"
+              style="border:1px solid rgba(128,226,138,.6); color:#80e28a; background:#111; padding:12px 16px; border-radius:999px; font-weight:900; cursor:pointer;"
+            >
+              تم الدفع للشريك
+            </button>
+          </form>
+
+          <div class="muted" style="margin-top:10px;">
+            المستحق للدفع الآن: {{ money(search_payable_now) }}
+          </div>
+        </div>
+        <!-- ALSAAB_MARK_PARTNER_PAID_BUTTON_V1 END -->
+
+<div class="small-box">
+          <h3>إجراءات إدارية لاحقة</h3>
+          <div class="muted">
+            هذه الأزرار مكانها هنا، لكنها غير مفعلة الآن حتى نبني الـ audit log والصلاحيات.
+          </div>
+          <div class="disabled-actions">
+
+            <form method="POST" action="/admin/recalculate-partner-level" style="display:inline-block;">
+              <input type="hidden" name="key" value="{{ admin_key }}">
+              <input type="hidden" name="partner_id" value="{{ search_profile.get("partner_id") or search_lookup.get("partner_id") }}">
+              <input type="hidden" name="reason" value="Manual recalculate from Admin Dashboard search result">
+              <button type="submit" style="border:1px solid rgba(215,184,90,.55); color:#f0cc68; background:#111; padding:10px 13px; border-radius:999px; cursor:pointer;">
+                Recalculate Level
+              </button>
+            </form>
+            <button disabled>Suspend Partner</button>
+            <button disabled>Activate Partner</button>
+
+            <a
+              href="/admin/downline-transfer-preview?key={{ admin_key }}&partner_id={{ search_profile.get("partner_id") or search_lookup.get("partner_id") }}"
+              style="border:1px solid rgba(255,207,102,.6); color:#ffcf66; background:#111; padding:10px 13px; border-radius:999px; text-decoration:none; display:inline-block;"
+            >
+              Preview Transfer Downline to alsaab
+            </a>
+            <button disabled>Approve Commissions</button>
+            <button disabled>Mark Commissions Paid</button>
+          </div>
+        </div>
+
+        <div class="section" style="margin-top:18px;">
+          <h2>آخر عمولات هذا الشريك</h2>
+
+          <form id="bulkCommissionForm" class="bulk-panel" method="POST" action="/admin/bulk-update-commission-status">
+            <input type="hidden" name="key" value="{{ admin_key }}">
+            <input type="hidden" name="partner_id" value="{{ search_profile.get("partner_id") or search_lookup.get("partner_id") }}">
+
+            <select name="new_status" required>
+              <option value="">Bulk Action</option>
+              <option value="approved">Approve Selected</option>
+              <option value="hold">Hold Selected</option>
+              <option value="rejected">Reject Selected</option>
+              <option value="paid">Mark Selected as Paid</option>
+            </select>
+
+            <input name="reason" placeholder="سبب الإجراء / ملاحظة الإدارة" required>
+
+            <button type="submit" onclick="return confirm('تأكيد تنفيذ الإجراء الجماعي على العمولات المحددة؟')">
+              تنفيذ
+            </button>
+          </form>
+
+          <div class="muted" style="margin-bottom:10px;">
+            ملاحظة: Mark as Paid في الإجراء الجماعي يطبق فقط على العمولات approved، ويتجاهل العمولات pending لحماية الدفع.
+          </div>
+
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th><input type="checkbox" onclick="toggleCommissionSelection(this)"></th>
+                  <th>Source</th>
+                  <th>Depth</th>
+                  <th>Package</th>
+                  <th>%</th>
+                  <th>Amount</th>
+                  <th>Status</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for c in search_recent_commissions[:10] %}
+                <tr>
+                  <td>
+                    <input
+                      type="checkbox"
+                      name="commission_ids"
+                      form="bulkCommissionForm"
+                      value="{{ c.commission_id }}"
+                    >
+                  </td>
+                  <td>{{ c.source_partner_id or "-" }}</td>
+                  <td>{{ c.commission_depth or "-" }}</td>
+                  <td>{{ c.package or "-" }}</td>
+                  <td>{{ c.commission_percent or "-" }}</td>
+                  <td>{{ money(c.commission_amount) }}</td>
+                  <td><span class="badge">{{ c.status or "-" }}</span></td>
+                  <td>
+                    <div style="display:flex; gap:6px; flex-wrap:wrap;">
+                      <form method="POST" action="/admin/update-commission-status">
+                        <input type="hidden" name="key" value="{{ admin_key }}">
+                        <input type="hidden" name="partner_id" value="{{ search_profile.get("partner_id") or search_lookup.get("partner_id") }}">
+                        <input type="hidden" name="commission_id" value="{{ c.commission_id }}">
+                        <input type="hidden" name="new_status" value="approved">
+                        <input type="hidden" name="reason" value="Approved from Admin Dashboard">
+                        <button type="submit" style="border:1px solid rgba(128,226,138,.6); color:#80e28a; background:#111; border-radius:999px; padding:6px 9px; cursor:pointer;">Approve</button>
+                      </form>
+
+                      <form method="POST" action="/admin/update-commission-status">
+                        <input type="hidden" name="key" value="{{ admin_key }}">
+                        <input type="hidden" name="partner_id" value="{{ search_profile.get("partner_id") or search_lookup.get("partner_id") }}">
+                        <input type="hidden" name="commission_id" value="{{ c.commission_id }}">
+                        <input type="hidden" name="new_status" value="hold">
+                        <input type="hidden" name="reason" value="Hold from Admin Dashboard">
+                        <button type="submit" style="border:1px solid rgba(255,207,102,.6); color:#ffcf66; background:#111; border-radius:999px; padding:6px 9px; cursor:pointer;">Hold</button>
+                      </form>
+
+                      <form method="POST" action="/admin/update-commission-status">
+                        <input type="hidden" name="key" value="{{ admin_key }}">
+                        <input type="hidden" name="partner_id" value="{{ search_profile.get("partner_id") or search_lookup.get("partner_id") }}">
+                        <input type="hidden" name="commission_id" value="{{ c.commission_id }}">
+                        <input type="hidden" name="new_status" value="rejected">
+                        <input type="hidden" name="reason" value="Rejected from Admin Dashboard">
+                        <button type="submit" style="border:1px solid rgba(255,122,122,.6); color:#ff7a7a; background:#111; border-radius:999px; padding:6px 9px; cursor:pointer;">Reject</button>
+                      </form>
+
+                      <form method="POST" action="/admin/update-commission-status">
+                        <input type="hidden" name="key" value="{{ admin_key }}">
+                        <input type="hidden" name="partner_id" value="{{ search_profile.get("partner_id") or search_lookup.get("partner_id") }}">
+                        <input type="hidden" name="commission_id" value="{{ c.commission_id }}">
+                        <input type="hidden" name="new_status" value="paid">
+                        <input type="hidden" name="reason" value="Marked paid from Admin Dashboard">
+                        <button type="submit" style="border:1px solid rgba(215,184,90,.65); color:#f0cc68; background:#111; border-radius:999px; padding:6px 9px; cursor:pointer;">Mark Paid</button>
+                      </form>
+                    </div>
+                  </td>
+                </tr>
+                {% else %}
+                <tr><td colspan="8">لا توجد عمولات لهذا الشريك.</td></tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <div class="section">
+          <h2>العملاء المباشرين لهذا الشريك</h2>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Client ID</th>
+                  <th>Plan</th>
+                  <th>Amount</th>
+                  <th>Status</th>
+                  <th>Date</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for customer in search_recent_customers[:10] %}
+                <tr>
+                  <td>{{ customer.client_id or customer.session_id or "-" }}</td>
+                  <td>{{ customer.plan_name or "-" }}</td>
+                  <td>{{ money(customer.package_amount) }}</td>
+                  <td><span class="badge">{{ customer.subscription_status or "-" }}</span></td>
+                  <td>{{ customer.date or "-" }}</td>
+                </tr>
+                {% else %}
+                <tr><td colspan="5">لا توجد بيانات عملاء مباشرين.</td></tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+      {% else %}
+        <div class="muted">
+          لم يتم العثور على شريك مطابق للبحث: {{ search_query }}
+        </div>
+
+        {% if search_lookup and search_lookup.get("matches") %}
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Partner ID</th>
+                <th>Name</th>
+                <th>Email</th>
+                <th>Phone</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for m in search_lookup.get("matches") %}
+              <tr>
+                <td>{{ m.partner_id or "-" }}</td>
+                <td>{{ m.partner_name or "-" }}</td>
+                <td>{{ m.email or "-" }}</td>
+                <td>{{ m.phone or "-" }}</td>
+                <td>{{ m.status or "-" }}</td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+        {% endif %}
+      {% endif %}
+    </div>
+    {% endif %}
+
+    <div class="grid">
+      <div class="card">
+        <h3>إجمالي الشركاء</h3>
+        <div class="big">{{ partner_summary.total or 0 }}</div>
+        <div class="muted">Active: {{ partner_summary.active or 0 }} / Suspended: {{ partner_summary.suspended or 0 }}</div>
+      </div>
+
+      <div class="card">
+        <h3>الاشتراكات النشطة</h3>
+        <div class="big">{{ subscription_summary.active or 0 }}</div>
+        <div class="muted">Total: {{ subscription_summary.total or 0 }} / Failed: {{ subscription_summary.payment_failed or 0 }}</div>
+      </div>
+
+      <div class="card">
+        <h3>العمولات المعلقة</h3>
+        <div class="big">{{ money(commission_totals.pending) }}</div>
+        <div class="muted">Count: {{ commission_counts.pending or 0 }}</div>
+      </div>
+
+      <div class="card">
+        <h3>إجمالي العمولات</h3>
+        <div class="big">{{ money(commission_totals.all) }}</div>
+        <div class="muted">All count: {{ commission_counts.all or 0 }}</div>
+      </div>
+
+      <div class="card">
+        <h3>إجمالي الاشتراكات</h3>
+        <div class="big">{{ money(subscription_summary.total_amount) }}</div>
+        <div class="muted">حسب بيانات Subscriptions</div>
+      </div>
+
+      <div class="card">
+        <h3>الكورسات المدفوعة</h3>
+        <div class="big">{{ course_summary.paid or 0 }}</div>
+        <div class="muted">Total courses: {{ course_summary.total or 0 }}</div>
+      </div>
+
+      <div class="card">
+        <h3>Commission Eligible</h3>
+        <div class="big">{{ eligible_counts.yes or 0 }}</div>
+        <div class="muted">Not eligible: {{ eligible_counts.no or 0 }}</div>
+      </div>
+
+      <div class="card">
+        <h3>Payment Failed</h3>
+        <div class="big">{{ subscription_summary.payment_failed or 0 }}</div>
+        <div class="muted">Cancelled: {{ subscription_summary.cancelled or 0 }}</div>
+      </div>
+    </div>
+
+    <div class="two-col">
+      <div class="small-box">
+        <h3>توزيع المستويات</h3>
+        {% for level_name, count in level_counts.items() %}
+        <div class="kv"><span>{{ level_name }}</span><strong>{{ count }}</strong></div>
+        {% else %}
+        <div class="muted">لا توجد بيانات مستويات.</div>
+        {% endfor %}
+
+        <div style="margin-top:14px;padding-top:12px;border-top:1px solid rgba(255,255,255,.10);">
+          <button type="button" id="recalcLevelsBtn"
+                  style="width:100%;padding:11px 14px;border-radius:999px;cursor:pointer;
+                         border:1px solid rgba(215,184,90,.6);
+                         background:linear-gradient(135deg,#2a220f,#141414);
+                         color:#f0cc68;font-weight:800;font-size:13px;">
+            إعادة حساب كل المستويات
+          </button>
+          <div id="recalcLevelsMsg" class="muted" style="margin-top:8px;line-height:1.7;">
+            يعيد حساب مستوى كل شريك من البيانات الحالية، بدل انتظار وصول دفعة.
+          </div>
+        </div>
+      </div>
+
+      <script>
+      (function () {
+        var btn = document.getElementById("recalcLevelsBtn");
+        var msg = document.getElementById("recalcLevelsMsg");
+        if (!btn) { return; }
+
+        btn.addEventListener("click", function () {
+          btn.disabled = true;
+          var original = btn.textContent;
+          btn.textContent = "جارٍ إعادة الحساب...";
+          msg.textContent = "قد يستغرق دقيقة حسب عدد الشركاء.";
+
+          fetch("/admin/recalculate-all-levels", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ key: {{ admin_key | tojson }} })
+          })
+            .then(function (r) { return r.json(); })
+            .then(function (data) {
+              if (data.status === "success") {
+                msg.innerHTML =
+                  "تم: صُحّح <strong>" + data.changed_count + "</strong> شريك من " +
+                  data.total + "، وبقي " + data.unchanged_count + " كما هو." +
+                  (data.failed_count ? " فشل: " + data.failed_count + "." : "") +
+                  "<br>حدّث الصفحة لرؤية الأرقام الجديدة.";
+              } else {
+                msg.textContent = "تعذّر إعادة الحساب: " + (data.message || "خطأ غير معروف");
+              }
+            })
+            .catch(function (e) { msg.textContent = "تعذّر الاتصال: " + e; })
+            .then(function () { btn.disabled = false; btn.textContent = original; });
+        });
+      })();
+      </script>
+
+      <div class="small-box">
+        <h3>Plan Counts</h3>
+        {% for plan, count in (subscriptions.plan_counts or {}).items() %}
+        <div class="kv"><span>{{ plan }}</span><strong>{{ count }}</strong></div>
+        {% else %}
+        <div class="muted">لا توجد بيانات باقات.</div>
+        {% endfor %}
+      </div>
+    </div>
+
+    <div class="section">
+      <h2>آخر الشركاء</h2>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Partner ID</th>
+              <th>الاسم</th>
+              <th>Sponsor</th>
+              <th>Rank</th>
+              <th>Status</th>
+              <th>Email</th>
+              <th>Referral Link</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for p in recent_partners %}
+            <tr>
+              <td>{{ p.partner_id or "-" }}</td>
+              <td>{{ p.partner_name or "-" }}</td>
+              <td>{{ p.sponsor_partner_id or "-" }}</td>
+              <td>{{ p.partner_rank or "-" }}</td>
+              <td><span class="badge">{{ p.status or "-" }}</span></td>
+              <td>{{ p.email or "-" }}</td>
+              <td>{{ p.referral_link or "-" }}</td>
+            </tr>
+            {% else %}
+            <tr><td colspan="7">لا توجد بيانات.</td></tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="section">
+      <h2>آخر الاشتراكات</h2>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Client ID</th>
+              <th>Session ID</th>
+              <th>Source Partner</th>
+              <th>Plan</th>
+              <th>Amount</th>
+              <th>Status</th>
+              <th>Stripe Sub</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for s in recent_subscriptions %}
+            <tr>
+              <td>{{ s.client_id or "-" }}</td>
+              <td>{{ s.session_id or "-" }}</td>
+              <td>{{ s.source_partner_id or "-" }}</td>
+              <td>{{ s.plan_name or "-" }}</td>
+              <td>{{ money(s.package_amount) }}</td>
+              <td><span class="badge">{{ s.subscription_status or "-" }}</span></td>
+              <td>{{ s.stripe_subscription_id or "-" }}</td>
+            </tr>
+            {% else %}
+            <tr><td colspan="7">لا توجد بيانات.</td></tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="section">
+      <h2>آخر العمولات</h2>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Beneficiary</th>
+              <th>Source</th>
+              <th>Depth</th>
+              <th>Rank</th>
+              <th>Package</th>
+              <th>%</th>
+              <th>Amount</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for c in recent_commissions %}
+            <tr>
+              <td>{{ c.beneficiary_partner_id or "-" }}</td>
+              <td>{{ c.source_partner_id or "-" }}</td>
+              <td>{{ c.commission_depth or "-" }}</td>
+              <td>{{ c.partner_rank or "-" }}</td>
+              <td>{{ c.package or "-" }}</td>
+              <td>{{ c.commission_percent or "-" }}</td>
+              <td>{{ money(c.commission_amount) }}</td>
+              <td><span class="badge">{{ c.status or "-" }}</span></td>
+            </tr>
+            {% else %}
+            <tr><td colspan="8">لا توجد بيانات.</td></tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="section">
+      <h2>تقدم المستويات</h2>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Partner ID</th>
+              <th>Rank</th>
+              <th>Completed</th>
+              <th>Required</th>
+              <th>Next</th>
+              <th>Package</th>
+              <th>Sub Status</th>
+              <th>Eligible</th>
+              <th>Missing</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for l in recent_levels %}
+            <tr>
+              <td>{{ l.partner_id or "-" }}</td>
+              <td>{{ l.partner_rank or "-" }}</td>
+              <td>{{ l.completed_sales or "-" }}</td>
+              <td>{{ l.required_sales or "-" }}</td>
+              <td>{{ l.next_rank or "-" }}</td>
+              <td>{{ l.current_package or "-" }}</td>
+              <td>{{ l.subscription_status or "-" }}</td>
+              <td><span class="badge">{{ l.commission_eligible or "-" }}</span></td>
+              <td>{{ l.missing_requirements or "-" }}</td>
+            </tr>
+            {% else %}
+            <tr><td colspan="9">لا توجد بيانات.</td></tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="section">
+      <h2>آخر مشتريات الكورسات</h2>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Partner ID</th>
+              <th>Course Code</th>
+              <th>Course Name</th>
+              <th>Amount</th>
+              <th>Status</th>
+              <th>Stripe Payment</th>
+              <th>Paid At</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for course in recent_courses %}
+            <tr>
+              <td>{{ course.partner_id or "-" }}</td>
+              <td>{{ course.course_code or "-" }}</td>
+              <td>{{ course.course_name or "-" }}</td>
+              <td>{{ money(course.amount) }}</td>
+              <td><span class="badge">{{ course.status or "-" }}</span></td>
+              <td>{{ course.stripe_payment_id or "-" }}</td>
+              <td>{{ course.paid_at or "-" }}</td>
+            </tr>
+            {% else %}
+            <tr><td colspan="7">لا توجد بيانات.</td></tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+  </div>
+</body>
+</html>

@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="utf-8">
+  <title>WhatsApp Setup Requests</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <style>
+    body {
+      margin: 0;
+      background: #0b0b0b;
+      color: #f5f0df;
+      font-family: Arial, Tahoma, sans-serif;
+      direction: rtl;
+    }
+
+    .page {
+      max-width: 1400px;
+      margin: 0 auto;
+      padding: 24px;
+    }
+
+    .header, .section {
+      background: #111;
+      border: 1px solid rgba(215,184,90,.35);
+      border-radius: 18px;
+      padding: 20px;
+      margin-bottom: 18px;
+    }
+
+    h1, h2, h3 {
+      color: #d7b85a;
+      margin-top: 0;
+    }
+
+    .muted {
+      color: #cfc7ad;
+      line-height: 1.7;
+    }
+
+    .filters {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-top: 14px;
+    }
+
+    input, select, textarea {
+      background: #0b0b0b;
+      color: #fff;
+      border: 1px solid rgba(215,184,90,.35);
+      border-radius: 12px;
+      padding: 10px;
+      box-sizing: border-box;
+    }
+
+    button, .btn {
+      border: 1px solid rgba(215,184,90,.65);
+      background: #111;
+      color: #f0cc68;
+      border-radius: 999px;
+      padding: 10px 14px;
+      font-weight: 800;
+      cursor: pointer;
+      text-decoration: none;
+      display: inline-block;
+    }
+
+    .btn-green {
+      border-color: rgba(128,226,138,.65);
+      color: #80e28a;
+    }
+
+    .table-wrap {
+      overflow-x: auto;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      min-width: 1100px;
+    }
+
+    th, td {
+      padding: 10px;
+      border-bottom: 1px solid rgba(255,255,255,.08);
+      vertical-align: top;
+      font-size: 13px;
+      text-align: right;
+    }
+
+    th {
+      color: #d7b85a;
+      background: #181818;
+      position: sticky;
+      top: 0;
+      z-index: 1;
+    }
+
+    .badge {
+      display: inline-block;
+      padding: 5px 9px;
+      border-radius: 999px;
+      border: 1px solid rgba(215,184,90,.45);
+      color: #f0cc68;
+      font-weight: 700;
+      font-size: 12px;
+    }
+
+    .small {
+      font-size: 12px;
+      color: #aaa;
+    }
+
+    textarea {
+      width: 220px;
+      min-height: 70px;
+    }
+
+    .update-form {
+      min-width: 270px;
+    }
+
+    .update-form input,
+    .update-form select,
+    .update-form textarea {
+      width: 100%;
+      margin-bottom: 8px;
+    }
+
+    @media (max-width: 700px) {
+      .page {
+        padding: 14px;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <div class="page">
+    <div class="header">
+      <h1>طلبات ربط WhatsApp</h1>
+      <div class="muted">
+        هذه الطلبات تأتي من Client Dashboard عندما يطلب العميل ربط رقم WhatsApp Business الحالي بنظام ALSAAB AI.
+      </div>
+
+      <form method="GET" action="/admin/whatsapp-setup-requests" class="filters">
+        <input type="hidden" name="key" value="{{ key }}">
+        <input name="partner_id" placeholder="Partner ID" value="{{ partner_id_filter }}">
+        <select name="status">
+          <option value="">كل الحالات</option>
+          {% for status in ["pending_setup", "under_review", "connected", "testing", "live", "rejected"] %}
+            <option value="{{ status }}" {% if status_filter == status %}selected{% endif %}>{{ status }}</option>
+          {% endfor %}
+        </select>
+        <button type="submit">بحث</button>
+        <a class="btn" href="/admin-dashboard?key={{ encoded_key }}">رجوع إلى Admin Dashboard</a>
+      </form>
+    </div>
+
+    <div class="section">
+      <h2>الطلبات: {{ count }}</h2>
+
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Request ID</th>
+              <th>Partner / Client</th>
+              <th>Business</th>
+              <th>WhatsApp Number</th>
+              <th>Setup Type</th>
+              <th>Status</th>
+              <th>Customer Notes</th>
+              <th>Meta IDs</th>
+              <th>Admin Update</th>
+            </tr>
+          </thead>
+
+          <tbody>
+            {% for item in requests_list %}
+            <tr>
+              <td>
+                <strong>{{ item.request_id or "-" }}</strong>
+                <div class="small">{{ item.date or "" }}</div>
+                <div class="small">Updated: {{ item.updated_at or "-" }}</div>
+              </td>
+
+              <td>
+                <div><strong>Partner:</strong> {{ item.partner_id or "-" }}</div>
+                <div><strong>Client:</strong> {{ item.client_id or "-" }}</div>
+              </td>
+
+              <td>
+                <strong>{{ item.business_name or "-" }}</strong>
+                <div class="small">Lang: {{ item.preferred_language or "-" }}</div>
+                <div class="small">Handoff: {{ item.human_handoff or "-" }}</div>
+              </td>
+
+              <td>{{ item.whatsapp_number or "-" }}</td>
+
+              <td>{{ item.setup_type or "-" }}</td>
+
+              <td><span class="badge">{{ item.connection_status or "-" }}</span></td>
+
+              <td>
+                <div>{{ item.customer_notes or "-" }}</div>
+                {% if item.admin_notes %}
+                  <hr style="border-color:rgba(255,255,255,.08);">
+                  <div class="small"><strong>Admin:</strong> {{ item.admin_notes }}</div>
+                {% endif %}
+              </td>
+
+              <td>
+                <div><strong>Phone Number ID:</strong> {{ item.phone_number_id or "-" }}</div>
+                <div><strong>WABA ID:</strong> {{ item.waba_id or "-" }}</div>
+                <div><strong>Provider:</strong> {{ item.provider or "-" }}</div>
+              </td>
+
+              <td>
+                <form method="POST" action="/admin/update-whatsapp-setup-request" class="update-form">
+                  <input type="hidden" name="key" value="{{ key }}">
+                  <input type="hidden" name="request_id" value="{{ item.request_id }}">
+
+                  <select name="connection_status">
+                    {% for status in ["pending_setup", "under_review", "connected", "testing", "live", "rejected"] %}
+                      <option value="{{ status }}" {% if item.connection_status == status %}selected{% endif %}>{{ status }}</option>
+                    {% endfor %}
+                  </select>
+
+                  <input name="phone_number_id" placeholder="Phone Number ID" value="{{ item.phone_number_id or "" }}">
+                  <input name="waba_id" placeholder="WABA ID" value="{{ item.waba_id or "" }}">
+                  <input name="provider" placeholder="Provider" value="{{ item.provider or "" }}">
+
+                  <textarea name="admin_notes" placeholder="Admin notes">{{ item.admin_notes or "" }}</textarea>
+
+                  <button class="btn-green" type="submit">تحديث</button>
+                </form>
+              </td>
+            </tr>
+            {% else %}
+            <tr>
+              <td colspan="9">لا توجد طلبات WhatsApp حالياً.</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

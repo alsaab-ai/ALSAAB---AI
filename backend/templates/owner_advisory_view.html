@@ -1,0 +1,112 @@
+<!doctype html>
+        <html lang="{{ lang }}" dir="{{ direction }}">
+        <head>
+          <meta charset="utf-8">
+          <meta name="viewport" content="width=device-width, initial-scale=1">
+          <title>{{ title }}</title>
+          <style>
+            body { margin:0; background:#0b0b0b; color:#f5f0df; font-family:Arial,Tahoma,sans-serif; direction:{{ direction }}; }
+            .page { max-width:900px; margin:0 auto; padding:30px; }
+            .card { background:#111; border:1px solid rgba(215,184,90,.4); border-radius:18px; padding:24px; }
+            h1 { color:#d7b85a; margin-top:0; }
+            .sub { color:#cfc7ad; line-height:1.8; }
+            .chat { margin-top:18px; border:1px solid rgba(215,184,90,.25); border-radius:14px; padding:14px; min-height:330px; max-height:520px; overflow:auto; background:#0b0b0b; }
+            .msg { margin-bottom:12px; line-height:1.7; }
+            .user { color:#f0cc68; }
+            .assistant { color:#fff; }
+            textarea { width:100%; box-sizing:border-box; margin-top:14px; min-height:90px; background:#0b0b0b; color:#fff; border:1px solid rgba(215,184,90,.35); border-radius:12px; padding:12px; font-family:Arial,Tahoma,sans-serif; }
+            button, a { color:#f0cc68; background:#111; text-decoration:none; display:inline-block; margin-top:12px; border:1px solid rgba(215,184,90,.45); padding:10px 14px; border-radius:999px; cursor:pointer; }
+          </style>
+        </head>
+        <body>
+          <div class="page">
+            <div class="card">
+              <h1>{{ title }}</h1>
+              <div class="sub">{{ subtitle }}</div>
+              <div class="sub" style="margin-top:8px;">Account ID: {{ partner_id }}</div>
+
+              <div id="chat" class="chat"></div>
+
+              <textarea id="message" placeholder="اكتب سؤالك هنا..."></textarea>
+              <br>
+              <button onclick="sendMessage()">إرسال</button>
+              <a href="{{ back_url }}">العودة إلى Client Dashboard</a>
+            </div>
+          </div>
+
+          <script>
+            const partnerId = {{ partner_id|tojson }};
+            const sessionId = {{ session_id|tojson }};
+            const chatKey = "alsaab_owner_advisory_" + partnerId;
+            const chat = document.getElementById("chat");
+            const messageBox = document.getElementById("message");
+
+            let history = [];
+
+            try {
+              history = JSON.parse(localStorage.getItem(chatKey) || "[]");
+            } catch (e) {
+              history = [];
+            }
+
+            function renderHistory() {
+              chat.innerHTML = "";
+              history.forEach(function(item) {
+                const div = document.createElement("div");
+                div.className = "msg " + item.role;
+                div.innerHTML = "<strong>" + (item.role === "user" ? "أنت" : "المستشار") + ":</strong><br>" + item.text.replace(/\n/g, "<br>");
+                chat.appendChild(div);
+              });
+              chat.scrollTop = chat.scrollHeight;
+            }
+
+            function saveHistory() {
+              localStorage.setItem(chatKey, JSON.stringify(history));
+            }
+
+            async function sendMessage() {
+              const text = messageBox.value.trim();
+
+              if (!text) {
+                return;
+              }
+
+              history.push({role: "user", text: text});
+              messageBox.value = "";
+              renderHistory();
+              saveHistory();
+
+              try {
+                const response = await fetch("/chat", {
+                  method: "POST",
+                  headers: {"Content-Type": "application/json"},
+                  body: JSON.stringify({
+                    message: text,
+                    session_id: sessionId,
+                    client_id: partnerId,
+                    partner_id: partnerId,
+                    source_partner_id: partnerId,
+                    channel: "owner_advisory",
+                    user_type: "business",
+                    intent: "owner_advisory"
+                  })
+                });
+
+                const data = await response.json();
+                const reply = data.reply || data.response || data.answer || data.message || JSON.stringify(data);
+
+                history.push({role: "assistant", text: reply});
+                renderHistory();
+                saveHistory();
+
+              } catch (error) {
+                history.push({role: "assistant", text: "حدث خطأ مؤقت في الاتصال. حاول مرة أخرى."});
+                renderHistory();
+                saveHistory();
+              }
+            }
+
+            renderHistory();
+          </script>
+        </body>
+        </html>

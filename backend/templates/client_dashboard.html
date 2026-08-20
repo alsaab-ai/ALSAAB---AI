@@ -1,0 +1,655 @@
+<!DOCTYPE html>
+<html lang="{{ lang }}" dir="{{ direction }}">
+<head>
+  <meta charset="utf-8">
+  <title>{{ t.page_title }}</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <style>
+    body {
+      margin: 0;
+      background: #0b0b0b;
+      color: #f5f0df;
+      font-family: Arial, Tahoma, sans-serif;
+      direction: {{ direction }};
+      text-align: {{ text_align }};
+    }
+
+    .page { max-width: 1200px; margin: 0 auto; padding: 28px; }
+
+    .topbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 14px;
+      margin-bottom: 16px;
+      flex-wrap: wrap;
+    }
+
+    .brand { display: flex; align-items: center; gap: 12px; }
+
+    .logo-mark {
+      width: 54px;
+      height: 54px;
+      border-radius: 16px;
+      border: 1px solid #c8a84b;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #d7b85a;
+      font-weight: 800;
+      background: linear-gradient(135deg, #111, #211c0f);
+      font-size: 12px;
+    }
+
+    .brand-title { color: #d7b85a; font-size: 19px; font-weight: 800; }
+    .brand-note { color: #9f967b; font-size: 12px; margin-top: 3px; }
+
+    .actions { display: flex; gap: 10px; flex-wrap: wrap; }
+
+    .action-btn {
+      border: 1px solid rgba(215, 184, 90, 0.5);
+      color: #f0cc68;
+      background: #111;
+      padding: 10px 14px;
+      border-radius: 999px;
+      text-decoration: none;
+      font-size: 14px;
+    }
+
+    .portal-switch {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 14px;
+      margin-bottom: 18px;
+    }
+
+    .portal-card {
+      background: linear-gradient(135deg, #111, #17130b);
+      border: 1px solid rgba(215, 184, 90, 0.45);
+      border-radius: 18px;
+      padding: 18px;
+      color: #f5f0df;
+      text-decoration: none;
+      display: block;
+      position: relative;
+    }
+
+    .portal-card.active {
+      border-color: #d7b85a;
+      background: linear-gradient(135deg, #d7b85a, #9e7c28);
+      color: #0b0b0b;
+      box-shadow: 0 0 28px rgba(215, 184, 90, 0.28);
+    }
+
+    .portal-card.active .portal-card-title,
+    .portal-card.active .portal-card-text { color: #0b0b0b; }
+
+    .portal-card.active::after {
+      content: "أنت هنا";
+      position: absolute;
+      top: 12px;
+      left: 14px;
+      background: #0b0b0b;
+      color: #f0cc68;
+      border-radius: 999px;
+      padding: 4px 10px;
+      font-size: 12px;
+      font-weight: 700;
+    }
+
+    .portal-card-title { color: #d7b85a; font-weight: 800; font-size: 20px; margin-bottom: 8px; }
+    .portal-card-text { color: #cfc7ad; line-height: 1.6; font-size: 14px; }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 14px;
+      margin-bottom: 20px;
+    }
+
+    .card, .section {
+      background: #121212;
+      border: 1px solid rgba(215, 184, 90, 0.35);
+      border-radius: 16px;
+      padding: 18px;
+    }
+
+    .section { margin-bottom: 18px; }
+
+    .card h3, .section h2 {
+      margin: 0 0 10px;
+      color: #d7b85a;
+    }
+
+    .big { font-size: 24px; font-weight: 700; color: #fff; }
+    .muted { color: #aaa; font-size: 13px; margin-top: 5px; }
+    .sub { color: #cfc7ad; line-height: 1.7; }
+
+    .form-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 14px;
+      margin-top: 14px;
+    }
+
+    .field { display: flex; flex-direction: column; gap: 7px; }
+    .field.full { grid-column: 1 / -1; }
+
+    .field label {
+      color: #d7b85a;
+      font-size: 14px;
+      font-weight: 700;
+    }
+
+    input, textarea {
+      width: 100%;
+      box-sizing: border-box;
+      background: #0b0b0b;
+      border: 1px solid rgba(215, 184, 90, 0.35);
+      color: #fff;
+      border-radius: 12px;
+      padding: 12px;
+      font-family: Arial, Tahoma, sans-serif;
+      font-size: 14px;
+      outline: none;
+    }
+
+    textarea { min-height: 110px; resize: vertical; }
+
+    .primary-btn {
+      display: inline-block;
+      margin-top: 12px;
+      border: 1px solid rgba(215, 184, 90, 0.55);
+      background: linear-gradient(135deg, #2a220f, #141414);
+      color: #f0cc68;
+      padding: 11px 16px;
+      border-radius: 999px;
+      text-decoration: none;
+      font-weight: 700;
+      cursor: pointer;
+    }
+
+    .status-message {
+      background: rgba(128, 226, 138, 0.08);
+      border: 1px solid rgba(128, 226, 138, 0.4);
+      color: #80e28a;
+      border-radius: 14px;
+      padding: 13px 16px;
+      margin-bottom: 18px;
+      font-weight: 700;
+    }
+
+    .small-list {
+      margin-top: 14px;
+      border-top: 1px solid rgba(255,255,255,0.08);
+      padding-top: 12px;
+    }
+
+    .small-item {
+      border: 1px solid rgba(215, 184, 90, 0.20);
+      border-radius: 12px;
+      padding: 12px;
+      margin-bottom: 10px;
+      background: rgba(255,255,255,0.02);
+    }
+
+    .small-item-title { color: #d7b85a; font-weight: 800; margin-bottom: 6px; }
+
+    .payment-row {
+      border: 1px solid rgba(215, 184, 90, 0.22);
+      border-radius: 14px;
+      padding: 14px;
+      margin-bottom: 12px;
+      background: rgba(255,255,255,0.02);
+    }
+
+    a { color: #f0cc68; text-decoration: none; }
+
+    @media (max-width: 900px) {
+      .grid, .portal-switch, .form-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    }
+
+    @media (max-width: 600px) {
+      .grid, .portal-switch, .form-grid { grid-template-columns: 1fr; }
+      .page { padding: 16px; }
+    }
+
+
+    /* ===== ALSAAB_DASHBOARD_VISUAL_POLISH_V4 START ===== */
+    .alsaab-skin-v4 {
+      background:
+        radial-gradient(circle at 85% 8%, rgba(240,204,104,.14), transparent 24%),
+        radial-gradient(circle at 12% 20%, rgba(59,130,246,.10), transparent 26%);
+    }
+
+    .alsaab-skin-v4 .card,
+    .alsaab-skin-v4 .section,
+    .alsaab-skin-v4 .portal-card {
+      background:
+        linear-gradient(145deg, rgba(255,255,255,.05), rgba(12,15,24,.96)),
+        radial-gradient(circle at top right, rgba(215,184,90,.08), transparent 32%) !important;
+      border-color: rgba(240,204,104,.38) !important;
+      box-shadow:
+        0 14px 34px rgba(0,0,0,.34),
+        inset 0 1px 0 rgba(255,255,255,.06),
+        0 0 18px rgba(215,184,90,.08) !important;
+      transition: all .20s ease !important;
+    }
+
+    .alsaab-skin-v4 .card:hover,
+    .alsaab-skin-v4 .section:hover,
+    .alsaab-skin-v4 .portal-card:hover {
+      transform: translateY(-2px);
+      border-color: rgba(255,224,138,.82) !important;
+      box-shadow:
+        0 18px 44px rgba(0,0,0,.45),
+        0 0 28px rgba(240,204,104,.20) !important;
+    }
+
+    .alsaab-skin-v4 .portal-card.active,
+    .alsaab-skin-v4 .primary-btn,
+    .alsaab-skin-v4 button.primary-btn {
+      background: linear-gradient(135deg, #6f4d13 0%, #d7b85a 44%, #f0cc68 68%, #9a6b18 100%) !important;
+      color: #fffaf0 !important;
+      text-shadow: 0 2px 4px rgba(0,0,0,.58) !important;
+      border-color: rgba(255,255,255,.25) !important;
+      box-shadow: 0 10px 26px rgba(215,184,90,.24) !important;
+      font-weight: 900 !important;
+    }
+
+    .alsaab-skin-v4 .portal-card.active .portal-card-title,
+    .alsaab-skin-v4 .portal-card.active .portal-card-text {
+      color: #fffaf0 !important;
+      text-shadow: 0 2px 4px rgba(0,0,0,.58) !important;
+    }
+
+    .alsaab-skin-v4 .section h2,
+    .alsaab-skin-v4 .card h3,
+    .alsaab-skin-v4 .portal-card-title,
+    .alsaab-skin-v4 .brand-title {
+      color: #ffe08a !important;
+      text-shadow: 0 0 16px rgba(240,204,104,.18) !important;
+    }
+
+    .alsaab-skin-v4 .big,
+    .alsaab-skin-v4 .value {
+      color: #ffffff !important;
+      text-shadow: 0 0 16px rgba(255,255,255,.08) !important;
+    }
+
+    .alsaab-skin-v4 .muted,
+    .alsaab-skin-v4 .portal-card-text {
+      color: #ddd6c4 !important;
+    }
+
+    .alsaab-skin-v4 .label {
+      color: #f0cc68 !important;
+      font-weight: 900 !important;
+    }
+
+    .alsaab-skin-v4 .info-row,
+    .alsaab-skin-v4 .small-item,
+    .alsaab-skin-v4 .payment-row {
+      background: linear-gradient(90deg, rgba(255,255,255,.035), rgba(215,184,90,.035)) !important;
+      border-color: rgba(240,204,104,.28) !important;
+    }
+
+    .alsaab-skin-v4 input,
+    .alsaab-skin-v4 textarea,
+    .alsaab-skin-v4 select {
+      background: linear-gradient(135deg, #070b12, #101827) !important;
+      color: #fffaf0 !important;
+      border-color: rgba(240,204,104,.42) !important;
+    }
+
+    .alsaab-skin-v4 input:focus,
+    .alsaab-skin-v4 textarea:focus,
+    .alsaab-skin-v4 select:focus {
+      outline: none !important;
+      border-color: rgba(255,224,138,.95) !important;
+      box-shadow: 0 0 0 3px rgba(240,204,104,.12) !important;
+    }
+
+    .alsaab-skin-v4 button[style*="#6b1d1d"],
+    .alsaab-skin-v4 button[style*="6b1d1d"] {
+      background: linear-gradient(135deg, #ef4444, #991b1b) !important;
+      color: #fff !important;
+      text-shadow: 0 1px 2px rgba(0,0,0,.45) !important;
+      border-color: rgba(255,150,150,.85) !important;
+    }
+
+    .alsaab-skin-v4 button[style*="128,226,138"],
+    .alsaab-skin-v4 button[style*="#80e28a"],
+    .alsaab-skin-v4 button[style*="80e28a"] {
+      background: linear-gradient(135deg, #22c55e, #14532d) !important;
+      color: #fff !important;
+      text-shadow: 0 1px 2px rgba(0,0,0,.45) !important;
+      border-color: rgba(134,239,172,.85) !important;
+    }
+    /* ===== ALSAAB_DASHBOARD_VISUAL_POLISH_V4 END ===== */
+
+</style>
+</head>
+<body>
+  <div class="page alsaab-skin-v4">
+
+    <div class="topbar">
+      <div class="brand">
+        <div class="logo-mark">ALSAAB</div>
+        <div>
+          <div class="brand-title">ALSAAB AI</div>
+          <div class="brand-note">Official account dashboard</div>
+        </div>
+      </div>
+
+      <div class="actions">
+        <a class="action-btn" href="{{ website_url }}">{{ t.back_site }}</a>
+        <a class="action-btn" href="{{ language_url }}">{{ t.language }}</a>
+      </div>
+    </div>
+
+    <div class="portal-switch">
+      <a class="portal-card" href="{{ partner_dashboard_url }}">
+        <div class="portal-card-title">{{ t.partner_portal }}</div>
+        <div class="portal-card-text">{{ t.partner_text }}</div>
+      </a>
+
+      <a class="portal-card active" href="{{ client_dashboard_url }}">
+        <div class="portal-card-title">{{ t.client_portal }}</div>
+        <div class="portal-card-text">{{ t.client_text }}</div>
+      </a>
+    </div>
+
+    {% if saved_message %}
+    <div class="status-message">{{ t.saved_success }}</div>
+    {% endif %}
+
+    <div class="grid">
+      <div class="card">
+        <h3>{{ t.account_id }}</h3>
+        <div class="big">{{ account_id }}</div>
+        <div class="muted">Partner ID: {{ partner_id }}</div>
+      </div>
+
+      <div class="card">
+        <h3>{{ t.current_package }}</h3>
+        <div class="big">{{ current_package or "-" }}</div>
+        <div class="muted">{{ t.subscription_status }}: {{ subscription_status or "-" }}</div>
+
+        {% if payment_failed %}
+        <div style="margin-top:10px;padding:11px 13px;border-radius:10px;
+                    background:rgba(239,68,68,.14);border:1px solid rgba(239,68,68,.6);
+                    color:#fca5a5;font-weight:800;font-size:13px;">
+          تعذّر خصم الاشتراك
+          <div style="font-weight:500;color:#fecaca;font-size:12px;margin-top:4px;line-height:1.7;">
+            حاولنا الخصم {{ retry_count }} مرة ولم تنجح، غالباً لعدم توفر رصيد كافٍ.<br>
+            سنعيد المحاولة تلقائياً، وخدمتك مستمرة حتى {{ grace_ends_on }}.
+          </div>
+          {% if pay_now_url %}
+          <a href="{{ pay_now_url }}" target="_blank" rel="noopener"
+             style="display:inline-block;margin-top:10px;padding:10px 20px;border-radius:999px;
+                    background:linear-gradient(135deg,#d6a84f,#f3d37b);color:#111;
+                    font-weight:900;text-decoration:none;font-size:13px;">
+            تجديد الاشتراك الآن
+          </a>
+          <div style="font-weight:500;color:#fecaca;font-size:11px;margin-top:6px;">
+            الدفع يتم على صفحة Stripe الآمنة، ويمكنك تحديث البطاقة من هناك.
+          </div>
+          {% endif %}
+        </div>
+        {% elif next_renewal_on %}
+        <div style="margin-top:10px;padding:9px 12px;border-radius:10px;
+                    background:rgba(34,197,94,.10);border:1px solid rgba(34,197,94,.42);
+                    color:#86efac;font-weight:700;font-size:12px;">
+          التجديد القادم: {{ next_renewal_on }}
+        </div>
+        {% endif %}
+
+        {% if cancel_at_period_end %}
+        <div style="margin-top:10px;padding:9px 12px;border-radius:10px;
+                    background:rgba(239,68,68,.12);border:1px solid rgba(239,68,68,.5);
+                    color:#fca5a5;font-weight:800;font-size:13px;">
+          ينتهي اشتراكك في {{ cancel_ends_on }}
+          <div style="font-weight:500;color:#fecaca;font-size:12px;margin-top:3px;">
+            الخدمة تعمل بالكامل حتى هذا التاريخ، ولن تُخصم منك دفعة جديدة.
+          </div>
+        </div>
+        {% elif cancel_pending %}
+        <div style="margin-top:10px;padding:9px 12px;border-radius:10px;
+                    background:rgba(245,158,11,.12);border:1px solid rgba(245,158,11,.5);
+                    color:#fcd34d;font-weight:800;font-size:13px;">
+          طلب الإلغاء قيد المراجعة
+          <div style="font-weight:500;color:#fde68a;font-size:12px;margin-top:3px;">
+            اشتراكك ما زال نشطاً ولم يُلغَ بعد.
+          </div>
+        </div>
+        {% endif %}
+      </div>
+
+      <div class="card">
+        <h3>{{ t.customer_replies }}</h3>
+        <div class="big">{{ customer_limit }}</div>
+        <div class="muted">Monthly customer reply limit</div>
+      </div>
+
+      <div class="card">
+        <h3>{{ t.advisory_replies }}</h3>
+        <div class="big">{{ advisory_limit }}</div>
+        <div class="muted">Monthly owner advisory limit</div>
+      </div>
+    </div>
+
+    <div class="section">
+      <h2>{{ t.channels }}</h2>
+      <div class="sub">{{ channels | join(", ") if channels else "-" }}</div>
+    </div>
+
+    <div class="section">
+      <h2>{{ t.owner_advisory }}</h2>
+      <div class="sub">{{ t.owner_advisory_desc }}</div>
+      <a class="primary-btn" href="{{ owner_advisory_url }}">{{ t.ask_advisor }}</a>
+    </div>
+
+    <div class="section">
+      <h2>{{ t.project_data }}</h2>
+      <div class="sub">{{ t.project_data_desc }}</div>
+
+      <form method="POST" action="/client-dashboard/save-project-data">
+        <input type="hidden" name="key" value="{{ key }}">
+        <input type="hidden" name="sso" value="{{ sso_token }}">
+        <input type="hidden" name="partner_id" value="{{ partner_id }}">
+        <input type="hidden" name="client_id" value="{{ client_id }}">
+        <input type="hidden" name="lang" value="{{ lang }}">
+
+        <div class="form-grid">
+          <div class="field">
+            <label>{{ t.business_name }}</label>
+            <input type="text" name="business_name" placeholder="{{ t.business_name }}">
+          </div>
+
+          <div class="field">
+            <label>{{ t.business_type }}</label>
+            <input type="text" name="business_type" placeholder="{{ t.business_type }}">
+          </div>
+
+          <div class="field full">
+            <label>{{ t.general_description }}</label>
+            <textarea name="general_description" placeholder="{{ t.general_description }}"></textarea>
+          </div>
+
+          <div class="field full">
+            <label>{{ t.products_notes }}</label>
+            <textarea name="products" placeholder="{{ t.products_notes }}"></textarea>
+          </div>
+        </div>
+
+        <button class="primary-btn" type="submit">{{ t.save_project }}</button>
+      </form>
+    </div>
+
+    <div class="section">
+      <h2>{{ t.image_groups }}</h2>
+
+      <form method="POST" action="/client-dashboard/save-image-group" enctype="multipart/form-data">
+        <input type="hidden" name="key" value="{{ key }}">
+        <input type="hidden" name="sso" value="{{ sso_token }}">
+        <input type="hidden" name="partner_id" value="{{ partner_id }}">
+        <input type="hidden" name="client_id" value="{{ client_id }}">
+        <input type="hidden" name="lang" value="{{ lang }}">
+
+        <div class="form-grid">
+          <div class="field">
+            <label>{{ t.image_group_title }}</label>
+            <input type="text" name="group_title" placeholder="{{ t.image_group_title }}" required>
+          </div>
+
+          <div class="field">
+            <label>{{ t.upload_images }}</label>
+            <input type="file" name="images" multiple accept="image/*,.pdf">
+          </div>
+
+          <div class="field full">
+            <label>{{ t.image_group_description }}</label>
+            <textarea name="group_description" placeholder="{{ t.image_group_description }}" required></textarea>
+          </div>
+
+          <div class="field full">
+            <label>{{ t.sales_instructions }}</label>
+            <textarea name="sales_instructions" placeholder="{{ t.sales_instructions }}"></textarea>
+          </div>
+        </div>
+
+        <button class="primary-btn" type="submit">{{ t.save_image_group }}</button>
+      </form>
+
+      <div class="small-list">
+        <h3 style="color:#d7b85a;">{{ t.saved_image_groups }}</h3>
+        {% for group in product_groups[:8] %}
+          <div class="small-item">
+            <div class="small-item-title">{{ group.get("Group Title") or "-" }}</div>
+            <div class="muted">{{ group.get("Group Description") or "-" }}</div>
+            <div class="muted">Status: {{ group.get("Status") or "-" }}</div>
+          </div>
+        {% else %}
+          <div class="muted">{{ t.empty }}</div>
+        {% endfor %}
+      </div>
+    </div>
+
+    <div class="section">
+      <h2>{{ t.payment_links }}</h2>
+
+      <form method="POST" action="/client-dashboard/save-payment-link">
+        <input type="hidden" name="key" value="{{ key }}">
+        <input type="hidden" name="sso" value="{{ sso_token }}">
+        <input type="hidden" name="partner_id" value="{{ partner_id }}">
+        <input type="hidden" name="client_id" value="{{ client_id }}">
+        <input type="hidden" name="lang" value="{{ lang }}">
+
+        <div id="paymentRows">
+          <div class="payment-row">
+            <div class="form-grid">
+              <div class="field">
+                <label>{{ t.product_name }}</label>
+                <input type="text" name="product_name" placeholder="{{ t.product_name }}" required>
+              </div>
+
+              <div class="field">
+                <label>{{ t.payment_link }}</label>
+                <input type="url" name="payment_link" placeholder="https://..." required>
+              </div>
+
+              <div class="field">
+                <label>{{ t.amount }}</label>
+                <input type="number" step="0.01" name="amount" placeholder="499">
+              </div>
+
+              <div class="field">
+                <label>{{ t.currency }}</label>
+                <input type="text" name="currency" value="AED">
+              </div>
+
+              <div class="field full">
+                <label>{{ t.payment_description }}</label>
+                <textarea name="description" placeholder="{{ t.payment_description }}"></textarea>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <button class="primary-btn" type="button" onclick="addPaymentRow()">{{ t.add_more_payment }}</button>
+        <button class="primary-btn" type="submit">{{ t.save_payment_links }}</button>
+      </form>
+
+      <div class="small-list">
+        <h3 style="color:#d7b85a;">{{ t.saved_payment_links }}</h3>
+        {% for link in client_payment_links[:8] %}
+          <div class="small-item">
+            <div class="small-item-title">{{ link.get("Product Name") or "-" }}</div>
+            <div><a href="{{ link.get("Payment Link") }}" target="_blank">{{ link.get("Payment Link") }}</a></div>
+            <div class="muted">{{ link.get("Amount") or "-" }} {{ link.get("Currency") or "" }}</div>
+            <div class="muted">{{ link.get("Description") or "-" }}</div>
+          </div>
+        {% else %}
+          <div class="muted">{{ t.empty }}</div>
+        {% endfor %}
+      </div>
+    </div>
+
+  </div>
+<div class="section" id="alsaabClientSmartLinkCancel" dir="rtl">
+  <!-- ALSAAB_CLIENT_MAIN_SMART_LINK_CANCEL_V2 START -->
+  <!-- ALSAAB_SMART_LINK_CLIENT_DASHBOARD_UI_V1 START -->
+  <h2 style="color:#d7b85a;">مدخل واتساب الذكي</h2>
+  <div class="sub" style="line-height:1.8;">انسخ هذا الرابط وضعه في الرد الآلي داخل WhatsApp Business حتى يدخل الزائر على موظف المبيعات الذكي الخاص بمشروعك.</div>
+  <label style="display:block;color:#f0cc68;font-weight:900;margin-top:14px;">رابط موظف المبيعات الذكي</label>
+  <input id="alsaabSmartLinkDirect" readonly value="https://alsaab-ai.onrender.com/?ref={{ partner_id }}&src=wa" style="width:100%;box-sizing:border-box;margin-top:8px;background:#0b0b0b;color:#fff;border:1px solid rgba(215,184,90,.45);border-radius:12px;padding:12px;font-weight:800;">
+  <button class="primary-btn" type="button" onclick="copyClientDashboardText('alsaabSmartLinkDirect')">نسخ الرابط</button>
+  <label style="display:block;color:#f0cc68;font-weight:900;margin-top:18px;">رسالة واتساب جاهزة للنسخ</label>
+  <textarea id="alsaabWhatsAppMessageDirect" readonly style="width:100%;box-sizing:border-box;min-height:125px;margin-top:8px;background:#0b0b0b;color:#fff;border:1px solid rgba(215,184,90,.45);border-radius:12px;padding:12px;line-height:1.8;">هلا وسهلا 👋&#10;عشان نخدمك بسرعة، تقدر تتكلم مع موظف المبيعات الذكي من هذا الرابط:&#10;https://alsaab-ai.onrender.com/?ref={{ partner_id }}&src=wa&#10;&#10;بيفهم طلبك، يشرح لك التفاصيل، ويرسل لك رابط الدفع أو يحولك لفريق العمل إذا احتجت.</textarea>
+  <button class="primary-btn" type="button" onclick="copyClientDashboardText('alsaabWhatsAppMessageDirect')">نسخ رسالة واتساب</button>
+  <!-- ALSAAB_SMART_LINK_CLIENT_DASHBOARD_UI_V1 END -->
+  <hr style="border:0;border-top:1px solid rgba(215,184,90,.22);margin:24px 0;">
+  <!-- ALSAAB_CANCELLATION_UI_V1 START -->
+  <h2 style="color:#d7b85a;">طلب إلغاء الاشتراك</h2>
+  <div class="sub" style="line-height:1.8;">الإلغاء لا يتم تلقائياً. يمكنك إرسال طلب إلغاء، وستقوم الإدارة بمراجعته يدوياً. لا يوجد استرداد بعد الدفع، وتستمر الخدمة إلى نهاية الفترة المدفوعة.</div>
+  <form method="POST" action="/client/request-cancellation" style="margin-top:14px;">
+    <input type="hidden" name="partner_id" value="{{ partner_id }}">
+    <input type="hidden" name="key" value="{{ key }}">
+    <label style="display:block;color:#f0cc68;font-weight:900;">سبب الإلغاء</label>
+    <select name="reason" style="width:100%;box-sizing:border-box;margin-top:8px;background:#0b0b0b;color:#fff;border:1px solid rgba(215,184,90,.45);border-radius:12px;padding:12px;">
+      <option value="لا أحتاج الخدمة حالياً">لا أحتاج الخدمة حالياً</option>
+      <option value="السعر غير مناسب">السعر غير مناسب</option>
+      <option value="أحتاج مساعدة من الإدارة">أحتاج مساعدة من الإدارة</option>
+      <option value="سبب آخر">سبب آخر</option>
+    </select>
+    <label style="display:block;color:#f0cc68;font-weight:900;margin-top:12px;">ملاحظات إضافية</label>
+    <textarea name="customer_notes" placeholder="اكتب ملاحظتك هنا..." style="width:100%;box-sizing:border-box;min-height:90px;margin-top:8px;background:#0b0b0b;color:#fff;border:1px solid rgba(215,184,90,.45);border-radius:12px;padding:12px;line-height:1.8;"></textarea>
+    <button type="submit" style="margin-top:12px;border:1px solid rgba(255,120,120,.65);color:#fff;background:#6b1d1d;border-radius:999px;padding:10px 16px;font-weight:900;cursor:pointer;">إرسال طلب الإلغاء</button>
+  </form>
+  <!-- ALSAAB_CANCELLATION_UI_V1 END -->
+  <!-- ALSAAB_CLIENT_MAIN_SMART_LINK_CANCEL_V2 END -->
+</div>
+
+
+  <script>
+    function copyClientDashboardText(id) { var el = document.getElementById(id); if (!el) return; el.select(); el.setSelectionRange(0, 99999); if (navigator.clipboard) { navigator.clipboard.writeText(el.value); } else { document.execCommand("copy"); } }
+
+    function addPaymentRow() {
+      const container = document.getElementById("paymentRows");
+      const first = container.querySelector(".payment-row");
+      const clone = first.cloneNode(true);
+
+      clone.querySelectorAll("input, textarea").forEach(function(el) {
+        if (el.name === "currency") {
+          el.value = "AED";
+        } else {
+          el.value = "";
+        }
+      });
+
+      container.appendChild(clone);
+    }
+  </script>
+</body>
+</html>

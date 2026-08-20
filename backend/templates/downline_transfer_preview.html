@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="utf-8">
+  <title>معاينة نقل الشبكة إلى alsaab</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <style>
+    body {
+      margin: 0;
+      background: #0b0b0b;
+      color: #f5f0df;
+      font-family: Arial, Tahoma, sans-serif;
+      direction: rtl;
+    }
+
+    .page {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 28px;
+    }
+
+    .header, .section, .card {
+      background: #111;
+      border: 1px solid rgba(215,184,90,.35);
+      border-radius: 18px;
+      padding: 20px;
+      margin-bottom: 18px;
+    }
+
+    h1, h2, h3 {
+      color: #d7b85a;
+      margin-top: 0;
+    }
+
+    .sub {
+      color: #cfc7ad;
+      line-height: 1.7;
+    }
+
+    .warning {
+      background: rgba(255,207,102,.08);
+      border: 1px solid rgba(255,207,102,.45);
+      color: #ffcf66;
+      border-radius: 14px;
+      padding: 14px;
+      margin-bottom: 18px;
+      font-weight: 700;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 14px;
+      margin-bottom: 18px;
+    }
+
+    .big {
+      font-size: 28px;
+      font-weight: 900;
+      color: #fff;
+    }
+
+    .muted {
+      color: #aaa;
+      font-size: 13px;
+      margin-top: 6px;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 12px;
+    }
+
+    th, td {
+      padding: 10px;
+      border-bottom: 1px solid rgba(255,255,255,.08);
+      text-align: right;
+      font-size: 13px;
+    }
+
+    th {
+      color: #d7b85a;
+      background: #181818;
+    }
+
+    .table-wrap {
+      overflow-x: auto;
+    }
+
+    .action-btn {
+      display: inline-block;
+      border: 1px solid rgba(215,184,90,.55);
+      color: #f0cc68;
+      background: #111;
+      padding: 10px 14px;
+      border-radius: 999px;
+      text-decoration: none;
+      font-weight: 700;
+    }
+
+    @media (max-width: 900px) {
+      .grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+    }
+
+    @media (max-width: 600px) {
+      .grid {
+        grid-template-columns: 1fr;
+      }
+
+      .page {
+        padding: 16px;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <div class="page">
+    <div class="header">
+      <h1>معاينة نقل الشبكة إلى alsaab</h1>
+      <div class="sub">
+        هذه الصفحة للمعاينة فقط. لم يتم نقل أي شريك أو عميل. الهدف معرفة من سيتأثر قبل تفعيل النقل الحقيقي.
+      </div>
+    </div>
+
+    <div class="warning">
+      تنبيه: النقل الفعلي غير مفعّل هنا. هذه معاينة فقط قبل بناء زر Transfer Downline to alsaab.
+    </div>
+
+    <div class="grid">
+      <div class="card">
+        <h3>الشريك المستهدف</h3>
+        <div class="big">{{ partner_id }}</div>
+        <div class="muted">{{ target_partner.get("partner_name") or "-" }}</div>
+      </div>
+
+      <div class="card">
+        <h3>الحالة الحالية</h3>
+        <div class="big">{{ target_partner.get("status") or "-" }}</div>
+        <div class="muted">Rank: {{ target_partner.get("partner_rank") or "-" }}</div>
+      </div>
+
+      <div class="card">
+        <h3>المباشرين تحته</h3>
+        <div class="big">{{ preview.get("direct_children_count") or 0 }}</div>
+        <div class="muted">سيتم مراجعتهم كمرشحين للنقل إلى alsaab</div>
+      </div>
+
+      <div class="card">
+        <h3>إجمالي الشبكة</h3>
+        <div class="big">{{ preview.get("network_count") or 0 }}</div>
+        <div class="muted">كل المستويات أسفل هذا الشريك</div>
+      </div>
+    </div>
+
+    <div class="section">
+      <h2>توزيع الشبكة حسب العمق</h2>
+      <div class="grid">
+        <div class="card"><h3>Depth 1</h3><div class="big">{{ depth_counts.get("1", 0) or depth_counts.get(1, 0) }}</div></div>
+        <div class="card"><h3>Depth 2</h3><div class="big">{{ depth_counts.get("2", 0) or depth_counts.get(2, 0) }}</div></div>
+        <div class="card"><h3>Depth 3</h3><div class="big">{{ depth_counts.get("3", 0) or depth_counts.get(3, 0) }}</div></div>
+        <div class="card"><h3>Depth 4/5</h3><div class="big">{{ (depth_counts.get("4", 0) or depth_counts.get(4, 0)) + (depth_counts.get("5", 0) or depth_counts.get(5, 0)) }}</div></div>
+      </div>
+    </div>
+
+    <div class="section">
+      <h2>الشركاء المباشرين الذين سيتم مراجعتهم للنقل</h2>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Partner ID</th>
+              <th>الاسم</th>
+              <th>Current Sponsor</th>
+              <th>Current Parent</th>
+              <th>Status</th>
+              <th>Rank</th>
+              <th>Email</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for child in direct_children %}
+            <tr>
+              <td>{{ child.partner_id or "-" }}</td>
+              <td>{{ child.partner_name or "-" }}</td>
+              <td>{{ child.current_sponsor_partner_id or "-" }}</td>
+              <td>{{ child.current_parent_partner_id or "-" }}</td>
+              <td>{{ child.status or "-" }}</td>
+              <td>{{ child.partner_rank or "-" }}</td>
+              <td>{{ child.email or "-" }}</td>
+            </tr>
+            {% else %}
+            <tr><td colspan="7">لا يوجد direct downline لهذا الشريك.</td></tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="section">
+      <h2>عينة من الشبكة الكاملة أسفل الشريك</h2>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Descendant Partner ID</th>
+              <th>Depth</th>
+              <th>Line Owner</th>
+              <th>الاسم</th>
+              <th>Status</th>
+              <th>Rank</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for row in network_rows[:50] %}
+            <tr>
+              <td>{{ row.descendant_partner_id or "-" }}</td>
+              <td>{{ row.depth or "-" }}</td>
+              <td>{{ row.line_owner_partner_id or "-" }}</td>
+              <td>{{ row.partner_name or "-" }}</td>
+              <td>{{ row.status or "-" }}</td>
+              <td>{{ row.partner_rank or "-" }}</td>
+            </tr>
+            {% else %}
+            <tr><td colspan="6">لا توجد شبكة أسفل هذا الشريك.</td></tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+
+    <!-- ALSAAB_DOWNLINE_TRANSFER_EXECUTION_FORM_FORCE_V1 START -->
+    <div class="section">
+      <h2>تنفيذ النقل الفعلي</h2>
+      <div class="warning">
+        هذا الإجراء سيغير Sponsor / Parent للشركاء المباشرين تحت هذا الشريك إلى alsaab، وسيعيد بناء PartnerTree. لا تستخدمه إلا بعد التأكد من المعاينة.
+      </div>
+
+      <form method="POST" action="/admin/transfer-downline-to-alsaab">
+        <input type="hidden" name="key" value="{{ raw_admin_key or encoded_key }}">
+        <input type="hidden" name="partner_id" value="{{ partner_id }}">
+
+        <label style="display:block; color:#d7b85a; font-weight:700; margin-bottom:8px;">سبب النقل</label>
+        <textarea
+          name="reason"
+          required
+          placeholder="مثال: الشريك ألغى اشتراكه نهائياً، وبقرار إداري تم نقل الشبكة إلى alsaab."
+          style="width:100%; min-height:90px; box-sizing:border-box; background:#0b0b0b; color:#fff; border:1px solid rgba(215,184,90,.35); border-radius:12px; padding:12px; margin-bottom:12px;"
+        ></textarea>
+
+        <label style="display:block; color:#d7b85a; font-weight:700; margin-bottom:8px;">اكتب هذا النص للتأكيد</label>
+        <input
+          name="confirm_text"
+          required
+          placeholder="TRANSFER_TO_ALSAAB"
+          style="width:100%; box-sizing:border-box; background:#0b0b0b; color:#fff; border:1px solid rgba(215,184,90,.35); border-radius:12px; padding:12px; margin-bottom:12px;"
+        >
+
+        <button
+          type="submit"
+          onclick="return confirm('تأكيد نهائي: هل تريد نقل الـ direct downline إلى alsaab؟')"
+          style="border:1px solid rgba(255,122,122,.7); color:#ff7a7a; background:#111; padding:12px 16px; border-radius:999px; font-weight:900; cursor:pointer;"
+        >
+          Transfer Downline to alsaab
+        </button>
+      </form>
+    </div>
+    <!-- ALSAAB_DOWNLINE_TRANSFER_EXECUTION_FORM_FORCE_V1 END -->
+
+<a class="action-btn" href="/admin-dashboard?key={{ encoded_key }}&partner_id={{ partner_id }}">رجوع إلى Admin Dashboard</a>
+  </div>
+</body>
+</html>

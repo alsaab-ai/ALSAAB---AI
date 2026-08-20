@@ -13,6 +13,8 @@ PACKAGE_DIAMOND = "diamond"
 COURSE_MARKETING_FREE = "marketing_course_free"
 COURSE_PRO_MARKETER_MINDSET_69 = "pro_marketer_mindset_69"
 COURSE_SALES_SKILLS_89 = "sales_skills_89"
+COURSE_SALES_SECRETS_999 = "sales_secrets_999"
+COURSE_CHANGE_JOURNEY_299 = "change_journey_299"
 COURSE_CHANGE_JOURNEY_149 = "change_journey_149"
 COURSE_LIFE_PHILOSOPHY_FREE = "life_philosophy_workshop_free"
 
@@ -51,7 +53,8 @@ LEVEL_REQUIREMENTS = {
         level=1,
         name="Entry Partner",
         allowed_packages=(PACKAGE_ENTRY, PACKAGE_STARTER, PACKAGE_GROWTH, PACKAGE_ELITE, PACKAGE_DIAMOND),
-        min_active_direct_customers=0,
+        # One paying direct customer is required before any commission is due.
+        min_active_direct_customers=1,
         required_courses=(),
         commission_rate=25.0,
     ),
@@ -76,7 +79,7 @@ LEVEL_REQUIREMENTS = {
         name="Elite Partner",
         allowed_packages=(PACKAGE_ELITE, PACKAGE_DIAMOND),
         min_active_direct_customers=10,
-        required_courses=(COURSE_SALES_SKILLS_89,),
+        required_courses=(COURSE_SALES_SECRETS_999,),
         commission_rate=3.0,
     ),
     5: LevelRequirement(
@@ -84,7 +87,7 @@ LEVEL_REQUIREMENTS = {
         name="Diamond Partner",
         allowed_packages=(PACKAGE_DIAMOND,),
         min_active_direct_customers=20,
-        required_courses=(COURSE_CHANGE_JOURNEY_149,),
+        required_courses=(COURSE_CHANGE_JOURNEY_299,),
         commission_rate=2.0,
     ),
 }

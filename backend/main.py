@@ -1,6 +1,6 @@
 print("ALSAAB AI is running 🔥")
 
-from flask import Flask, request, jsonify, render_template_string, redirect, session
+from flask import Flask, request, jsonify, render_template, redirect, session
 from brain import think
 from database import (
     init_db,
@@ -52,7 +52,6 @@ register_dashboard_fast_mode_routes(app)
 # ===== ALSAAB DASHBOARD FAST MODE REGISTER END =====
 
 
-
 # ===== ALSAAB_DASHBOARD_SSO_SESSION_SECRET_V1 START =====
 app.secret_key = os.environ.get(
     "FLASK_SECRET_KEY",
@@ -90,7 +89,6 @@ def is_active_subscription(subscription):
 
     status = str(subscription.get("subscription_status", "")).lower().strip()
     return status == "active"
-
 
 
 # ===== SAFE ALSAAB OPPORTUNITY PAYMENT GATE V1 START =====
@@ -499,1336 +497,9 @@ def admin_get_preview(action_name, required_fields=None, example_body=None):
     })
 
 
-HTML = r"""
-<!DOCTYPE html>
-<html lang="ar" dir="rtl">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>ALSAAB AI</title>
-
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
-
-<style>
-* {
-    box-sizing: border-box;
-}
-
-:root {
-    --bg-main: #05070d;
-    --bg-card: rgba(12, 16, 26, 0.92);
-    --bg-card-soft: rgba(255, 255, 255, 0.045);
-    --border-soft: rgba(255, 255, 255, 0.08);
-    --gold: #d6a84f;
-    --gold-2: #f3d37b;
-    --gold-3: #a97824;
-    --green: #22c55e;
-    --text-main: #f8fafc;
-    --text-soft: #cbd5e1;
-    --text-muted: #94a3b8;
-    --shadow: 0 24px 80px rgba(0,0,0,0.55);
-}
-
-html, body {
-    margin: 0;
-    padding: 0;
-    width: 100%;
-    height: 100%;
-    background: var(--bg-main);
-    font-family: "Cairo", Arial, sans-serif;
-    color: var(--text-main);
-    overflow: hidden;
-}
-
-.luxury-bg {
-    position: fixed;
-    inset: 0;
-    background:
-        radial-gradient(circle at 15% 15%, rgba(214, 168, 79, 0.16), transparent 28%),
-        radial-gradient(circle at 85% 85%, rgba(214, 168, 79, 0.12), transparent 32%),
-        linear-gradient(135deg, #03050a 0%, #0a0f1d 42%, #060810 100%);
-    z-index: -3;
-}
-
-.luxury-bg::before {
-    content: "";
-    position: absolute;
-    inset: 0;
-    background-image:
-        linear-gradient(rgba(255,255,255,0.025) 1px, transparent 1px),
-        linear-gradient(90deg, rgba(255,255,255,0.025) 1px, transparent 1px);
-    background-size: 42px 42px;
-    mask-image: radial-gradient(circle at center, black, transparent 78%);
-    opacity: 0.55;
-}
-
-.luxury-bg::after {
-    content: "";
-    position: absolute;
-    inset: 0;
-    background:
-        radial-gradient(circle at 55% 115%, rgba(214,168,79,0.22), transparent 35%),
-        radial-gradient(circle at 95% 10%, rgba(255,255,255,0.05), transparent 25%);
-    opacity: 0.9;
-}
-
-.page {
-    width: 100%;
-    height: 100vh;
-    padding: 18px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-
-.chat-shell {
-    width: min(1040px, 100%);
-    height: min(880px, calc(100vh - 36px));
-    min-height: 620px;
-    display: grid;
-    grid-template-columns: 280px 1fr;
-    border: 1px solid rgba(214, 168, 79, 0.38);
-    border-radius: 28px;
-    background:
-        linear-gradient(180deg, rgba(255,255,255,0.035), rgba(255,255,255,0.01)),
-        rgba(7, 10, 18, 0.92);
-    box-shadow:
-        var(--shadow),
-        0 0 0 1px rgba(255,255,255,0.025) inset,
-        0 0 80px rgba(214, 168, 79, 0.08);
-    overflow: hidden;
-    backdrop-filter: blur(18px);
-}
-
-.sidebar {
-    position: relative;
-    padding: 24px 18px;
-    border-left: 1px solid rgba(255,255,255,0.07);
-    background:
-        radial-gradient(circle at top, rgba(214,168,79,0.13), transparent 34%),
-        linear-gradient(180deg, rgba(255,255,255,0.035), rgba(255,255,255,0.01));
-    overflow-y: auto;
-}
-
-.sidebar::before {
-    content: "";
-    position: absolute;
-    inset: 0;
-    background:
-        linear-gradient(145deg, transparent 0%, rgba(214,168,79,0.045) 45%, transparent 80%);
-    pointer-events: none;
-}
-
-.brand-block {
-    position: relative;
-    display: flex;
-    align-items: center;
-    gap: 14px;
-    margin-bottom: 28px;
-}
-
-.logo-mark {
-    width: 58px;
-    height: 58px;
-    border-radius: 18px;
-    display: grid;
-    place-items: center;
-    background:
-        linear-gradient(145deg, rgba(255,255,255,0.08), rgba(255,255,255,0.02)),
-        radial-gradient(circle at top, rgba(243,211,123,0.25), transparent 60%);
-    border: 1px solid rgba(214,168,79,0.45);
-    box-shadow:
-        0 12px 30px rgba(0,0,0,0.35),
-        0 0 24px rgba(214,168,79,0.12);
-    color: white;
-    font-weight: 900;
-    font-size: 30px;
-    line-height: 1;
-}
-
-.logo-mark span {
-    background: linear-gradient(180deg, #ffffff, #d6a84f);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-}
-
-.brand-text h1 {
-    margin: 0;
-    font-size: 22px;
-    font-weight: 900;
-    letter-spacing: 0.4px;
-}
-
-.brand-text p {
-    margin: 3px 0 0;
-    color: var(--text-muted);
-    font-size: 12px;
-    line-height: 1.6;
-}
-
-.side-card {
-    position: relative;
-    padding: 18px;
-    border-radius: 22px;
-    background: rgba(255,255,255,0.045);
-    border: 1px solid rgba(255,255,255,0.07);
-    margin-bottom: 16px;
-}
-
-.side-card.gold {
-    border-color: rgba(214,168,79,0.35);
-    background:
-        radial-gradient(circle at top right, rgba(214,168,79,0.13), transparent 45%),
-        rgba(255,255,255,0.04);
-}
-
-.side-label {
-    color: var(--gold-2);
-    font-size: 12px;
-    font-weight: 800;
-    margin-bottom: 8px;
-}
-
-.side-title {
-    margin: 0;
-    font-size: 22px;
-    font-weight: 900;
-    line-height: 1.35;
-}
-
-.side-text {
-    color: var(--text-muted);
-    font-size: 13px;
-    line-height: 1.8;
-    margin: 8px 0 0;
-}
-
-.side-list {
-    display: grid;
-    gap: 12px;
-    margin-top: 16px;
-}
-
-.side-item {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    color: var(--text-soft);
-    font-size: 13px;
-}
-
-.side-icon {
-    width: 32px;
-    height: 32px;
-    border-radius: 12px;
-    display: grid;
-    place-items: center;
-    border: 1px solid rgba(214,168,79,0.28);
-    color: var(--gold-2);
-    background: rgba(214,168,79,0.07);
-    flex-shrink: 0;
-}
-
-.mini-cta {
-    margin-top: 18px;
-    width: 100%;
-    border: none;
-    border-radius: 16px;
-    background: linear-gradient(135deg, var(--gold-2), var(--gold));
-    color: #111827;
-    font-family: "Cairo", Arial, sans-serif;
-    font-weight: 900;
-    font-size: 14px;
-    padding: 13px 14px;
-    cursor: pointer;
-    box-shadow: 0 12px 28px rgba(214,168,79,0.22);
-}
-
-.main-chat {
-    display: flex;
-    flex-direction: column;
-    min-width: 0;
-    height: 100%;
-    overflow: hidden;
-}
-
-
-/* ALSAAB_IOS_WHATSAPP_SAFE_TOP_V1 */
-@supports (padding-top: env(safe-area-inset-top)) {
-    body {
-        padding-top: env(safe-area-inset-top);
-    }
-}
-
-@media (max-width: 760px) {
-    .chat-header {
-        padding-top: calc(22px + env(safe-area-inset-top, 0px));
-        min-height: 118px;
-    }
-}
-
-.chat-header {
-    min-height: 92px;
-    padding: 18px 22px;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 14px;
-    border-bottom: 1px solid rgba(214,168,79,0.26);
-    background:
-        radial-gradient(circle at top left, rgba(214,168,79,0.09), transparent 35%),
-        linear-gradient(180deg, rgba(255,255,255,0.045), rgba(255,255,255,0.015));
-    flex-shrink: 0;
-}
-
-.header-title {
-    display: flex;
-    align-items: center;
-    gap: 14px;
-    min-width: 0;
-}
-
-.header-logo {
-    width: 52px;
-    height: 52px;
-    border-radius: 17px;
-    display: grid;
-    place-items: center;
-    border: 1px solid rgba(214,168,79,0.45);
-    background: rgba(255,255,255,0.045);
-    box-shadow: 0 10px 24px rgba(0,0,0,0.25);
-    flex-shrink: 0;
-    font-size: 26px;
-    font-weight: 900;
-}
-
-.header-logo span {
-    background: linear-gradient(180deg, #ffffff, #d6a84f);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-}
-
-.header-copy h2 {
-    margin: 0;
-    font-size: 21px;
-    font-weight: 900;
-}
-
-.header-copy p {
-    margin: 4px 0 0;
-    color: var(--text-muted);
-    font-size: 13px;
-    line-height: 1.5;
-}
-
-.header-actions {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    flex-shrink: 0;
-}
-
-.status-pill {
-    display: inline-flex;
-    align-items: center;
-    gap: 9px;
-    padding: 10px 13px;
-    border-radius: 999px;
-    background: rgba(34,197,94,0.10);
-    border: 1px solid rgba(34,197,94,0.24);
-    color: #bbf7d0;
-    font-size: 12px;
-    font-weight: 800;
-    white-space: nowrap;
-}
-
-.status-dot {
-    width: 9px;
-    height: 9px;
-    border-radius: 50%;
-    background: var(--green);
-    box-shadow: 0 0 0 6px rgba(34,197,94,0.16);
-}
-
-.chat-close-btn {
-    width: 42px;
-    height: 42px;
-    border-radius: 15px;
-    border: 1px solid rgba(214,168,79,0.38);
-    background:
-        linear-gradient(145deg, rgba(255,255,255,0.08), rgba(255,255,255,0.025)),
-        rgba(7, 10, 18, 0.82);
-    color: var(--gold-2);
-    display: grid;
-    place-items: center;
-    cursor: pointer;
-    font-family: "Cairo", Arial, sans-serif;
-    font-size: 20px;
-    font-weight: 900;
-    line-height: 1;
-    box-shadow:
-        0 10px 24px rgba(0,0,0,0.22),
-        0 0 18px rgba(214,168,79,0.08);
-    transition: 0.18s ease;
-    flex-shrink: 0;
-}
-
-.chat-close-btn:hover {
-    transform: translateY(-1px);
-    border-color: rgba(243,211,123,0.65);
-    background:
-        linear-gradient(145deg, rgba(243,211,123,0.18), rgba(214,168,79,0.06)),
-        rgba(7, 10, 18, 0.92);
-    color: #ffffff;
-    box-shadow:
-        0 14px 30px rgba(0,0,0,0.30),
-        0 0 26px rgba(214,168,79,0.18);
-}
-
-.chat-close-btn:active {
-    transform: scale(0.96);
-}
-
-.messages-wrap {
-    flex: 1;
-    min-height: 0;
-    position: relative;
-    display: flex;
-    flex-direction: column;
-    background:
-        radial-gradient(circle at 85% 15%, rgba(214,168,79,0.06), transparent 34%),
-        radial-gradient(circle at 12% 88%, rgba(34,197,94,0.04), transparent 28%);
-    overflow: hidden;
-}
-
-.messages {
-    flex: 1;
-    min-height: 0;
-    overflow-y: scroll;
-    overflow-x: hidden;
-    padding: 22px;
-    scroll-behavior: smooth;
-    scrollbar-width: thin;
-    scrollbar-color: rgba(214,168,79,0.55) rgba(255,255,255,0.06);
-}
-
-.messages::-webkit-scrollbar {
-    width: 11px;
-}
-
-.messages::-webkit-scrollbar-track {
-    background: rgba(255,255,255,0.05);
-    border-radius: 999px;
-}
-
-.messages::-webkit-scrollbar-thumb {
-    background: linear-gradient(180deg, rgba(243,211,123,0.75), rgba(214,168,79,0.35));
-    border-radius: 999px;
-    border: 2px solid rgba(7,10,18,0.85);
-}
-
-.welcome-card {
-    margin-bottom: 20px;
-    padding: 18px;
-    border-radius: 24px;
-    background:
-        linear-gradient(145deg, rgba(255,255,255,0.055), rgba(255,255,255,0.025));
-    border: 1px solid rgba(214,168,79,0.24);
-    box-shadow: 0 18px 40px rgba(0,0,0,0.18);
-}
-
-.welcome-title {
-    margin: 0;
-    color: #ffffff;
-    font-size: 18px;
-    font-weight: 900;
-}
-
-.welcome-text {
-    margin: 8px 0 0;
-    color: var(--text-soft);
-    font-size: 14px;
-    line-height: 1.9;
-}
-
-.quick-actions {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 10px;
-    margin-top: 14px;
-}
-
-.quick-chip {
-    border: 1px solid rgba(214,168,79,0.35);
-    color: var(--gold-2);
-    background: rgba(214,168,79,0.07);
-    border-radius: 999px;
-    padding: 9px 12px;
-    font-family: "Cairo", Arial, sans-serif;
-    font-size: 12px;
-    font-weight: 800;
-    cursor: pointer;
-}
-
-.msg-row {
-    display: flex;
-    margin-bottom: 14px;
-}
-
-.msg-row.user-row {
-    justify-content: flex-start;
-}
-
-.msg-row.bot-row {
-    justify-content: flex-end;
-}
-
-.msg-bubble {
-    max-width: min(82%, 720px);
-    padding: 14px 16px;
-    border-radius: 18px;
-    line-height: 1.9;
-    font-size: 15px;
-    overflow-wrap: break-word;
-    word-wrap: break-word;
-    white-space: normal;
-    box-shadow: 0 10px 26px rgba(0,0,0,0.22);
-}
-
-.user {
-    background:
-        linear-gradient(145deg, rgba(255,255,255,0.08), rgba(255,255,255,0.035));
-    border: 1px solid rgba(214,168,79,0.30);
-    color: var(--text-main);
-    border-bottom-right-radius: 7px;
-}
-
-.bot {
-    background:
-        linear-gradient(145deg, rgba(22,163,74,0.95), rgba(21,128,61,0.95));
-    border: 1px solid rgba(255,255,255,0.09);
-    color: white;
-    border-bottom-left-radius: 7px;
-}
-
-.bot a {
-    color: #ffffff;
-    font-weight: 900;
-    text-decoration: underline;
-    word-break: break-all;
-}
-
-.meta-line {
-    margin-top: 8px;
-    color: rgba(255,255,255,0.65);
-    font-size: 11px;
-}
-
-.user .meta-line {
-    color: rgba(203,213,225,0.68);
-}
-
-.typing-wrap {
-    display: none;
-    padding: 0 22px 14px;
-    flex-shrink: 0;
-}
-
-.typing {
-    display: inline-flex;
-    align-items: center;
-    gap: 8px;
-    padding: 10px 14px;
-    border-radius: 999px;
-    background: rgba(255,255,255,0.045);
-    border: 1px solid rgba(214,168,79,0.24);
-    color: var(--text-soft);
-    font-size: 13px;
-    font-weight: 700;
-}
-
-.typing-dots {
-    display: inline-flex;
-    gap: 5px;
-}
-
-.typing-dots span {
-    width: 7px;
-    height: 7px;
-    border-radius: 50%;
-    background: var(--gold-2);
-    animation: pulseDot 1.2s infinite ease-in-out;
-}
-
-.typing-dots span:nth-child(2) { animation-delay: 0.15s; }
-.typing-dots span:nth-child(3) { animation-delay: 0.30s; }
-
-@keyframes pulseDot {
-    0%, 80%, 100% { opacity: 0.35; transform: translateY(0) scale(0.9); }
-    40% { opacity: 1; transform: translateY(-3px) scale(1); }
-}
-
-.chat-footer {
-    padding: 18px 22px 20px;
-    border-top: 1px solid rgba(255,255,255,0.07);
-    background:
-        linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.04));
-    flex-shrink: 0;
-}
-
-.composer {
-    display: flex;
-    align-items: flex-end;
-    gap: 12px;
-    padding: 10px;
-    border-radius: 22px;
-    background: rgba(255,255,255,0.045);
-    border: 1px solid rgba(214,168,79,0.30);
-    box-shadow: 0 12px 34px rgba(0,0,0,0.18);
-}
-
-.input-area {
-    flex: 1;
-    min-width: 0;
-}
-
-textarea {
-    width: 100%;
-    min-height: 54px;
-    max-height: 150px;
-    resize: none;
-    border: none;
-    outline: none;
-    background: transparent;
-    color: var(--text-main);
-    font-family: "Cairo", Arial, sans-serif;
-    font-size: 15px;
-    line-height: 1.8;
-    padding: 9px 10px;
-}
-
-textarea::placeholder {
-    color: #94a3b8;
-}
-
-.send-btn {
-    width: 58px;
-    height: 58px;
-    border: none;
-    border-radius: 18px;
-    background: linear-gradient(145deg, var(--gold-2), var(--gold));
-    color: #111827;
-    display: grid;
-    place-items: center;
-    cursor: pointer;
-    box-shadow: 0 14px 32px rgba(214,168,79,0.28);
-    transition: 0.18s ease;
-    flex-shrink: 0;
-    font-size: 22px;
-    font-weight: 900;
-}
-
-.send-btn:hover {
-    transform: translateY(-1px);
-    box-shadow: 0 18px 38px rgba(214,168,79,0.36);
-}
-
-.send-btn:disabled {
-    opacity: 0.58;
-    cursor: pointer;
-    transform: none;
-}
-
-.footer-note {
-    margin-top: 10px;
-    color: rgba(148,163,184,0.9);
-    font-size: 11px;
-    text-align: center;
-}
-
-@media (max-width: 860px) {
-    .page {
-        padding: 0;
-    }
-
-    .chat-shell {
-        width: 100%;
-        height: 100vh;
-        min-height: 100vh;
-        border-radius: 0;
-        grid-template-columns: 1fr;
-        border: none;
-    }
-
-    .sidebar {
-        display: none;
-    }
-
-    .chat-header {
-        min-height: 78px;
-        padding: 14px 14px;
-    }
-
-    .header-logo {
-        width: 46px;
-        height: 46px;
-        border-radius: 15px;
-        font-size: 23px;
-    }
-
-    .header-copy h2 {
-        font-size: 18px;
-    }
-
-    .header-copy p {
-        font-size: 12px;
-    }
-
-    .header-actions {
-        gap: 8px;
-    }
-
-    .status-pill {
-        display: none;
-    }
-
-    .chat-close-btn {
-        width: 42px;
-        height: 42px;
-        border-radius: 14px;
-        font-size: 19px;
-    }
-
-    .messages {
-        padding: 14px;
-    }
-
-    .msg-bubble {
-        max-width: 92%;
-        font-size: 14px;
-        line-height: 1.85;
-    }
-
-    .chat-footer {
-        padding: 12px;
-    }
-
-    .composer {
-        border-radius: 18px;
-        gap: 8px;
-        padding: 8px;
-    }
-
-    textarea {
-        min-height: 50px;
-        font-size: 14px;
-    }
-
-    .send-btn {
-        width: 52px;
-        height: 52px;
-        border-radius: 16px;
-        font-size: 20px;
-    }
-
-    .welcome-card {
-        padding: 15px;
-        border-radius: 20px;
-    }
-
-    .welcome-title {
-        font-size: 16px;
-    }
-
-    .welcome-text {
-        font-size: 13px;
-    }
-}
-
-  /* ===== ALSAAB_WEBSITE_CHAT_VISUAL_SAFE_V1 START ===== */
-  .quick-chip {
-    background: linear-gradient(135deg, rgba(255,255,255,.05), rgba(215,184,90,.10)) !important;
-    border: 1px solid rgba(240,204,104,.58) !important;
-    color: #f0cc68 !important;
-    font-weight: 900 !important;
-    box-shadow: 0 8px 22px rgba(0,0,0,.22);
-    transition: all .18s ease;
-  }
-
-  .quick-chip:hover {
-    transform: translateY(-1px);
-    border-color: rgba(255,224,138,.92) !important;
-    box-shadow: 0 0 24px rgba(240,204,104,.24);
-  }
-
-  #msg,
-  textarea#msg {
-    background: linear-gradient(135deg, #070b12, #101827) !important;
-    color: #fffaf0 !important;
-    border: 1px solid rgba(240,204,104,.45) !important;
-    box-shadow: inset 0 1px 0 rgba(255,255,255,.04);
-  }
-
-  #msg:focus,
-  textarea#msg:focus {
-    outline: none !important;
-    border-color: rgba(255,224,138,.95) !important;
-    box-shadow: 0 0 0 3px rgba(240,204,104,.13), inset 0 1px 0 rgba(255,255,255,.06) !important;
-  }
-
-  button[type="submit"],
-  .send-btn,
-  #sendBtn {
-    background: linear-gradient(135deg, #f0cc68, #d7b85a, #aa842a) !important;
-    color: #111 !important;
-    font-weight: 950 !important;
-    box-shadow: 0 10px 24px rgba(215,184,90,.24) !important;
-  }
-
-  .side-title,
-  .chat-title,
-  h1,
-  h2 {
-    text-shadow: 0 0 18px rgba(240,204,104,.16);
-  }
-
-  .chat-card,
-  .chat-panel,
-  .side-card,
-  .message,
-  .bot,
-  .assistant {
-    border-color: rgba(240,204,104,.34) !important;
-  }
-
-  .chat-card:hover,
-  .chat-panel:hover,
-  .side-card:hover {
-    box-shadow: 0 0 28px rgba(240,204,104,.14), 0 18px 44px rgba(0,0,0,.36) !important;
-  }
-  /* ===== ALSAAB_WEBSITE_CHAT_VISUAL_SAFE_V1 END ===== */
-
-
-  /* ===== ALSAAB_WEBSITE_CHAT_FIX_V2 START ===== */
-  .alsaab-word-avatar-fix {
-    width: auto !important;
-    min-width: 56px !important;
-    max-width: 78px !important;
-    height: 42px !important;
-    min-height: 42px !important;
-    padding: 0 8px !important;
-    box-sizing: border-box !important;
-    border-radius: 14px !important;
-    font-size: 10px !important;
-    line-height: 1 !important;
-    letter-spacing: .2px !important;
-    white-space: nowrap !important;
-    overflow: hidden !important;
-    display: inline-flex !important;
-    align-items: center !important;
-    justify-content: center !important;
-  }
-
-  #msg,
-  textarea#msg {
-    min-height: 52px !important;
-    height: 52px !important;
-    max-height: 88px !important;
-    resize: none !important;
-    box-sizing: border-box !important;
-    border-radius: 18px !important;
-    padding: 12px 16px !important;
-    line-height: 1.5 !important;
-  }
-
-  button[type="submit"],
-  .send-btn,
-  #sendBtn {
-    min-height: 52px !important;
-    height: 52px !important;
-    max-height: 52px !important;
-    min-width: 58px !important;
-    border-radius: 18px !important;
-    display: inline-flex !important;
-    align-items: center !important;
-    justify-content: center !important;
-  }
-  /* ===== ALSAAB_WEBSITE_CHAT_FIX_V2 END ===== */
-
-</style>
-</head>
-
-<body>
-<div class="luxury-bg"></div>
-
-<div class="page">
-    <div class="chat-shell">
-
-        <aside class="sidebar">
-            <div class="brand-block">
-                <div class="logo-mark"><span>ALSAAB</span></div>
-                <div class="brand-text">
-                    <h1>ALSAAB AI</h1>
-                    <p>Smart Sales Assistant</p>
-                </div>
-            </div>
-
-            <div class="side-card gold">
-                <div class="side-label">نظام مبيعات ذكي</div>
-                <h2 class="side-title">أقوى نظام مبيعات ذكي يرفع المبيعات بشكل صاروخي 🚀</h2>
-                <p class="side-text">
-                    مساعد مبيعات ذكي، يفهم و يحلل العميل و يشخّص و يحل المشكلة و يساعدك في إغلاق الصفقات و اتخاذ القرار مع العملاء.
-                </p>
-
-                <div class="side-list">
-                    <div class="side-item">
-                        <div class="side-icon">⚡</div>
-                        <span>ردود ذكية وسريعة</span>
-                    </div>
-                    <div class="side-item">
-                        <div class="side-icon">🎯</div>
-                        <span>بيع وإقناع وإغلاق</span>
-                    </div>
-                    <div class="side-item">
-                        <div class="side-icon">📈</div>
-                        <span>مصمم لزيادة المبيعات</span>
-                    </div>
-                </div>
-
-                <button class="mini-cta" onclick="sendQuick('أبغي أعرف الباقات')">
-                    عرض الباقات
-                </button>
-            </div>
-
-            <div class="side-card">
-                <div class="side-label">الوضع الحالي</div>
-                <p class="side-text">
-                    اكتب رسالتك، والبوت بيساعدك تفهم أفضل خطوة لمشروعك أو دخلك.
-                </p>
-            </div>
-        </aside>
-
-        <main class="main-chat">
-            <header class="chat-header">
-                <div class="header-title">
-                    <div class="header-logo"><span>ALSAAB</span></div>
-                    <div class="header-copy">
-                        <h2>ALSAAB AI</h2>
-                        <p>مساعدك الذكي للمبيعات، الرد، الإقناع، والإغلاق</p>
-                    </div>
-                </div>
-
-                <div class="header-actions">
-                    <div class="status-pill">
-                        <span class="status-dot"></span>
-                        <span>Online 24/7</span>
-                    </div>
-
-                    <button class="chat-close-btn" onclick="closeChat()" title="إغلاق الشات" aria-label="إغلاق الشات">
-                        ✕
-                    </button>
-                </div>
-            </header>
-
-            <section class="messages-wrap">
-                <div id="messages" class="messages">
-                    <div class="welcome-card">
-                        <h3 class="welcome-title">هلا وسهلا 👋</h3>
-                        <p class="welcome-text">
-                            أنا ALSAAB AI. أقدر أساعدك في زيادة المبيعات، اختيار الباقة المناسبة،
-                            أو معرفة نظام الشراكة والدخل الإضافي.
-                        </p>
-
-                        <div class="quick-actions">
-                            <button class="quick-chip" onclick="sendQuick('أبغي أعرف الباقات')">عرض الباقات</button>
-                            <button class="quick-chip" onclick="sendQuick('عندي مشروع وأبغي أرفع المبيعات')">عندي مشروع</button>
-                            <button class="quick-chip" onclick="sendQuick('محتاج دخل إضافي')">دخل إضافي</button>
-                        </div>
-                    </div>
-                </div>
-
-                <div id="typingWrap" class="typing-wrap">
-                    <div class="typing">
-                        <div class="typing-dots">
-                            <span></span><span></span><span></span>
-                        </div>
-                        <strong>ALSAAB AI يكتب الآن...</strong>
-                    </div>
-                </div>
-            </section>
-
-            <footer class="chat-footer">
-                <div class="composer">
-                    <div class="input-area">
-                        <textarea id="msg" placeholder="اكتب رسالتك هنا..."></textarea>
-                    </div>
-                    <button id="sendBtn" class="send-btn" onclick="sendMsg()" title="إرسال">➤</button>
-                </div>
-
-                <div class="footer-note">
-                    Powered by ALSAAB AI • Sales Automation
-                </div>
-            </footer>
-        </main>
-
-    </div>
-</div>
-
-<script>
-let sessionId = localStorage.getItem("session_id");
-let sourcePartnerId = localStorage.getItem("source_partner_id") || "";
-let isSending = false;
-
-function normalizeSourcePartnerId(value) {
-    value = String(value || "").trim();
-
-    if (!value) return "";
-
-    if (value.toLowerCase() === "alsaab") {
-        return "alsaab";
-    }
-
-    const match = value.toUpperCase().match(/ALS-P\d+/);
-
-    if (match && match[0]) {
-        return match[0];
-    }
-
-    return "";
-}
-
-function captureSourcePartnerId() {
-    try {
-        const params = new URLSearchParams(window.location.search);
-        const ref =
-            params.get("ref") ||
-            params.get("source_partner_id") ||
-            params.get("partner_id") ||
-            params.get("sponsor_partner_id") ||
-            "";
-
-        const normalizedRef = normalizeSourcePartnerId(ref);
-        const storedRef = normalizeSourcePartnerId(localStorage.getItem("source_partner_id") || sourcePartnerId || "");
-
-        if (normalizedRef) {
-            if (storedRef && storedRef !== normalizedRef) {
-                localStorage.removeItem("session_id");
-                sessionId = "";
-                console.log("ALSAAB session reset for new referral:", storedRef, "=>", normalizedRef);
-            }
-
-            sourcePartnerId = normalizedRef;
-            localStorage.setItem("source_partner_id", normalizedRef);
-            console.log("ALSAAB referral captured:", normalizedRef);
-            return normalizedRef;
-        }
-
-        sourcePartnerId = storedRef;
-
-        if (sourcePartnerId) {
-            localStorage.setItem("source_partner_id", sourcePartnerId);
-        }
-
-        return sourcePartnerId;
-    } catch (error) {
-        console.error("Referral capture error:", error);
-        return "";
-    }
-}
-
-sourcePartnerId = captureSourcePartnerId();
-
-function escapeHtml(text) {
-    return String(text)
-        .replace(/&/g, "&amp;")
-        .replace(/</g, "&lt;")
-        .replace(/>/g, "&gt;")
-        .replace(/"/g, "&quot;")
-        .replace(/'/g, "&#039;");
-}
-
-function sanitizeBotText(text) {
-    return String(text || "")
-        .replace(/يا\s*تعليمات\s*داخلية[\s،,.!؟]*/g, "")
-        .replace(/تعليمات\s*داخلية[\s،,.!؟]*/g, "")
-        .replace(/internal\s+instructions/gi, "");
-}
-
-function linkify(text) {
-    const raw = String(text || "");
-
-    const paymentPattern = /(https?:\/\/[^\s<>"']*(?:\/pay\/(?:entry|starter|growth|elite|diamond)|buy\.stripe\.com)[^\s<>"']*)/i;
-    const paymentMatch = raw.match(paymentPattern);
-
-    if (paymentMatch) {
-        let url = paymentMatch[1].replace(/[،,.؛:!?)]$/, "");
-        let href = url.replace(/^http:\/\/alsaab-ai\.onrender\.com/i, "https://alsaab-ai.onrender.com");
-
-        const before = raw.slice(0, raw.indexOf(paymentMatch[1]));
-        const after = raw.slice(raw.indexOf(paymentMatch[1]) + paymentMatch[1].length);
-
-        return escapeHtml(before).replace(/\n/g, "<br>") +
-            '<div style="margin:14px 0;text-align:center;">' +
-            '<a href="' + escapeHtml(href) + '" target="_top" rel="noopener noreferrer" onclick="event.preventDefault();event.stopPropagation();try{window.top.location.href=this.href;}catch(e){window.location.href=this.href;}return false;" ' +
-            'style="display:inline-flex;align-items:center;justify-content:center;width:88%;max-width:320px;padding:15px 18px;border-radius:18px;background:linear-gradient(135deg,#f7d774,#c99b2e);color:#111;font-weight:900;text-decoration:none;box-shadow:0 10px 28px rgba(214,168,79,.35);font-size:16px;">' +
-            'اضغط هنا للدفع' +
-            '</a>' +
-            '</div>' +
-            escapeHtml(after).replace(/\n/g, "<br>");
-    }
-
-    let safeText = escapeHtml(raw);
-
-    safeText = safeText.replace(
-        /(https?:\/\/[^\s<>"']+)/g,
-        function(url) {
-            let cleanUrl = url.replace(/[،,.؛:!?)]$/, "");
-            let tail = url.substring(cleanUrl.length);
-            let href = cleanUrl.replace(/^http:\/\/alsaab-ai\.onrender\.com/i, "https://alsaab-ai.onrender.com");
-            return '<a href="' + escapeHtml(href) + '" target="_blank" rel="noopener noreferrer" style="color:#f7d774;text-decoration:underline;">' + escapeHtml(cleanUrl) + '</a>' + escapeHtml(tail);
-        }
-    );
-
-    safeText = safeText.replace(/\n/g, "<br>");
-    return safeText;
-}
-
-function currentTime() {
-    const now = new Date();
-
-    return now.toLocaleTimeString("ar-AE", {
-        hour: "numeric",
-        minute: "2-digit"
-    });
-}
-
-function scrollToBottom() {
-    const box = document.getElementById("messages");
-
-    if (!box) return;
-
-    requestAnimationFrame(function() {
-        box.scrollTop = box.scrollHeight;
-
-        setTimeout(function() {
-            box.scrollTop = box.scrollHeight;
-        }, 80);
-
-        setTimeout(function() {
-            box.scrollTop = box.scrollHeight;
-        }, 250);
-    });
-}
-
-function addMsg(text, type) {
-    const box = document.getElementById("messages");
-
-    const isBot = type !== "user";
-
-    const row = document.createElement("div");
-    row.className = "msg-row " + (isBot ? "bot-row" : "user-row");
-
-    const div = document.createElement("div");
-    div.className = "msg-bubble " + (isBot ? "bot" : "user");
-
-    if (isBot) {
-        div.innerHTML = linkify(sanitizeBotText(text)) + '<div class="meta-line">' + currentTime() + '</div>';
-    } else {
-        div.innerHTML = escapeHtml(text).replace(/\n/g, "<br>") + '<div class="meta-line">' + currentTime() + '</div>';
-    }
-
-    row.appendChild(div);
-    box.appendChild(row);
-    scrollToBottom();
-}
-
-function showTyping(show) {
-    const typingWrap = document.getElementById("typingWrap");
-
-    typingWrap.style.display = show ? "block" : "none";
-    scrollToBottom();
-}
-
-function sendQuick(text) {
-    const input = document.getElementById("msg");
-    input.value = text;
-    sendMsg();
-}
-
-function closeChat() {
-    try {
-        window.parent.postMessage({
-            type: "ALSAAB_CLOSE_CHAT",
-            source: "ALSAAB_AI"
-        }, "*");
-    } catch (error) {
-        console.error(error);
-    }
-
-    const page = document.querySelector(".page");
-
-    if (page) {
-        page.style.display = "none";
-    }
-}
-
-async function sendMsg() {
-    if (isSending) return;
-
-    const input = document.getElementById("msg");
-    const button = document.getElementById("sendBtn");
-    const text = input.value.trim();
-
-    if (!text) return;
-
-    sourcePartnerId = captureSourcePartnerId();
-
-    isSending = true;
-    button.disabled = true;
-
-    addMsg(text, "user");
-    input.value = "";
-    input.style.height = "54px";
-    showTyping(true);
-
-    try {
-        const res = await fetch("/chat", {
-            method: "POST",
-            headers: {"Content-Type": "application/json"},
-            body: JSON.stringify({
-                message: text,
-                session_id: sessionId,
-                source_partner_id: sourcePartnerId,
-                ref: sourcePartnerId,
-                smart_link_ref: sourcePartnerId,
-                page_url: window.location.href,
-                referrer_url: document.referrer || "",
-                src: new URLSearchParams(window.location.search).get("src") || ""
-            })
-        });
-
-        const data = await res.json();
-
-        sessionId = data.session_id;
-        localStorage.setItem("session_id", sessionId);
-
-        if (data.source_partner_id) {
-            sourcePartnerId = normalizeSourcePartnerId(data.source_partner_id);
-
-            if (sourcePartnerId) {
-                localStorage.setItem("source_partner_id", sourcePartnerId);
-            }
-        }
-
-        showTyping(false);
-        addMsg(data.reply, "bot");
-        scrollToBottom();
-
-    } catch (error) {
-        showTyping(false);
-        addMsg("صار خطأ مؤقت في الاتصال. جرّب مرة ثانية.", "bot");
-        console.error(error);
-    }
-
-    isSending = false;
-    button.disabled = false;
-    input.focus();
-}
-
-const textarea = document.getElementById("msg");
-
-textarea.addEventListener("input", function() {
-    this.style.height = "54px";
-    this.style.height = Math.min(this.scrollHeight, 150) + "px";
-});
-
-textarea.addEventListener("keydown", function(event) {
-    if (event.key === "Enter" && !event.shiftKey) {
-        event.preventDefault();
-        sendMsg();
-    }
-});
-
-window.addEventListener("load", function() {
-    captureSourcePartnerId();
-    textarea.focus();
-    scrollToBottom();
-});
-</script>
-
-<script id="alsaabWebsiteChatFixV2">
-(function(){
-  function fix(){
-    document.querySelectorAll("div,span").forEach(function(el){
-      var text = (el.textContent || "").trim();
-      if (text === "ALSAAB" && el.children.length === 0) {
-        el.classList.add("alsaab-word-avatar-fix");
-      }
-    });
-  }
-  if (document.readyState === "loading") {
-    document.addEventListener("DOMContentLoaded", fix);
-  } else {
-    fix();
-  }
-  setTimeout(fix, 500);
-})();
-</script>
-
-</body>
-</html>
-"""
-
-LEADS_HTML = """
-<!DOCTYPE html>
-<html lang="ar" dir="rtl">
-<head>
-<meta charset="UTF-8">
-<title>ALSAAB AI Leads</title>
-<style>
-body { font-family: Arial; background:#111; color:white; padding:30px; }
-table { width:100%; border-collapse:collapse; background:#1b1b1b; }
-th, td { border:1px solid #444; padding:10px; text-align:right; }
-th { background:#0b5; color:white; }
-</style>
-</head>
-<body>
-<h2>Leads / العملاء المحفوظين 🔥</h2>
-
-<table>
-<tr>
-<th>ID</th>
-<th>الاسم</th>
-<th>الهاتف</th>
-<th>النشاط</th>
-<th>المشكلة</th>
-<th>القناة</th>
-<th>الحالة</th>
-<th>التاريخ</th>
-</tr>
-{% for lead in leads %}
-<tr>
-<td>{{ lead["id"] }}</td>
-<td>{{ lead["name"] }}</td>
-<td>{{ lead["phone"] }}</td>
-<td>{{ lead["business_type"] }}</td>
-<td>{{ lead["pain_point"] }}</td>
-<td>{{ lead["channel"] }}</td>
-<td>{{ lead["status"] }}</td>
-<td>{{ lead["created_at"] }}</td>
-</tr>
-{% endfor %}
-</table>
-</body>
-</html>
-"""
-
-
 @app.route("/")
 def home():
-    return render_template_string(HTML)
+    return render_template("chat.html")
 
 
 @app.route("/pay/<plan_name>", methods=["GET"])
@@ -1849,53 +520,7 @@ def pay(plan_name):
         }), 400
 
     if not session_id:
-        return render_template_string("""
-        <!DOCTYPE html>
-        <html lang="ar" dir="rtl">
-        <head>
-            <meta charset="UTF-8">
-            <meta name="viewport" content="width=device-width, initial-scale=1.0">
-            <title>ALSAAB AI Payment</title>
-            <style>
-                body {
-                    margin: 0;
-                    min-height: 100vh;
-                    display: grid;
-                    place-items: center;
-                    background: #05070d;
-                    color: #fff;
-                    font-family: Arial, sans-serif;
-                    padding: 24px;
-                }
-                .card {
-                    max-width: 520px;
-                    background: rgba(255,255,255,0.06);
-                    border: 1px solid rgba(214,168,79,0.35);
-                    border-radius: 22px;
-                    padding: 28px;
-                    text-align: center;
-                    box-shadow: 0 24px 70px rgba(0,0,0,0.45);
-                }
-                h1 {
-                    color: #f3d37b;
-                    margin-top: 0;
-                }
-                p {
-                    line-height: 1.8;
-                    color: #cbd5e1;
-                }
-            </style>
-        </head>
-        <body>
-            <div class="card">
-                <h1>رابط الدفع غير مكتمل</h1>
-                <p>
-                    افتح رابط الدفع من داخل محادثة ALSAAB AI عشان نربط الدفع بجلسة العميل بشكل صحيح.
-                </p>
-            </div>
-        </body>
-        </html>
-        """), 400
+        return render_template("pay.html"), 400
 
     if not source_partner_id:
         try:
@@ -2028,6 +653,49 @@ def stripe_webhook():
             source_partner_id=source_partner_id
         )
 
+        # ===== ALSAAB CAPTURE CUSTOMER CONTACT V1 START =====
+        # Stripe hands us the customer's email and phone at checkout, but they
+        # were only forwarded to the partner record and never stored on the
+        # subscription. The result: not one email address anywhere in the
+        # database, so the system cannot notify a customer about anything —
+        # renewal, failed payment or cancellation.
+        try:
+            from database import get_connection as _contact_connection
+
+            details = checkout_session.get("customer_details", {}) or {}
+            captured_email = (
+                details.get("email", "")
+                or checkout_session.get("customer_email", "")
+                or ""
+            ).strip()
+            captured_phone = (details.get("phone", "") or "").strip()
+
+            if captured_email or captured_phone:
+                contact_conn = _contact_connection()
+                contact_cursor = contact_conn.cursor()
+                contact_cursor.execute(
+                    """
+                    UPDATE subscriptions
+                    SET customer_email = COALESCE(NULLIF(?, ''), customer_email),
+                        customer_phone = COALESCE(NULLIF(?, ''), customer_phone)
+                    WHERE session_id = ?
+                    """,
+                    (captured_email, captured_phone, session_id),
+                )
+                contact_conn.commit()
+                contact_conn.close()
+
+                print(
+                    f"CUSTOMER CONTACT CAPTURED ✅ session_id={session_id} "
+                    f"email={'yes' if captured_email else 'no'} "
+                    f"phone={'yes' if captured_phone else 'no'}",
+                    flush=True
+                )
+
+        except Exception as contact_error:
+            print(f"CUSTOMER CONTACT CAPTURE ERROR ⚠️ {contact_error}", flush=True)
+        # ===== ALSAAB CAPTURE CUSTOMER CONTACT V1 END =====
+
         try:
             customer_details = checkout_session.get("customer_details", {}) or {}
 
@@ -2131,7 +799,38 @@ def stripe_webhook():
             or ""
         )
 
+        # ===== ALSAAB INVOICE AMOUNT AS COMMISSION BASE V1 START =====
+        # Commission is a percentage of what the customer actually paid, so the
+        # base has to come from the invoice, not from the amount stored on the
+        # subscription row.
+        #
+        # Reading the stored value meant a price change, a coupon or a partial
+        # payment left the two out of step: after a discount the partner was
+        # paid a percentage of the full list price, and after a price rise the
+        # partner was underpaid.
+        #
+        # Stripe reports money in the smallest currency unit, hence /100.
+        invoice_amount_paid = invoice.get("amount_paid")
+
+        if invoice_amount_paid in (None, ""):
+            invoice_amount_paid = invoice.get("amount_due")
+
         package_amount = existing_subscription.get("package_amount") or ""
+
+        try:
+            if invoice_amount_paid not in (None, "") and float(invoice_amount_paid) > 0:
+                package_amount = f"{float(invoice_amount_paid) / 100:.2f}"
+                print(
+                    f"INVOICE AMOUNT USED AS COMMISSION BASE ✅ invoice_id={invoice_id} "
+                    f"amount={package_amount} (stored was {existing_subscription.get('package_amount')})",
+                    flush=True
+                )
+        except (TypeError, ValueError) as amount_error:
+            print(
+                f"INVOICE AMOUNT PARSE FAILED ⚠️ falling back to the stored amount: {amount_error}",
+                flush=True
+            )
+        # ===== ALSAAB INVOICE AMOUNT AS COMMISSION BASE V1 END =====
 
         subscription = create_or_update_subscription(
             session_id=session_id,
@@ -2147,6 +846,30 @@ def stripe_webhook():
             reset_usage=True,
             source_partner_id=source_partner_id
         )
+
+        # The charge went through, so any grace window from an earlier failed
+        # attempt is over. Left behind it would keep a genuinely lapsed
+        # customer counting later on.
+        try:
+            from database import get_connection as _grace_connection
+
+            grace_conn = _grace_connection()
+            grace_cursor = grace_conn.cursor()
+            grace_cursor.execute(
+                """
+                UPDATE subscriptions
+                SET payment_failed_at = NULL, payment_grace_until = NULL,
+                    payment_retry_count = 0
+                WHERE stripe_subscription_id = ?
+                  AND payment_grace_until IS NOT NULL
+                """,
+                (stripe_subscription_id,),
+            )
+            grace_conn.commit()
+            grace_conn.close()
+
+        except Exception as grace_error:
+            print(f"PAYMENT GRACE CLEAR ERROR ⚠️ {grace_error}", flush=True)
 
         try:
             auto_partner_result = ensure_paid_client_is_partner(
@@ -2180,6 +903,72 @@ def stripe_webhook():
             "stripe_subscription_id": stripe_subscription_id,
             "subscription": subscription
         })
+
+    # ===== ALSAAB UPCOMING RENEWAL NOTICE V1 START =====
+    # Stripe fires invoice.upcoming ahead of every renewal. The lead time is
+    # set in the Stripe dashboard (Billing -> Subscriptions and emails); set it
+    # to 5 days to match the reminder policy.
+    #
+    # Nothing is sent from here: the project has no email sender and the
+    # WhatsApp integration only receives. What this does is record WHEN the
+    # renewal lands and how much it will be, so the dashboards can warn the
+    # customer and so a reminder job has something to read the day a sending
+    # channel exists.
+    if event_type == "invoice.upcoming":
+        invoice = event.get("data", {}).get("object", {})
+
+        stripe_subscription_id = invoice.get("subscription", "") or ""
+
+        if isinstance(stripe_subscription_id, dict):
+            stripe_subscription_id = stripe_subscription_id.get("id", "") or ""
+
+        if not stripe_subscription_id:
+            return jsonify({"status": "ignored", "reason": "missing_stripe_subscription_id"})
+
+        renewal_at = invoice.get("next_payment_attempt") or invoice.get("period_end")
+        amount_due = invoice.get("amount_due")
+
+        try:
+            from database import get_connection as _renewal_connection
+            from datetime import datetime as _datetime
+
+            renewal_dt = _datetime.utcfromtimestamp(int(renewal_at)) if renewal_at else None
+
+            renewal_conn = _renewal_connection()
+            renewal_cursor = renewal_conn.cursor()
+            renewal_cursor.execute(
+                """
+                UPDATE subscriptions
+                SET next_renewal_at   = ?,
+                    customer_email    = COALESCE(NULLIF(?, ''), customer_email),
+                    last_invoice_url  = COALESCE(NULLIF(?, ''), last_invoice_url)
+                WHERE stripe_subscription_id = ?
+                """,
+                (
+                    renewal_dt,
+                    (invoice.get("customer_email") or "").strip(),
+                    invoice.get("hosted_invoice_url") or "",
+                    stripe_subscription_id,
+                ),
+            )
+            renewal_conn.commit()
+            renewal_conn.close()
+
+            print(
+                f"UPCOMING RENEWAL RECORDED ✅ sub={stripe_subscription_id} "
+                f"due={renewal_dt} amount={amount_due}",
+                flush=True
+            )
+
+        except Exception as renewal_error:
+            print(f"UPCOMING RENEWAL ERROR ⚠️ {renewal_error}", flush=True)
+
+        return jsonify({
+            "status": "success",
+            "message": "invoice.upcoming recorded",
+            "stripe_subscription_id": stripe_subscription_id,
+        })
+    # ===== ALSAAB UPCOMING RENEWAL NOTICE V1 END =====
 
     if event_type == "invoice.payment_failed":
         invoice = event.get("data", {}).get("object", {})
@@ -2252,6 +1041,71 @@ def stripe_webhook():
             reset_usage=False,
             source_partner_id=source_partner_id
         )
+
+        # ===== ALSAAB PAYMENT GRACE PERIOD V1 START =====
+        # Stripe has not given up yet: Smart Retries makes up to four attempts
+        # across about three weeks, and most failures clear on the second one.
+        #
+        # Treating the first failure as final punished the sponsor immediately —
+        # the customer left their active count, which could drop them a whole
+        # level and cost them the deeper commissions for that month, all for a
+        # card that went through two days later.
+        #
+        # The customer keeps counting until the grace window closes. When
+        # Stripe truly gives up it sends customer.subscription.deleted, which
+        # is handled separately and ends it for real.
+        try:
+            from database import get_connection as _grace_connection
+
+            # Stripe is configured for Smart Retries: up to 8 attempts within
+            # 2 weeks, then "cancel the subscription". 15 days keeps the
+            # customer counting for the whole retry window plus a day, and the
+            # customer.subscription.deleted event ends it sooner if Stripe
+            # gives up early.
+            grace_days = int(os.getenv("PAYMENT_GRACE_DAYS", "15"))
+            attempt = int(invoice.get("attempt_count") or 0)
+
+            # Stripe's own hosted invoice page. Storing it is what makes a
+            # "pay now" button possible without this project ever touching a
+            # card number: the customer lands on Stripe, updates the card and
+            # pays there, and the resulting invoice.paid clears everything.
+            hosted_invoice_url = invoice.get("hosted_invoice_url") or ""
+            next_attempt = invoice.get("next_payment_attempt")
+
+            grace_conn = _grace_connection()
+            grace_cursor = grace_conn.cursor()
+            grace_cursor.execute(
+                """
+                UPDATE subscriptions
+                SET payment_failed_at   = COALESCE(payment_failed_at, NOW()),
+                    payment_grace_until = COALESCE(payment_failed_at, NOW())
+                                          + (? || ' days')::INTERVAL,
+                    payment_retry_count = ?,
+                    last_invoice_url    = COALESCE(NULLIF(?, ''), last_invoice_url),
+                    last_invoice_id     = COALESCE(NULLIF(?, ''), last_invoice_id),
+                    customer_email      = COALESCE(NULLIF(?, ''), customer_email)
+                WHERE stripe_subscription_id = ?
+                """,
+                (
+                    str(grace_days), attempt, hosted_invoice_url,
+                    invoice.get("id") or "",
+                    (invoice.get("customer_email") or "").strip(),
+                    stripe_subscription_id,
+                ),
+            )
+            grace_conn.commit()
+            grace_conn.close()
+
+            print(
+                f"PAYMENT GRACE APPLIED ✅ stripe_subscription_id={stripe_subscription_id} "
+                f"attempt={attempt} of Stripe's retries; grace_days={grace_days}; "
+                f"next_stripe_attempt={next_attempt}; pay_now_link={'yes' if hosted_invoice_url else 'no'}",
+                flush=True
+            )
+
+        except Exception as grace_error:
+            print(f"PAYMENT GRACE ERROR ⚠️ {grace_error}", flush=True)
+        # ===== ALSAAB PAYMENT GRACE PERIOD V1 END =====
 
         print(
             f"STRIPE INVOICE PAYMENT FAILED HANDLED ⚠️ session_id={session_id} plan={plan_name} source_partner_id={source_partner_id} invoice_id={invoice_id}",
@@ -2454,123 +1308,12 @@ def stripe_webhook():
 
 @app.route("/payment-success", methods=["GET"])
 def payment_success():
-    return render_template_string("""
-    <!DOCTYPE html>
-    <html lang="ar" dir="rtl">
-    <head>
-        <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>تم الدفع - ALSAAB AI</title>
-        <style>
-            body {
-                margin: 0;
-                min-height: 100vh;
-                display: grid;
-                place-items: center;
-                background:
-                    radial-gradient(circle at 20% 20%, rgba(214,168,79,0.16), transparent 30%),
-                    linear-gradient(135deg, #03050a, #0a0f1d);
-                color: #fff;
-                font-family: Arial, sans-serif;
-                padding: 24px;
-            }
-            .card {
-                max-width: 620px;
-                background: rgba(255,255,255,0.06);
-                border: 1px solid rgba(214,168,79,0.38);
-                border-radius: 24px;
-                padding: 32px;
-                text-align: center;
-                box-shadow: 0 24px 70px rgba(0,0,0,0.48);
-            }
-            h1 {
-                margin-top: 0;
-                color: #f3d37b;
-                font-size: 28px;
-            }
-            p {
-                color: #cbd5e1;
-                line-height: 1.9;
-                font-size: 16px;
-            }
-            .note {
-                margin-top: 18px;
-                color: #94a3b8;
-                font-size: 13px;
-            }
-        </style>
-    </head>
-    <body>
-        <div class="card">
-            <h1>تم الدفع بنجاح ✅</h1>
-            <p>
-                اشتراكك في ALSAAB AI قيد التفعيل الآن.
-                ارجع للمحادثة واكتب: <strong>تدريب البوت</strong>
-                عشان نجهز النظام لمشروعك خطوة خطوة.
-            </p>
-            <div class="note">
-                إذا ما تفعل الاشتراك مباشرة، انتظر دقيقة ثم جرب مرة ثانية.
-            </div>
-        </div>
-    </body>
-    </html>
-    """)
+    return render_template("payment_success.html")
 
 
 @app.route("/payment-cancel", methods=["GET"])
 def payment_cancel():
-    return render_template_string("""
-    <!DOCTYPE html>
-    <html lang="ar" dir="rtl">
-    <head>
-        <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>لم يكتمل الدفع - ALSAAB AI</title>
-        <style>
-            body {
-                margin: 0;
-                min-height: 100vh;
-                display: grid;
-                place-items: center;
-                background:
-                    radial-gradient(circle at 20% 20%, rgba(214,168,79,0.16), transparent 30%),
-                    linear-gradient(135deg, #03050a, #0a0f1d);
-                color: #fff;
-                font-family: Arial, sans-serif;
-                padding: 24px;
-            }
-            .card {
-                max-width: 620px;
-                background: rgba(255,255,255,0.06);
-                border: 1px solid rgba(214,168,79,0.38);
-                border-radius: 24px;
-                padding: 32px;
-                text-align: center;
-                box-shadow: 0 24px 70px rgba(0,0,0,0.48);
-            }
-            h1 {
-                margin-top: 0;
-                color: #f3d37b;
-                font-size: 28px;
-            }
-            p {
-                color: #cbd5e1;
-                line-height: 1.9;
-                font-size: 16px;
-            }
-        </style>
-    </head>
-    <body>
-        <div class="card">
-            <h1>لم يكتمل الدفع</h1>
-            <p>
-                ما عليك، تقدر ترجع للمحادثة وتختار الباقة المناسبة لك مرة ثانية.
-            </p>
-        </div>
-    </body>
-    </html>
-    """)
-
+    return render_template("payment_cancel.html")
 
 
 # ALSAAB_STRICT_PAYMENT_GUARD_V2
@@ -2660,7 +1403,6 @@ def alsaab_guard_auto_payment_links(reply, user_message):
     )
 
 
-
 # ALSAAB_FINAL_HARD_PAYMENT_LOCK_V3
 def alsaab_exact_payment_request_plan_v3(message):
     msg = str(message or "").lower()
@@ -2719,8 +1461,6 @@ def alsaab_guard_auto_payment_links(reply, user_message):
         return reply_text
 
     return _al_pay_reply(user_message,"choose")
-
-
 
 
 # ALSAAB_AFTER_RESPONSE_PAYMENT_FIREWALL_V2
@@ -2828,8 +1568,6 @@ def alsaab_after_response_payment_firewall_v2(response):
     except Exception as e:
         print("ALSAAB_AFTER_RESPONSE_PAYMENT_FIREWALL_V2_ERROR=" + str(e), flush=True)
         return response
-
-
 
 
 # ===== ALSAAB_PAYMENT_PLAN_V8_REQUEST_SAFE START =====
@@ -3143,7 +1881,6 @@ def chat():
     except Exception as _e:
         print("DIRECT_PAYMENT_GATE_BALANCED_ERROR=" + str(_e), flush=True)
     # ===== ALSAAB_DIRECT_PAYMENT_GATE_BALANCED_V1 END =====
-
 
 
     print(f"MAIN MESSAGE ✅ {message}", flush=True)
@@ -3558,8 +2295,7 @@ def leads_view():
         return "Unauthorized", 401
 
     leads = get_leads()
-    return render_template_string(LEADS_HTML, leads=leads)
-
+    return render_template("leads.html", leads=leads)
 
 
 # ===== ALSAAB_PARTNER_DASHBOARD_RENDER_API_V1 START =====
@@ -3646,7 +2382,6 @@ def partner_dashboard_data():
         }), 500
 
 # ===== ALSAAB_PARTNER_DASHBOARD_RENDER_API_V1 END =====
-
 
 
 # ===== ALSAAB_PARTNER_DASHBOARD_UI_MVP_V1 START =====
@@ -3827,16 +2562,8 @@ def partner_dashboard_view():
 
         if not isinstance(result, dict) or result.get("status") != "success":
 
-            return render_template_string(
-                """
-                <html>
-                <head><meta charset="utf-8"><title>Partner Dashboard Error</title></head>
-                <body style="font-family:Arial; direction:rtl; padding:30px;">
-                  <h2>حدث خطأ في تحميل بيانات الشريك</h2>
-                  <pre>{{ result }}</pre>
-                </body>
-                </html>
-                """,
+            return render_template(
+                "partner_dashboard_error_data.html",
                 result=result
             ), 500
 
@@ -3989,727 +2716,9 @@ def partner_dashboard_view():
             except Exception:
                 return f"{value or 0} AED"
 
-        html = """
-<!DOCTYPE html>
-<html lang="{{ lang }}" dir="{{ direction }}">
-<head>
-  <meta charset="utf-8">
-  <title>{{ t.page_title }}</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <style>
-    body {
-      margin: 0;
-      background: #0b0b0b;
-      color: #f5f0df;
-      font-family: Arial, Tahoma, sans-serif;
-      direction: {{ direction }};
-      text-align: {{ text_align }};
-    }
 
-    .page {
-      max-width: 1200px;
-      margin: 0 auto;
-      padding: 28px;
-    }
-
-    .topbar {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      gap: 14px;
-      margin-bottom: 16px;
-      flex-wrap: wrap;
-    }
-
-    .brand {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-    }
-
-    .logo-mark {
-      width: 54px;
-      height: 54px;
-      border-radius: 16px;
-      border: 1px solid #c8a84b;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      color: #d7b85a;
-      font-weight: 800;
-      letter-spacing: 1px;
-      background: linear-gradient(135deg, #111, #211c0f);
-      box-shadow: 0 0 18px rgba(200, 168, 75, 0.2);
-      font-size: 12px;
-    }
-
-    .brand-title {
-      color: #d7b85a;
-      font-size: 19px;
-      font-weight: 800;
-    }
-
-    .brand-note {
-      color: #9f967b;
-      font-size: 12px;
-      margin-top: 3px;
-    }
-
-    .actions {
-      display: flex;
-      gap: 10px;
-      flex-wrap: wrap;
-    }
-
-    .action-btn {
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      border: 1px solid rgba(215, 184, 90, 0.5);
-      color: #f0cc68;
-      background: #111;
-      padding: 10px 14px;
-      border-radius: 999px;
-      text-decoration: none;
-      font-size: 14px;
-    }
-
-    .action-btn:hover {
-      background: #1a160d;
-    }
-
-    .portal-switch {
-      display: grid;
-      grid-template-columns: repeat(2, minmax(0, 1fr));
-      gap: 14px;
-      margin-bottom: 18px;
-    }
-
-    .portal-card {
-      background: linear-gradient(135deg, #111, #17130b);
-      border: 1px solid rgba(215, 184, 90, 0.45);
-      border-radius: 18px;
-      padding: 18px;
-      color: #f5f0df;
-      text-decoration: none;
-      display: block;
-      transition: transform 0.15s ease, border-color 0.15s ease, background 0.15s ease;
-    }
-
-    .portal-card:hover {
-      transform: translateY(-2px);
-      border-color: #d7b85a;
-      background: linear-gradient(135deg, #161616, #211a0d);
-    }
-
-    .portal-card.active {
-      border-color: #d7b85a;
-      background: linear-gradient(135deg, #d7b85a, #8b6b21);
-      color: #0b0b0b;
-      box-shadow: 0 0 25px rgba(215, 184, 90, 0.22);
-      position: relative;
-    }
-
-    .portal-card.active .portal-card-title,
-    .portal-card.active .portal-card-text {
-      color: #0b0b0b;
-    }
-
-    .portal-card.active::after {
-      content: "أنت هنا";
-      position: absolute;
-      top: 12px;
-      left: 14px;
-      background: #0b0b0b;
-      color: #f0cc68;
-      border-radius: 999px;
-      padding: 4px 10px;
-      font-size: 12px;
-      font-weight: 700;
-    }
-
-    .portal-card-title {
-      color: #d7b85a;
-      font-weight: 800;
-      font-size: 20px;
-      margin-bottom: 8px;
-    }
-
-    .portal-card-text {
-      color: #cfc7ad;
-      line-height: 1.6;
-      font-size: 14px;
-    }
-
-    .header {
-      background: linear-gradient(135deg, #111, #1d1a10);
-      border: 1px solid #c8a84b;
-      border-radius: 18px;
-      padding: 24px;
-      margin-bottom: 20px;
-      box-shadow: 0 0 25px rgba(200, 168, 75, 0.12);
-    }
-
-    .header h1 {
-      margin: 0 0 8px;
-      color: #d7b85a;
-      font-size: 28px;
-    }
-
-    .sub {
-      color: #cfc7ad;
-      line-height: 1.7;
-    }
-
-    .grid {
-      display: grid;
-      grid-template-columns: repeat(4, minmax(0, 1fr));
-      gap: 14px;
-      margin-bottom: 20px;
-    }
-
-    .card {
-      background: #121212;
-      border: 1px solid rgba(215, 184, 90, 0.35);
-      border-radius: 16px;
-      padding: 18px;
-    }
-
-    .card h3 {
-      margin: 0 0 10px;
-      color: #d7b85a;
-      font-size: 16px;
-    }
-
-    .big {
-      font-size: 26px;
-      font-weight: 700;
-      color: #fff;
-    }
-
-    .muted {
-      color: #aaa;
-      font-size: 13px;
-      margin-top: 5px;
-    }
-
-    .section {
-      background: #111;
-      border: 1px solid rgba(215, 184, 90, 0.25);
-      border-radius: 18px;
-      padding: 20px;
-      margin-bottom: 18px;
-    }
-
-    .status-message {
-      background: rgba(128, 226, 138, 0.08);
-      border: 1px solid rgba(128, 226, 138, 0.4);
-      color: #80e28a;
-      border-radius: 14px;
-      padding: 13px 16px;
-      margin-bottom: 18px;
-      font-weight: 700;
-    }
-
-    .small-list {
-      margin-top: 14px;
-      border-top: 1px solid rgba(255,255,255,0.08);
-      padding-top: 12px;
-    }
-
-    .small-item {
-      border: 1px solid rgba(215, 184, 90, 0.20);
-      border-radius: 12px;
-      padding: 12px;
-      margin-bottom: 10px;
-      background: rgba(255,255,255,0.02);
-    }
-
-    .small-item-title {
-      color: #d7b85a;
-      font-weight: 800;
-      margin-bottom: 6px;
-    }
-
-    .section h2 {
-      margin: 0 0 14px;
-      color: #d7b85a;
-      font-size: 21px;
-    }
-
-    .form-grid {
-      display: grid;
-      grid-template-columns: repeat(2, minmax(0, 1fr));
-      gap: 14px;
-      margin-top: 14px;
-    }
-
-    .field {
-      display: flex;
-      flex-direction: column;
-      gap: 7px;
-    }
-
-    .field.full {
-      grid-column: 1 / -1;
-    }
-
-    .field label {
-      color: #d7b85a;
-      font-size: 14px;
-      font-weight: 700;
-    }
-
-    input, textarea {
-      width: 100%;
-      box-sizing: border-box;
-      background: #0b0b0b;
-      border: 1px solid rgba(215, 184, 90, 0.35);
-      color: #fff;
-      border-radius: 12px;
-      padding: 12px;
-      font-family: Arial, Tahoma, sans-serif;
-      font-size: 14px;
-      outline: none;
-    }
-
-    textarea {
-      min-height: 110px;
-      resize: vertical;
-    }
-
-    .upload-box {
-      border: 1px dashed rgba(215, 184, 90, 0.45);
-      border-radius: 14px;
-      padding: 18px;
-      color: #cfc7ad;
-      background: rgba(255,255,255,0.02);
-      margin-top: 12px;
-    }
-
-    .primary-btn {
-      display: inline-block;
-      margin-top: 12px;
-      border: 1px solid rgba(215, 184, 90, 0.55);
-      background: linear-gradient(135deg, #2a220f, #141414);
-      color: #f0cc68;
-      padding: 11px 16px;
-      border-radius: 999px;
-      text-decoration: none;
-      font-weight: 700;
-      cursor: pointer;
-      opacity: 1;
-    }
-
-    .info-row {
-      display: grid;
-      grid-template-columns: 210px 1fr;
-      gap: 12px;
-      padding: 9px 0;
-      border-bottom: 1px solid rgba(255,255,255,0.08);
-    }
-
-    .label {
-      color: #c8a84b;
-    }
-
-    .value {
-      color: #fff;
-      word-break: break-word;
-    }
-
-    a {
-      color: #f0cc68;
-      text-decoration: none;
-    }
-
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      margin-top: 12px;
-      overflow: hidden;
-      border-radius: 12px;
-    }
-
-    th, td {
-      padding: 11px;
-      border-bottom: 1px solid rgba(255,255,255,0.08);
-      text-align: {{ text_align }};
-      font-size: 14px;
-    }
-
-    th {
-      color: #d7b85a;
-      background: #181818;
-    }
-
-    td {
-      color: #f5f0df;
-    }
-
-    .badge {
-      display: inline-block;
-      padding: 5px 10px;
-      border-radius: 999px;
-      border: 1px solid rgba(215, 184, 90, 0.45);
-      color: #f0cc68;
-      font-size: 13px;
-    }
-
-    pre {
-      white-space: pre-wrap;
-      background: #0b0b0b;
-      border: 1px solid rgba(215, 184, 90, 0.25);
-      padding: 12px;
-      border-radius: 12px;
-      color: #eee;
-      direction: ltr;
-      text-align: left;
-    }
-
-    @media (max-width: 900px) {
-      .grid {
-        grid-template-columns: repeat(2, minmax(0, 1fr));
-      }
-
-      .info-row {
-        grid-template-columns: 1fr;
-      }
-    }
-
-    @media (max-width: 600px) {
-      .grid {
-        grid-template-columns: 1fr;
-      }
-
-      .page {
-        padding: 16px;
-      }
-    }
-
-
-    /* ===== ALSAAB_DASHBOARD_VISUAL_POLISH_V4 START ===== */
-    .alsaab-skin-v4 {
-      background:
-        radial-gradient(circle at 85% 8%, rgba(240,204,104,.14), transparent 24%),
-        radial-gradient(circle at 12% 20%, rgba(59,130,246,.10), transparent 26%);
-    }
-
-    .alsaab-skin-v4 .card,
-    .alsaab-skin-v4 .section,
-    .alsaab-skin-v4 .portal-card {
-      background:
-        linear-gradient(145deg, rgba(255,255,255,.05), rgba(12,15,24,.96)),
-        radial-gradient(circle at top right, rgba(215,184,90,.08), transparent 32%) !important;
-      border-color: rgba(240,204,104,.38) !important;
-      box-shadow:
-        0 14px 34px rgba(0,0,0,.34),
-        inset 0 1px 0 rgba(255,255,255,.06),
-        0 0 18px rgba(215,184,90,.08) !important;
-      transition: all .20s ease !important;
-    }
-
-    .alsaab-skin-v4 .card:hover,
-    .alsaab-skin-v4 .section:hover,
-    .alsaab-skin-v4 .portal-card:hover {
-      transform: translateY(-2px);
-      border-color: rgba(255,224,138,.82) !important;
-      box-shadow:
-        0 18px 44px rgba(0,0,0,.45),
-        0 0 28px rgba(240,204,104,.20) !important;
-    }
-
-    .alsaab-skin-v4 .portal-card.active,
-    .alsaab-skin-v4 .primary-btn,
-    .alsaab-skin-v4 button.primary-btn {
-      background: linear-gradient(135deg, #6f4d13 0%, #d7b85a 44%, #f0cc68 68%, #9a6b18 100%) !important;
-      color: #fffaf0 !important;
-      text-shadow: 0 2px 4px rgba(0,0,0,.58) !important;
-      border-color: rgba(255,255,255,.25) !important;
-      box-shadow: 0 10px 26px rgba(215,184,90,.24) !important;
-      font-weight: 900 !important;
-    }
-
-    .alsaab-skin-v4 .portal-card.active .portal-card-title,
-    .alsaab-skin-v4 .portal-card.active .portal-card-text {
-      color: #fffaf0 !important;
-      text-shadow: 0 2px 4px rgba(0,0,0,.58) !important;
-    }
-
-    .alsaab-skin-v4 .section h2,
-    .alsaab-skin-v4 .card h3,
-    .alsaab-skin-v4 .portal-card-title,
-    .alsaab-skin-v4 .brand-title {
-      color: #ffe08a !important;
-      text-shadow: 0 0 16px rgba(240,204,104,.18) !important;
-    }
-
-    .alsaab-skin-v4 .big,
-    .alsaab-skin-v4 .value {
-      color: #ffffff !important;
-      text-shadow: 0 0 16px rgba(255,255,255,.08) !important;
-    }
-
-    .alsaab-skin-v4 .muted,
-    .alsaab-skin-v4 .portal-card-text {
-      color: #ddd6c4 !important;
-    }
-
-    .alsaab-skin-v4 .label {
-      color: #f0cc68 !important;
-      font-weight: 900 !important;
-    }
-
-    .alsaab-skin-v4 .info-row,
-    .alsaab-skin-v4 .small-item,
-    .alsaab-skin-v4 .payment-row {
-      background: linear-gradient(90deg, rgba(255,255,255,.035), rgba(215,184,90,.035)) !important;
-      border-color: rgba(240,204,104,.28) !important;
-    }
-
-    .alsaab-skin-v4 input,
-    .alsaab-skin-v4 textarea,
-    .alsaab-skin-v4 select {
-      background: linear-gradient(135deg, #070b12, #101827) !important;
-      color: #fffaf0 !important;
-      border-color: rgba(240,204,104,.42) !important;
-    }
-
-    .alsaab-skin-v4 input:focus,
-    .alsaab-skin-v4 textarea:focus,
-    .alsaab-skin-v4 select:focus {
-      outline: none !important;
-      border-color: rgba(255,224,138,.95) !important;
-      box-shadow: 0 0 0 3px rgba(240,204,104,.12) !important;
-    }
-
-    .alsaab-skin-v4 button[style*="#6b1d1d"],
-    .alsaab-skin-v4 button[style*="6b1d1d"] {
-      background: linear-gradient(135deg, #ef4444, #991b1b) !important;
-      color: #fff !important;
-      text-shadow: 0 1px 2px rgba(0,0,0,.45) !important;
-      border-color: rgba(255,150,150,.85) !important;
-    }
-
-    .alsaab-skin-v4 button[style*="128,226,138"],
-    .alsaab-skin-v4 button[style*="#80e28a"],
-    .alsaab-skin-v4 button[style*="80e28a"] {
-      background: linear-gradient(135deg, #22c55e, #14532d) !important;
-      color: #fff !important;
-      text-shadow: 0 1px 2px rgba(0,0,0,.45) !important;
-      border-color: rgba(134,239,172,.85) !important;
-    }
-    /* ===== ALSAAB_DASHBOARD_VISUAL_POLISH_V4 END ===== */
-
-</style>
-</head>
-<body>
-  <div class="page alsaab-skin-v4">
-
-    <div class="topbar">
-      <div class="brand">
-        <div class="logo-mark">ALSAAB</div>
-        <div>
-          <div class="brand-title">ALSAAB AI</div>
-</div>
-      </div>
-
-      <div class="actions">
-        <a class="action-btn" href="{{ website_url }}">{{ t.back_site }}</a>
-        <a class="action-btn" href="{{ language_url }}">{{ t.language }}</a>
-      </div>
-    </div>
-
-    <div class="portal-switch">
-      <a class="portal-card active" href="{{ partner_dashboard_url }}">
-        <div class="portal-card-title">Partner Dashboard</div>
-        <div class="portal-card-text">
-          الشراكة، العمولات، المستويات، العملاء، الكورسات، ومتطلبات الترقية.
-        </div>
-      </a>
-
-      <a class="portal-card" href="{{ client_dashboard_url }}">
-        <div class="portal-card-title">Client Dashboard</div>
-        <div class="portal-card-text">
-          مشروعك، باقتك، استخدامك، بيانات موظف المبيعات الذكي، الصور، والكتالوجات.
-        </div>
-      </a>
-    </div>
-    <div class="grid">
-      <div class="card">
-        <h3>{{ t.partner_id }}</h3>
-        <div class="big">{{ profile.partner_id }}</div>
-        <div class="muted">{{ profile.partner_name or "Partner" }}</div>
-      </div>
-
-      <div class="card" style="border-color: {{ rank_ui.color }}; box-shadow: 0 0 28px {{ rank_ui.glow }};">
-        <h3>{{ t.current_level }}</h3>
-        <div class="big" style="color:{{ rank_ui.color }};">{{ rank_ui.level_label }}</div>
-        <div class="muted">{{ rank_ui.rank_name }}</div>
-        <div class="muted">{{ t.next }}: {{ rank_ui.next_label }}</div>
-      </div>
-
-      <div class="card">
-        <h3>{{ t.active_direct_customers }}</h3>
-        <div class="big">{{ customers.active_direct_paid_count or 0 }}</div>
-        <div class="muted">{{ t.all_direct }}: {{ customers.all_direct_count or 0 }}</div>
-      </div>
-
-      <div class="card">
-        <h3>{{ t.pending_commissions }}</h3>
-        <div class="big">{{ money(totals.pending) }}</div>
-        <div class="muted">{{ t.commission_count }}: {{ counts.pending or 0 }}</div>
-      </div>
-    </div>
-
-    <div class="section">
-      <h2>{{ t.partner_info }}</h2>
-      <div class="info-row"><div class="label">{{ t.partner_id }}</div><div class="value">{{ profile.partner_id }}</div></div>
-      <div class="info-row"><div class="label">{{ t.name }}</div><div class="value">{{ profile.partner_name or "-" }}</div></div>
-      <div class="info-row"><div class="label">{{ t.status }}</div><div class="value"><span class="badge">{{ profile.status or "-" }}</span></div></div>
-      <div class="info-row"><div class="label">{{ t.sponsor }}</div><div class="value">{{ profile.sponsor_partner_id or "-" }}</div></div>
-      <div class="info-row"><div class="label">{{ t.referral_link }}</div><div class="value"><a href="{{ profile.referral_link }}" target="_blank">{{ profile.referral_link }}</a></div></div>
-    </div>
-
-    <div class="section" style="border-color: {{ rank_ui.color }}; box-shadow: 0 0 32px {{ rank_ui.glow }};">
-      <h2>{{ t.level_progress }}</h2>
-
-      <div style="display:flex;gap:14px;flex-wrap:wrap;margin-bottom:16px;">
-        <div style="border:1px solid {{ rank_ui.color }};background:rgba(255,255,255,.035);border-radius:16px;padding:14px 16px;min-width:180px;">
-          <div class="muted">{{ t.current_level }}</div>
-          <div class="big" style="color:{{ rank_ui.color }};">{{ rank_ui.level_label }}</div>
-          <div class="muted">{{ rank_ui.rank_name }}</div>
-        </div>
-
-        <div style="border:1px solid rgba(215,184,90,.35);background:rgba(215,184,90,.06);border-radius:16px;padding:14px 16px;min-width:220px;">
-          <div class="muted">{{ t.next }}</div>
-          <div class="big">{{ rank_ui.next_label }}</div>
-          <div class="muted">{{ rank_ui.requirement_text }}</div>
-        </div>
-      </div>
-
-      <div class="info-row"><div class="label">{{ t.completed_sales }}</div><div class="value">{{ rank_ui.completed_sales }}</div></div>
-      <div class="info-row"><div class="label">{{ t.required_sales }}</div><div class="value">{{ rank_ui.required_sales }}</div></div>
-      <div class="info-row"><div class="label">{{ t.current_package }}</div><div class="value">{{ rank_ui.current_package }}</div></div>
-      <div class="info-row"><div class="label">{{ t.subscription_status }}</div><div class="value">{{ rank_ui.subscription_status }}</div></div>
-      <div class="info-row"><div class="label">{{ t.commission_eligible }}</div><div class="value">{{ rank_ui.commission_eligible }}</div></div>
-      <div class="info-row"><div class="label">{{ t.required_course }}</div><div class="value">{{ rank_ui.required_course }}</div></div>
-      <div class="info-row"><div class="label">{{ t.missing_requirements }}</div><div class="value" style="color:#f0cc68;font-weight:900;">{{ rank_ui.missing_text }}</div></div>
-    </div>
-
-    <div class="section">
-      <h2>{{ t.network }}</h2>
-      <div class="grid">
-        <div class="card"><h3>{{ t.direct }}</h3><div class="big">{{ depth_counts.get("1", 0) }}</div></div>
-        <div class="card"><h3>{{ t.level_2 }}</h3><div class="big">{{ depth_counts.get("2", 0) }}</div></div>
-        <div class="card"><h3>{{ t.level_3 }}</h3><div class="big">{{ depth_counts.get("3", 0) }}</div></div>
-        <div class="card"><h3>{{ t.total_network }}</h3><div class="big">{{ tree.downline_count or 0 }}</div></div>
-      </div>
-    </div>
-
-    <div class="section">
-      <h2>{{ t.commission_summary }}</h2>
-      <div class="grid">
-        <div class="card"><h3>Pending</h3><div class="big">{{ money(totals.pending) }}</div><div class="muted">{{ counts.pending or 0 }}</div></div>
-        <div class="card"><h3>Approved</h3><div class="big">{{ money(totals.approved) }}</div><div class="muted">{{ counts.approved or 0 }}</div></div>
-        <div class="card"><h3>Paid</h3><div class="big">{{ money(totals.paid) }}</div><div class="muted">{{ counts.paid or 0 }}</div></div>
-        <div class="card"><h3>Total</h3><div class="big">{{ money(totals.all) }}</div><div class="muted">{{ counts.all or 0 }}</div></div>
-      </div>
-    </div>
-
-    <div class="section">
-      <h2>{{ t.recent_commissions }}</h2>
-      <table>
-        <thead>
-          <tr>
-            <th>{{ t.date }}</th>
-            <th>{{ t.depth }}</th>
-            <th>{{ t.package }}</th>
-            <th>{{ t.percent }}</th>
-            <th>{{ t.amount }}</th>
-            <th>{{ t.status }}</th>
-          </tr>
-        </thead>
-        <tbody>
-          {% for c in recent_commissions[:10] %}
-          <tr>
-            <td>{{ c.date or "-" }}</td>
-            <td>{{ c.commission_depth or "-" }}</td>
-            <td>{{ c.package or "-" }}</td>
-            <td>{{ c.commission_percent or "-" }}%</td>
-            <td>{{ money(c.commission_amount) }}</td>
-            <td><span class="badge">{{ c.status or "-" }}</span></td>
-          </tr>
-          {% else %}
-          <tr><td colspan="6">{{ t.no_commissions }}</td></tr>
-          {% endfor %}
-        </tbody>
-      </table>
-    </div>
-
-    <div class="section">
-      <h2>{{ t.direct_customers }}</h2>
-      <table>
-        <thead>
-          <tr>
-            <th>{{ t.date }}</th>
-            <th>{{ t.client_id }}</th>
-            <th>{{ t.package }}</th>
-            <th>{{ t.amount }}</th>
-            <th>{{ t.status }}</th>
-          </tr>
-        </thead>
-        <tbody>
-          {% for customer in recent_customers[:10] %}
-          <tr>
-            <td>{{ customer.date or "-" }}</td>
-            <td>{{ customer.client_id or customer.session_id or "-" }}</td>
-            <td>{{ customer.plan_name or "-" }}</td>
-            <td>{{ money(customer.package_amount) }}</td>
-            <td><span class="badge">{{ customer.subscription_status or "-" }}</span></td>
-          </tr>
-          {% else %}
-          <tr><td colspan="5">{{ t.no_customers }}</td></tr>
-          {% endfor %}
-        </tbody>
-      </table>
-    </div>
-
-    <div class="section">
-      <h2>{{ t.courses }}</h2>
-      <table>
-        <thead>
-          <tr>
-            <th>{{ t.course }}</th>
-            <th>{{ t.code }}</th>
-            <th>{{ t.amount }}</th>
-            <th>{{ t.status }}</th>
-            <th>{{ t.paid_at }}</th>
-          </tr>
-        </thead>
-        <tbody>
-          {% for course in purchased_courses %}
-          <tr>
-            <td>{{ course.course_name or "-" }}</td>
-            <td>{{ course.course_code or "-" }}</td>
-            <td>{{ money(course.amount) }}</td>
-            <td><span class="badge">{{ course.status or "-" }}</span></td>
-            <td>{{ course.paid_at or course.date or "-" }}</td>
-          </tr>
-          {% else %}
-          <tr><td colspan="5">{{ t.no_courses }}</td></tr>
-          {% endfor %}
-        </tbody>
-      </table>
-    </div>
-</div>
-</body>
-</html>
-        """
-
-
-        return render_template_string(
-            html,
+        return render_template(
+            "partner_dashboard.html",
             lang=lang,
             direction=direction,
             text_align=text_align,
@@ -4741,21 +2750,12 @@ def partner_dashboard_view():
             flush=True
         )
 
-        return render_template_string(
-            """
-            <html>
-            <head><meta charset="utf-8"><title>Partner Dashboard Error</title></head>
-            <body style="font-family:Arial; direction:rtl; padding:30px;">
-              <h2>حدث خطأ في عرض Partner Dashboard</h2>
-              <p>{{ error }}</p>
-            </body>
-            </html>
-            """,
+        return render_template(
+            "partner_dashboard_error_render.html",
             error=str(error)
         ), 500
 
 # ===== ALSAAB_PARTNER_DASHBOARD_UI_MVP_V1 END =====
-
 
 
 # ===== ALSAAB_CLIENT_DASHBOARD_UI_MVP_V1 START =====
@@ -4913,16 +2913,8 @@ def client_dashboard_view():
         )
 
         if not isinstance(result, dict) or result.get("status") != "success":
-            return render_template_string(
-                """
-                <html>
-                <head><meta charset="utf-8"><title>Client Dashboard Error</title></head>
-                <body style="font-family:Arial; direction:rtl; padding:30px;">
-                  <h2>حدث خطأ في تحميل بيانات العميل</h2>
-                  <pre>{{ result }}</pre>
-</body>
-                </html>
-                """,
+            return render_template(
+                "client_dashboard_error_data.html",
                 result=result
             ), 500
 
@@ -4965,6 +2957,36 @@ def client_dashboard_view():
         current_package = (level.get("current_package") or "").lower()
         subscription_status = level.get("subscription_status") or ""
 
+        # ===== ALSAAB CANCELLATION BADGE V1 START =====
+        # The status alone cannot express "active, but ending on the 26th", so
+        # read the cancellation fields straight off the subscription row.
+        cancel_at_period_end = False
+        cancel_pending = False
+        cancel_ends_on = ""
+        payment_failed = False
+        pay_now_url = ""
+        grace_ends_on = ""
+        retry_count = 0
+        next_renewal_on = ""
+
+        try:
+            from database import get_client_subscription
+
+            client_subscription = get_client_subscription(partner_id) or {}
+            cancel_at_period_end = bool(client_subscription.get("cancel_at_period_end"))
+            cancel_pending = bool(client_subscription.get("cancel_requested_at")) and not cancel_at_period_end
+            cancel_ends_on = str(client_subscription.get("cancel_effective_at") or "")[:10]
+
+            payment_failed = bool(client_subscription.get("payment_grace_until"))
+            pay_now_url = str(client_subscription.get("last_invoice_url") or "")
+            grace_ends_on = str(client_subscription.get("payment_grace_until") or "")[:10]
+            retry_count = int(client_subscription.get("payment_retry_count") or 0)
+            next_renewal_on = str(client_subscription.get("next_renewal_at") or "")[:10]
+
+        except Exception as cancel_lookup_error:
+            print(f"CLIENT DASHBOARD CANCEL LOOKUP ERROR ⚠️ {cancel_lookup_error}", flush=True)
+        # ===== ALSAAB CANCELLATION BADGE V1 END =====
+
         package = PACKAGES.get(current_package) or {}
 
         customer_limit = (
@@ -4987,618 +3009,9 @@ def client_dashboard_view():
 
         saved_message = request.args.get("saved", "").strip()
 
-        html = """
-<!DOCTYPE html>
-<html lang="{{ lang }}" dir="{{ direction }}">
-<head>
-  <meta charset="utf-8">
-  <title>{{ t.page_title }}</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <style>
-    body {
-      margin: 0;
-      background: #0b0b0b;
-      color: #f5f0df;
-      font-family: Arial, Tahoma, sans-serif;
-      direction: {{ direction }};
-      text-align: {{ text_align }};
-    }
 
-    .page { max-width: 1200px; margin: 0 auto; padding: 28px; }
-
-    .topbar {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      gap: 14px;
-      margin-bottom: 16px;
-      flex-wrap: wrap;
-    }
-
-    .brand { display: flex; align-items: center; gap: 12px; }
-
-    .logo-mark {
-      width: 54px;
-      height: 54px;
-      border-radius: 16px;
-      border: 1px solid #c8a84b;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      color: #d7b85a;
-      font-weight: 800;
-      background: linear-gradient(135deg, #111, #211c0f);
-      font-size: 12px;
-    }
-
-    .brand-title { color: #d7b85a; font-size: 19px; font-weight: 800; }
-    .brand-note { color: #9f967b; font-size: 12px; margin-top: 3px; }
-
-    .actions { display: flex; gap: 10px; flex-wrap: wrap; }
-
-    .action-btn {
-      border: 1px solid rgba(215, 184, 90, 0.5);
-      color: #f0cc68;
-      background: #111;
-      padding: 10px 14px;
-      border-radius: 999px;
-      text-decoration: none;
-      font-size: 14px;
-    }
-
-    .portal-switch {
-      display: grid;
-      grid-template-columns: repeat(2, minmax(0, 1fr));
-      gap: 14px;
-      margin-bottom: 18px;
-    }
-
-    .portal-card {
-      background: linear-gradient(135deg, #111, #17130b);
-      border: 1px solid rgba(215, 184, 90, 0.45);
-      border-radius: 18px;
-      padding: 18px;
-      color: #f5f0df;
-      text-decoration: none;
-      display: block;
-      position: relative;
-    }
-
-    .portal-card.active {
-      border-color: #d7b85a;
-      background: linear-gradient(135deg, #d7b85a, #9e7c28);
-      color: #0b0b0b;
-      box-shadow: 0 0 28px rgba(215, 184, 90, 0.28);
-    }
-
-    .portal-card.active .portal-card-title,
-    .portal-card.active .portal-card-text { color: #0b0b0b; }
-
-    .portal-card.active::after {
-      content: "أنت هنا";
-      position: absolute;
-      top: 12px;
-      left: 14px;
-      background: #0b0b0b;
-      color: #f0cc68;
-      border-radius: 999px;
-      padding: 4px 10px;
-      font-size: 12px;
-      font-weight: 700;
-    }
-
-    .portal-card-title { color: #d7b85a; font-weight: 800; font-size: 20px; margin-bottom: 8px; }
-    .portal-card-text { color: #cfc7ad; line-height: 1.6; font-size: 14px; }
-
-    .grid {
-      display: grid;
-      grid-template-columns: repeat(4, minmax(0, 1fr));
-      gap: 14px;
-      margin-bottom: 20px;
-    }
-
-    .card, .section {
-      background: #121212;
-      border: 1px solid rgba(215, 184, 90, 0.35);
-      border-radius: 16px;
-      padding: 18px;
-    }
-
-    .section { margin-bottom: 18px; }
-
-    .card h3, .section h2 {
-      margin: 0 0 10px;
-      color: #d7b85a;
-    }
-
-    .big { font-size: 24px; font-weight: 700; color: #fff; }
-    .muted { color: #aaa; font-size: 13px; margin-top: 5px; }
-    .sub { color: #cfc7ad; line-height: 1.7; }
-
-    .form-grid {
-      display: grid;
-      grid-template-columns: repeat(2, minmax(0, 1fr));
-      gap: 14px;
-      margin-top: 14px;
-    }
-
-    .field { display: flex; flex-direction: column; gap: 7px; }
-    .field.full { grid-column: 1 / -1; }
-
-    .field label {
-      color: #d7b85a;
-      font-size: 14px;
-      font-weight: 700;
-    }
-
-    input, textarea {
-      width: 100%;
-      box-sizing: border-box;
-      background: #0b0b0b;
-      border: 1px solid rgba(215, 184, 90, 0.35);
-      color: #fff;
-      border-radius: 12px;
-      padding: 12px;
-      font-family: Arial, Tahoma, sans-serif;
-      font-size: 14px;
-      outline: none;
-    }
-
-    textarea { min-height: 110px; resize: vertical; }
-
-    .primary-btn {
-      display: inline-block;
-      margin-top: 12px;
-      border: 1px solid rgba(215, 184, 90, 0.55);
-      background: linear-gradient(135deg, #2a220f, #141414);
-      color: #f0cc68;
-      padding: 11px 16px;
-      border-radius: 999px;
-      text-decoration: none;
-      font-weight: 700;
-      cursor: pointer;
-    }
-
-    .status-message {
-      background: rgba(128, 226, 138, 0.08);
-      border: 1px solid rgba(128, 226, 138, 0.4);
-      color: #80e28a;
-      border-radius: 14px;
-      padding: 13px 16px;
-      margin-bottom: 18px;
-      font-weight: 700;
-    }
-
-    .small-list {
-      margin-top: 14px;
-      border-top: 1px solid rgba(255,255,255,0.08);
-      padding-top: 12px;
-    }
-
-    .small-item {
-      border: 1px solid rgba(215, 184, 90, 0.20);
-      border-radius: 12px;
-      padding: 12px;
-      margin-bottom: 10px;
-      background: rgba(255,255,255,0.02);
-    }
-
-    .small-item-title { color: #d7b85a; font-weight: 800; margin-bottom: 6px; }
-
-    .payment-row {
-      border: 1px solid rgba(215, 184, 90, 0.22);
-      border-radius: 14px;
-      padding: 14px;
-      margin-bottom: 12px;
-      background: rgba(255,255,255,0.02);
-    }
-
-    a { color: #f0cc68; text-decoration: none; }
-
-    @media (max-width: 900px) {
-      .grid, .portal-switch, .form-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-    }
-
-    @media (max-width: 600px) {
-      .grid, .portal-switch, .form-grid { grid-template-columns: 1fr; }
-      .page { padding: 16px; }
-    }
-
-
-    /* ===== ALSAAB_DASHBOARD_VISUAL_POLISH_V4 START ===== */
-    .alsaab-skin-v4 {
-      background:
-        radial-gradient(circle at 85% 8%, rgba(240,204,104,.14), transparent 24%),
-        radial-gradient(circle at 12% 20%, rgba(59,130,246,.10), transparent 26%);
-    }
-
-    .alsaab-skin-v4 .card,
-    .alsaab-skin-v4 .section,
-    .alsaab-skin-v4 .portal-card {
-      background:
-        linear-gradient(145deg, rgba(255,255,255,.05), rgba(12,15,24,.96)),
-        radial-gradient(circle at top right, rgba(215,184,90,.08), transparent 32%) !important;
-      border-color: rgba(240,204,104,.38) !important;
-      box-shadow:
-        0 14px 34px rgba(0,0,0,.34),
-        inset 0 1px 0 rgba(255,255,255,.06),
-        0 0 18px rgba(215,184,90,.08) !important;
-      transition: all .20s ease !important;
-    }
-
-    .alsaab-skin-v4 .card:hover,
-    .alsaab-skin-v4 .section:hover,
-    .alsaab-skin-v4 .portal-card:hover {
-      transform: translateY(-2px);
-      border-color: rgba(255,224,138,.82) !important;
-      box-shadow:
-        0 18px 44px rgba(0,0,0,.45),
-        0 0 28px rgba(240,204,104,.20) !important;
-    }
-
-    .alsaab-skin-v4 .portal-card.active,
-    .alsaab-skin-v4 .primary-btn,
-    .alsaab-skin-v4 button.primary-btn {
-      background: linear-gradient(135deg, #6f4d13 0%, #d7b85a 44%, #f0cc68 68%, #9a6b18 100%) !important;
-      color: #fffaf0 !important;
-      text-shadow: 0 2px 4px rgba(0,0,0,.58) !important;
-      border-color: rgba(255,255,255,.25) !important;
-      box-shadow: 0 10px 26px rgba(215,184,90,.24) !important;
-      font-weight: 900 !important;
-    }
-
-    .alsaab-skin-v4 .portal-card.active .portal-card-title,
-    .alsaab-skin-v4 .portal-card.active .portal-card-text {
-      color: #fffaf0 !important;
-      text-shadow: 0 2px 4px rgba(0,0,0,.58) !important;
-    }
-
-    .alsaab-skin-v4 .section h2,
-    .alsaab-skin-v4 .card h3,
-    .alsaab-skin-v4 .portal-card-title,
-    .alsaab-skin-v4 .brand-title {
-      color: #ffe08a !important;
-      text-shadow: 0 0 16px rgba(240,204,104,.18) !important;
-    }
-
-    .alsaab-skin-v4 .big,
-    .alsaab-skin-v4 .value {
-      color: #ffffff !important;
-      text-shadow: 0 0 16px rgba(255,255,255,.08) !important;
-    }
-
-    .alsaab-skin-v4 .muted,
-    .alsaab-skin-v4 .portal-card-text {
-      color: #ddd6c4 !important;
-    }
-
-    .alsaab-skin-v4 .label {
-      color: #f0cc68 !important;
-      font-weight: 900 !important;
-    }
-
-    .alsaab-skin-v4 .info-row,
-    .alsaab-skin-v4 .small-item,
-    .alsaab-skin-v4 .payment-row {
-      background: linear-gradient(90deg, rgba(255,255,255,.035), rgba(215,184,90,.035)) !important;
-      border-color: rgba(240,204,104,.28) !important;
-    }
-
-    .alsaab-skin-v4 input,
-    .alsaab-skin-v4 textarea,
-    .alsaab-skin-v4 select {
-      background: linear-gradient(135deg, #070b12, #101827) !important;
-      color: #fffaf0 !important;
-      border-color: rgba(240,204,104,.42) !important;
-    }
-
-    .alsaab-skin-v4 input:focus,
-    .alsaab-skin-v4 textarea:focus,
-    .alsaab-skin-v4 select:focus {
-      outline: none !important;
-      border-color: rgba(255,224,138,.95) !important;
-      box-shadow: 0 0 0 3px rgba(240,204,104,.12) !important;
-    }
-
-    .alsaab-skin-v4 button[style*="#6b1d1d"],
-    .alsaab-skin-v4 button[style*="6b1d1d"] {
-      background: linear-gradient(135deg, #ef4444, #991b1b) !important;
-      color: #fff !important;
-      text-shadow: 0 1px 2px rgba(0,0,0,.45) !important;
-      border-color: rgba(255,150,150,.85) !important;
-    }
-
-    .alsaab-skin-v4 button[style*="128,226,138"],
-    .alsaab-skin-v4 button[style*="#80e28a"],
-    .alsaab-skin-v4 button[style*="80e28a"] {
-      background: linear-gradient(135deg, #22c55e, #14532d) !important;
-      color: #fff !important;
-      text-shadow: 0 1px 2px rgba(0,0,0,.45) !important;
-      border-color: rgba(134,239,172,.85) !important;
-    }
-    /* ===== ALSAAB_DASHBOARD_VISUAL_POLISH_V4 END ===== */
-
-</style>
-</head>
-<body>
-  <div class="page alsaab-skin-v4">
-
-    <div class="topbar">
-      <div class="brand">
-        <div class="logo-mark">ALSAAB</div>
-        <div>
-          <div class="brand-title">ALSAAB AI</div>
-          <div class="brand-note">Official account dashboard</div>
-        </div>
-      </div>
-
-      <div class="actions">
-        <a class="action-btn" href="{{ website_url }}">{{ t.back_site }}</a>
-        <a class="action-btn" href="{{ language_url }}">{{ t.language }}</a>
-      </div>
-    </div>
-
-    <div class="portal-switch">
-      <a class="portal-card" href="{{ partner_dashboard_url }}">
-        <div class="portal-card-title">{{ t.partner_portal }}</div>
-        <div class="portal-card-text">{{ t.partner_text }}</div>
-      </a>
-
-      <a class="portal-card active" href="{{ client_dashboard_url }}">
-        <div class="portal-card-title">{{ t.client_portal }}</div>
-        <div class="portal-card-text">{{ t.client_text }}</div>
-      </a>
-    </div>
-
-    {% if saved_message %}
-    <div class="status-message">{{ t.saved_success }}</div>
-    {% endif %}
-
-    <div class="grid">
-      <div class="card">
-        <h3>{{ t.account_id }}</h3>
-        <div class="big">{{ account_id }}</div>
-        <div class="muted">Partner ID: {{ partner_id }}</div>
-      </div>
-
-      <div class="card">
-        <h3>{{ t.current_package }}</h3>
-        <div class="big">{{ current_package or "-" }}</div>
-        <div class="muted">{{ t.subscription_status }}: {{ subscription_status or "-" }}</div>
-      </div>
-
-      <div class="card">
-        <h3>{{ t.customer_replies }}</h3>
-        <div class="big">{{ customer_limit }}</div>
-        <div class="muted">Monthly customer reply limit</div>
-      </div>
-
-      <div class="card">
-        <h3>{{ t.advisory_replies }}</h3>
-        <div class="big">{{ advisory_limit }}</div>
-        <div class="muted">Monthly owner advisory limit</div>
-      </div>
-    </div>
-
-    <div class="section">
-      <h2>{{ t.channels }}</h2>
-      <div class="sub">{{ channels | join(", ") if channels else "-" }}</div>
-    </div>
-
-    <div class="section">
-      <h2>{{ t.owner_advisory }}</h2>
-      <div class="sub">{{ t.owner_advisory_desc }}</div>
-      <a class="primary-btn" href="{{ owner_advisory_url }}">{{ t.ask_advisor }}</a>
-    </div>
-
-    <div class="section">
-      <h2>{{ t.project_data }}</h2>
-      <div class="sub">{{ t.project_data_desc }}</div>
-
-      <form method="POST" action="/client-dashboard/save-project-data">
-        <input type="hidden" name="key" value="{{ key }}">
-        <input type="hidden" name="sso" value="{{ sso_token }}">
-        <input type="hidden" name="partner_id" value="{{ partner_id }}">
-        <input type="hidden" name="client_id" value="{{ client_id }}">
-        <input type="hidden" name="lang" value="{{ lang }}">
-
-        <div class="form-grid">
-          <div class="field">
-            <label>{{ t.business_name }}</label>
-            <input type="text" name="business_name" placeholder="{{ t.business_name }}">
-          </div>
-
-          <div class="field">
-            <label>{{ t.business_type }}</label>
-            <input type="text" name="business_type" placeholder="{{ t.business_type }}">
-          </div>
-
-          <div class="field full">
-            <label>{{ t.general_description }}</label>
-            <textarea name="general_description" placeholder="{{ t.general_description }}"></textarea>
-          </div>
-
-          <div class="field full">
-            <label>{{ t.products_notes }}</label>
-            <textarea name="products" placeholder="{{ t.products_notes }}"></textarea>
-          </div>
-        </div>
-
-        <button class="primary-btn" type="submit">{{ t.save_project }}</button>
-      </form>
-    </div>
-
-    <div class="section">
-      <h2>{{ t.image_groups }}</h2>
-
-      <form method="POST" action="/client-dashboard/save-image-group" enctype="multipart/form-data">
-        <input type="hidden" name="key" value="{{ key }}">
-        <input type="hidden" name="sso" value="{{ sso_token }}">
-        <input type="hidden" name="partner_id" value="{{ partner_id }}">
-        <input type="hidden" name="client_id" value="{{ client_id }}">
-        <input type="hidden" name="lang" value="{{ lang }}">
-
-        <div class="form-grid">
-          <div class="field">
-            <label>{{ t.image_group_title }}</label>
-            <input type="text" name="group_title" placeholder="{{ t.image_group_title }}" required>
-          </div>
-
-          <div class="field">
-            <label>{{ t.upload_images }}</label>
-            <input type="file" name="images" multiple accept="image/*,.pdf">
-          </div>
-
-          <div class="field full">
-            <label>{{ t.image_group_description }}</label>
-            <textarea name="group_description" placeholder="{{ t.image_group_description }}" required></textarea>
-          </div>
-
-          <div class="field full">
-            <label>{{ t.sales_instructions }}</label>
-            <textarea name="sales_instructions" placeholder="{{ t.sales_instructions }}"></textarea>
-          </div>
-        </div>
-
-        <button class="primary-btn" type="submit">{{ t.save_image_group }}</button>
-      </form>
-
-      <div class="small-list">
-        <h3 style="color:#d7b85a;">{{ t.saved_image_groups }}</h3>
-        {% for group in product_groups[:8] %}
-          <div class="small-item">
-            <div class="small-item-title">{{ group.get("Group Title") or "-" }}</div>
-            <div class="muted">{{ group.get("Group Description") or "-" }}</div>
-            <div class="muted">Status: {{ group.get("Status") or "-" }}</div>
-          </div>
-        {% else %}
-          <div class="muted">{{ t.empty }}</div>
-        {% endfor %}
-      </div>
-    </div>
-
-    <div class="section">
-      <h2>{{ t.payment_links }}</h2>
-
-      <form method="POST" action="/client-dashboard/save-payment-link">
-        <input type="hidden" name="key" value="{{ key }}">
-        <input type="hidden" name="sso" value="{{ sso_token }}">
-        <input type="hidden" name="partner_id" value="{{ partner_id }}">
-        <input type="hidden" name="client_id" value="{{ client_id }}">
-        <input type="hidden" name="lang" value="{{ lang }}">
-
-        <div id="paymentRows">
-          <div class="payment-row">
-            <div class="form-grid">
-              <div class="field">
-                <label>{{ t.product_name }}</label>
-                <input type="text" name="product_name" placeholder="{{ t.product_name }}" required>
-              </div>
-
-              <div class="field">
-                <label>{{ t.payment_link }}</label>
-                <input type="url" name="payment_link" placeholder="https://..." required>
-              </div>
-
-              <div class="field">
-                <label>{{ t.amount }}</label>
-                <input type="number" step="0.01" name="amount" placeholder="499">
-              </div>
-
-              <div class="field">
-                <label>{{ t.currency }}</label>
-                <input type="text" name="currency" value="AED">
-              </div>
-
-              <div class="field full">
-                <label>{{ t.payment_description }}</label>
-                <textarea name="description" placeholder="{{ t.payment_description }}"></textarea>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <button class="primary-btn" type="button" onclick="addPaymentRow()">{{ t.add_more_payment }}</button>
-        <button class="primary-btn" type="submit">{{ t.save_payment_links }}</button>
-      </form>
-
-      <div class="small-list">
-        <h3 style="color:#d7b85a;">{{ t.saved_payment_links }}</h3>
-        {% for link in client_payment_links[:8] %}
-          <div class="small-item">
-            <div class="small-item-title">{{ link.get("Product Name") or "-" }}</div>
-            <div><a href="{{ link.get("Payment Link") }}" target="_blank">{{ link.get("Payment Link") }}</a></div>
-            <div class="muted">{{ link.get("Amount") or "-" }} {{ link.get("Currency") or "" }}</div>
-            <div class="muted">{{ link.get("Description") or "-" }}</div>
-          </div>
-        {% else %}
-          <div class="muted">{{ t.empty }}</div>
-        {% endfor %}
-      </div>
-    </div>
-
-  </div>
-<div class="section" id="alsaabClientSmartLinkCancel" dir="rtl">
-  <!-- ALSAAB_CLIENT_MAIN_SMART_LINK_CANCEL_V2 START -->
-  <!-- ALSAAB_SMART_LINK_CLIENT_DASHBOARD_UI_V1 START -->
-  <h2 style="color:#d7b85a;">مدخل واتساب الذكي</h2>
-  <div class="sub" style="line-height:1.8;">انسخ هذا الرابط وضعه في الرد الآلي داخل WhatsApp Business حتى يدخل الزائر على موظف المبيعات الذكي الخاص بمشروعك.</div>
-  <label style="display:block;color:#f0cc68;font-weight:900;margin-top:14px;">رابط موظف المبيعات الذكي</label>
-  <input id="alsaabSmartLinkDirect" readonly value="https://alsaab-ai.onrender.com/?ref={{ partner_id }}&src=wa" style="width:100%;box-sizing:border-box;margin-top:8px;background:#0b0b0b;color:#fff;border:1px solid rgba(215,184,90,.45);border-radius:12px;padding:12px;font-weight:800;">
-  <button class="primary-btn" type="button" onclick="copyClientDashboardText('alsaabSmartLinkDirect')">نسخ الرابط</button>
-  <label style="display:block;color:#f0cc68;font-weight:900;margin-top:18px;">رسالة واتساب جاهزة للنسخ</label>
-  <textarea id="alsaabWhatsAppMessageDirect" readonly style="width:100%;box-sizing:border-box;min-height:125px;margin-top:8px;background:#0b0b0b;color:#fff;border:1px solid rgba(215,184,90,.45);border-radius:12px;padding:12px;line-height:1.8;">هلا وسهلا 👋&#10;عشان نخدمك بسرعة، تقدر تتكلم مع موظف المبيعات الذكي من هذا الرابط:&#10;https://alsaab-ai.onrender.com/?ref={{ partner_id }}&src=wa&#10;&#10;بيفهم طلبك، يشرح لك التفاصيل، ويرسل لك رابط الدفع أو يحولك لفريق العمل إذا احتجت.</textarea>
-  <button class="primary-btn" type="button" onclick="copyClientDashboardText('alsaabWhatsAppMessageDirect')">نسخ رسالة واتساب</button>
-  <!-- ALSAAB_SMART_LINK_CLIENT_DASHBOARD_UI_V1 END -->
-  <hr style="border:0;border-top:1px solid rgba(215,184,90,.22);margin:24px 0;">
-  <!-- ALSAAB_CANCELLATION_UI_V1 START -->
-  <h2 style="color:#d7b85a;">طلب إلغاء الاشتراك</h2>
-  <div class="sub" style="line-height:1.8;">الإلغاء لا يتم تلقائياً. يمكنك إرسال طلب إلغاء، وستقوم الإدارة بمراجعته يدوياً. لا يوجد استرداد بعد الدفع، وتستمر الخدمة إلى نهاية الفترة المدفوعة.</div>
-  <form method="POST" action="/client/request-cancellation" style="margin-top:14px;">
-    <input type="hidden" name="partner_id" value="{{ partner_id }}">
-    <input type="hidden" name="key" value="{{ key }}">
-    <label style="display:block;color:#f0cc68;font-weight:900;">سبب الإلغاء</label>
-    <select name="reason" style="width:100%;box-sizing:border-box;margin-top:8px;background:#0b0b0b;color:#fff;border:1px solid rgba(215,184,90,.45);border-radius:12px;padding:12px;">
-      <option value="لا أحتاج الخدمة حالياً">لا أحتاج الخدمة حالياً</option>
-      <option value="السعر غير مناسب">السعر غير مناسب</option>
-      <option value="أحتاج مساعدة من الإدارة">أحتاج مساعدة من الإدارة</option>
-      <option value="سبب آخر">سبب آخر</option>
-    </select>
-    <label style="display:block;color:#f0cc68;font-weight:900;margin-top:12px;">ملاحظات إضافية</label>
-    <textarea name="customer_notes" placeholder="اكتب ملاحظتك هنا..." style="width:100%;box-sizing:border-box;min-height:90px;margin-top:8px;background:#0b0b0b;color:#fff;border:1px solid rgba(215,184,90,.45);border-radius:12px;padding:12px;line-height:1.8;"></textarea>
-    <button type="submit" style="margin-top:12px;border:1px solid rgba(255,120,120,.65);color:#fff;background:#6b1d1d;border-radius:999px;padding:10px 16px;font-weight:900;cursor:pointer;">إرسال طلب الإلغاء</button>
-  </form>
-  <!-- ALSAAB_CANCELLATION_UI_V1 END -->
-  <!-- ALSAAB_CLIENT_MAIN_SMART_LINK_CANCEL_V2 END -->
-</div>
-
-
-  <script>
-    function copyClientDashboardText(id) { var el = document.getElementById(id); if (!el) return; el.select(); el.setSelectionRange(0, 99999); if (navigator.clipboard) { navigator.clipboard.writeText(el.value); } else { document.execCommand("copy"); } }
-
-    function addPaymentRow() {
-      const container = document.getElementById("paymentRows");
-      const first = container.querySelector(".payment-row");
-      const clone = first.cloneNode(true);
-
-      clone.querySelectorAll("input, textarea").forEach(function(el) {
-        if (el.name === "currency") {
-          el.value = "AED";
-        } else {
-          el.value = "";
-        }
-      });
-
-      container.appendChild(clone);
-    }
-  </script>
-</body>
-</html>
-        """
-
-
-        return render_template_string(
-            html,
+        return render_template(
+            "client_dashboard.html",
             lang=lang,
             direction=direction,
             text_align=text_align,
@@ -5615,6 +3028,14 @@ def client_dashboard_view():
             client_id=client_id,
             current_package=current_package,
             subscription_status=subscription_status,
+            cancel_at_period_end=cancel_at_period_end,
+            cancel_pending=cancel_pending,
+            cancel_ends_on=cancel_ends_on,
+            payment_failed=payment_failed,
+            pay_now_url=pay_now_url,
+            grace_ends_on=grace_ends_on,
+            retry_count=retry_count,
+            next_renewal_on=next_renewal_on,
             customer_limit=customer_limit,
             advisory_limit=advisory_limit,
             channels=channels,
@@ -5630,21 +3051,12 @@ def client_dashboard_view():
         )
 
 
-        return render_template_string(
-            """
-            <html>
-            <head><meta charset="utf-8"><title>Client Dashboard Error</title></head>
-            <body style="font-family:Arial; direction:rtl; padding:30px;">
-              <h2>حدث خطأ في عرض Client Dashboard</h2>
-              <p>{{ error }}</p>
-            </body>
-            </html>
-            """,
+        return render_template(
+            "client_dashboard_error_render.html",
             error=str(error)
         ), 500
 
 # ===== ALSAAB_CLIENT_DASHBOARD_UI_MVP_V1 END =====
-
 
 
 # ===== ALSAAB_CLIENT_DASHBOARD_SAVE_ROUTES_V1 START =====
@@ -5820,7 +3232,6 @@ def client_dashboard_save_payment_link():
 # ===== ALSAAB_CLIENT_DASHBOARD_SAVE_ROUTES_V1 END =====
 
 
-
 # ===== ALSAAB_CLIENT_PROJECT_DATA_AND_ADVISORY_V1 START =====
 
 @app.route("/client-dashboard/save-project-data", methods=["POST"])
@@ -5932,121 +3343,8 @@ def owner_advisory_view():
     back_url = f"/client-dashboard?key={quote(key)}&partner_id={quote(partner_id)}&lang={quote(lang)}"
     session_id = f"owner_advisory_{partner_id}"
 
-    return render_template_string(
-        """
-        <!doctype html>
-        <html lang="{{ lang }}" dir="{{ direction }}">
-        <head>
-          <meta charset="utf-8">
-          <meta name="viewport" content="width=device-width, initial-scale=1">
-          <title>{{ title }}</title>
-          <style>
-            body { margin:0; background:#0b0b0b; color:#f5f0df; font-family:Arial,Tahoma,sans-serif; direction:{{ direction }}; }
-            .page { max-width:900px; margin:0 auto; padding:30px; }
-            .card { background:#111; border:1px solid rgba(215,184,90,.4); border-radius:18px; padding:24px; }
-            h1 { color:#d7b85a; margin-top:0; }
-            .sub { color:#cfc7ad; line-height:1.8; }
-            .chat { margin-top:18px; border:1px solid rgba(215,184,90,.25); border-radius:14px; padding:14px; min-height:330px; max-height:520px; overflow:auto; background:#0b0b0b; }
-            .msg { margin-bottom:12px; line-height:1.7; }
-            .user { color:#f0cc68; }
-            .assistant { color:#fff; }
-            textarea { width:100%; box-sizing:border-box; margin-top:14px; min-height:90px; background:#0b0b0b; color:#fff; border:1px solid rgba(215,184,90,.35); border-radius:12px; padding:12px; font-family:Arial,Tahoma,sans-serif; }
-            button, a { color:#f0cc68; background:#111; text-decoration:none; display:inline-block; margin-top:12px; border:1px solid rgba(215,184,90,.45); padding:10px 14px; border-radius:999px; cursor:pointer; }
-          </style>
-        </head>
-        <body>
-          <div class="page">
-            <div class="card">
-              <h1>{{ title }}</h1>
-              <div class="sub">{{ subtitle }}</div>
-              <div class="sub" style="margin-top:8px;">Account ID: {{ partner_id }}</div>
-
-              <div id="chat" class="chat"></div>
-
-              <textarea id="message" placeholder="اكتب سؤالك هنا..."></textarea>
-              <br>
-              <button onclick="sendMessage()">إرسال</button>
-              <a href="{{ back_url }}">العودة إلى Client Dashboard</a>
-            </div>
-          </div>
-
-          <script>
-            const partnerId = {{ partner_id|tojson }};
-            const sessionId = {{ session_id|tojson }};
-            const chatKey = "alsaab_owner_advisory_" + partnerId;
-            const chat = document.getElementById("chat");
-            const messageBox = document.getElementById("message");
-
-            let history = [];
-
-            try {
-              history = JSON.parse(localStorage.getItem(chatKey) || "[]");
-            } catch (e) {
-              history = [];
-            }
-
-            function renderHistory() {
-              chat.innerHTML = "";
-              history.forEach(function(item) {
-                const div = document.createElement("div");
-                div.className = "msg " + item.role;
-                div.innerHTML = "<strong>" + (item.role === "user" ? "أنت" : "المستشار") + ":</strong><br>" + item.text.replace(/\\n/g, "<br>");
-                chat.appendChild(div);
-              });
-              chat.scrollTop = chat.scrollHeight;
-            }
-
-            function saveHistory() {
-              localStorage.setItem(chatKey, JSON.stringify(history));
-            }
-
-            async function sendMessage() {
-              const text = messageBox.value.trim();
-
-              if (!text) {
-                return;
-              }
-
-              history.push({role: "user", text: text});
-              messageBox.value = "";
-              renderHistory();
-              saveHistory();
-
-              try {
-                const response = await fetch("/chat", {
-                  method: "POST",
-                  headers: {"Content-Type": "application/json"},
-                  body: JSON.stringify({
-                    message: text,
-                    session_id: sessionId,
-                    client_id: partnerId,
-                    partner_id: partnerId,
-                    source_partner_id: partnerId,
-                    channel: "owner_advisory",
-                    user_type: "business",
-                    intent: "owner_advisory"
-                  })
-                });
-
-                const data = await response.json();
-                const reply = data.reply || data.response || data.answer || data.message || JSON.stringify(data);
-
-                history.push({role: "assistant", text: reply});
-                renderHistory();
-                saveHistory();
-
-              } catch (error) {
-                history.push({role: "assistant", text: "حدث خطأ مؤقت في الاتصال. حاول مرة أخرى."});
-                renderHistory();
-                saveHistory();
-              }
-            }
-
-            renderHistory();
-          </script>
-        </body>
-        </html>
-        """,
+    return render_template(
+        "owner_advisory_view.html",
         lang=lang,
         direction=direction,
         title=title,
@@ -6057,7 +3355,6 @@ def owner_advisory_view():
     )
 
 # ===== ALSAAB_CLIENT_PROJECT_DATA_AND_ADVISORY_V1 END =====
-
 
 
 # ===== ALSAAB_DASHBOARD_SSO_BRIDGE_V1 START =====
@@ -6272,16 +3569,8 @@ def dashboard_sso():
     payload, error = verify_dashboard_sso_token(token)
 
     if error:
-        return render_template_string(
-            """
-            <html>
-            <head><meta charset="utf-8"><title>Dashboard Login Error</title></head>
-            <body style="font-family:Arial; direction:rtl; padding:30px;">
-              <h2>تعذر الدخول إلى الداشبورد</h2>
-              <p>{{ error }}</p>
-            </body>
-            </html>
-            """,
+        return render_template(
+            "dashboard_sso_error.html",
             error=error
         ), 401
 
@@ -6353,21 +3642,11 @@ def admin_create_dashboard_sso_link():
 
 @app.route("/account-login-placeholder", methods=["GET"])
 def account_login_placeholder():
-    return render_template_string(
-        """
-        <html>
-        <head><meta charset="utf-8"><title>ALSAAB AI Login</title></head>
-        <body style="font-family:Arial; direction:rtl; background:#0b0b0b; color:#f5f0df; padding:30px;">
-          <h2 style="color:#d7b85a;">تسجيل الدخول الرسمي سيتم من WordPress</h2>
-          <p>هذه الصفحة محمية. للدخول الرسمي، استخدم حسابك في موقع ALSAAB AI.</p>
-          <p>لاحقاً سيتم ربط WordPress Login بهذه الصفحة عبر SSO Token.</p>
-        </body>
-        </html>
-        """
+    return render_template(
+        "account_login_placeholder.html"
     )
 
 # ===== ALSAAB_DASHBOARD_SSO_BRIDGE_V1 END =====
-
 
 
 # ===== ALSAAB_DASHBOARD_RETURN_URL_V1 START =====
@@ -6404,7 +3683,6 @@ def build_dashboard_return_url(path, key="", partner_id="", lang="ar", saved="")
     return path + "?" + urlencode(params)
 
 # ===== ALSAAB_DASHBOARD_RETURN_URL_V1 END =====
-
 
 
 # ===== ALSAAB_ADMIN_DASHBOARD_MVP_V1 START =====
@@ -6489,16 +3767,8 @@ def admin_dashboard_view():
         )
 
         if not isinstance(result, dict) or result.get("status") != "success":
-            return render_template_string(
-                """
-                <html>
-                <head><meta charset="utf-8"><title>Admin Dashboard Error</title></head>
-                <body style="font-family:Arial; direction:rtl; padding:30px;">
-                  <h2>حدث خطأ في تحميل Admin Dashboard</h2>
-                  <pre>{{ result }}</pre>
-                </body>
-                </html>
-                """,
+            return render_template(
+                "admin_dashboard_error_data.html",
                 result=result
             ), 500
 
@@ -6676,1094 +3946,9 @@ def admin_dashboard_view():
 
         encoded_key = quote(key)
 
-        html = """
-<!DOCTYPE html>
-<html lang="ar" dir="rtl">
-<head>
-  <meta charset="utf-8">
-  <title>ALSAAB AI - Admin Dashboard</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1">
 
-  <style>
-    body {
-      margin: 0;
-      background: #0b0b0b;
-      color: #f5f0df;
-      font-family: Arial, Tahoma, sans-serif;
-      direction: rtl;
-    }
-
-    .page {
-      max-width: 1320px;
-      margin: 0 auto;
-      padding: 28px;
-    }
-
-    .topbar {
-      display: flex;
-      justify-content: space-between;
-      gap: 14px;
-      align-items: center;
-      margin-bottom: 18px;
-      flex-wrap: wrap;
-    }
-
-    .brand {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-    }
-
-    .logo {
-      width: 56px;
-      height: 56px;
-      border-radius: 16px;
-      border: 1px solid #c8a84b;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      color: #d7b85a;
-      font-weight: 900;
-      background: linear-gradient(135deg, #111, #211c0f);
-      font-size: 12px;
-    }
-
-    .brand-title {
-      color: #d7b85a;
-      font-size: 23px;
-      font-weight: 900;
-    }
-
-    .brand-sub {
-      color: #a99d7b;
-      font-size: 13px;
-      margin-top: 4px;
-    }
-
-    .action-btn {
-      border: 1px solid rgba(215, 184, 90, 0.55);
-      color: #f0cc68;
-      background: #111;
-      padding: 10px 14px;
-      border-radius: 999px;
-      text-decoration: none;
-      font-weight: 700;
-      display: inline-block;
-    }
-
-    .search-panel {
-      background: #111;
-      border: 1px solid rgba(215, 184, 90, 0.35);
-      border-radius: 18px;
-      padding: 18px;
-      margin-bottom: 18px;
-    }
-
-    .search-form {
-      display: grid;
-      grid-template-columns: 1fr auto;
-      gap: 10px;
-      margin-top: 12px;
-    }
-
-    .search-input {
-      width: 100%;
-      box-sizing: border-box;
-      background: #0b0b0b;
-      color: #fff;
-      border: 1px solid rgba(215, 184, 90, 0.4);
-      border-radius: 14px;
-      padding: 13px;
-      font-size: 15px;
-      outline: none;
-    }
-
-    .disabled-actions {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 10px;
-      margin-top: 14px;
-    }
-
-    .disabled-actions button {
-      border: 1px solid rgba(215, 184, 90, 0.25);
-      color: #9f967b;
-      background: #0b0b0b;
-      padding: 10px 13px;
-      border-radius: 999px;
-      cursor: not-allowed;
-      opacity: 0.75;
-    }
-
-    .bulk-panel {
-      border: 1px solid rgba(215,184,90,.25);
-      background: rgba(255,255,255,.025);
-      border-radius: 14px;
-      padding: 12px;
-      margin-bottom: 12px;
-      display: grid;
-      grid-template-columns: minmax(150px, 220px) 1fr auto;
-      gap: 10px;
-      align-items: center;
-    }
-
-    .bulk-panel select,
-    .bulk-panel input {
-      width: 100%;
-      box-sizing: border-box;
-      background: #0b0b0b;
-      color: #fff;
-      border: 1px solid rgba(215,184,90,.35);
-      border-radius: 12px;
-      padding: 10px;
-      outline: none;
-    }
-
-    .bulk-panel button {
-      border: 1px solid rgba(215,184,90,.6);
-      color: #f0cc68;
-      background: #111;
-      border-radius: 999px;
-      padding: 10px 14px;
-      cursor: pointer;
-      font-weight: 700;
-    }
-
-    .header {
-      background: linear-gradient(135deg, #111, #1d1a10);
-      border: 1px solid #c8a84b;
-      border-radius: 20px;
-      padding: 24px;
-      margin-bottom: 20px;
-      box-shadow: 0 0 25px rgba(200, 168, 75, 0.12);
-    }
-
-    .header h1 {
-      margin: 0 0 8px;
-      color: #d7b85a;
-      font-size: 30px;
-    }
-
-    .sub {
-      color: #cfc7ad;
-      line-height: 1.7;
-    }
-
-    .grid {
-      display: grid;
-      grid-template-columns: repeat(4, minmax(0, 1fr));
-      gap: 14px;
-      margin-bottom: 20px;
-    }
-
-    .card {
-      background: #121212;
-      border: 1px solid rgba(215, 184, 90, 0.35);
-      border-radius: 16px;
-      padding: 18px;
-      min-height: 104px;
-    }
-
-    .card h3 {
-      margin: 0 0 10px;
-      color: #d7b85a;
-      font-size: 16px;
-    }
-
-    .big {
-      color: #fff;
-      font-size: 27px;
-      font-weight: 900;
-      word-break: break-word;
-    }
-
-    .muted {
-      color: #aaa;
-      font-size: 13px;
-      margin-top: 6px;
-      line-height: 1.5;
-    }
-
-    .section {
-      background: #111;
-      border: 1px solid rgba(215, 184, 90, 0.25);
-      border-radius: 18px;
-      padding: 20px;
-      margin-bottom: 18px;
-    }
-
-    .section h2 {
-      margin: 0 0 14px;
-      color: #d7b85a;
-      font-size: 22px;
-    }
-
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      margin-top: 12px;
-      overflow: hidden;
-      border-radius: 12px;
-    }
-
-    th, td {
-      padding: 11px;
-      border-bottom: 1px solid rgba(255,255,255,0.08);
-      text-align: right;
-      font-size: 13px;
-      vertical-align: top;
-    }
-
-    th {
-      color: #d7b85a;
-      background: #181818;
-      white-space: nowrap;
-    }
-
-    td {
-      color: #f5f0df;
-    }
-
-    .badge {
-      display: inline-block;
-      padding: 5px 10px;
-      border-radius: 999px;
-      border: 1px solid rgba(215, 184, 90, 0.45);
-      color: #f0cc68;
-      font-size: 12px;
-      white-space: nowrap;
-    }
-
-    .table-wrap {
-      overflow-x: auto;
-    }
-
-    .two-col {
-      display: grid;
-      grid-template-columns: repeat(2, minmax(0, 1fr));
-      gap: 14px;
-      margin-bottom: 18px;
-    }
-
-    .small-box {
-      background: #121212;
-      border: 1px solid rgba(215, 184, 90, 0.25);
-      border-radius: 16px;
-      padding: 16px;
-    }
-
-    .small-box h3 {
-      margin: 0 0 10px;
-      color: #d7b85a;
-    }
-
-    .kv {
-      display: flex;
-      justify-content: space-between;
-      gap: 12px;
-      padding: 7px 0;
-      border-bottom: 1px solid rgba(255,255,255,0.06);
-      color: #f5f0df;
-    }
-
-    .kv span:first-child {
-      color: #c8a84b;
-    }
-
-    @media (max-width: 1000px) {
-      .grid {
-        grid-template-columns: repeat(2, minmax(0, 1fr));
-      }
-
-      .two-col {
-        grid-template-columns: 1fr;
-      }
-    }
-
-    @media (max-width: 600px) {
-      .page {
-        padding: 16px;
-      }
-
-      .grid {
-        grid-template-columns: 1fr;
-      }
-    }
-  </style>
-</head>
-
-<body>
-  <div class="page">
-
-    <div class="topbar">
-      <div class="brand">
-        <div class="logo">ALSAAB</div>
-        <div>
-          <div class="brand-title">ALSAAB AI Admin Dashboard</div>
-          <div class="brand-sub">لوحة إدارة داخلية مؤقتة - MVP</div>
-        </div>
-      </div>
-
-      <div>
-        <a class="action-btn" href="/admin-dashboard?key={{ encoded_key }}">تحديث البيانات</a>
-      </div>
-    </div>
-
-    <div class="header">
-      <h1>Admin Dashboard</h1>
-      <div class="sub">
-        هذه نسخة MVP لعرض بيانات الإدارة من Google Sheets. لاحقاً نضيف أزرار الموافقة على العمولات، الدفع، تعديل الشركاء، وإعادة حساب المستويات.
-      </div>
-    </div>
-
-    {% if admin_action_message %}
-    <div style="background:rgba(128,226,138,.08); border:1px solid rgba(128,226,138,.4); color:#80e28a; border-radius:14px; padding:13px 16px; margin-bottom:18px; font-weight:700;">
-      {{ admin_action_message }}
-    </div>
-    {% endif %}
-
-    <div class="search-panel">
-      <h2 style="color:#d7b85a; margin:0;">بحث شريك / عميل</h2>
-      <div class="sub">
-        ابحث بالـ Partner ID أو الاسم أو الإيميل أو رقم الهاتف. البحث يعرض ملف الشريك التفصيلي من النظام الرسمي.
-      </div>
-
-      <form class="search-form" method="GET" action="/admin-dashboard">
-        <input type="hidden" name="key" value="{{ admin_key }}">
-        <input
-          class="search-input"
-          name="partner_id"
-          value="{{ search_query }}"
-          placeholder="مثال: ALS-P00009 أو email أو phone أو name"
-        >
-        <button class="action-btn" type="submit">بحث</button>
-      </form>
-    </div>
-
-    {% if search_query %}
-    <div class="section">
-      <h2>نتيجة البحث</h2>
-
-      {% if search_lookup and search_lookup.get("found") %}
-        <div class="grid">
-          <div class="card">
-            <h3>Partner ID</h3>
-            <div class="big">{{ search_profile.get("partner_id") or search_lookup.get("partner_id") or "-" }}</div>
-            <div class="muted">{{ search_profile.get("partner_name") or "-" }}</div>
-          </div>
-
-          <div class="card">
-            <h3>المستوى الحالي</h3>
-            <div class="big">{{ search_level.get("current_level") or search_level.get("partner_rank") or "-" }}</div>
-            <div class="muted">التالي: {{ search_level.get("next_rank") or "-" }}</div>
-          </div>
-
-          <div class="card">
-            <h3>العملاء المباشرين النشطين</h3>
-            <div class="big">{{ search_customers.get("active_direct_paid_count") or 0 }}</div>
-            <div class="muted">إجمالي المباشرين: {{ search_customers.get("all_direct_count") or 0 }}</div>
-          </div>
-
-          <div class="card">
-            <h3>العمولات المعلقة</h3>
-            <div class="big">{{ money(search_commission_totals.get("pending")) }}</div>
-            <div class="muted">عددها: {{ search_commission_counts.get("pending") or 0 }}</div>
-          </div>
-        </div>
-
-        <div class="two-col">
-          <div class="small-box">
-            <h3>بيانات الشريك</h3>
-            <div class="kv"><span>الاسم</span><strong>{{ search_profile.get("partner_name") or "-" }}</strong></div>
-            <div class="kv"><span>Status</span><strong>{{ search_profile.get("status") or "-" }}</strong></div>
-            <div class="kv"><span>Sponsor</span><strong>{{ search_profile.get("sponsor_partner_id") or "-" }}</strong></div>
-            <div class="kv"><span>Referral Link</span><strong style="word-break:break-all;">{{ search_profile.get("referral_link") or "-" }}</strong></div>
-            <div class="kv"><span>Downline Count</span><strong>{{ search_tree.get("downline_count") or 0 }}</strong></div>
-          </div>
-
-          <div class="small-box">
-            <h3>المستوى والترقية</h3>
-            <div class="kv"><span>Completed Sales</span><strong>{{ search_level.get("completed_sales") or "-" }}</strong></div>
-            <div class="kv"><span>Required Sales</span><strong>{{ search_level.get("required_sales") or "-" }}</strong></div>
-            <div class="kv"><span>Current Package</span><strong>{{ search_level.get("current_package") or "-" }}</strong></div>
-            <div class="kv"><span>Subscription Status</span><strong>{{ search_level.get("subscription_status") or "-" }}</strong></div>
-            <div class="kv"><span>Commission Eligible</span><strong>{{ search_level.get("commission_eligible") or "-" }}</strong></div>
-          </div>
-        </div>
-
-        <div class="section" style="margin-top:18px;">
-          <h2>حالة عمولات هذا الشريك</h2>
-
-          <div class="grid">
-            <div class="card">
-              <h3>إجمالي العمولات</h3>
-              <div class="big">{{ money(search_commission_totals.get("all")) }}</div>
-              <div class="muted">عدد العمولات: {{ search_commission_counts.get("all") or 0 }}</div>
-            </div>
-
-            <div class="card">
-              <h3>Pending</h3>
-              <div class="big">{{ money(search_commission_totals.get("pending")) }}</div>
-              <div class="muted">تحتاج مراجعة / موافقة: {{ search_commission_counts.get("pending") or 0 }}</div>
-            </div>
-
-            <div class="card">
-              <h3>Approved</h3>
-              <div class="big">{{ money(search_commission_totals.get("approved")) }}</div>
-              <div class="muted">جاهزة للدفع: {{ search_commission_counts.get("approved") or 0 }}</div>
-            </div>
-
-            <div class="card">
-              <h3>Paid</h3>
-              <div class="big">{{ money(search_paid_total) }}</div>
-              <div class="muted">اندفعت للشريك: {{ search_commission_counts.get("paid") or 0 }}</div>
-            </div>
-
-            <div class="card">
-              <h3>غير مدفوع</h3>
-              <div class="big">{{ money(search_unpaid_total) }}</div>
-              <div class="muted">Pending + Approved</div>
-            </div>
-
-            <div class="card">
-              <h3>المستحق للدفع الآن</h3>
-              <div class="big">{{ money(search_payable_now) }}</div>
-              <div class="muted">Approved فقط</div>
-            </div>
-
-            <div class="card">
-              <h3>Rejected / Hold</h3>
-              <div class="big">{{ money(search_rejected_hold_total) }}</div>
-              <div class="muted">
-                Rejected: {{ search_commission_counts.get("rejected") or 0 }}
-                /
-                Hold: {{ search_commission_counts.get("hold") or 0 }}
-              </div>
-            </div>
-
-            <div class="card">
-              <h3>حالة الدفع</h3>
-              <div class="big">
-                {% if search_payable_now and search_payable_now > 0 %}
-                  يحتاج دفع
-                {% elif search_unpaid_total and search_unpaid_total > 0 %}
-                  يحتاج موافقة
-                {% else %}
-                  لا يوجد مستحق
-                {% endif %}
-              </div>
-              <div class="muted">ملخص سريع لحالة عمولات الشريك</div>
-            </div>
-          </div>
-        </div>
-
-
-        <!-- ALSAAB_PARTNER_STATUS_ACTION_PANEL_V2 START -->
-        <div class="small-box" style="margin-top:14px;">
-          <h3>إدارة حالة الشريك</h3>
-          <div class="muted">
-            هذه الأزرار خاصة بالأدمن فقط. تعليق الشريك يوقف أهليته مؤقتاً، والتفعيل يرجعه active مع إعادة حساب مستواه.
-          </div>
-
-          <div class="disabled-actions" style="margin-top:14px;">
-            <form method="POST" action="/admin/update-partner-status" style="display:inline-block;">
-              <input type="hidden" name="key" value="{{ admin_key }}">
-              <input type="hidden" name="partner_id" value="{{ search_profile.get("partner_id") or search_lookup.get("partner_id") }}">
-              <input type="hidden" name="new_status" value="suspended">
-              <input type="hidden" name="reason" value="Manual suspend from Admin Dashboard">
-              <button type="submit" onclick="return confirm('تأكيد تعليق هذا الشريك؟')" style="border:1px solid rgba(255,122,122,.6); color:#ff7a7a; background:#111; padding:10px 13px; border-radius:999px; cursor:pointer;">
-                Suspend Partner
-              </button>
-            </form>
-
-            <form method="POST" action="/admin/update-partner-status" style="display:inline-block;">
-              <input type="hidden" name="key" value="{{ admin_key }}">
-              <input type="hidden" name="partner_id" value="{{ search_profile.get("partner_id") or search_lookup.get("partner_id") }}">
-              <input type="hidden" name="new_status" value="active">
-              <input type="hidden" name="reason" value="Manual activate from Admin Dashboard">
-              <button type="submit" onclick="return confirm('تأكيد تفعيل هذا الشريك؟')" style="border:1px solid rgba(128,226,138,.6); color:#80e28a; background:#111; padding:10px 13px; border-radius:999px; cursor:pointer;">
-                Activate Partner
-              </button>
-            </form>
-          </div>
-        </div>
-        <!-- ALSAAB_PARTNER_STATUS_ACTION_PANEL_V2 END -->
-
-
-        <!-- ALSAAB_AUTO_APPROVE_PENDING_BUTTON_V1 START -->
-        <div class="section" style="margin-top:18px;">
-          <h2>اعتماد العمولات القديمة تلقائياً</h2>
-          <div class="muted">
-            النظام الجديد يعتمد العمولات الصحيحة تلقائياً. هذا الزر فقط لتحويل العمولات القديمة pending لهذا الشريك إلى approved.
-          </div>
-
-          <form method="POST" action="/admin/auto-approve-pending-commissions" style="margin-top:14px;">
-            <input type="hidden" name="key" value="{{ admin_key }}">
-            <input type="hidden" name="partner_id" value="{{ search_profile.get("partner_id") or search_lookup.get("partner_id") }}">
-            <input type="hidden" name="reason" value="Convert old pending commissions to approved for this partner">
-
-            <button
-              type="submit"
-              onclick="return confirm('تأكيد تحويل العمولات القديمة pending لهذا الشريك إلى approved؟')"
-              style="border:1px solid rgba(128,226,138,.6); color:#80e28a; background:#111; padding:12px 16px; border-radius:999px; font-weight:900; cursor:pointer;"
-            >
-              Auto Approve Old Pending
-            </button>
-          </form>
-        </div>
-
-
-
-
-
-
-        <!-- ALSAAB_PAYOUT_HISTORY_SINGLE_SECTION_V4 START -->
-        <div class="section" style="margin-top:18px;">
-          <h2>سجل دفعات هذا الشريك</h2>
-
-          <div class="grid">
-            <div class="card">
-              <h3>إجمالي المدفوع</h3>
-              <div class="big">{{ money(search_payout_summary.get("total_paid")) }}</div>
-              <div class="muted">كل الدفعات المسجلة في PayoutHistory</div>
-            </div>
-
-            <div class="card">
-              <h3>عدد الدفعات</h3>
-              <div class="big">{{ search_payout_summary.get("payout_count") or 0 }}</div>
-              <div class="muted">عدد مرات الدفع للشريك</div>
-            </div>
-
-            <div class="card">
-              <h3>عمولات مدفوعة</h3>
-              <div class="big">{{ search_payout_summary.get("total_commissions_paid") or 0 }}</div>
-              <div class="muted">عدد العمولات المدفوعة ضمن الدفعات</div>
-            </div>
-
-            <div class="card">
-              <h3>آخر دفعة</h3>
-              <div class="big" style="font-size:18px;">{{ search_payout_summary.get("last_paid_date") or "-" }}</div>
-              <div class="muted">آخر تاريخ دفع مسجل</div>
-            </div>
-          </div>
-
-          <div class="table-wrap">
-            <table>
-              <thead>
-                <tr>
-                  <th>Payout ID</th>
-                  <th>Amount</th>
-                  <th>Commission Count</th>
-                  <th>Method</th>
-                  <th>Status</th>
-                  <th>Paid Date</th>
-                  <th>Reason</th>
-                </tr>
-              </thead>
-              <tbody>
-                {% for payout in search_recent_payouts[:10] %}
-                <tr>
-                  <td>{{ payout.payout_id or "-" }}</td>
-                  <td>{{ money(payout.total_amount) }}</td>
-                  <td>{{ payout.commission_count or 0 }}</td>
-                  <td>{{ payout.payment_method or "-" }}</td>
-                  <td><span class="badge">{{ payout.status or "-" }}</span></td>
-                  <td>{{ payout.paid_date or "-" }}</td>
-                  <td>{{ payout.reason or "-" }}</td>
-                </tr>
-                {% else %}
-                <tr><td colspan="7">لا توجد دفعات مسجلة لهذا الشريك بعد.</td></tr>
-                {% endfor %}
-              </tbody>
-            </table>
-          </div>
-        </div>
-        <!-- ALSAAB_PAYOUT_HISTORY_SINGLE_SECTION_V4 END -->
-
-<!-- ALSAAB_MARK_PARTNER_PAID_BUTTON_V1 START -->
-        <div class="section" style="margin-top:18px;">
-          <h2>تسجيل دفع عمولة الشريك</h2>
-          <div class="muted">
-            بعد ما تحول المبلغ يدوياً للشريك، اضغط هذا الزر. النظام سيحول كل العمولات approved لهذا الشريك إلى paid ويحفظ العملية في PayoutHistory و AuditLogs.
-          </div>
-
-          <form method="POST" action="/admin/mark-partner-paid" style="margin-top:14px;">
-            <input type="hidden" name="key" value="{{ admin_key }}">
-            <input type="hidden" name="partner_id" value="{{ search_profile.get("partner_id") or search_lookup.get("partner_id") }}">
-            <input
-              name="reason"
-              required
-              value="Manual transfer completed by owner"
-              style="width:100%; box-sizing:border-box; background:#0b0b0b; color:#fff; border:1px solid rgba(215,184,90,.35); border-radius:12px; padding:12px; margin-bottom:12px;"
-            >
-
-            <button
-              type="submit"
-              onclick="return confirm('تأكيد: هل حولت المبلغ يدوياً للشريك وتريد تحويل كل approved إلى paid؟')"
-              style="border:1px solid rgba(128,226,138,.6); color:#80e28a; background:#111; padding:12px 16px; border-radius:999px; font-weight:900; cursor:pointer;"
-            >
-              تم الدفع للشريك
-            </button>
-          </form>
-
-          <div class="muted" style="margin-top:10px;">
-            المستحق للدفع الآن: {{ money(search_payable_now) }}
-          </div>
-        </div>
-        <!-- ALSAAB_MARK_PARTNER_PAID_BUTTON_V1 END -->
-
-<div class="small-box">
-          <h3>إجراءات إدارية لاحقة</h3>
-          <div class="muted">
-            هذه الأزرار مكانها هنا، لكنها غير مفعلة الآن حتى نبني الـ audit log والصلاحيات.
-          </div>
-          <div class="disabled-actions">
-
-            <form method="POST" action="/admin/recalculate-partner-level" style="display:inline-block;">
-              <input type="hidden" name="key" value="{{ admin_key }}">
-              <input type="hidden" name="partner_id" value="{{ search_profile.get("partner_id") or search_lookup.get("partner_id") }}">
-              <input type="hidden" name="reason" value="Manual recalculate from Admin Dashboard search result">
-              <button type="submit" style="border:1px solid rgba(215,184,90,.55); color:#f0cc68; background:#111; padding:10px 13px; border-radius:999px; cursor:pointer;">
-                Recalculate Level
-              </button>
-            </form>
-            <button disabled>Suspend Partner</button>
-            <button disabled>Activate Partner</button>
-
-            <a
-              href="/admin/downline-transfer-preview?key={{ admin_key }}&partner_id={{ search_profile.get("partner_id") or search_lookup.get("partner_id") }}"
-              style="border:1px solid rgba(255,207,102,.6); color:#ffcf66; background:#111; padding:10px 13px; border-radius:999px; text-decoration:none; display:inline-block;"
-            >
-              Preview Transfer Downline to alsaab
-            </a>
-            <button disabled>Approve Commissions</button>
-            <button disabled>Mark Commissions Paid</button>
-          </div>
-        </div>
-
-        <div class="section" style="margin-top:18px;">
-          <h2>آخر عمولات هذا الشريك</h2>
-
-          <form id="bulkCommissionForm" class="bulk-panel" method="POST" action="/admin/bulk-update-commission-status">
-            <input type="hidden" name="key" value="{{ admin_key }}">
-            <input type="hidden" name="partner_id" value="{{ search_profile.get("partner_id") or search_lookup.get("partner_id") }}">
-
-            <select name="new_status" required>
-              <option value="">Bulk Action</option>
-              <option value="approved">Approve Selected</option>
-              <option value="hold">Hold Selected</option>
-              <option value="rejected">Reject Selected</option>
-              <option value="paid">Mark Selected as Paid</option>
-            </select>
-
-            <input name="reason" placeholder="سبب الإجراء / ملاحظة الإدارة" required>
-
-            <button type="submit" onclick="return confirm('تأكيد تنفيذ الإجراء الجماعي على العمولات المحددة؟')">
-              تنفيذ
-            </button>
-          </form>
-
-          <div class="muted" style="margin-bottom:10px;">
-            ملاحظة: Mark as Paid في الإجراء الجماعي يطبق فقط على العمولات approved، ويتجاهل العمولات pending لحماية الدفع.
-          </div>
-
-          <div class="table-wrap">
-            <table>
-              <thead>
-                <tr>
-                  <th><input type="checkbox" onclick="toggleCommissionSelection(this)"></th>
-                  <th>Source</th>
-                  <th>Depth</th>
-                  <th>Package</th>
-                  <th>%</th>
-                  <th>Amount</th>
-                  <th>Status</th>
-                  <th>Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                {% for c in search_recent_commissions[:10] %}
-                <tr>
-                  <td>
-                    <input
-                      type="checkbox"
-                      name="commission_ids"
-                      form="bulkCommissionForm"
-                      value="{{ c.commission_id }}"
-                    >
-                  </td>
-                  <td>{{ c.source_partner_id or "-" }}</td>
-                  <td>{{ c.commission_depth or "-" }}</td>
-                  <td>{{ c.package or "-" }}</td>
-                  <td>{{ c.commission_percent or "-" }}</td>
-                  <td>{{ money(c.commission_amount) }}</td>
-                  <td><span class="badge">{{ c.status or "-" }}</span></td>
-                  <td>
-                    <div style="display:flex; gap:6px; flex-wrap:wrap;">
-                      <form method="POST" action="/admin/update-commission-status">
-                        <input type="hidden" name="key" value="{{ admin_key }}">
-                        <input type="hidden" name="partner_id" value="{{ search_profile.get("partner_id") or search_lookup.get("partner_id") }}">
-                        <input type="hidden" name="commission_id" value="{{ c.commission_id }}">
-                        <input type="hidden" name="new_status" value="approved">
-                        <input type="hidden" name="reason" value="Approved from Admin Dashboard">
-                        <button type="submit" style="border:1px solid rgba(128,226,138,.6); color:#80e28a; background:#111; border-radius:999px; padding:6px 9px; cursor:pointer;">Approve</button>
-                      </form>
-
-                      <form method="POST" action="/admin/update-commission-status">
-                        <input type="hidden" name="key" value="{{ admin_key }}">
-                        <input type="hidden" name="partner_id" value="{{ search_profile.get("partner_id") or search_lookup.get("partner_id") }}">
-                        <input type="hidden" name="commission_id" value="{{ c.commission_id }}">
-                        <input type="hidden" name="new_status" value="hold">
-                        <input type="hidden" name="reason" value="Hold from Admin Dashboard">
-                        <button type="submit" style="border:1px solid rgba(255,207,102,.6); color:#ffcf66; background:#111; border-radius:999px; padding:6px 9px; cursor:pointer;">Hold</button>
-                      </form>
-
-                      <form method="POST" action="/admin/update-commission-status">
-                        <input type="hidden" name="key" value="{{ admin_key }}">
-                        <input type="hidden" name="partner_id" value="{{ search_profile.get("partner_id") or search_lookup.get("partner_id") }}">
-                        <input type="hidden" name="commission_id" value="{{ c.commission_id }}">
-                        <input type="hidden" name="new_status" value="rejected">
-                        <input type="hidden" name="reason" value="Rejected from Admin Dashboard">
-                        <button type="submit" style="border:1px solid rgba(255,122,122,.6); color:#ff7a7a; background:#111; border-radius:999px; padding:6px 9px; cursor:pointer;">Reject</button>
-                      </form>
-
-                      <form method="POST" action="/admin/update-commission-status">
-                        <input type="hidden" name="key" value="{{ admin_key }}">
-                        <input type="hidden" name="partner_id" value="{{ search_profile.get("partner_id") or search_lookup.get("partner_id") }}">
-                        <input type="hidden" name="commission_id" value="{{ c.commission_id }}">
-                        <input type="hidden" name="new_status" value="paid">
-                        <input type="hidden" name="reason" value="Marked paid from Admin Dashboard">
-                        <button type="submit" style="border:1px solid rgba(215,184,90,.65); color:#f0cc68; background:#111; border-radius:999px; padding:6px 9px; cursor:pointer;">Mark Paid</button>
-                      </form>
-                    </div>
-                  </td>
-                </tr>
-                {% else %}
-                <tr><td colspan="8">لا توجد عمولات لهذا الشريك.</td></tr>
-                {% endfor %}
-              </tbody>
-            </table>
-          </div>
-        </div>
-
-        <div class="section">
-          <h2>العملاء المباشرين لهذا الشريك</h2>
-          <div class="table-wrap">
-            <table>
-              <thead>
-                <tr>
-                  <th>Client ID</th>
-                  <th>Plan</th>
-                  <th>Amount</th>
-                  <th>Status</th>
-                  <th>Date</th>
-                </tr>
-              </thead>
-              <tbody>
-                {% for customer in search_recent_customers[:10] %}
-                <tr>
-                  <td>{{ customer.client_id or customer.session_id or "-" }}</td>
-                  <td>{{ customer.plan_name or "-" }}</td>
-                  <td>{{ money(customer.package_amount) }}</td>
-                  <td><span class="badge">{{ customer.subscription_status or "-" }}</span></td>
-                  <td>{{ customer.date or "-" }}</td>
-                </tr>
-                {% else %}
-                <tr><td colspan="5">لا توجد بيانات عملاء مباشرين.</td></tr>
-                {% endfor %}
-              </tbody>
-            </table>
-          </div>
-        </div>
-
-      {% else %}
-        <div class="muted">
-          لم يتم العثور على شريك مطابق للبحث: {{ search_query }}
-        </div>
-
-        {% if search_lookup and search_lookup.get("matches") %}
-        <div class="table-wrap">
-          <table>
-            <thead>
-              <tr>
-                <th>Partner ID</th>
-                <th>Name</th>
-                <th>Email</th>
-                <th>Phone</th>
-                <th>Status</th>
-              </tr>
-            </thead>
-            <tbody>
-              {% for m in search_lookup.get("matches") %}
-              <tr>
-                <td>{{ m.partner_id or "-" }}</td>
-                <td>{{ m.partner_name or "-" }}</td>
-                <td>{{ m.email or "-" }}</td>
-                <td>{{ m.phone or "-" }}</td>
-                <td>{{ m.status or "-" }}</td>
-              </tr>
-              {% endfor %}
-            </tbody>
-          </table>
-        </div>
-        {% endif %}
-      {% endif %}
-    </div>
-    {% endif %}
-
-    <div class="grid">
-      <div class="card">
-        <h3>إجمالي الشركاء</h3>
-        <div class="big">{{ partner_summary.total or 0 }}</div>
-        <div class="muted">Active: {{ partner_summary.active or 0 }} / Suspended: {{ partner_summary.suspended or 0 }}</div>
-      </div>
-
-      <div class="card">
-        <h3>الاشتراكات النشطة</h3>
-        <div class="big">{{ subscription_summary.active or 0 }}</div>
-        <div class="muted">Total: {{ subscription_summary.total or 0 }} / Failed: {{ subscription_summary.payment_failed or 0 }}</div>
-      </div>
-
-      <div class="card">
-        <h3>العمولات المعلقة</h3>
-        <div class="big">{{ money(commission_totals.pending) }}</div>
-        <div class="muted">Count: {{ commission_counts.pending or 0 }}</div>
-      </div>
-
-      <div class="card">
-        <h3>إجمالي العمولات</h3>
-        <div class="big">{{ money(commission_totals.all) }}</div>
-        <div class="muted">All count: {{ commission_counts.all or 0 }}</div>
-      </div>
-
-      <div class="card">
-        <h3>إجمالي الاشتراكات</h3>
-        <div class="big">{{ money(subscription_summary.total_amount) }}</div>
-        <div class="muted">حسب بيانات Subscriptions</div>
-      </div>
-
-      <div class="card">
-        <h3>الكورسات المدفوعة</h3>
-        <div class="big">{{ course_summary.paid or 0 }}</div>
-        <div class="muted">Total courses: {{ course_summary.total or 0 }}</div>
-      </div>
-
-      <div class="card">
-        <h3>Commission Eligible</h3>
-        <div class="big">{{ eligible_counts.yes or 0 }}</div>
-        <div class="muted">Not eligible: {{ eligible_counts.no or 0 }}</div>
-      </div>
-
-      <div class="card">
-        <h3>Payment Failed</h3>
-        <div class="big">{{ subscription_summary.payment_failed or 0 }}</div>
-        <div class="muted">Cancelled: {{ subscription_summary.cancelled or 0 }}</div>
-      </div>
-    </div>
-
-    <div class="two-col">
-      <div class="small-box">
-        <h3>توزيع المستويات</h3>
-        {% for level_name, count in level_counts.items() %}
-        <div class="kv"><span>{{ level_name }}</span><strong>{{ count }}</strong></div>
-        {% else %}
-        <div class="muted">لا توجد بيانات مستويات.</div>
-        {% endfor %}
-      </div>
-
-      <div class="small-box">
-        <h3>Plan Counts</h3>
-        {% for plan, count in (subscriptions.plan_counts or {}).items() %}
-        <div class="kv"><span>{{ plan }}</span><strong>{{ count }}</strong></div>
-        {% else %}
-        <div class="muted">لا توجد بيانات باقات.</div>
-        {% endfor %}
-      </div>
-    </div>
-
-    <div class="section">
-      <h2>آخر الشركاء</h2>
-      <div class="table-wrap">
-        <table>
-          <thead>
-            <tr>
-              <th>Partner ID</th>
-              <th>الاسم</th>
-              <th>Sponsor</th>
-              <th>Rank</th>
-              <th>Status</th>
-              <th>Email</th>
-              <th>Referral Link</th>
-            </tr>
-          </thead>
-          <tbody>
-            {% for p in recent_partners %}
-            <tr>
-              <td>{{ p.partner_id or "-" }}</td>
-              <td>{{ p.partner_name or "-" }}</td>
-              <td>{{ p.sponsor_partner_id or "-" }}</td>
-              <td>{{ p.partner_rank or "-" }}</td>
-              <td><span class="badge">{{ p.status or "-" }}</span></td>
-              <td>{{ p.email or "-" }}</td>
-              <td>{{ p.referral_link or "-" }}</td>
-            </tr>
-            {% else %}
-            <tr><td colspan="7">لا توجد بيانات.</td></tr>
-            {% endfor %}
-          </tbody>
-        </table>
-      </div>
-    </div>
-
-    <div class="section">
-      <h2>آخر الاشتراكات</h2>
-      <div class="table-wrap">
-        <table>
-          <thead>
-            <tr>
-              <th>Client ID</th>
-              <th>Session ID</th>
-              <th>Source Partner</th>
-              <th>Plan</th>
-              <th>Amount</th>
-              <th>Status</th>
-              <th>Stripe Sub</th>
-            </tr>
-          </thead>
-          <tbody>
-            {% for s in recent_subscriptions %}
-            <tr>
-              <td>{{ s.client_id or "-" }}</td>
-              <td>{{ s.session_id or "-" }}</td>
-              <td>{{ s.source_partner_id or "-" }}</td>
-              <td>{{ s.plan_name or "-" }}</td>
-              <td>{{ money(s.package_amount) }}</td>
-              <td><span class="badge">{{ s.subscription_status or "-" }}</span></td>
-              <td>{{ s.stripe_subscription_id or "-" }}</td>
-            </tr>
-            {% else %}
-            <tr><td colspan="7">لا توجد بيانات.</td></tr>
-            {% endfor %}
-          </tbody>
-        </table>
-      </div>
-    </div>
-
-    <div class="section">
-      <h2>آخر العمولات</h2>
-      <div class="table-wrap">
-        <table>
-          <thead>
-            <tr>
-              <th>Beneficiary</th>
-              <th>Source</th>
-              <th>Depth</th>
-              <th>Rank</th>
-              <th>Package</th>
-              <th>%</th>
-              <th>Amount</th>
-              <th>Status</th>
-            </tr>
-          </thead>
-          <tbody>
-            {% for c in recent_commissions %}
-            <tr>
-              <td>{{ c.beneficiary_partner_id or "-" }}</td>
-              <td>{{ c.source_partner_id or "-" }}</td>
-              <td>{{ c.commission_depth or "-" }}</td>
-              <td>{{ c.partner_rank or "-" }}</td>
-              <td>{{ c.package or "-" }}</td>
-              <td>{{ c.commission_percent or "-" }}</td>
-              <td>{{ money(c.commission_amount) }}</td>
-              <td><span class="badge">{{ c.status or "-" }}</span></td>
-            </tr>
-            {% else %}
-            <tr><td colspan="8">لا توجد بيانات.</td></tr>
-            {% endfor %}
-          </tbody>
-        </table>
-      </div>
-    </div>
-
-    <div class="section">
-      <h2>تقدم المستويات</h2>
-      <div class="table-wrap">
-        <table>
-          <thead>
-            <tr>
-              <th>Partner ID</th>
-              <th>Rank</th>
-              <th>Completed</th>
-              <th>Required</th>
-              <th>Next</th>
-              <th>Package</th>
-              <th>Sub Status</th>
-              <th>Eligible</th>
-              <th>Missing</th>
-            </tr>
-          </thead>
-          <tbody>
-            {% for l in recent_levels %}
-            <tr>
-              <td>{{ l.partner_id or "-" }}</td>
-              <td>{{ l.partner_rank or "-" }}</td>
-              <td>{{ l.completed_sales or "-" }}</td>
-              <td>{{ l.required_sales or "-" }}</td>
-              <td>{{ l.next_rank or "-" }}</td>
-              <td>{{ l.current_package or "-" }}</td>
-              <td>{{ l.subscription_status or "-" }}</td>
-              <td><span class="badge">{{ l.commission_eligible or "-" }}</span></td>
-              <td>{{ l.missing_requirements or "-" }}</td>
-            </tr>
-            {% else %}
-            <tr><td colspan="9">لا توجد بيانات.</td></tr>
-            {% endfor %}
-          </tbody>
-        </table>
-      </div>
-    </div>
-
-    <div class="section">
-      <h2>آخر مشتريات الكورسات</h2>
-      <div class="table-wrap">
-        <table>
-          <thead>
-            <tr>
-              <th>Partner ID</th>
-              <th>Course Code</th>
-              <th>Course Name</th>
-              <th>Amount</th>
-              <th>Status</th>
-              <th>Stripe Payment</th>
-              <th>Paid At</th>
-            </tr>
-          </thead>
-          <tbody>
-            {% for course in recent_courses %}
-            <tr>
-              <td>{{ course.partner_id or "-" }}</td>
-              <td>{{ course.course_code or "-" }}</td>
-              <td>{{ course.course_name or "-" }}</td>
-              <td>{{ money(course.amount) }}</td>
-              <td><span class="badge">{{ course.status or "-" }}</span></td>
-              <td>{{ course.stripe_payment_id or "-" }}</td>
-              <td>{{ course.paid_at or "-" }}</td>
-            </tr>
-            {% else %}
-            <tr><td colspan="7">لا توجد بيانات.</td></tr>
-            {% endfor %}
-          </tbody>
-        </table>
-      </div>
-    </div>
-
-  </div>
-</body>
-</html>
-        """
-
-        return render_template_string(
-            html,
+        return render_template(
+            "admin_dashboard.html",
             encoded_key=encoded_key,
             admin_key=key,
             admin_action_message=admin_action_message,
@@ -7808,99 +3993,52 @@ def admin_dashboard_view():
     except Exception as error:
         print(f"ADMIN DASHBOARD VIEW ERROR ❌ {error}", flush=True)
 
-        return render_template_string(
-            """
-            <html>
-            <head><meta charset="utf-8"><title>Admin Dashboard Error</title></head>
-            <body style="font-family:Arial; direction:rtl; padding:30px;">
-              <h2>حدث خطأ في عرض Admin Dashboard</h2>
-              <p>{{ error }}</p>
-
-  <!-- ALSAAB_ADMIN_UI_SIMPLIFY_V1 START -->
-  <script>
-    (function simplifyAdminDashboard() {
-      function cleanText(value) {
-        return (value || "").replace(/\\s+/g, " ").trim();
-      }
-
-      function hideElement(el) {
-        if (!el) return;
-        el.style.display = "none";
-      }
-
-      function hideClosestFormOrButton(el) {
-        var form = el.closest("form");
-        if (form) {
-          hideElement(form);
-          return;
-        }
-        hideElement(el);
-      }
-
-      // Hide daily approval buttons. Valid commissions are approved automatically now.
-      document.querySelectorAll("button, a").forEach(function(el) {
-        var text = cleanText(el.textContent);
-
-        if (text === "Approve") {
-          hideClosestFormOrButton(el);
-        }
-
-        if (text === "Mark Paid") {
-          hideClosestFormOrButton(el);
-        }
-
-        if (text.indexOf("Auto Approve Old Pending") !== -1) {
-          var sec = el.closest(".section");
-          hideElement(sec || el);
-        }
-
-        if (text.indexOf("Create Payout Batch") !== -1) {
-          var sec = el.closest(".section");
-          hideElement(sec || el);
-        }
-      });
-
-      // Hide old sections if they still exist.
-      document.querySelectorAll(".section").forEach(function(sec) {
-        var text = cleanText(sec.textContent);
-
-        if (text.indexOf("اعتماد العمولات القديمة تلقائياً") !== -1) {
-          hideElement(sec);
-        }
-
-        if (text.indexOf("Payout Workflow MVP") !== -1) {
-          hideElement(sec);
-        }
-      });
-
-      // Remove unnecessary bulk options. Owner uses "تم الدفع للشريك" for payout.
-      document.querySelectorAll("select option").forEach(function(option) {
-        var value = cleanText(option.value).toLowerCase();
-        var text = cleanText(option.textContent).toLowerCase();
-
-        if (value === "approved" || value === "paid") {
-          option.remove();
-        }
-
-        if (text.indexOf("approve selected") !== -1 || text.indexOf("mark selected as paid") !== -1) {
-          option.remove();
-        }
-      });
-    })();
-  </script>
-  <!-- ALSAAB_ADMIN_UI_SIMPLIFY_V1 END -->
-
-</body>
-            </html>
-            """,
+        return render_template(
+            "admin_dashboard_error_render.html",
             error=str(error)
         ), 500
 
 # ===== ALSAAB_ADMIN_DASHBOARD_MVP_V1 END =====
 
 
-
 # ===== ALSAAB_ADMIN_RECALCULATE_LEVEL_V1 START =====
+
+@app.route("/admin/recalculate-all-levels", methods=["POST"])
+def admin_recalculate_all_levels_route():
+    """
+    Rebuild every partner's level from the live data.
+
+    Levels are otherwise only refreshed when a payment arrives, so anything
+    else that changes the inputs — a cancellation, an upgrade, a change to the
+    level rules — leaves the stored value stale while the payout engine keeps
+    computing the real one. This is the manual resync for that gap.
+    """
+    payload = get_admin_payload()
+    key = get_admin_key(payload)
+
+    if key != ADMIN_KEY:
+        return jsonify({"error": "Unauthorized"}), 401
+
+    try:
+        from database import post_to_google_sheet_json
+
+        result = post_to_google_sheet_json(
+            {
+                "token": os.getenv("GOOGLE_SHEET_TOKEN", ""),
+                "action": "admin_recalculate_all_levels",
+                "actor": "owner_admin",
+                "source": "admin_dashboard",
+                "reason": get_payload_value(payload, "reason", default="manual resync"),
+            },
+            label="admin_recalculate_all_levels",
+        )
+
+        return jsonify(result)
+
+    except Exception as error:
+        print(f"RECALCULATE ALL LEVELS ERROR ❌ {error}", flush=True)
+        return jsonify({"status": "error", "message": str(error)}), 500
+
 
 @app.route("/admin/recalculate-partner-level", methods=["POST"])
 def admin_recalculate_partner_level():
@@ -8014,7 +4152,6 @@ def admin_recalculate_partner_level():
 # ===== ALSAAB_ADMIN_RECALCULATE_LEVEL_V1 END =====
 
 
-
 # ===== ALSAAB_ADMIN_COMMISSION_ACTIONS_RENDER_V1 START =====
 
 @app.route("/admin/update-commission-status", methods=["POST"])
@@ -8123,7 +4260,6 @@ def admin_update_commission_status():
         )
 
 # ===== ALSAAB_ADMIN_COMMISSION_ACTIONS_RENDER_V1 END =====
-
 
 
 # ===== ALSAAB_ADMIN_BULK_COMMISSION_ACTIONS_RENDER_V1 START =====
@@ -8256,7 +4392,6 @@ def admin_bulk_update_commission_status():
 # ===== ALSAAB_ADMIN_BULK_COMMISSION_ACTIONS_RENDER_V1 END =====
 
 
-
 # ===== ALSAAB_ADMIN_PARTNER_STATUS_ACTIONS_RENDER_V2 START =====
 
 @app.route("/admin/update-partner-status", methods=["POST"])
@@ -8384,7 +4519,6 @@ def admin_update_partner_status():
 # ===== ALSAAB_ADMIN_PARTNER_STATUS_ACTIONS_RENDER_V2 END =====
 
 
-
 # ===== ALSAAB_DOWNLINE_TRANSFER_PREVIEW_RENDER_V1 START =====
 
 @app.route("/admin/downline-transfer-preview", methods=["GET"])
@@ -8427,17 +4561,8 @@ def admin_downline_transfer_preview():
         )
 
         if not isinstance(preview, dict) or preview.get("status") != "success":
-            return render_template_string(
-                """
-                <html>
-                <head><meta charset="utf-8"><title>Transfer Preview Error</title></head>
-                <body style="font-family:Arial; direction:rtl; padding:30px;">
-                  <h2>حدث خطأ في معاينة النقل</h2>
-                  <pre>{{ preview }}</pre>
-                  <a href="/admin-dashboard?key={{ encoded_key }}&partner_id={{ partner_id }}">رجوع</a>
-                </body>
-                </html>
-                """,
+            return render_template(
+                "downline_transfer_preview_error_data.html",
                 preview=preview,
                 encoded_key=quote(key),
                 partner_id=partner_id
@@ -8448,289 +4573,9 @@ def admin_downline_transfer_preview():
         network_rows = preview.get("network_rows") or []
         depth_counts = preview.get("depth_counts") or {}
 
-        html = """
-<!DOCTYPE html>
-<html lang="ar" dir="rtl">
-<head>
-  <meta charset="utf-8">
-  <title>معاينة نقل الشبكة إلى alsaab</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1">
 
-  <style>
-    body {
-      margin: 0;
-      background: #0b0b0b;
-      color: #f5f0df;
-      font-family: Arial, Tahoma, sans-serif;
-      direction: rtl;
-    }
-
-    .page {
-      max-width: 1200px;
-      margin: 0 auto;
-      padding: 28px;
-    }
-
-    .header, .section, .card {
-      background: #111;
-      border: 1px solid rgba(215,184,90,.35);
-      border-radius: 18px;
-      padding: 20px;
-      margin-bottom: 18px;
-    }
-
-    h1, h2, h3 {
-      color: #d7b85a;
-      margin-top: 0;
-    }
-
-    .sub {
-      color: #cfc7ad;
-      line-height: 1.7;
-    }
-
-    .warning {
-      background: rgba(255,207,102,.08);
-      border: 1px solid rgba(255,207,102,.45);
-      color: #ffcf66;
-      border-radius: 14px;
-      padding: 14px;
-      margin-bottom: 18px;
-      font-weight: 700;
-    }
-
-    .grid {
-      display: grid;
-      grid-template-columns: repeat(4, minmax(0, 1fr));
-      gap: 14px;
-      margin-bottom: 18px;
-    }
-
-    .big {
-      font-size: 28px;
-      font-weight: 900;
-      color: #fff;
-    }
-
-    .muted {
-      color: #aaa;
-      font-size: 13px;
-      margin-top: 6px;
-    }
-
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      margin-top: 12px;
-    }
-
-    th, td {
-      padding: 10px;
-      border-bottom: 1px solid rgba(255,255,255,.08);
-      text-align: right;
-      font-size: 13px;
-    }
-
-    th {
-      color: #d7b85a;
-      background: #181818;
-    }
-
-    .table-wrap {
-      overflow-x: auto;
-    }
-
-    .action-btn {
-      display: inline-block;
-      border: 1px solid rgba(215,184,90,.55);
-      color: #f0cc68;
-      background: #111;
-      padding: 10px 14px;
-      border-radius: 999px;
-      text-decoration: none;
-      font-weight: 700;
-    }
-
-    @media (max-width: 900px) {
-      .grid {
-        grid-template-columns: repeat(2, minmax(0, 1fr));
-      }
-    }
-
-    @media (max-width: 600px) {
-      .grid {
-        grid-template-columns: 1fr;
-      }
-
-      .page {
-        padding: 16px;
-      }
-    }
-  </style>
-</head>
-
-<body>
-  <div class="page">
-    <div class="header">
-      <h1>معاينة نقل الشبكة إلى alsaab</h1>
-      <div class="sub">
-        هذه الصفحة للمعاينة فقط. لم يتم نقل أي شريك أو عميل. الهدف معرفة من سيتأثر قبل تفعيل النقل الحقيقي.
-      </div>
-    </div>
-
-    <div class="warning">
-      تنبيه: النقل الفعلي غير مفعّل هنا. هذه معاينة فقط قبل بناء زر Transfer Downline to alsaab.
-    </div>
-
-    <div class="grid">
-      <div class="card">
-        <h3>الشريك المستهدف</h3>
-        <div class="big">{{ partner_id }}</div>
-        <div class="muted">{{ target_partner.get("partner_name") or "-" }}</div>
-      </div>
-
-      <div class="card">
-        <h3>الحالة الحالية</h3>
-        <div class="big">{{ target_partner.get("status") or "-" }}</div>
-        <div class="muted">Rank: {{ target_partner.get("partner_rank") or "-" }}</div>
-      </div>
-
-      <div class="card">
-        <h3>المباشرين تحته</h3>
-        <div class="big">{{ preview.get("direct_children_count") or 0 }}</div>
-        <div class="muted">سيتم مراجعتهم كمرشحين للنقل إلى alsaab</div>
-      </div>
-
-      <div class="card">
-        <h3>إجمالي الشبكة</h3>
-        <div class="big">{{ preview.get("network_count") or 0 }}</div>
-        <div class="muted">كل المستويات أسفل هذا الشريك</div>
-      </div>
-    </div>
-
-    <div class="section">
-      <h2>توزيع الشبكة حسب العمق</h2>
-      <div class="grid">
-        <div class="card"><h3>Depth 1</h3><div class="big">{{ depth_counts.get("1", 0) or depth_counts.get(1, 0) }}</div></div>
-        <div class="card"><h3>Depth 2</h3><div class="big">{{ depth_counts.get("2", 0) or depth_counts.get(2, 0) }}</div></div>
-        <div class="card"><h3>Depth 3</h3><div class="big">{{ depth_counts.get("3", 0) or depth_counts.get(3, 0) }}</div></div>
-        <div class="card"><h3>Depth 4/5</h3><div class="big">{{ (depth_counts.get("4", 0) or depth_counts.get(4, 0)) + (depth_counts.get("5", 0) or depth_counts.get(5, 0)) }}</div></div>
-      </div>
-    </div>
-
-    <div class="section">
-      <h2>الشركاء المباشرين الذين سيتم مراجعتهم للنقل</h2>
-      <div class="table-wrap">
-        <table>
-          <thead>
-            <tr>
-              <th>Partner ID</th>
-              <th>الاسم</th>
-              <th>Current Sponsor</th>
-              <th>Current Parent</th>
-              <th>Status</th>
-              <th>Rank</th>
-              <th>Email</th>
-            </tr>
-          </thead>
-          <tbody>
-            {% for child in direct_children %}
-            <tr>
-              <td>{{ child.partner_id or "-" }}</td>
-              <td>{{ child.partner_name or "-" }}</td>
-              <td>{{ child.current_sponsor_partner_id or "-" }}</td>
-              <td>{{ child.current_parent_partner_id or "-" }}</td>
-              <td>{{ child.status or "-" }}</td>
-              <td>{{ child.partner_rank or "-" }}</td>
-              <td>{{ child.email or "-" }}</td>
-            </tr>
-            {% else %}
-            <tr><td colspan="7">لا يوجد direct downline لهذا الشريك.</td></tr>
-            {% endfor %}
-          </tbody>
-        </table>
-      </div>
-    </div>
-
-    <div class="section">
-      <h2>عينة من الشبكة الكاملة أسفل الشريك</h2>
-      <div class="table-wrap">
-        <table>
-          <thead>
-            <tr>
-              <th>Descendant Partner ID</th>
-              <th>Depth</th>
-              <th>Line Owner</th>
-              <th>الاسم</th>
-              <th>Status</th>
-              <th>Rank</th>
-            </tr>
-          </thead>
-          <tbody>
-            {% for row in network_rows[:50] %}
-            <tr>
-              <td>{{ row.descendant_partner_id or "-" }}</td>
-              <td>{{ row.depth or "-" }}</td>
-              <td>{{ row.line_owner_partner_id or "-" }}</td>
-              <td>{{ row.partner_name or "-" }}</td>
-              <td>{{ row.status or "-" }}</td>
-              <td>{{ row.partner_rank or "-" }}</td>
-            </tr>
-            {% else %}
-            <tr><td colspan="6">لا توجد شبكة أسفل هذا الشريك.</td></tr>
-            {% endfor %}
-          </tbody>
-        </table>
-      </div>
-    </div>
-
-
-    <!-- ALSAAB_DOWNLINE_TRANSFER_EXECUTION_FORM_FORCE_V1 START -->
-    <div class="section">
-      <h2>تنفيذ النقل الفعلي</h2>
-      <div class="warning">
-        هذا الإجراء سيغير Sponsor / Parent للشركاء المباشرين تحت هذا الشريك إلى alsaab، وسيعيد بناء PartnerTree. لا تستخدمه إلا بعد التأكد من المعاينة.
-      </div>
-
-      <form method="POST" action="/admin/transfer-downline-to-alsaab">
-        <input type="hidden" name="key" value="{{ raw_admin_key or encoded_key }}">
-        <input type="hidden" name="partner_id" value="{{ partner_id }}">
-
-        <label style="display:block; color:#d7b85a; font-weight:700; margin-bottom:8px;">سبب النقل</label>
-        <textarea
-          name="reason"
-          required
-          placeholder="مثال: الشريك ألغى اشتراكه نهائياً، وبقرار إداري تم نقل الشبكة إلى alsaab."
-          style="width:100%; min-height:90px; box-sizing:border-box; background:#0b0b0b; color:#fff; border:1px solid rgba(215,184,90,.35); border-radius:12px; padding:12px; margin-bottom:12px;"
-        ></textarea>
-
-        <label style="display:block; color:#d7b85a; font-weight:700; margin-bottom:8px;">اكتب هذا النص للتأكيد</label>
-        <input
-          name="confirm_text"
-          required
-          placeholder="TRANSFER_TO_ALSAAB"
-          style="width:100%; box-sizing:border-box; background:#0b0b0b; color:#fff; border:1px solid rgba(215,184,90,.35); border-radius:12px; padding:12px; margin-bottom:12px;"
-        >
-
-        <button
-          type="submit"
-          onclick="return confirm('تأكيد نهائي: هل تريد نقل الـ direct downline إلى alsaab؟')"
-          style="border:1px solid rgba(255,122,122,.7); color:#ff7a7a; background:#111; padding:12px 16px; border-radius:999px; font-weight:900; cursor:pointer;"
-        >
-          Transfer Downline to alsaab
-        </button>
-      </form>
-    </div>
-    <!-- ALSAAB_DOWNLINE_TRANSFER_EXECUTION_FORM_FORCE_V1 END -->
-
-<a class="action-btn" href="/admin-dashboard?key={{ encoded_key }}&partner_id={{ partner_id }}">رجوع إلى Admin Dashboard</a>
-  </div>
-</body>
-</html>
-        """
-
-        return render_template_string(
-            html,
+        return render_template(
+            "downline_transfer_preview.html",
             encoded_key=quote(key),
             raw_admin_key=key,
             partner_id=partner_id,
@@ -8744,21 +4589,12 @@ def admin_downline_transfer_preview():
     except Exception as error:
         print(f"DOWNLINE TRANSFER PREVIEW ERROR ❌ partner_id={partner_id} error={error}", flush=True)
 
-        return render_template_string(
-            """
-            <html>
-            <head><meta charset="utf-8"><title>Transfer Preview Error</title></head>
-            <body style="font-family:Arial; direction:rtl; padding:30px;">
-              <h2>حدث خطأ في عرض معاينة النقل</h2>
-              <p>{{ error }}</p>
-            </body>
-            </html>
-            """,
+        return render_template(
+            "downline_transfer_preview_error_render.html",
             error=str(error)
         ), 500
 
 # ===== ALSAAB_DOWNLINE_TRANSFER_PREVIEW_RENDER_V1 END =====
-
 
 
 # ===== ALSAAB_DOWNLINE_TRANSFER_EXECUTE_RENDER_V1 START =====
@@ -8881,7 +4717,6 @@ def admin_transfer_downline_to_alsaab():
 # ===== ALSAAB_DOWNLINE_TRANSFER_EXECUTE_RENDER_V1 END =====
 
 
-
 # ===== ALSAAB_AUTO_APPROVE_PENDING_RENDER_V1 START =====
 
 @app.route("/admin/auto-approve-pending-commissions", methods=["POST"])
@@ -8972,7 +4807,6 @@ def admin_auto_approve_pending_commissions():
         )
 
 # ===== ALSAAB_AUTO_APPROVE_PENDING_RENDER_V1 END =====
-
 
 
 # ===== ALSAAB_MARK_PARTNER_PAID_BUTTON_RENDER_V1 START =====
@@ -9072,7 +4906,6 @@ def admin_mark_partner_paid():
         )
 
 # ===== ALSAAB_MARK_PARTNER_PAID_BUTTON_RENDER_V1 END =====
-
 
 
 # ===== ALSAAB_WHATSAPP_WEBHOOK_FOUNDATION_V1 START =====
@@ -9311,7 +5144,6 @@ def whatsapp_webhook():
 # ===== ALSAAB_WHATSAPP_WEBHOOK_FOUNDATION_V1 END =====
 
 
-
 # ===== ALSAAB_CLIENT_WHATSAPP_SETUP_ROUTE_V1 START =====
 
 @app.route("/client-dashboard/save-whatsapp-setup", methods=["POST"])
@@ -9395,7 +5227,6 @@ def client_dashboard_save_whatsapp_setup():
 # ===== ALSAAB_CLIENT_WHATSAPP_SETUP_ROUTE_V1 END =====
 
 
-
 # ===== ALSAAB_ADMIN_WHATSAPP_SETUP_REQUESTS_PAGE_V1 START =====
 
 @app.route("/admin/whatsapp-setup-requests", methods=["GET"])
@@ -9440,263 +5271,9 @@ def admin_whatsapp_setup_requests_page():
             requests_list = result.get("requests") or []
             count = result.get("count") or len(requests_list)
 
-        html = """
-<!DOCTYPE html>
-<html lang="ar" dir="rtl">
-<head>
-  <meta charset="utf-8">
-  <title>WhatsApp Setup Requests</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1">
 
-  <style>
-    body {
-      margin: 0;
-      background: #0b0b0b;
-      color: #f5f0df;
-      font-family: Arial, Tahoma, sans-serif;
-      direction: rtl;
-    }
-
-    .page {
-      max-width: 1400px;
-      margin: 0 auto;
-      padding: 24px;
-    }
-
-    .header, .section {
-      background: #111;
-      border: 1px solid rgba(215,184,90,.35);
-      border-radius: 18px;
-      padding: 20px;
-      margin-bottom: 18px;
-    }
-
-    h1, h2, h3 {
-      color: #d7b85a;
-      margin-top: 0;
-    }
-
-    .muted {
-      color: #cfc7ad;
-      line-height: 1.7;
-    }
-
-    .filters {
-      display: flex;
-      gap: 10px;
-      flex-wrap: wrap;
-      margin-top: 14px;
-    }
-
-    input, select, textarea {
-      background: #0b0b0b;
-      color: #fff;
-      border: 1px solid rgba(215,184,90,.35);
-      border-radius: 12px;
-      padding: 10px;
-      box-sizing: border-box;
-    }
-
-    button, .btn {
-      border: 1px solid rgba(215,184,90,.65);
-      background: #111;
-      color: #f0cc68;
-      border-radius: 999px;
-      padding: 10px 14px;
-      font-weight: 800;
-      cursor: pointer;
-      text-decoration: none;
-      display: inline-block;
-    }
-
-    .btn-green {
-      border-color: rgba(128,226,138,.65);
-      color: #80e28a;
-    }
-
-    .table-wrap {
-      overflow-x: auto;
-    }
-
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      min-width: 1100px;
-    }
-
-    th, td {
-      padding: 10px;
-      border-bottom: 1px solid rgba(255,255,255,.08);
-      vertical-align: top;
-      font-size: 13px;
-      text-align: right;
-    }
-
-    th {
-      color: #d7b85a;
-      background: #181818;
-      position: sticky;
-      top: 0;
-      z-index: 1;
-    }
-
-    .badge {
-      display: inline-block;
-      padding: 5px 9px;
-      border-radius: 999px;
-      border: 1px solid rgba(215,184,90,.45);
-      color: #f0cc68;
-      font-weight: 700;
-      font-size: 12px;
-    }
-
-    .small {
-      font-size: 12px;
-      color: #aaa;
-    }
-
-    textarea {
-      width: 220px;
-      min-height: 70px;
-    }
-
-    .update-form {
-      min-width: 270px;
-    }
-
-    .update-form input,
-    .update-form select,
-    .update-form textarea {
-      width: 100%;
-      margin-bottom: 8px;
-    }
-
-    @media (max-width: 700px) {
-      .page {
-        padding: 14px;
-      }
-    }
-  </style>
-</head>
-
-<body>
-  <div class="page">
-    <div class="header">
-      <h1>طلبات ربط WhatsApp</h1>
-      <div class="muted">
-        هذه الطلبات تأتي من Client Dashboard عندما يطلب العميل ربط رقم WhatsApp Business الحالي بنظام ALSAAB AI.
-      </div>
-
-      <form method="GET" action="/admin/whatsapp-setup-requests" class="filters">
-        <input type="hidden" name="key" value="{{ key }}">
-        <input name="partner_id" placeholder="Partner ID" value="{{ partner_id_filter }}">
-        <select name="status">
-          <option value="">كل الحالات</option>
-          {% for status in ["pending_setup", "under_review", "connected", "testing", "live", "rejected"] %}
-            <option value="{{ status }}" {% if status_filter == status %}selected{% endif %}>{{ status }}</option>
-          {% endfor %}
-        </select>
-        <button type="submit">بحث</button>
-        <a class="btn" href="/admin-dashboard?key={{ encoded_key }}">رجوع إلى Admin Dashboard</a>
-      </form>
-    </div>
-
-    <div class="section">
-      <h2>الطلبات: {{ count }}</h2>
-
-      <div class="table-wrap">
-        <table>
-          <thead>
-            <tr>
-              <th>Request ID</th>
-              <th>Partner / Client</th>
-              <th>Business</th>
-              <th>WhatsApp Number</th>
-              <th>Setup Type</th>
-              <th>Status</th>
-              <th>Customer Notes</th>
-              <th>Meta IDs</th>
-              <th>Admin Update</th>
-            </tr>
-          </thead>
-
-          <tbody>
-            {% for item in requests_list %}
-            <tr>
-              <td>
-                <strong>{{ item.request_id or "-" }}</strong>
-                <div class="small">{{ item.date or "" }}</div>
-                <div class="small">Updated: {{ item.updated_at or "-" }}</div>
-              </td>
-
-              <td>
-                <div><strong>Partner:</strong> {{ item.partner_id or "-" }}</div>
-                <div><strong>Client:</strong> {{ item.client_id or "-" }}</div>
-              </td>
-
-              <td>
-                <strong>{{ item.business_name or "-" }}</strong>
-                <div class="small">Lang: {{ item.preferred_language or "-" }}</div>
-                <div class="small">Handoff: {{ item.human_handoff or "-" }}</div>
-              </td>
-
-              <td>{{ item.whatsapp_number or "-" }}</td>
-
-              <td>{{ item.setup_type or "-" }}</td>
-
-              <td><span class="badge">{{ item.connection_status or "-" }}</span></td>
-
-              <td>
-                <div>{{ item.customer_notes or "-" }}</div>
-                {% if item.admin_notes %}
-                  <hr style="border-color:rgba(255,255,255,.08);">
-                  <div class="small"><strong>Admin:</strong> {{ item.admin_notes }}</div>
-                {% endif %}
-              </td>
-
-              <td>
-                <div><strong>Phone Number ID:</strong> {{ item.phone_number_id or "-" }}</div>
-                <div><strong>WABA ID:</strong> {{ item.waba_id or "-" }}</div>
-                <div><strong>Provider:</strong> {{ item.provider or "-" }}</div>
-              </td>
-
-              <td>
-                <form method="POST" action="/admin/update-whatsapp-setup-request" class="update-form">
-                  <input type="hidden" name="key" value="{{ key }}">
-                  <input type="hidden" name="request_id" value="{{ item.request_id }}">
-
-                  <select name="connection_status">
-                    {% for status in ["pending_setup", "under_review", "connected", "testing", "live", "rejected"] %}
-                      <option value="{{ status }}" {% if item.connection_status == status %}selected{% endif %}>{{ status }}</option>
-                    {% endfor %}
-                  </select>
-
-                  <input name="phone_number_id" placeholder="Phone Number ID" value="{{ item.phone_number_id or "" }}">
-                  <input name="waba_id" placeholder="WABA ID" value="{{ item.waba_id or "" }}">
-                  <input name="provider" placeholder="Provider" value="{{ item.provider or "" }}">
-
-                  <textarea name="admin_notes" placeholder="Admin notes">{{ item.admin_notes or "" }}</textarea>
-
-                  <button class="btn-green" type="submit">تحديث</button>
-                </form>
-              </td>
-            </tr>
-            {% else %}
-            <tr>
-              <td colspan="9">لا توجد طلبات WhatsApp حالياً.</td>
-            </tr>
-            {% endfor %}
-          </tbody>
-        </table>
-      </div>
-    </div>
-  </div>
-</body>
-</html>
-        """
-
-        return render_template_string(
-            html,
+        return render_template(
+            "whatsapp_setup_requests.html",
             key=key,
             encoded_key=quote(key),
             status_filter=status_filter,
@@ -9766,8 +5343,6 @@ def admin_update_whatsapp_setup_request_route():
         return redirect(f"/admin/whatsapp-setup-requests?key={quote(key)}")
 
 # ===== ALSAAB_ADMIN_WHATSAPP_SETUP_REQUESTS_PAGE_V1 END =====
-
-
 
 
 # ===== ALSAAB_ADMIN_WHATSAPP_REQUESTS_BUTTON_V2 START =====
@@ -9864,7 +5439,6 @@ def inject_admin_whatsapp_requests_button(response):
     return response
 
 # ===== ALSAAB_ADMIN_WHATSAPP_REQUESTS_BUTTON_V2 END =====
-
 
 
 # ===== ALSAAB WEBSITE SETUP ROUTES REGISTER START =====
@@ -10059,8 +5633,6 @@ def alsaab_chat_explicit_payment_plan_v5(message):
 
     return None
 # ===== ALSAAB_PAYMENT_INTENT_V6 END =====
-
-
 
 
 # ===== ALSAAB_PAYMENT_DETECTOR_FINAL_UTF8_V7 START =====

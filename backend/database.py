@@ -1,10 +1,11 @@
 ﻿# database.py
 
+import re
 import sqlite3
 import json
 import urllib.request
 import urllib.error
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from uuid import uuid4
 
 try:
@@ -37,9 +38,29 @@ except Exception:
 
 DB_NAME = "alsaab_ai.db"
 
+# ===== ALSAAB POSTGRES BACKEND V1 START =====
+# db.get_connection() returns a pooled PostgreSQL connection when DATABASE_URL
+# is set, and falls back to sqlite3.connect(DB_NAME) when it is not — so this
+# is a no-op until the environment variable exists.
+import os as _os
+
+# Import db FIRST: it reads the local .env into os.environ, and _DATA_BACKEND
+# below is computed from those variables. Importing it lazily instead would
+# leave DATA_BACKEND stuck on its default during local runs.
+try:
+    import db as _db_module
+except ImportError:
+    from backend import db as _db_module
+
+_DATA_BACKEND = _os.getenv(
+    "DATA_BACKEND",
+    "postgres" if _os.getenv("DATABASE_URL", "").strip() else "sheets",
+).lower().strip()
+
 
 def get_connection():
-    return sqlite3.connect(DB_NAME)
+    return _db_module.get_connection()
+# ===== ALSAAB POSTGRES BACKEND V1 END =====
 
 
 def current_timestamp():
@@ -51,14 +72,35 @@ def next_month_timestamp():
 
 
 def parse_timestamp(value):
+    """
+    Always returns a NAIVE UTC datetime, whatever the input.
+
+    PostgreSQL TIMESTAMPTZ columns come back timezone-aware, while the code
+    compares them against datetime.utcnow(), which is naive. Mixing the two
+    raises:
+
+        TypeError: can't compare offset-naive and offset-aware datetimes
+
+    Under SQLite every timestamp was a plain string, so this never came up.
+    Converting to UTC and dropping tzinfo here keeps every existing comparison
+    valid without touching the call sites.
+    """
     if not value:
         return None
+
+    if isinstance(value, datetime):
+        if value.tzinfo is not None:
+            return value.astimezone(timezone.utc).replace(tzinfo=None)
+        return value
 
     try:
         return datetime.strptime(str(value), "%Y-%m-%d %H:%M:%S")
     except Exception:
         try:
-            return datetime.fromisoformat(str(value))
+            parsed = datetime.fromisoformat(str(value))
+            if parsed.tzinfo is not None:
+                return parsed.astimezone(timezone.utc).replace(tzinfo=None)
+            return parsed
         except Exception:
             return None
 
@@ -146,7 +188,7 @@ def init_db():
     add_column_if_missing(c, "client_profiles", "general_description", "TEXT")
 
     c.execute("""
-    CREATE TABLE IF NOT EXISTS client_subscriptions (
+    CREATE TABLE IF NOT EXISTS subscriptions (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         session_id TEXT UNIQUE,
         client_id TEXT,
@@ -167,22 +209,22 @@ def init_db():
     )
     """)
 
-    add_column_if_missing(c, "client_subscriptions", "client_id", "TEXT")
-    add_column_if_missing(c, "client_subscriptions", "bot_id", "TEXT")
-    add_column_if_missing(c, "client_subscriptions", "source_partner_id", "TEXT")
-    add_column_if_missing(c, "client_subscriptions", "plan_name", "TEXT")
-    add_column_if_missing(c, "client_subscriptions", "monthly_reply_limit", "INTEGER")
-    add_column_if_missing(c, "client_subscriptions", "monthly_replies_used", "INTEGER DEFAULT 0")
-    add_column_if_missing(c, "client_subscriptions", "owner_advisory_replies_used", "INTEGER DEFAULT 0")
-    add_column_if_missing(c, "client_subscriptions", "subscription_status", "TEXT DEFAULT 'inactive'")
-    add_column_if_missing(c, "client_subscriptions", "billing_cycle_start", "TIMESTAMP")
-    add_column_if_missing(c, "client_subscriptions", "billing_cycle_end", "TIMESTAMP")
-    add_column_if_missing(c, "client_subscriptions", "stripe_customer_id", "TEXT")
-    add_column_if_missing(c, "client_subscriptions", "stripe_subscription_id", "TEXT")
-    add_column_if_missing(c, "client_subscriptions", "package_amount", "TEXT")
-    add_column_if_missing(c, "client_subscriptions", "notes", "TEXT")
-    add_column_if_missing(c, "client_subscriptions", "created_at", "TIMESTAMP")
-    add_column_if_missing(c, "client_subscriptions", "updated_at", "TIMESTAMP")
+    add_column_if_missing(c, "subscriptions", "client_id", "TEXT")
+    add_column_if_missing(c, "subscriptions", "bot_id", "TEXT")
+    add_column_if_missing(c, "subscriptions", "source_partner_id", "TEXT")
+    add_column_if_missing(c, "subscriptions", "plan_name", "TEXT")
+    add_column_if_missing(c, "subscriptions", "monthly_reply_limit", "INTEGER")
+    add_column_if_missing(c, "subscriptions", "monthly_replies_used", "INTEGER DEFAULT 0")
+    add_column_if_missing(c, "subscriptions", "owner_advisory_replies_used", "INTEGER DEFAULT 0")
+    add_column_if_missing(c, "subscriptions", "subscription_status", "TEXT DEFAULT 'inactive'")
+    add_column_if_missing(c, "subscriptions", "billing_cycle_start", "TIMESTAMP")
+    add_column_if_missing(c, "subscriptions", "billing_cycle_end", "TIMESTAMP")
+    add_column_if_missing(c, "subscriptions", "stripe_customer_id", "TEXT")
+    add_column_if_missing(c, "subscriptions", "stripe_subscription_id", "TEXT")
+    add_column_if_missing(c, "subscriptions", "package_amount", "TEXT")
+    add_column_if_missing(c, "subscriptions", "notes", "TEXT")
+    add_column_if_missing(c, "subscriptions", "created_at", "TIMESTAMP")
+    add_column_if_missing(c, "subscriptions", "updated_at", "TIMESTAMP")
 
     c.execute("""
     CREATE TABLE IF NOT EXISTS usage_logs (
@@ -338,7 +380,7 @@ def get_source_partner_id_for_session(session_id):
     """
     يرجع source_partner_id المرتبط بالجلسة.
     الأولوية:
-    1. client_subscriptions
+    1. subscriptions
     2. leads
     """
     if not session_id:
@@ -351,7 +393,7 @@ def get_source_partner_id_for_session(session_id):
         c.execute(
             """
             SELECT source_partner_id
-            FROM client_subscriptions
+            FROM subscriptions
             WHERE session_id=?
             ORDER BY id DESC
             LIMIT 1
@@ -524,7 +566,25 @@ def post_to_google_sheet_json(payload, label="unknown"):
     """
     نفس فكرة post_to_google_sheet، لكن يرجع JSON كامل.
     نحتاجه في MLM عشان نستلم partner_id و referral_link من Google Apps Script.
+
+    ALSAAB POSTGRES BACKEND V1:
+    عندما DATA_BACKEND != "sheets" يتم توجيه الطلب إلى sheet_compat الذي يرد
+    من PostgreSQL بنفس شكل JSON. أي action لم يُنقل بعد يرجع تلقائياً إلى
+    Google Apps Script عبر _post_to_google_sheet_json_real أدناه.
     """
+    if _DATA_BACKEND != "sheets":
+        try:
+            from sheet_compat import handle as _compat_handle
+        except ImportError:
+            from backend.sheet_compat import handle as _compat_handle
+
+        return _compat_handle(payload, label=label)
+
+    return _post_to_google_sheet_json_real(payload, label=label)
+
+
+def _post_to_google_sheet_json_real(payload, label="unknown"):
+    """The original Google Apps Script call. Kept as the fallback path."""
     print(f"GOOGLE SHEET JSON SEND START ✅ label={label}", flush=True)
 
     if not GOOGLE_SHEET_WEBHOOK_URL:
@@ -1362,6 +1422,35 @@ def get_client_subscription(session_id):
     raw_session_id = str(session_id or "").strip()
     lookup_session_id = get_owner_advisory_account_id(raw_session_id) or raw_session_id
 
+    # ===== ALSAAB RESOLVE PARTNER TO OWN SUBSCRIPTION V1 START =====
+    # Callers pass a partner id here (the client dashboard does), but a
+    # partner's own subscription is stored against partners.client_id — a value
+    # like "smart_ALS-P00003_1783769419085_820", never "ALS-P00003".
+    #
+    # The query below also matches on source_partner_id, so for a partner with
+    # customers it returned one of THEIR subscriptions instead, and which one
+    # varied between calls. The dashboard was showing a partner someone else's
+    # plan, renewal date and failed-payment state.
+    #
+    # Resolving the partner id to their own client_id first makes the lookup
+    # both correct and stable.
+    if re.match(r"^ALS-P\d+$", lookup_session_id, flags=re.IGNORECASE):
+        try:
+            conn = get_connection()
+            c = conn.cursor()
+            c.execute(
+                "SELECT client_id FROM partners WHERE partner_id = ?",
+                (lookup_session_id.upper(),),
+            )
+            row = c.fetchone()
+            conn.close()
+
+            if row and str(row[0] or "").strip():
+                lookup_session_id = str(row[0]).strip()
+        except Exception as resolve_error:
+            print(f"PARTNER OWN SUBSCRIPTION RESOLVE ERROR ⚠️ {resolve_error}", flush=True)
+    # ===== ALSAAB RESOLVE PARTNER TO OWN SUBSCRIPTION V1 END =====
+
     conn = get_connection()
     c = conn.cursor()
 
@@ -1384,9 +1473,20 @@ def get_client_subscription(session_id):
             stripe_subscription_id,
             package_amount,
             notes,
+            cancel_requested_at,
+            cancel_at_period_end,
+            cancel_effective_at,
+            cancel_reason,
+            payment_failed_at,
+            payment_grace_until,
+            payment_retry_count,
+            customer_email,
+            customer_phone,
+            next_renewal_at,
+            last_invoice_url,
             created_at,
             updated_at
-        FROM client_subscriptions
+        FROM subscriptions
         WHERE session_id=?
            OR client_id=?
            OR source_partner_id=?
@@ -1395,7 +1495,8 @@ def get_client_subscription(session_id):
                 WHEN session_id=? THEN 0
                 WHEN client_id=? THEN 1
                 ELSE 2
-            END
+            END,
+            updated_at DESC, id DESC
         LIMIT 1
         """,
         (
@@ -1430,8 +1531,19 @@ def get_client_subscription(session_id):
         "stripe_subscription_id": row[13],
         "package_amount": row[14],
         "notes": row[15],
-        "created_at": row[16],
-        "updated_at": row[17],
+        "cancel_requested_at": row[16],
+        "cancel_at_period_end": bool(row[17]),
+        "cancel_effective_at": row[18],
+        "cancel_reason": row[19],
+        "payment_failed_at": row[20],
+        "payment_grace_until": row[21],
+        "payment_retry_count": row[22] or 0,
+        "customer_email": row[23],
+        "customer_phone": row[24],
+        "next_renewal_at": row[25],
+        "last_invoice_url": row[26],
+        "created_at": row[27],
+        "updated_at": row[28],
     }
 
 def get_client_subscription_by_stripe_subscription_id(stripe_subscription_id):
@@ -1446,7 +1558,7 @@ def get_client_subscription_by_stripe_subscription_id(stripe_subscription_id):
     c.execute(
         """
         SELECT session_id
-        FROM client_subscriptions
+        FROM subscriptions
         WHERE stripe_subscription_id=?
         ORDER BY id DESC
         LIMIT 1
@@ -1723,7 +1835,7 @@ def create_or_update_subscription(
     c = conn.cursor()
 
     c.execute(
-        "SELECT id FROM client_subscriptions WHERE session_id=?",
+        "SELECT id FROM subscriptions WHERE session_id=?",
         (session_id,)
     )
     existing = c.fetchone()
@@ -1732,7 +1844,7 @@ def create_or_update_subscription(
         if reset_usage:
             c.execute(
                 """
-                UPDATE client_subscriptions
+                UPDATE subscriptions
                 SET
                     client_id=?,
                     bot_id=?,
@@ -1769,7 +1881,7 @@ def create_or_update_subscription(
         else:
             c.execute(
                 """
-                UPDATE client_subscriptions
+                UPDATE subscriptions
                 SET
                     client_id=?,
                     bot_id=?,
@@ -1801,7 +1913,7 @@ def create_or_update_subscription(
     else:
         c.execute(
             """
-            INSERT INTO client_subscriptions (
+            INSERT INTO subscriptions (
                 session_id,
                 client_id,
                 bot_id,
@@ -1894,11 +2006,34 @@ def create_or_update_subscription(
     except Exception as auto_partner_error:
         print(f"AUTO PAID CLIENT PARTNER ENSURE ERROR ❌ {auto_partner_error}", flush=True)
 
+    # ===== ALSAAB LEVEL RESYNC BOTH SIDES V1 START =====
+    # Recalculate the level of BOTH parties on any subscription change:
+    #
+    #   the referrer  - their active-customer count just moved
+    #   the owner     - their own level depends on their own subscription, and
+    #                   if it lapses they must stop showing as commission
+    #                   eligible. Only the referrer used to be resynced, so a
+    #                   partner who cancelled kept an "eligible" badge until
+    #                   some unrelated event happened to touch them.
+    #
+    # The payout decision itself was never wrong — the commission engine
+    # recomputes eligibility from scratch at payout time — but every dashboard
+    # read a stale value in between.
     try:
-        if source_partner_id and str(source_partner_id).lower() != str(COMPANY_OWNER_PARTNER_ID).lower():
-            sync_partner_level_progress_to_google_sheet(source_partner_id)
+        owner_partner_id = normalize_partner_id(client_id) or normalize_partner_id(session_id)
+
+        for partner_to_resync in (source_partner_id, owner_partner_id):
+            if not partner_to_resync:
+                continue
+
+            if str(partner_to_resync).lower() == str(COMPANY_OWNER_PARTNER_ID).lower():
+                continue
+
+            sync_partner_level_progress_to_google_sheet(partner_to_resync)
+
     except Exception as level_sync_error:
-        print(f"SUBSCRIPTION SOURCE PARTNER LEVEL SYNC ERROR ❌ {level_sync_error}", flush=True)
+        print(f"SUBSCRIPTION LEVEL SYNC ERROR ❌ {level_sync_error}", flush=True)
+    # ===== ALSAAB LEVEL RESYNC BOTH SIDES V1 END =====
 
     return subscription
 
@@ -1909,7 +2044,7 @@ def set_subscription_status(session_id, status, notes=""):
 
     c.execute(
         """
-        UPDATE client_subscriptions
+        UPDATE subscriptions
         SET
             subscription_status=?,
             notes=?,
@@ -1940,7 +2075,7 @@ def reset_subscription_usage(session_id):
 
     c.execute(
         """
-        UPDATE client_subscriptions
+        UPDATE subscriptions
         SET
             monthly_replies_used=0,
             billing_cycle_start=?,
@@ -2009,6 +2144,26 @@ def can_client_use_bot(session_id):
             "message": get_usage_limit_message("inactive_subscription", subscription),
             "subscription": subscription,
         }
+
+    # ===== ALSAAB CANCEL AT PERIOD END GATE V1 START =====
+    # A scheduled cancellation keeps the bot running until the paid period
+    # actually runs out — the customer paid for the month.
+    #
+    # This check is what ends it, rather than waiting for Stripe's
+    # customer.subscription.deleted webhook: a manual subscription has no
+    # Stripe object to fire one, and even a Stripe subscription would keep
+    # serving replies if that webhook were ever missed.
+    if subscription.get("cancel_at_period_end"):
+        effective_at = parse_timestamp(subscription.get("cancel_effective_at"))
+
+        if effective_at and datetime.utcnow() >= effective_at:
+            return {
+                "allowed": False,
+                "reason": "cancelled_subscription",
+                "message": get_usage_limit_message("cancelled_subscription", subscription),
+                "subscription": subscription,
+            }
+    # ===== ALSAAB CANCEL AT PERIOD END GATE V1 END =====
 
     if is_owner_advisory_session(session_id):
         owner_advisory_reply_limit = int(
@@ -2127,7 +2282,7 @@ def record_bot_reply_usage(session_id, replies_count=1, tokens_estimate=0):
     if usage_type == "owner_advisory_reply":
         c.execute(
             """
-            UPDATE client_subscriptions
+            UPDATE subscriptions
             SET
                 owner_advisory_replies_used = owner_advisory_replies_used + ?,
                 updated_at=CURRENT_TIMESTAMP
@@ -2138,7 +2293,7 @@ def record_bot_reply_usage(session_id, replies_count=1, tokens_estimate=0):
     else:
         c.execute(
             """
-            UPDATE client_subscriptions
+            UPDATE subscriptions
             SET
                 monthly_replies_used = monthly_replies_used + ?,
                 updated_at=CURRENT_TIMESTAMP
@@ -2272,7 +2427,7 @@ def get_all_subscriptions(limit=100):
             notes,
             created_at,
             updated_at
-        FROM client_subscriptions
+        FROM subscriptions
         ORDER BY id DESC
         LIMIT ?
         """,
@@ -2874,14 +3029,32 @@ def send_mlm_level_to_google_sheet(
     return post_to_google_sheet_json(payload, label="mlm_level")
 
 def _level_db_table_exists(table_name):
+    """
+    sqlite_master does not exist in PostgreSQL, so this used to raise for
+    every table and return False. get_partner_subscription_snapshot() reads
+    that answer and gives up immediately, which meant the whole level-progress
+    path — the numbers the dashboards display — silently found no
+    subscriptions at all after the migration.
+    """
     try:
         conn = get_connection()
         c = conn.cursor()
-        c.execute(
-            "SELECT name FROM sqlite_master WHERE type='table' AND name=?",
-            (table_name,)
-        )
-        row = c.fetchone()
+
+        try:
+            c.execute(
+                "SELECT table_name FROM information_schema.tables "
+                "WHERE table_schema = 'public' AND table_name = ?",
+                (table_name,)
+            )
+            row = c.fetchone()
+        except Exception:
+            # SQLite fallback, still used for local runs without DATABASE_URL.
+            c.execute(
+                "SELECT name FROM sqlite_master WHERE type='table' AND name=?",
+                (table_name,)
+            )
+            row = c.fetchone()
+
         conn.close()
         return bool(row)
     except Exception as error:
@@ -3228,7 +3401,7 @@ def get_partner_subscription_snapshot(partner_id):
         "package_amount": mapping.get("package_amount") or "",
     }
 
-    table = "client_subscriptions"
+    table = "subscriptions"
 
     if not _level_db_table_exists(table):
         return default_snapshot
@@ -3340,7 +3513,7 @@ def count_active_direct_paid_customers(partner_id):
     from level_engine import ACTIVE_SUBSCRIPTION_STATUSES
 
     partner_id = normalize_partner_id(partner_id)
-    table = "client_subscriptions"
+    table = "subscriptions"
 
     if not partner_id or not _level_db_table_exists(table):
         return 0
@@ -3474,7 +3647,11 @@ def get_partner_purchased_courses(partner_id):
         FROM course_purchases
         WHERE partner_id=?
           AND LOWER(status) IN ('paid', 'active', 'completed')
-          AND (refunded_at IS NULL OR refunded_at='')
+          -- refunded_at is a real timestamp column here. SQLite compared it
+          -- to '' happily; PostgreSQL rejects the whole query with
+          -- "invalid input syntax for type timestamp with time zone".
+          -- IS NULL already covers "never refunded".
+          AND refunded_at IS NULL
         """,
         (partner_id,)
     )
@@ -3645,11 +3822,17 @@ def _level_number_to_label(level_value):
 
 
 def _course_code_to_display_name(course_code):
+    # The three codes the level rules require are the last three below.
+    # The older sales_skills_89 / change_journey_149 entries are kept so that
+    # any partner who already bought under the old naming still resolves to a
+    # readable name instead of a raw code.
     mapping = {
         "marketing_course_free": "كورس التسويق المجاني",
         "pro_marketer_mindset_69": "كورس عقلية المسوق المحترف 69$",
         "sales_skills_89": "كورس مهارات المبيعات 89$",
         "change_journey_149": "كورس رحلة التغيير 149$",
+        "sales_secrets_999": "كورس أسرار المبيعات 999$",
+        "change_journey_299": "كورس رحلة التغيير 299$",
     }
 
     return mapping.get(str(course_code or "").strip(), str(course_code or "").strip())

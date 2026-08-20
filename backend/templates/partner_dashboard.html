@@ -1,0 +1,730 @@
+<!DOCTYPE html>
+<html lang="{{ lang }}" dir="{{ direction }}">
+<head>
+  <meta charset="utf-8">
+  <title>{{ t.page_title }}</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <style>
+    body {
+      margin: 0;
+      background: #0b0b0b;
+      color: #f5f0df;
+      font-family: Arial, Tahoma, sans-serif;
+      direction: {{ direction }};
+      text-align: {{ text_align }};
+    }
+
+    .page {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 28px;
+    }
+
+    .topbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 14px;
+      margin-bottom: 16px;
+      flex-wrap: wrap;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .logo-mark {
+      width: 54px;
+      height: 54px;
+      border-radius: 16px;
+      border: 1px solid #c8a84b;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #d7b85a;
+      font-weight: 800;
+      letter-spacing: 1px;
+      background: linear-gradient(135deg, #111, #211c0f);
+      box-shadow: 0 0 18px rgba(200, 168, 75, 0.2);
+      font-size: 12px;
+    }
+
+    .brand-title {
+      color: #d7b85a;
+      font-size: 19px;
+      font-weight: 800;
+    }
+
+    .brand-note {
+      color: #9f967b;
+      font-size: 12px;
+      margin-top: 3px;
+    }
+
+    .actions {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .action-btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      border: 1px solid rgba(215, 184, 90, 0.5);
+      color: #f0cc68;
+      background: #111;
+      padding: 10px 14px;
+      border-radius: 999px;
+      text-decoration: none;
+      font-size: 14px;
+    }
+
+    .action-btn:hover {
+      background: #1a160d;
+    }
+
+    .portal-switch {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 14px;
+      margin-bottom: 18px;
+    }
+
+    .portal-card {
+      background: linear-gradient(135deg, #111, #17130b);
+      border: 1px solid rgba(215, 184, 90, 0.45);
+      border-radius: 18px;
+      padding: 18px;
+      color: #f5f0df;
+      text-decoration: none;
+      display: block;
+      transition: transform 0.15s ease, border-color 0.15s ease, background 0.15s ease;
+    }
+
+    .portal-card:hover {
+      transform: translateY(-2px);
+      border-color: #d7b85a;
+      background: linear-gradient(135deg, #161616, #211a0d);
+    }
+
+    .portal-card.active {
+      border-color: #d7b85a;
+      background: linear-gradient(135deg, #d7b85a, #8b6b21);
+      color: #0b0b0b;
+      box-shadow: 0 0 25px rgba(215, 184, 90, 0.22);
+      position: relative;
+    }
+
+    .portal-card.active .portal-card-title,
+    .portal-card.active .portal-card-text {
+      color: #0b0b0b;
+    }
+
+    .portal-card.active::after {
+      content: "أنت هنا";
+      position: absolute;
+      top: 12px;
+      left: 14px;
+      background: #0b0b0b;
+      color: #f0cc68;
+      border-radius: 999px;
+      padding: 4px 10px;
+      font-size: 12px;
+      font-weight: 700;
+    }
+
+    .portal-card-title {
+      color: #d7b85a;
+      font-weight: 800;
+      font-size: 20px;
+      margin-bottom: 8px;
+    }
+
+    .portal-card-text {
+      color: #cfc7ad;
+      line-height: 1.6;
+      font-size: 14px;
+    }
+
+    .header {
+      background: linear-gradient(135deg, #111, #1d1a10);
+      border: 1px solid #c8a84b;
+      border-radius: 18px;
+      padding: 24px;
+      margin-bottom: 20px;
+      box-shadow: 0 0 25px rgba(200, 168, 75, 0.12);
+    }
+
+    .header h1 {
+      margin: 0 0 8px;
+      color: #d7b85a;
+      font-size: 28px;
+    }
+
+    .sub {
+      color: #cfc7ad;
+      line-height: 1.7;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 14px;
+      margin-bottom: 20px;
+    }
+
+    .card {
+      background: #121212;
+      border: 1px solid rgba(215, 184, 90, 0.35);
+      border-radius: 16px;
+      padding: 18px;
+    }
+
+    .card h3 {
+      margin: 0 0 10px;
+      color: #d7b85a;
+      font-size: 16px;
+    }
+
+    .big {
+      font-size: 26px;
+      font-weight: 700;
+      color: #fff;
+    }
+
+    .muted {
+      color: #aaa;
+      font-size: 13px;
+      margin-top: 5px;
+    }
+
+    .section {
+      background: #111;
+      border: 1px solid rgba(215, 184, 90, 0.25);
+      border-radius: 18px;
+      padding: 20px;
+      margin-bottom: 18px;
+    }
+
+    .status-message {
+      background: rgba(128, 226, 138, 0.08);
+      border: 1px solid rgba(128, 226, 138, 0.4);
+      color: #80e28a;
+      border-radius: 14px;
+      padding: 13px 16px;
+      margin-bottom: 18px;
+      font-weight: 700;
+    }
+
+    .small-list {
+      margin-top: 14px;
+      border-top: 1px solid rgba(255,255,255,0.08);
+      padding-top: 12px;
+    }
+
+    .small-item {
+      border: 1px solid rgba(215, 184, 90, 0.20);
+      border-radius: 12px;
+      padding: 12px;
+      margin-bottom: 10px;
+      background: rgba(255,255,255,0.02);
+    }
+
+    .small-item-title {
+      color: #d7b85a;
+      font-weight: 800;
+      margin-bottom: 6px;
+    }
+
+    .section h2 {
+      margin: 0 0 14px;
+      color: #d7b85a;
+      font-size: 21px;
+    }
+
+    .form-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 14px;
+      margin-top: 14px;
+    }
+
+    .field {
+      display: flex;
+      flex-direction: column;
+      gap: 7px;
+    }
+
+    .field.full {
+      grid-column: 1 / -1;
+    }
+
+    .field label {
+      color: #d7b85a;
+      font-size: 14px;
+      font-weight: 700;
+    }
+
+    input, textarea {
+      width: 100%;
+      box-sizing: border-box;
+      background: #0b0b0b;
+      border: 1px solid rgba(215, 184, 90, 0.35);
+      color: #fff;
+      border-radius: 12px;
+      padding: 12px;
+      font-family: Arial, Tahoma, sans-serif;
+      font-size: 14px;
+      outline: none;
+    }
+
+    textarea {
+      min-height: 110px;
+      resize: vertical;
+    }
+
+    .upload-box {
+      border: 1px dashed rgba(215, 184, 90, 0.45);
+      border-radius: 14px;
+      padding: 18px;
+      color: #cfc7ad;
+      background: rgba(255,255,255,0.02);
+      margin-top: 12px;
+    }
+
+    .primary-btn {
+      display: inline-block;
+      margin-top: 12px;
+      border: 1px solid rgba(215, 184, 90, 0.55);
+      background: linear-gradient(135deg, #2a220f, #141414);
+      color: #f0cc68;
+      padding: 11px 16px;
+      border-radius: 999px;
+      text-decoration: none;
+      font-weight: 700;
+      cursor: pointer;
+      opacity: 1;
+    }
+
+    .info-row {
+      display: grid;
+      grid-template-columns: 210px 1fr;
+      gap: 12px;
+      padding: 9px 0;
+      border-bottom: 1px solid rgba(255,255,255,0.08);
+    }
+
+    .label {
+      color: #c8a84b;
+    }
+
+    .value {
+      color: #fff;
+      word-break: break-word;
+    }
+
+    a {
+      color: #f0cc68;
+      text-decoration: none;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 12px;
+      overflow: hidden;
+      border-radius: 12px;
+    }
+
+    th, td {
+      padding: 11px;
+      border-bottom: 1px solid rgba(255,255,255,0.08);
+      text-align: {{ text_align }};
+      font-size: 14px;
+    }
+
+    th {
+      color: #d7b85a;
+      background: #181818;
+    }
+
+    td {
+      color: #f5f0df;
+    }
+
+    .badge {
+      display: inline-block;
+      padding: 5px 10px;
+      border-radius: 999px;
+      border: 1px solid rgba(215, 184, 90, 0.45);
+      color: #f0cc68;
+      font-size: 13px;
+    }
+
+    pre {
+      white-space: pre-wrap;
+      background: #0b0b0b;
+      border: 1px solid rgba(215, 184, 90, 0.25);
+      padding: 12px;
+      border-radius: 12px;
+      color: #eee;
+      direction: ltr;
+      text-align: left;
+    }
+
+    @media (max-width: 900px) {
+      .grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+
+      .info-row {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    @media (max-width: 600px) {
+      .grid {
+        grid-template-columns: 1fr;
+      }
+
+      .page {
+        padding: 16px;
+      }
+    }
+
+
+    /* ===== ALSAAB_DASHBOARD_VISUAL_POLISH_V4 START ===== */
+    .alsaab-skin-v4 {
+      background:
+        radial-gradient(circle at 85% 8%, rgba(240,204,104,.14), transparent 24%),
+        radial-gradient(circle at 12% 20%, rgba(59,130,246,.10), transparent 26%);
+    }
+
+    .alsaab-skin-v4 .card,
+    .alsaab-skin-v4 .section,
+    .alsaab-skin-v4 .portal-card {
+      background:
+        linear-gradient(145deg, rgba(255,255,255,.05), rgba(12,15,24,.96)),
+        radial-gradient(circle at top right, rgba(215,184,90,.08), transparent 32%) !important;
+      border-color: rgba(240,204,104,.38) !important;
+      box-shadow:
+        0 14px 34px rgba(0,0,0,.34),
+        inset 0 1px 0 rgba(255,255,255,.06),
+        0 0 18px rgba(215,184,90,.08) !important;
+      transition: all .20s ease !important;
+    }
+
+    .alsaab-skin-v4 .card:hover,
+    .alsaab-skin-v4 .section:hover,
+    .alsaab-skin-v4 .portal-card:hover {
+      transform: translateY(-2px);
+      border-color: rgba(255,224,138,.82) !important;
+      box-shadow:
+        0 18px 44px rgba(0,0,0,.45),
+        0 0 28px rgba(240,204,104,.20) !important;
+    }
+
+    .alsaab-skin-v4 .portal-card.active,
+    .alsaab-skin-v4 .primary-btn,
+    .alsaab-skin-v4 button.primary-btn {
+      background: linear-gradient(135deg, #6f4d13 0%, #d7b85a 44%, #f0cc68 68%, #9a6b18 100%) !important;
+      color: #fffaf0 !important;
+      text-shadow: 0 2px 4px rgba(0,0,0,.58) !important;
+      border-color: rgba(255,255,255,.25) !important;
+      box-shadow: 0 10px 26px rgba(215,184,90,.24) !important;
+      font-weight: 900 !important;
+    }
+
+    .alsaab-skin-v4 .portal-card.active .portal-card-title,
+    .alsaab-skin-v4 .portal-card.active .portal-card-text {
+      color: #fffaf0 !important;
+      text-shadow: 0 2px 4px rgba(0,0,0,.58) !important;
+    }
+
+    .alsaab-skin-v4 .section h2,
+    .alsaab-skin-v4 .card h3,
+    .alsaab-skin-v4 .portal-card-title,
+    .alsaab-skin-v4 .brand-title {
+      color: #ffe08a !important;
+      text-shadow: 0 0 16px rgba(240,204,104,.18) !important;
+    }
+
+    .alsaab-skin-v4 .big,
+    .alsaab-skin-v4 .value {
+      color: #ffffff !important;
+      text-shadow: 0 0 16px rgba(255,255,255,.08) !important;
+    }
+
+    .alsaab-skin-v4 .muted,
+    .alsaab-skin-v4 .portal-card-text {
+      color: #ddd6c4 !important;
+    }
+
+    .alsaab-skin-v4 .label {
+      color: #f0cc68 !important;
+      font-weight: 900 !important;
+    }
+
+    .alsaab-skin-v4 .info-row,
+    .alsaab-skin-v4 .small-item,
+    .alsaab-skin-v4 .payment-row {
+      background: linear-gradient(90deg, rgba(255,255,255,.035), rgba(215,184,90,.035)) !important;
+      border-color: rgba(240,204,104,.28) !important;
+    }
+
+    .alsaab-skin-v4 input,
+    .alsaab-skin-v4 textarea,
+    .alsaab-skin-v4 select {
+      background: linear-gradient(135deg, #070b12, #101827) !important;
+      color: #fffaf0 !important;
+      border-color: rgba(240,204,104,.42) !important;
+    }
+
+    .alsaab-skin-v4 input:focus,
+    .alsaab-skin-v4 textarea:focus,
+    .alsaab-skin-v4 select:focus {
+      outline: none !important;
+      border-color: rgba(255,224,138,.95) !important;
+      box-shadow: 0 0 0 3px rgba(240,204,104,.12) !important;
+    }
+
+    .alsaab-skin-v4 button[style*="#6b1d1d"],
+    .alsaab-skin-v4 button[style*="6b1d1d"] {
+      background: linear-gradient(135deg, #ef4444, #991b1b) !important;
+      color: #fff !important;
+      text-shadow: 0 1px 2px rgba(0,0,0,.45) !important;
+      border-color: rgba(255,150,150,.85) !important;
+    }
+
+    .alsaab-skin-v4 button[style*="128,226,138"],
+    .alsaab-skin-v4 button[style*="#80e28a"],
+    .alsaab-skin-v4 button[style*="80e28a"] {
+      background: linear-gradient(135deg, #22c55e, #14532d) !important;
+      color: #fff !important;
+      text-shadow: 0 1px 2px rgba(0,0,0,.45) !important;
+      border-color: rgba(134,239,172,.85) !important;
+    }
+    /* ===== ALSAAB_DASHBOARD_VISUAL_POLISH_V4 END ===== */
+
+</style>
+</head>
+<body>
+  <div class="page alsaab-skin-v4">
+
+    <div class="topbar">
+      <div class="brand">
+        <div class="logo-mark">ALSAAB</div>
+        <div>
+          <div class="brand-title">ALSAAB AI</div>
+</div>
+      </div>
+
+      <div class="actions">
+        <a class="action-btn" href="{{ website_url }}">{{ t.back_site }}</a>
+        <a class="action-btn" href="{{ language_url }}">{{ t.language }}</a>
+      </div>
+    </div>
+
+    <div class="portal-switch">
+      <a class="portal-card active" href="{{ partner_dashboard_url }}">
+        <div class="portal-card-title">Partner Dashboard</div>
+        <div class="portal-card-text">
+          الشراكة، العمولات، المستويات، العملاء، الكورسات، ومتطلبات الترقية.
+        </div>
+      </a>
+
+      <a class="portal-card" href="{{ client_dashboard_url }}">
+        <div class="portal-card-title">Client Dashboard</div>
+        <div class="portal-card-text">
+          مشروعك، باقتك، استخدامك، بيانات موظف المبيعات الذكي، الصور، والكتالوجات.
+        </div>
+      </a>
+    </div>
+    <div class="grid">
+      <div class="card">
+        <h3>{{ t.partner_id }}</h3>
+        <div class="big">{{ profile.partner_id }}</div>
+        <div class="muted">{{ profile.partner_name or "Partner" }}</div>
+      </div>
+
+      <div class="card" style="border-color: {{ rank_ui.color }}; box-shadow: 0 0 28px {{ rank_ui.glow }};">
+        <h3>{{ t.current_level }}</h3>
+        <div class="big" style="color:{{ rank_ui.color }};">{{ rank_ui.level_label }}</div>
+        <div class="muted">{{ rank_ui.rank_name }}</div>
+        <div class="muted">{{ t.next }}: {{ rank_ui.next_label }}</div>
+      </div>
+
+      <div class="card">
+        <h3>{{ t.active_direct_customers }}</h3>
+        <div class="big">{{ customers.active_direct_paid_count or 0 }}</div>
+        <div class="muted">{{ t.all_direct }}: {{ customers.all_direct_count or 0 }}</div>
+      </div>
+
+      <div class="card">
+        <h3>{{ t.pending_commissions }}</h3>
+        <div class="big">{{ money(totals.pending) }}</div>
+        <div class="muted">{{ t.commission_count }}: {{ counts.pending or 0 }}</div>
+      </div>
+    </div>
+
+    <div class="section">
+      <h2>{{ t.partner_info }}</h2>
+      <div class="info-row"><div class="label">{{ t.partner_id }}</div><div class="value">{{ profile.partner_id }}</div></div>
+      <div class="info-row"><div class="label">{{ t.name }}</div><div class="value">{{ profile.partner_name or "-" }}</div></div>
+      <div class="info-row"><div class="label">{{ t.status }}</div><div class="value"><span class="badge">{{ profile.status or "-" }}</span></div></div>
+      <div class="info-row"><div class="label">{{ t.sponsor }}</div><div class="value">{{ profile.sponsor_partner_id or "-" }}</div></div>
+      <div class="info-row"><div class="label">{{ t.referral_link }}</div><div class="value"><a href="{{ profile.referral_link }}" target="_blank">{{ profile.referral_link }}</a></div></div>
+    </div>
+
+    <div class="section" style="border-color: {{ rank_ui.color }}; box-shadow: 0 0 32px {{ rank_ui.glow }};">
+      <h2>{{ t.level_progress }}</h2>
+
+      <div style="display:flex;gap:14px;flex-wrap:wrap;margin-bottom:16px;">
+        <div style="border:1px solid {{ rank_ui.color }};background:rgba(255,255,255,.035);border-radius:16px;padding:14px 16px;min-width:180px;">
+          <div class="muted">{{ t.current_level }}</div>
+          <div class="big" style="color:{{ rank_ui.color }};">{{ rank_ui.level_label }}</div>
+          <div class="muted">{{ rank_ui.rank_name }}</div>
+        </div>
+
+        <div style="border:1px solid rgba(215,184,90,.35);background:rgba(215,184,90,.06);border-radius:16px;padding:14px 16px;min-width:220px;">
+          <div class="muted">{{ t.next }}</div>
+          <div class="big">{{ rank_ui.next_label }}</div>
+          <div class="muted">{{ rank_ui.requirement_text }}</div>
+        </div>
+      </div>
+
+      <div class="info-row"><div class="label">{{ t.completed_sales }}</div><div class="value">{{ rank_ui.completed_sales }}</div></div>
+      <div class="info-row"><div class="label">{{ t.required_sales }}</div><div class="value">{{ rank_ui.required_sales }}</div></div>
+      <div class="info-row"><div class="label">{{ t.current_package }}</div><div class="value">{{ rank_ui.current_package }}</div></div>
+      <div class="info-row"><div class="label">{{ t.subscription_status }}</div><div class="value">{{ rank_ui.subscription_status }}</div></div>
+      <div class="info-row"><div class="label">{{ t.commission_eligible }}</div><div class="value">{{ rank_ui.commission_eligible }}</div></div>
+      <div class="info-row"><div class="label">{{ t.required_course }}</div><div class="value">{{ rank_ui.required_course }}</div></div>
+      <div class="info-row"><div class="label">{{ t.missing_requirements }}</div><div class="value" style="color:#f0cc68;font-weight:900;">{{ rank_ui.missing_text }}</div></div>
+    </div>
+
+    <div class="section">
+      <h2>{{ t.network }}</h2>
+      <div class="grid">
+        <div class="card"><h3>{{ t.direct }}</h3><div class="big">{{ depth_counts.get("1", 0) }}</div></div>
+        <div class="card"><h3>{{ t.level_2 }}</h3><div class="big">{{ depth_counts.get("2", 0) }}</div></div>
+        <div class="card"><h3>{{ t.level_3 }}</h3><div class="big">{{ depth_counts.get("3", 0) }}</div></div>
+        <div class="card"><h3>{{ t.total_network }}</h3><div class="big">{{ tree.downline_count or 0 }}</div></div>
+      </div>
+    </div>
+
+    <div class="section">
+      <h2>{{ t.commission_summary }}</h2>
+      <div class="grid">
+        <div class="card"><h3>Pending</h3><div class="big">{{ money(totals.pending) }}</div><div class="muted">{{ counts.pending or 0 }}</div></div>
+        <div class="card"><h3>Approved</h3><div class="big">{{ money(totals.approved) }}</div><div class="muted">{{ counts.approved or 0 }}</div></div>
+        <div class="card"><h3>Paid</h3><div class="big">{{ money(totals.paid) }}</div><div class="muted">{{ counts.paid or 0 }}</div></div>
+        <div class="card"><h3>Total</h3><div class="big">{{ money(totals.all) }}</div><div class="muted">{{ counts.all or 0 }}</div></div>
+      </div>
+    </div>
+
+    <div class="section">
+      <h2>{{ t.recent_commissions }}</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>{{ t.date }}</th>
+            <th>{{ t.depth }}</th>
+            <th>{{ t.package }}</th>
+            <th>{{ t.percent }}</th>
+            <th>{{ t.amount }}</th>
+            <th>{{ t.status }}</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for c in recent_commissions[:10] %}
+          <tr>
+            <td>{{ c.date or "-" }}</td>
+            <td>{{ c.commission_depth or "-" }}</td>
+            <td>{{ c.package or "-" }}</td>
+            <td>{{ c.commission_percent or "-" }}%</td>
+            <td>{{ money(c.commission_amount) }}</td>
+            <td><span class="badge">{{ c.status or "-" }}</span></td>
+          </tr>
+          {% else %}
+          <tr><td colspan="6">{{ t.no_commissions }}</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+
+    <div class="section">
+      <h2>{{ t.direct_customers }}</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>{{ t.date }}</th>
+            <th>{{ t.client_id }}</th>
+            <th>{{ t.package }}</th>
+            <th>{{ t.amount }}</th>
+            <th>{{ t.status }}</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for customer in recent_customers[:10] %}
+          <tr>
+            <td>{{ customer.date or "-" }}</td>
+            <td>{{ customer.client_id or customer.session_id or "-" }}</td>
+            <td>{{ customer.plan_name or "-" }}</td>
+            <td>{{ money(customer.package_amount) }}</td>
+            <td>
+              <span class="badge">{{ customer.subscription_status or "-" }}</span>
+              {% if customer.cancel_at_period_end %}
+              <span style="display:inline-block;margin-inline-start:6px;padding:2px 8px;border-radius:999px;
+                           background:rgba(239,68,68,.14);border:1px solid rgba(239,68,68,.5);
+                           color:#fca5a5;font-size:11px;font-weight:800;white-space:nowrap;">
+                ينتهي {{ customer.ends_on }}
+              </span>
+              {% elif customer.cancel_pending %}
+              <span style="display:inline-block;margin-inline-start:6px;padding:2px 8px;border-radius:999px;
+                           background:rgba(245,158,11,.14);border:1px solid rgba(245,158,11,.5);
+                           color:#fcd34d;font-size:11px;font-weight:800;white-space:nowrap;">
+                طلب إلغاء
+              </span>
+              {% endif %}
+            </td>
+          </tr>
+          {% else %}
+          <tr><td colspan="5">{{ t.no_customers }}</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+
+    <div class="section">
+      <h2>{{ t.courses }}</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>{{ t.course }}</th>
+            <th>{{ t.code }}</th>
+            <th>{{ t.amount }}</th>
+            <th>{{ t.status }}</th>
+            <th>{{ t.paid_at }}</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for course in purchased_courses %}
+          <tr>
+            <td>{{ course.course_name or "-" }}</td>
+            <td>{{ course.course_code or "-" }}</td>
+            <td>{{ money(course.amount) }}</td>
+            <td><span class="badge">{{ course.status or "-" }}</span></td>
+            <td>{{ course.paid_at or course.date or "-" }}</td>
+          </tr>
+          {% else %}
+          <tr><td colspan="5">{{ t.no_courses }}</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+</div>
+</body>
+</html>

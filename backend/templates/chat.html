@@ -1,0 +1,1279 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ALSAAB AI</title>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+
+<style>
+* {
+    box-sizing: border-box;
+}
+
+:root {
+    --bg-main: #05070d;
+    --bg-card: rgba(12, 16, 26, 0.92);
+    --bg-card-soft: rgba(255, 255, 255, 0.045);
+    --border-soft: rgba(255, 255, 255, 0.08);
+    --gold: #d6a84f;
+    --gold-2: #f3d37b;
+    --gold-3: #a97824;
+    --green: #22c55e;
+    --text-main: #f8fafc;
+    --text-soft: #cbd5e1;
+    --text-muted: #94a3b8;
+    --shadow: 0 24px 80px rgba(0,0,0,0.55);
+}
+
+html, body {
+    margin: 0;
+    padding: 0;
+    width: 100%;
+    height: 100%;
+    background: var(--bg-main);
+    font-family: "Cairo", Arial, sans-serif;
+    color: var(--text-main);
+    overflow: hidden;
+}
+
+.luxury-bg {
+    position: fixed;
+    inset: 0;
+    background:
+        radial-gradient(circle at 15% 15%, rgba(214, 168, 79, 0.16), transparent 28%),
+        radial-gradient(circle at 85% 85%, rgba(214, 168, 79, 0.12), transparent 32%),
+        linear-gradient(135deg, #03050a 0%, #0a0f1d 42%, #060810 100%);
+    z-index: -3;
+}
+
+.luxury-bg::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background-image:
+        linear-gradient(rgba(255,255,255,0.025) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255,255,255,0.025) 1px, transparent 1px);
+    background-size: 42px 42px;
+    mask-image: radial-gradient(circle at center, black, transparent 78%);
+    opacity: 0.55;
+}
+
+.luxury-bg::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background:
+        radial-gradient(circle at 55% 115%, rgba(214,168,79,0.22), transparent 35%),
+        radial-gradient(circle at 95% 10%, rgba(255,255,255,0.05), transparent 25%);
+    opacity: 0.9;
+}
+
+.page {
+    width: 100%;
+    height: 100vh;
+    padding: 18px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.chat-shell {
+    width: min(1040px, 100%);
+    height: min(880px, calc(100vh - 36px));
+    min-height: 620px;
+    display: grid;
+    grid-template-columns: 280px 1fr;
+    border: 1px solid rgba(214, 168, 79, 0.38);
+    border-radius: 28px;
+    background:
+        linear-gradient(180deg, rgba(255,255,255,0.035), rgba(255,255,255,0.01)),
+        rgba(7, 10, 18, 0.92);
+    box-shadow:
+        var(--shadow),
+        0 0 0 1px rgba(255,255,255,0.025) inset,
+        0 0 80px rgba(214, 168, 79, 0.08);
+    overflow: hidden;
+    backdrop-filter: blur(18px);
+}
+
+.sidebar {
+    position: relative;
+    padding: 24px 18px;
+    border-left: 1px solid rgba(255,255,255,0.07);
+    background:
+        radial-gradient(circle at top, rgba(214,168,79,0.13), transparent 34%),
+        linear-gradient(180deg, rgba(255,255,255,0.035), rgba(255,255,255,0.01));
+    overflow-y: auto;
+}
+
+.sidebar::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background:
+        linear-gradient(145deg, transparent 0%, rgba(214,168,79,0.045) 45%, transparent 80%);
+    pointer-events: none;
+}
+
+.brand-block {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    margin-bottom: 28px;
+}
+
+.logo-mark {
+    width: 58px;
+    height: 58px;
+    border-radius: 18px;
+    display: grid;
+    place-items: center;
+    background:
+        linear-gradient(145deg, rgba(255,255,255,0.08), rgba(255,255,255,0.02)),
+        radial-gradient(circle at top, rgba(243,211,123,0.25), transparent 60%);
+    border: 1px solid rgba(214,168,79,0.45);
+    box-shadow:
+        0 12px 30px rgba(0,0,0,0.35),
+        0 0 24px rgba(214,168,79,0.12);
+    color: white;
+    font-weight: 900;
+    font-size: 30px;
+    line-height: 1;
+}
+
+.logo-mark span {
+    background: linear-gradient(180deg, #ffffff, #d6a84f);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+.brand-text h1 {
+    margin: 0;
+    font-size: 22px;
+    font-weight: 900;
+    letter-spacing: 0.4px;
+}
+
+.brand-text p {
+    margin: 3px 0 0;
+    color: var(--text-muted);
+    font-size: 12px;
+    line-height: 1.6;
+}
+
+.side-card {
+    position: relative;
+    padding: 18px;
+    border-radius: 22px;
+    background: rgba(255,255,255,0.045);
+    border: 1px solid rgba(255,255,255,0.07);
+    margin-bottom: 16px;
+}
+
+.side-card.gold {
+    border-color: rgba(214,168,79,0.35);
+    background:
+        radial-gradient(circle at top right, rgba(214,168,79,0.13), transparent 45%),
+        rgba(255,255,255,0.04);
+}
+
+.side-label {
+    color: var(--gold-2);
+    font-size: 12px;
+    font-weight: 800;
+    margin-bottom: 8px;
+}
+
+.side-title {
+    margin: 0;
+    font-size: 22px;
+    font-weight: 900;
+    line-height: 1.35;
+}
+
+.side-text {
+    color: var(--text-muted);
+    font-size: 13px;
+    line-height: 1.8;
+    margin: 8px 0 0;
+}
+
+.side-list {
+    display: grid;
+    gap: 12px;
+    margin-top: 16px;
+}
+
+.side-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    color: var(--text-soft);
+    font-size: 13px;
+}
+
+.side-icon {
+    width: 32px;
+    height: 32px;
+    border-radius: 12px;
+    display: grid;
+    place-items: center;
+    border: 1px solid rgba(214,168,79,0.28);
+    color: var(--gold-2);
+    background: rgba(214,168,79,0.07);
+    flex-shrink: 0;
+}
+
+.mini-cta {
+    margin-top: 18px;
+    width: 100%;
+    border: none;
+    border-radius: 16px;
+    background: linear-gradient(135deg, var(--gold-2), var(--gold));
+    color: #111827;
+    font-family: "Cairo", Arial, sans-serif;
+    font-weight: 900;
+    font-size: 14px;
+    padding: 13px 14px;
+    cursor: pointer;
+    box-shadow: 0 12px 28px rgba(214,168,79,0.22);
+}
+
+.main-chat {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+    height: 100%;
+    overflow: hidden;
+}
+
+
+/* ALSAAB_IOS_WHATSAPP_SAFE_TOP_V1 */
+@supports (padding-top: env(safe-area-inset-top)) {
+    body {
+        padding-top: env(safe-area-inset-top);
+    }
+}
+
+@media (max-width: 760px) {
+    .chat-header {
+        padding-top: calc(22px + env(safe-area-inset-top, 0px));
+        min-height: 118px;
+    }
+}
+
+.chat-header {
+    min-height: 92px;
+    padding: 18px 22px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 14px;
+    border-bottom: 1px solid rgba(214,168,79,0.26);
+    background:
+        radial-gradient(circle at top left, rgba(214,168,79,0.09), transparent 35%),
+        linear-gradient(180deg, rgba(255,255,255,0.045), rgba(255,255,255,0.015));
+    flex-shrink: 0;
+}
+
+.header-title {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    min-width: 0;
+}
+
+.header-logo {
+    width: 52px;
+    height: 52px;
+    border-radius: 17px;
+    display: grid;
+    place-items: center;
+    border: 1px solid rgba(214,168,79,0.45);
+    background: rgba(255,255,255,0.045);
+    box-shadow: 0 10px 24px rgba(0,0,0,0.25);
+    flex-shrink: 0;
+    font-size: 26px;
+    font-weight: 900;
+}
+
+.header-logo span {
+    background: linear-gradient(180deg, #ffffff, #d6a84f);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+.header-copy h2 {
+    margin: 0;
+    font-size: 21px;
+    font-weight: 900;
+}
+
+.header-copy p {
+    margin: 4px 0 0;
+    color: var(--text-muted);
+    font-size: 13px;
+    line-height: 1.5;
+}
+
+.header-actions {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-shrink: 0;
+}
+
+.status-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 9px;
+    padding: 10px 13px;
+    border-radius: 999px;
+    background: rgba(34,197,94,0.10);
+    border: 1px solid rgba(34,197,94,0.24);
+    color: #bbf7d0;
+    font-size: 12px;
+    font-weight: 800;
+    white-space: nowrap;
+}
+
+.status-dot {
+    width: 9px;
+    height: 9px;
+    border-radius: 50%;
+    background: var(--green);
+    box-shadow: 0 0 0 6px rgba(34,197,94,0.16);
+}
+
+.chat-close-btn {
+    width: 42px;
+    height: 42px;
+    border-radius: 15px;
+    border: 1px solid rgba(214,168,79,0.38);
+    background:
+        linear-gradient(145deg, rgba(255,255,255,0.08), rgba(255,255,255,0.025)),
+        rgba(7, 10, 18, 0.82);
+    color: var(--gold-2);
+    display: grid;
+    place-items: center;
+    cursor: pointer;
+    font-family: "Cairo", Arial, sans-serif;
+    font-size: 20px;
+    font-weight: 900;
+    line-height: 1;
+    box-shadow:
+        0 10px 24px rgba(0,0,0,0.22),
+        0 0 18px rgba(214,168,79,0.08);
+    transition: 0.18s ease;
+    flex-shrink: 0;
+}
+
+.chat-close-btn:hover {
+    transform: translateY(-1px);
+    border-color: rgba(243,211,123,0.65);
+    background:
+        linear-gradient(145deg, rgba(243,211,123,0.18), rgba(214,168,79,0.06)),
+        rgba(7, 10, 18, 0.92);
+    color: #ffffff;
+    box-shadow:
+        0 14px 30px rgba(0,0,0,0.30),
+        0 0 26px rgba(214,168,79,0.18);
+}
+
+.chat-close-btn:active {
+    transform: scale(0.96);
+}
+
+.messages-wrap {
+    flex: 1;
+    min-height: 0;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    background:
+        radial-gradient(circle at 85% 15%, rgba(214,168,79,0.06), transparent 34%),
+        radial-gradient(circle at 12% 88%, rgba(34,197,94,0.04), transparent 28%);
+    overflow: hidden;
+}
+
+.messages {
+    flex: 1;
+    min-height: 0;
+    overflow-y: scroll;
+    overflow-x: hidden;
+    padding: 22px;
+    scroll-behavior: smooth;
+    scrollbar-width: thin;
+    scrollbar-color: rgba(214,168,79,0.55) rgba(255,255,255,0.06);
+}
+
+.messages::-webkit-scrollbar {
+    width: 11px;
+}
+
+.messages::-webkit-scrollbar-track {
+    background: rgba(255,255,255,0.05);
+    border-radius: 999px;
+}
+
+.messages::-webkit-scrollbar-thumb {
+    background: linear-gradient(180deg, rgba(243,211,123,0.75), rgba(214,168,79,0.35));
+    border-radius: 999px;
+    border: 2px solid rgba(7,10,18,0.85);
+}
+
+.welcome-card {
+    margin-bottom: 20px;
+    padding: 18px;
+    border-radius: 24px;
+    background:
+        linear-gradient(145deg, rgba(255,255,255,0.055), rgba(255,255,255,0.025));
+    border: 1px solid rgba(214,168,79,0.24);
+    box-shadow: 0 18px 40px rgba(0,0,0,0.18);
+}
+
+.welcome-title {
+    margin: 0;
+    color: #ffffff;
+    font-size: 18px;
+    font-weight: 900;
+}
+
+.welcome-text {
+    margin: 8px 0 0;
+    color: var(--text-soft);
+    font-size: 14px;
+    line-height: 1.9;
+}
+
+.quick-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-top: 14px;
+}
+
+.quick-chip {
+    border: 1px solid rgba(214,168,79,0.35);
+    color: var(--gold-2);
+    background: rgba(214,168,79,0.07);
+    border-radius: 999px;
+    padding: 9px 12px;
+    font-family: "Cairo", Arial, sans-serif;
+    font-size: 12px;
+    font-weight: 800;
+    cursor: pointer;
+}
+
+.msg-row {
+    display: flex;
+    margin-bottom: 14px;
+}
+
+.msg-row.user-row {
+    justify-content: flex-start;
+}
+
+.msg-row.bot-row {
+    justify-content: flex-end;
+}
+
+.msg-bubble {
+    max-width: min(82%, 720px);
+    padding: 14px 16px;
+    border-radius: 18px;
+    line-height: 1.9;
+    font-size: 15px;
+    overflow-wrap: break-word;
+    word-wrap: break-word;
+    white-space: normal;
+    box-shadow: 0 10px 26px rgba(0,0,0,0.22);
+}
+
+.user {
+    background:
+        linear-gradient(145deg, rgba(255,255,255,0.08), rgba(255,255,255,0.035));
+    border: 1px solid rgba(214,168,79,0.30);
+    color: var(--text-main);
+    border-bottom-right-radius: 7px;
+}
+
+.bot {
+    background:
+        linear-gradient(145deg, rgba(22,163,74,0.95), rgba(21,128,61,0.95));
+    border: 1px solid rgba(255,255,255,0.09);
+    color: white;
+    border-bottom-left-radius: 7px;
+}
+
+.bot a {
+    color: #ffffff;
+    font-weight: 900;
+    text-decoration: underline;
+    word-break: break-all;
+}
+
+.meta-line {
+    margin-top: 8px;
+    color: rgba(255,255,255,0.65);
+    font-size: 11px;
+}
+
+.user .meta-line {
+    color: rgba(203,213,225,0.68);
+}
+
+.typing-wrap {
+    display: none;
+    padding: 0 22px 14px;
+    flex-shrink: 0;
+}
+
+.typing {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 14px;
+    border-radius: 999px;
+    background: rgba(255,255,255,0.045);
+    border: 1px solid rgba(214,168,79,0.24);
+    color: var(--text-soft);
+    font-size: 13px;
+    font-weight: 700;
+}
+
+.typing-dots {
+    display: inline-flex;
+    gap: 5px;
+}
+
+.typing-dots span {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: var(--gold-2);
+    animation: pulseDot 1.2s infinite ease-in-out;
+}
+
+.typing-dots span:nth-child(2) { animation-delay: 0.15s; }
+.typing-dots span:nth-child(3) { animation-delay: 0.30s; }
+
+@keyframes pulseDot {
+    0%, 80%, 100% { opacity: 0.35; transform: translateY(0) scale(0.9); }
+    40% { opacity: 1; transform: translateY(-3px) scale(1); }
+}
+
+.chat-footer {
+    padding: 18px 22px 20px;
+    border-top: 1px solid rgba(255,255,255,0.07);
+    background:
+        linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.04));
+    flex-shrink: 0;
+}
+
+.composer {
+    display: flex;
+    align-items: flex-end;
+    gap: 12px;
+    padding: 10px;
+    border-radius: 22px;
+    background: rgba(255,255,255,0.045);
+    border: 1px solid rgba(214,168,79,0.30);
+    box-shadow: 0 12px 34px rgba(0,0,0,0.18);
+}
+
+.input-area {
+    flex: 1;
+    min-width: 0;
+}
+
+textarea {
+    width: 100%;
+    min-height: 54px;
+    max-height: 150px;
+    resize: none;
+    border: none;
+    outline: none;
+    background: transparent;
+    color: var(--text-main);
+    font-family: "Cairo", Arial, sans-serif;
+    font-size: 15px;
+    line-height: 1.8;
+    padding: 9px 10px;
+}
+
+textarea::placeholder {
+    color: #94a3b8;
+}
+
+.send-btn {
+    width: 58px;
+    height: 58px;
+    border: none;
+    border-radius: 18px;
+    background: linear-gradient(145deg, var(--gold-2), var(--gold));
+    color: #111827;
+    display: grid;
+    place-items: center;
+    cursor: pointer;
+    box-shadow: 0 14px 32px rgba(214,168,79,0.28);
+    transition: 0.18s ease;
+    flex-shrink: 0;
+    font-size: 22px;
+    font-weight: 900;
+}
+
+.send-btn:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 18px 38px rgba(214,168,79,0.36);
+}
+
+.send-btn:disabled {
+    opacity: 0.58;
+    cursor: pointer;
+    transform: none;
+}
+
+.footer-note {
+    margin-top: 10px;
+    color: rgba(148,163,184,0.9);
+    font-size: 11px;
+    text-align: center;
+}
+
+@media (max-width: 860px) {
+    .page {
+        padding: 0;
+    }
+
+    .chat-shell {
+        width: 100%;
+        height: 100vh;
+        min-height: 100vh;
+        border-radius: 0;
+        grid-template-columns: 1fr;
+        border: none;
+    }
+
+    .sidebar {
+        display: none;
+    }
+
+    .chat-header {
+        min-height: 78px;
+        padding: 14px 14px;
+    }
+
+    .header-logo {
+        width: 46px;
+        height: 46px;
+        border-radius: 15px;
+        font-size: 23px;
+    }
+
+    .header-copy h2 {
+        font-size: 18px;
+    }
+
+    .header-copy p {
+        font-size: 12px;
+    }
+
+    .header-actions {
+        gap: 8px;
+    }
+
+    .status-pill {
+        display: none;
+    }
+
+    .chat-close-btn {
+        width: 42px;
+        height: 42px;
+        border-radius: 14px;
+        font-size: 19px;
+    }
+
+    .messages {
+        padding: 14px;
+    }
+
+    .msg-bubble {
+        max-width: 92%;
+        font-size: 14px;
+        line-height: 1.85;
+    }
+
+    .chat-footer {
+        padding: 12px;
+    }
+
+    .composer {
+        border-radius: 18px;
+        gap: 8px;
+        padding: 8px;
+    }
+
+    textarea {
+        min-height: 50px;
+        font-size: 14px;
+    }
+
+    .send-btn {
+        width: 52px;
+        height: 52px;
+        border-radius: 16px;
+        font-size: 20px;
+    }
+
+    .welcome-card {
+        padding: 15px;
+        border-radius: 20px;
+    }
+
+    .welcome-title {
+        font-size: 16px;
+    }
+
+    .welcome-text {
+        font-size: 13px;
+    }
+}
+
+  /* ===== ALSAAB_WEBSITE_CHAT_VISUAL_SAFE_V1 START ===== */
+  .quick-chip {
+    background: linear-gradient(135deg, rgba(255,255,255,.05), rgba(215,184,90,.10)) !important;
+    border: 1px solid rgba(240,204,104,.58) !important;
+    color: #f0cc68 !important;
+    font-weight: 900 !important;
+    box-shadow: 0 8px 22px rgba(0,0,0,.22);
+    transition: all .18s ease;
+  }
+
+  .quick-chip:hover {
+    transform: translateY(-1px);
+    border-color: rgba(255,224,138,.92) !important;
+    box-shadow: 0 0 24px rgba(240,204,104,.24);
+  }
+
+  #msg,
+  textarea#msg {
+    background: linear-gradient(135deg, #070b12, #101827) !important;
+    color: #fffaf0 !important;
+    border: 1px solid rgba(240,204,104,.45) !important;
+    box-shadow: inset 0 1px 0 rgba(255,255,255,.04);
+  }
+
+  #msg:focus,
+  textarea#msg:focus {
+    outline: none !important;
+    border-color: rgba(255,224,138,.95) !important;
+    box-shadow: 0 0 0 3px rgba(240,204,104,.13), inset 0 1px 0 rgba(255,255,255,.06) !important;
+  }
+
+  button[type="submit"],
+  .send-btn,
+  #sendBtn {
+    background: linear-gradient(135deg, #f0cc68, #d7b85a, #aa842a) !important;
+    color: #111 !important;
+    font-weight: 950 !important;
+    box-shadow: 0 10px 24px rgba(215,184,90,.24) !important;
+  }
+
+  .side-title,
+  .chat-title,
+  h1,
+  h2 {
+    text-shadow: 0 0 18px rgba(240,204,104,.16);
+  }
+
+  .chat-card,
+  .chat-panel,
+  .side-card,
+  .message,
+  .bot,
+  .assistant {
+    border-color: rgba(240,204,104,.34) !important;
+  }
+
+  .chat-card:hover,
+  .chat-panel:hover,
+  .side-card:hover {
+    box-shadow: 0 0 28px rgba(240,204,104,.14), 0 18px 44px rgba(0,0,0,.36) !important;
+  }
+  /* ===== ALSAAB_WEBSITE_CHAT_VISUAL_SAFE_V1 END ===== */
+
+
+  /* ===== ALSAAB_WEBSITE_CHAT_FIX_V2 START ===== */
+  .alsaab-word-avatar-fix {
+    width: auto !important;
+    min-width: 56px !important;
+    max-width: 78px !important;
+    height: 42px !important;
+    min-height: 42px !important;
+    padding: 0 8px !important;
+    box-sizing: border-box !important;
+    border-radius: 14px !important;
+    font-size: 10px !important;
+    line-height: 1 !important;
+    letter-spacing: .2px !important;
+    white-space: nowrap !important;
+    overflow: hidden !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+  }
+
+  #msg,
+  textarea#msg {
+    min-height: 52px !important;
+    height: 52px !important;
+    max-height: 88px !important;
+    resize: none !important;
+    box-sizing: border-box !important;
+    border-radius: 18px !important;
+    padding: 12px 16px !important;
+    line-height: 1.5 !important;
+  }
+
+  button[type="submit"],
+  .send-btn,
+  #sendBtn {
+    min-height: 52px !important;
+    height: 52px !important;
+    max-height: 52px !important;
+    min-width: 58px !important;
+    border-radius: 18px !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+  }
+  /* ===== ALSAAB_WEBSITE_CHAT_FIX_V2 END ===== */
+
+</style>
+</head>
+
+<body>
+<div class="luxury-bg"></div>
+
+<div class="page">
+    <div class="chat-shell">
+
+        <aside class="sidebar">
+            <div class="brand-block">
+                <div class="logo-mark"><span>ALSAAB</span></div>
+                <div class="brand-text">
+                    <h1>ALSAAB AI</h1>
+                    <p>Smart Sales Assistant</p>
+                </div>
+            </div>
+
+            <div class="side-card gold">
+                <div class="side-label">نظام مبيعات ذكي</div>
+                <h2 class="side-title">أقوى نظام مبيعات ذكي يرفع المبيعات بشكل صاروخي 🚀</h2>
+                <p class="side-text">
+                    مساعد مبيعات ذكي، يفهم و يحلل العميل و يشخّص و يحل المشكلة و يساعدك في إغلاق الصفقات و اتخاذ القرار مع العملاء.
+                </p>
+
+                <div class="side-list">
+                    <div class="side-item">
+                        <div class="side-icon">⚡</div>
+                        <span>ردود ذكية وسريعة</span>
+                    </div>
+                    <div class="side-item">
+                        <div class="side-icon">🎯</div>
+                        <span>بيع وإقناع وإغلاق</span>
+                    </div>
+                    <div class="side-item">
+                        <div class="side-icon">📈</div>
+                        <span>مصمم لزيادة المبيعات</span>
+                    </div>
+                </div>
+
+                <button class="mini-cta" onclick="sendQuick('أبغي أعرف الباقات')">
+                    عرض الباقات
+                </button>
+            </div>
+
+            <div class="side-card">
+                <div class="side-label">الوضع الحالي</div>
+                <p class="side-text">
+                    اكتب رسالتك، والبوت بيساعدك تفهم أفضل خطوة لمشروعك أو دخلك.
+                </p>
+            </div>
+        </aside>
+
+        <main class="main-chat">
+            <header class="chat-header">
+                <div class="header-title">
+                    <div class="header-logo"><span>ALSAAB</span></div>
+                    <div class="header-copy">
+                        <h2>ALSAAB AI</h2>
+                        <p>مساعدك الذكي للمبيعات، الرد، الإقناع، والإغلاق</p>
+                    </div>
+                </div>
+
+                <div class="header-actions">
+                    <div class="status-pill">
+                        <span class="status-dot"></span>
+                        <span>Online 24/7</span>
+                    </div>
+
+                    <button class="chat-close-btn" onclick="closeChat()" title="إغلاق الشات" aria-label="إغلاق الشات">
+                        ✕
+                    </button>
+                </div>
+            </header>
+
+            <section class="messages-wrap">
+                <div id="messages" class="messages">
+                    <div class="welcome-card">
+                        <h3 class="welcome-title">هلا وسهلا 👋</h3>
+                        <p class="welcome-text">
+                            أنا ALSAAB AI. أقدر أساعدك في زيادة المبيعات، اختيار الباقة المناسبة،
+                            أو معرفة نظام الشراكة والدخل الإضافي.
+                        </p>
+
+                        <div class="quick-actions">
+                            <button class="quick-chip" onclick="sendQuick('أبغي أعرف الباقات')">عرض الباقات</button>
+                            <button class="quick-chip" onclick="sendQuick('عندي مشروع وأبغي أرفع المبيعات')">عندي مشروع</button>
+                            <button class="quick-chip" onclick="sendQuick('محتاج دخل إضافي')">دخل إضافي</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="typingWrap" class="typing-wrap">
+                    <div class="typing">
+                        <div class="typing-dots">
+                            <span></span><span></span><span></span>
+                        </div>
+                        <strong>ALSAAB AI يكتب الآن...</strong>
+                    </div>
+                </div>
+            </section>
+
+            <footer class="chat-footer">
+                <div class="composer">
+                    <div class="input-area">
+                        <textarea id="msg" placeholder="اكتب رسالتك هنا..."></textarea>
+                    </div>
+                    <button id="sendBtn" class="send-btn" onclick="sendMsg()" title="إرسال">➤</button>
+                </div>
+
+                <div class="footer-note">
+                    Powered by ALSAAB AI • Sales Automation
+                </div>
+            </footer>
+        </main>
+
+    </div>
+</div>
+
+<script>
+let sessionId = localStorage.getItem("session_id");
+let sourcePartnerId = localStorage.getItem("source_partner_id") || "";
+let isSending = false;
+
+function normalizeSourcePartnerId(value) {
+    value = String(value || "").trim();
+
+    if (!value) return "";
+
+    if (value.toLowerCase() === "alsaab") {
+        return "alsaab";
+    }
+
+    const match = value.toUpperCase().match(/ALS-P\d+/);
+
+    if (match && match[0]) {
+        return match[0];
+    }
+
+    return "";
+}
+
+function captureSourcePartnerId() {
+    try {
+        const params = new URLSearchParams(window.location.search);
+        const ref =
+            params.get("ref") ||
+            params.get("source_partner_id") ||
+            params.get("partner_id") ||
+            params.get("sponsor_partner_id") ||
+            "";
+
+        const normalizedRef = normalizeSourcePartnerId(ref);
+        const storedRef = normalizeSourcePartnerId(localStorage.getItem("source_partner_id") || sourcePartnerId || "");
+
+        if (normalizedRef) {
+            if (storedRef && storedRef !== normalizedRef) {
+                localStorage.removeItem("session_id");
+                sessionId = "";
+                console.log("ALSAAB session reset for new referral:", storedRef, "=>", normalizedRef);
+            }
+
+            sourcePartnerId = normalizedRef;
+            localStorage.setItem("source_partner_id", normalizedRef);
+            console.log("ALSAAB referral captured:", normalizedRef);
+            return normalizedRef;
+        }
+
+        sourcePartnerId = storedRef;
+
+        if (sourcePartnerId) {
+            localStorage.setItem("source_partner_id", sourcePartnerId);
+        }
+
+        return sourcePartnerId;
+    } catch (error) {
+        console.error("Referral capture error:", error);
+        return "";
+    }
+}
+
+sourcePartnerId = captureSourcePartnerId();
+
+function escapeHtml(text) {
+    return String(text)
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;");
+}
+
+function sanitizeBotText(text) {
+    return String(text || "")
+        .replace(/يا\s*تعليمات\s*داخلية[\s،,.!؟]*/g, "")
+        .replace(/تعليمات\s*داخلية[\s،,.!؟]*/g, "")
+        .replace(/internal\s+instructions/gi, "");
+}
+
+function linkify(text) {
+    const raw = String(text || "");
+
+    const paymentPattern = /(https?:\/\/[^\s<>"']*(?:\/pay\/(?:entry|starter|growth|elite|diamond)|buy\.stripe\.com)[^\s<>"']*)/i;
+    const paymentMatch = raw.match(paymentPattern);
+
+    if (paymentMatch) {
+        let url = paymentMatch[1].replace(/[،,.؛:!?)]$/, "");
+        let href = url.replace(/^http:\/\/alsaab-ai\.onrender\.com/i, "https://alsaab-ai.onrender.com");
+
+        const before = raw.slice(0, raw.indexOf(paymentMatch[1]));
+        const after = raw.slice(raw.indexOf(paymentMatch[1]) + paymentMatch[1].length);
+
+        return escapeHtml(before).replace(/\n/g, "<br>") +
+            '<div style="margin:14px 0;text-align:center;">' +
+            '<a href="' + escapeHtml(href) + '" target="_top" rel="noopener noreferrer" onclick="event.preventDefault();event.stopPropagation();try{window.top.location.href=this.href;}catch(e){window.location.href=this.href;}return false;" ' +
+            'style="display:inline-flex;align-items:center;justify-content:center;width:88%;max-width:320px;padding:15px 18px;border-radius:18px;background:linear-gradient(135deg,#f7d774,#c99b2e);color:#111;font-weight:900;text-decoration:none;box-shadow:0 10px 28px rgba(214,168,79,.35);font-size:16px;">' +
+            'اضغط هنا للدفع' +
+            '</a>' +
+            '</div>' +
+            escapeHtml(after).replace(/\n/g, "<br>");
+    }
+
+    let safeText = escapeHtml(raw);
+
+    safeText = safeText.replace(
+        /(https?:\/\/[^\s<>"']+)/g,
+        function(url) {
+            let cleanUrl = url.replace(/[،,.؛:!?)]$/, "");
+            let tail = url.substring(cleanUrl.length);
+            let href = cleanUrl.replace(/^http:\/\/alsaab-ai\.onrender\.com/i, "https://alsaab-ai.onrender.com");
+            return '<a href="' + escapeHtml(href) + '" target="_blank" rel="noopener noreferrer" style="color:#f7d774;text-decoration:underline;">' + escapeHtml(cleanUrl) + '</a>' + escapeHtml(tail);
+        }
+    );
+
+    safeText = safeText.replace(/\n/g, "<br>");
+    return safeText;
+}
+
+function currentTime() {
+    const now = new Date();
+
+    return now.toLocaleTimeString("ar-AE", {
+        hour: "numeric",
+        minute: "2-digit"
+    });
+}
+
+function scrollToBottom() {
+    const box = document.getElementById("messages");
+
+    if (!box) return;
+
+    requestAnimationFrame(function() {
+        box.scrollTop = box.scrollHeight;
+
+        setTimeout(function() {
+            box.scrollTop = box.scrollHeight;
+        }, 80);
+
+        setTimeout(function() {
+            box.scrollTop = box.scrollHeight;
+        }, 250);
+    });
+}
+
+function addMsg(text, type) {
+    const box = document.getElementById("messages");
+
+    const isBot = type !== "user";
+
+    const row = document.createElement("div");
+    row.className = "msg-row " + (isBot ? "bot-row" : "user-row");
+
+    const div = document.createElement("div");
+    div.className = "msg-bubble " + (isBot ? "bot" : "user");
+
+    if (isBot) {
+        div.innerHTML = linkify(sanitizeBotText(text)) + '<div class="meta-line">' + currentTime() + '</div>';
+    } else {
+        div.innerHTML = escapeHtml(text).replace(/\n/g, "<br>") + '<div class="meta-line">' + currentTime() + '</div>';
+    }
+
+    row.appendChild(div);
+    box.appendChild(row);
+    scrollToBottom();
+}
+
+function showTyping(show) {
+    const typingWrap = document.getElementById("typingWrap");
+
+    typingWrap.style.display = show ? "block" : "none";
+    scrollToBottom();
+}
+
+function sendQuick(text) {
+    const input = document.getElementById("msg");
+    input.value = text;
+    sendMsg();
+}
+
+function closeChat() {
+    try {
+        window.parent.postMessage({
+            type: "ALSAAB_CLOSE_CHAT",
+            source: "ALSAAB_AI"
+        }, "*");
+    } catch (error) {
+        console.error(error);
+    }
+
+    const page = document.querySelector(".page");
+
+    if (page) {
+        page.style.display = "none";
+    }
+}
+
+async function sendMsg() {
+    if (isSending) return;
+
+    const input = document.getElementById("msg");
+    const button = document.getElementById("sendBtn");
+    const text = input.value.trim();
+
+    if (!text) return;
+
+    sourcePartnerId = captureSourcePartnerId();
+
+    isSending = true;
+    button.disabled = true;
+
+    addMsg(text, "user");
+    input.value = "";
+    input.style.height = "54px";
+    showTyping(true);
+
+    try {
+        const res = await fetch("/chat", {
+            method: "POST",
+            headers: {"Content-Type": "application/json"},
+            body: JSON.stringify({
+                message: text,
+                session_id: sessionId,
+                source_partner_id: sourcePartnerId,
+                ref: sourcePartnerId,
+                smart_link_ref: sourcePartnerId,
+                page_url: window.location.href,
+                referrer_url: document.referrer || "",
+                src: new URLSearchParams(window.location.search).get("src") || ""
+            })
+        });
+
+        const data = await res.json();
+
+        sessionId = data.session_id;
+        localStorage.setItem("session_id", sessionId);
+
+        if (data.source_partner_id) {
+            sourcePartnerId = normalizeSourcePartnerId(data.source_partner_id);
+
+            if (sourcePartnerId) {
+                localStorage.setItem("source_partner_id", sourcePartnerId);
+            }
+        }
+
+        showTyping(false);
+        addMsg(data.reply, "bot");
+        scrollToBottom();
+
+    } catch (error) {
+        showTyping(false);
+        addMsg("صار خطأ مؤقت في الاتصال. جرّب مرة ثانية.", "bot");
+        console.error(error);
+    }
+
+    isSending = false;
+    button.disabled = false;
+    input.focus();
+}
+
+const textarea = document.getElementById("msg");
+
+textarea.addEventListener("input", function() {
+    this.style.height = "54px";
+    this.style.height = Math.min(this.scrollHeight, 150) + "px";
+});
+
+textarea.addEventListener("keydown", function(event) {
+    if (event.key === "Enter" && !event.shiftKey) {
+        event.preventDefault();
+        sendMsg();
+    }
+});
+
+window.addEventListener("load", function() {
+    captureSourcePartnerId();
+    textarea.focus();
+    scrollToBottom();
+});
+</script>
+
+<script id="alsaabWebsiteChatFixV2">
+(function(){
+  function fix(){
+    document.querySelectorAll("div,span").forEach(function(el){
+      var text = (el.textContent || "").trim();
+      if (text === "ALSAAB" && el.children.length === 0) {
+        el.classList.add("alsaab-word-avatar-fix");
+      }
+    });
+  }
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", fix);
+  } else {
+    fix();
+  }
+  setTimeout(fix, 500);
+})();
+</script>
+
+</body>
+</html>
