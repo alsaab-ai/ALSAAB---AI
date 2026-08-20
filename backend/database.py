@@ -1685,6 +1685,7 @@ def ensure_paid_client_is_partner(
     """
     session_id = str(session_id or "").strip()
     client_id = str(client_id or session_id or "").strip()
+    package_amount = normalize_package_amount(package_amount)
 
     if not session_id and not client_id:
         return {
@@ -1803,6 +1804,36 @@ def ensure_paid_client_is_partner(
             "source_partner_id": source_partner_id
         }
 
+# ===== ALSAAB NUMERIC PACKAGE AMOUNT V1 START =====
+def normalize_package_amount(value):
+    """
+    config.py stores plan prices as display strings ("99 AED", "1,199 AED"),
+    but subscriptions.package_amount and commissions.package_amount are
+    numeric columns. SQLite accepted the string; PostgreSQL rejects it with
+    InvalidTextRepresentation and the whole checkout webhook returns 500,
+    so every new paying customer would fail to be activated.
+
+    Returns a float, or None when there is no usable number.
+    """
+    if value is None or value == "":
+        return None
+
+    if isinstance(value, (int, float)):
+        return float(value)
+
+    text = str(value).replace(",", "").strip()
+    match = re.search(r"-?\d+(?:\.\d+)?", text)
+
+    if not match:
+        return None
+
+    try:
+        return float(match.group(0))
+    except (TypeError, ValueError):
+        return None
+# ===== ALSAAB NUMERIC PACKAGE AMOUNT V1 END =====
+
+
 def create_or_update_subscription(
     session_id,
     plan_name,
@@ -1827,6 +1858,7 @@ def create_or_update_subscription(
 
     plan_name = normalize_plan_name(plan_name)
     monthly_reply_limit = get_plan_reply_limit(plan_name, custom_reply_limit)
+    package_amount = normalize_package_amount(package_amount)
 
     now = current_timestamp()
     cycle_end = next_month_timestamp()
@@ -3252,7 +3284,10 @@ def save_partner_client_mapping(
             email=COALESCE(NULLIF(excluded.email, ''), partner_client_map.email),
             country=COALESCE(NULLIF(excluded.country, ''), partner_client_map.country),
             plan_name=COALESCE(NULLIF(excluded.plan_name, ''), partner_client_map.plan_name),
-            package_amount=COALESCE(NULLIF(excluded.package_amount, ''), partner_client_map.package_amount),
+            -- package_amount is numeric: NULLIF(col, '') is a type error on
+            -- PostgreSQL. normalize_package_amount() already yields NULL when
+            -- there is no amount, so COALESCE alone does the same job.
+            package_amount=COALESCE(excluded.package_amount, partner_client_map.package_amount),
             stripe_subscription_id=COALESCE(NULLIF(excluded.stripe_subscription_id, ''), partner_client_map.stripe_subscription_id),
             updated_at=CURRENT_TIMESTAMP
         """,
