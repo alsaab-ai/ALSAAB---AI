@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
   <meta charset="utf-8">
@@ -409,6 +409,12 @@
             <div class="kv"><span>Current Package</span><strong>{{ search_level.get("current_package") or "-" }}</strong></div>
             <div class="kv"><span>Subscription Status</span><strong>{{ search_level.get("subscription_status") or "-" }}</strong></div>
             <div class="kv"><span>Commission Eligible</span><strong>{{ search_level.get("commission_eligible") or "-" }}</strong></div>
+            {% if search_missing_text %}
+            <div class="kv" style="border-top:1px solid rgba(240,204,104,.25);margin-top:8px;padding-top:10px;">
+              <span>ينقصه للترقية</span>
+              <strong style="color:#f0cc68;font-weight:900;">{{ search_missing_text }}</strong>
+            </div>
+            {% endif %}
           </div>
         </div>
 

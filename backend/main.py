@@ -1,4 +1,4 @@
-print("ALSAAB AI is running 🔥")
+﻿print("ALSAAB AI is running 🔥")
 
 from flask import Flask, request, jsonify, render_template, redirect, session
 from brain import think
@@ -3733,6 +3733,70 @@ def admin_dashboard_data():
         }), 500
 
 
+# ===== ALSAAB ADMIN MISSING REQUIREMENT TEXT V1 START =====
+def humanize_missing_requirements(value):
+    """
+    partner_levels.missing_requirements stores machine tokens, e.g.
+        level_2_requires_package_in_['starter', 'growth', 'elite', 'diamond']
+        level_1_requires_1_active_network_customers
+        subscription_not_active
+
+    The admin search card printed completed/required sales and nothing else, so
+    a partner blocked purely by their own package read as qualified -- ALS-P00003
+    shows 5 sales against 2 required and is still Level 1, because Level 2 needs
+    a Starter package and they are on Entry. This turns the tokens into a
+    sentence the admin can act on.
+    """
+    if not value:
+        return ""
+
+    text = str(value).strip()
+
+    if not text or text in ("[]", "-"):
+        return ""
+
+    tokens = re.findall(r"[a-z0-9_]+_requires_[a-z0-9_\[\]', ]+|subscription_not_active", text)
+
+    if not tokens:
+        tokens = [text]
+
+    parts = []
+
+    for token in tokens:
+        token = token.strip()
+
+        if token.startswith("subscription_not_active"):
+            parts.append("لا يوجد اشتراك نشط")
+            continue
+
+        package_match = re.search(r"requires_package_in_\[([^\]]*)\]", token)
+
+        if package_match:
+            packages = re.findall(r"'([^']+)'", package_match.group(1))
+            first = packages[0].title() if packages else ""
+            parts.append(f"يحتاج ترقية باقته إلى {first} أو أعلى" if first else "يحتاج ترقية باقته")
+            continue
+
+        customers_match = re.search(r"requires_(\d+)_active_(network|direct)_customers", token)
+
+        if customers_match:
+            count = customers_match.group(1)
+            scope = "في الشبكة" if customers_match.group(2) == "network" else "مباشرين"
+            parts.append(f"يحتاج {count} عميل نشط {scope}")
+            continue
+
+        course_match = re.search(r"requires_course[s]?_([a-z0-9_]+)", token)
+
+        if course_match:
+            parts.append(f"يحتاج شراء الكورس المطلوب ({course_match.group(1)})")
+            continue
+
+        parts.append(token)
+
+    return " + ".join(parts)
+# ===== ALSAAB ADMIN MISSING REQUIREMENT TEXT V1 END =====
+
+
 @app.route("/admin-dashboard", methods=["GET"])
 def admin_dashboard_view():
     """
@@ -3804,6 +3868,7 @@ def admin_dashboard_view():
 
         search_profile = {}
         search_level = {}
+        search_missing_text = ""
         search_customers = {}
         search_commissions = {}
         search_courses = {}
@@ -3857,6 +3922,9 @@ def admin_dashboard_view():
                 if isinstance(search_result, dict) and search_result.get("status") == "success":
                     search_profile = search_result.get("partner_profile") or {}
                     search_level = search_result.get("level") or {}
+                    search_missing_text = humanize_missing_requirements(
+                        search_level.get("missing_requirements")
+                    )
                     search_customers = search_result.get("customers") or {}
                     search_commissions = search_result.get("commissions") or {}
                     search_courses = search_result.get("courses") or {}
@@ -3957,6 +4025,7 @@ def admin_dashboard_view():
             search_result=search_result,
             search_profile=search_profile,
             search_level=search_level,
+            search_missing_text=search_missing_text,
             search_customers=search_customers,
             search_commissions=search_commissions,
             search_courses=search_courses,
