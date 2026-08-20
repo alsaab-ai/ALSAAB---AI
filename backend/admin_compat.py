@@ -1,4 +1,4 @@
-# admin_compat.py
+﻿# admin_compat.py
 #
 # PostgreSQL versions of the admin actions that move money or restructure the
 # network. Ported from the LIVE Apps Script definitions:
@@ -550,10 +550,30 @@ def admin_partner_lookup(payload):
             "date": _text(row["created_at"]),
         })
 
+    # main.py reads a top-level "partner_id" off this response and uses it to
+    # pull the full profile; without it the admin search reports "no partner
+    # found" even when results came back. Apps Script returned the single best
+    # match, so pick one the same way: an exact partner_id wins over a partial
+    # hit on client_id/name/phone, which is what makes searching for
+    # "ALS-P00006" land on ALS-P00006 rather than on ALS-P00009, whose
+    # client_id happens to contain its sponsor's id.
+    best = ""
+    wanted = query.strip().lower()
+
+    for row in results:
+        if _text(row["partner_id"]).lower() == wanted:
+            best = _text(row["partner_id"])
+            break
+
+    if not best and results:
+        best = _text(results[0]["partner_id"])
+
     return {
         "status": "success",
         "action": "admin_partner_lookup",
         "query": query,
+        "found": bool(best),
+        "partner_id": best,
         "count": len(results),
         "results": results,
         "partners": results,
@@ -639,13 +659,25 @@ def _downline_snapshot(cur, partner_id):
     cur.execute(
         """
         SELECT p.partner_id, p.partner_name, p.status, p.partner_rank,
-               d.depth
+               d.depth,
+               CASE
+                   WHEN d.depth = 1 THEN p.partner_id
+                   ELSE (
+                       SELECT o.root_partner_id
+                         FROM partner_downline o
+                        WHERE o.descendant_partner_id = d.descendant_partner_id
+                          AND o.root_partner_id IN (
+                                SELECT c.descendant_partner_id
+                                  FROM partner_downline c
+                                 WHERE c.root_partner_id = ? AND c.depth = 1)
+                        LIMIT 1)
+               END AS line_owner_partner_id
         FROM partner_downline d
         JOIN partners p ON p.partner_id = d.descendant_partner_id
         WHERE d.root_partner_id = ?
         ORDER BY d.depth, p.partner_id
         """,
-        (partner_id,),
+        (partner_id, partner_id),
     )
     return _rows(cur)
 
@@ -659,7 +691,7 @@ def admin_downline_transfer_preview(payload):
     with _conn() as conn:
         cur = conn.cursor()
 
-        cur.execute("SELECT partner_name, status FROM partners WHERE partner_id = ?", (partner_id,))
+        cur.execute("SELECT partner_name, status, partner_rank FROM partners WHERE partner_id = ?", (partner_id,))
         found = _rows(cur)
 
         if not found:
@@ -685,6 +717,27 @@ def admin_downline_transfer_preview(payload):
         "action": "admin_downline_transfer_preview",
         "partner_id": partner_id,
         "partner_name": _text(found[0]["partner_name"]),
+        # main.py/downline_transfer_preview.html read "target_partner" and
+        # "network_rows"; the port exposed the same data as top-level fields and
+        # a "downline" list, so the header showed "-" and the network table
+        # rendered empty. Both shapes are returned now.
+        "target_partner": {
+            "partner_id": partner_id,
+            "partner_name": _text(found[0]["partner_name"]),
+            "status": _text(found[0]["status"]),
+            "partner_rank": _text(found[0]["partner_rank"]),
+        },
+        "network_rows": [
+            {
+                "descendant_partner_id": _text(r["partner_id"]),
+                "depth": int(r["depth"]),
+                "line_owner_partner_id": _text(r["line_owner_partner_id"]),
+                "partner_name": _text(r["partner_name"]),
+                "status": _text(r["status"]),
+                "partner_rank": _text(r["partner_rank"]),
+            }
+            for r in downline
+        ],
         "direct_children_count": len(direct),
         "downline_count": len(downline),
         "depth_counts": depth_counts,
