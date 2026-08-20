@@ -1,4 +1,4 @@
-# dashboard_compat.py
+﻿# dashboard_compat.py
 #
 # PostgreSQL versions of the three dashboard read actions:
 #     partner_dashboard_data   Apps Script getPartnerDashboardData()   line 4391
@@ -27,6 +27,16 @@ ACTIVE_SUBSCRIPTION_STATUSES = ("active", "paid", "trialing")
 ACTIVE_PARTNER_STATUSES = ("active", "approved", "نشط")
 
 COMMISSION_BUCKETS = ("pending", "approved", "paid", "rejected", "hold", "other", "all")
+
+# The company root node ("alsaab") is a structural row in `partners`: it owns
+# the top of the tree and sponsors the first partners, but it is not a partner
+# anyone recruited and it holds no subscription. Counting it inflated the admin
+# partner total by one (18 shown for 17 real partners) and added a phantom
+# "no level reached" entry to the level breakdown.
+try:
+    from config import COMPANY_OWNER_PARTNER_ID
+except ImportError:
+    from backend.config import COMPANY_OWNER_PARTNER_ID
 
 
 def _conn():
@@ -574,8 +584,10 @@ def _admin_partners(cur):
         SELECT created_at, client_id, partner_id, sponsor_partner_id,
                partner_name, phone, email, partner_rank, status, referral_link
         FROM partners
+        WHERE LOWER(partner_id) <> LOWER(?)
         ORDER BY created_at DESC, partner_id DESC
-        """
+        """,
+        (COMPANY_OWNER_PARTNER_ID,)
     )
     rows = _rows_as_dicts(cur)
 
@@ -722,8 +734,10 @@ def _admin_levels(cur):
                subscription_status, commission_eligible, missing_requirements,
                updated_at
         FROM partner_levels
+        WHERE LOWER(partner_id) <> LOWER(?)
         ORDER BY updated_at DESC, partner_id
-        """
+        """,
+        (COMPANY_OWNER_PARTNER_ID,)
     )
     rows = _rows_as_dicts(cur)
 
