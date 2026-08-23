@@ -863,7 +863,15 @@ def admin_recalculate_all_levels(payload):
     with _conn() as conn:
         cur = conn.cursor()
 
-        cur.execute("SELECT partner_id FROM partners ORDER BY partner_id")
+        # Skip the company root: it is a structural row, holds no subscription
+        # and can never earn a commission, so recalculating it is meaningless
+        # and it made the summary say "out of 18" where the dashboard shows 17.
+        from sheet_compat import COMPANY_OWNER_PARTNER_ID
+
+        cur.execute(
+            "SELECT partner_id FROM partners WHERE LOWER(partner_id) <> LOWER(?) ORDER BY partner_id",
+            (COMPANY_OWNER_PARTNER_ID,),
+        )
         partner_ids = [row[0] for row in cur.fetchall()]
 
         for partner_id in partner_ids:

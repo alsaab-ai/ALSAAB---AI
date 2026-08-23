@@ -2052,7 +2052,47 @@ def create_or_update_subscription(
     # recomputes eligibility from scratch at payout time — but every dashboard
     # read a stale value in between.
     try:
-        owner_partner_id = normalize_partner_id(client_id) or normalize_partner_id(session_id)
+        # Resolve the partner who OWNS this subscription.
+        #
+        # client_id is the customer's session key -- "smart_ALS-P00003_178..."
+        # or a bare UUID -- and never a partner id. This module's
+        # normalize_partner_id() hands unrecognised text back unchanged, so that
+        # key came out truthy and the loop below used to resync a partner that
+        # does not exist, while the real owner was never touched. A partner who
+        # upgraded their own package therefore kept their old level until some
+        # unrelated event happened to reach them.
+        #
+        # So: accept the normalised value only if it really is a partner row,
+        # and otherwise find the owner through partners.client_id -- the same
+        # link _calculate_partner_level_progress uses.
+        owner_partner_id = ""
+        owner_candidate = normalize_partner_id(client_id) or normalize_partner_id(session_id)
+        owner_lookup_conn = get_connection()
+
+        try:
+            owner_lookup_cursor = owner_lookup_conn.cursor()
+
+            if owner_candidate:
+                owner_lookup_cursor.execute(
+                    "SELECT partner_id FROM partners WHERE partner_id = ? LIMIT 1",
+                    (owner_candidate,),
+                )
+                owner_row = owner_lookup_cursor.fetchone()
+
+                if owner_row:
+                    owner_partner_id = str(owner_row[0] or "").strip()
+
+            if not owner_partner_id:
+                owner_lookup_cursor.execute(
+                    "SELECT partner_id FROM partners WHERE client_id = ? LIMIT 1",
+                    (client_id or session_id,),
+                )
+                owner_row = owner_lookup_cursor.fetchone()
+
+                if owner_row:
+                    owner_partner_id = str(owner_row[0] or "").strip()
+        finally:
+            owner_lookup_conn.close()
 
         for partner_to_resync in (source_partner_id, owner_partner_id):
             if not partner_to_resync:
@@ -3552,6 +3592,33 @@ def count_active_direct_paid_customers(partner_id):
 
     if not partner_id or not _level_db_table_exists(table):
         return 0
+
+    # Prefer the partner_active_direct_customers view, which is what
+    # sheet_compat._calculate_partner_level_progress counts. The fallback below
+    # filters on subscription_status alone, so it drops a customer the moment a
+    # payment fails -- while the view keeps counting them for the length of the
+    # grace period, the way the business rule says it should. The two answers
+    # disagreed for 4 of 17 partners, and because both writers save to
+    # partner_levels the stored level flipped depending on which ran last.
+    if _level_db_table_exists("partner_active_direct_customers"):
+        view_conn = get_connection()
+
+        try:
+            view_cursor = view_conn.cursor()
+            view_cursor.execute(
+                "SELECT COALESCE(active_direct_customers, 0) "
+                "FROM partner_active_direct_customers WHERE partner_id = ?",
+                (partner_id,),
+            )
+            view_row = view_cursor.fetchone()
+
+            return int(view_row[0]) if view_row else 0
+
+        except Exception as view_error:
+            print(f"COUNT ACTIVE DIRECT CUSTOMERS VIEW FALLBACK {view_error}", flush=True)
+
+        finally:
+            view_conn.close()
 
     columns = _level_db_columns(table)
 
