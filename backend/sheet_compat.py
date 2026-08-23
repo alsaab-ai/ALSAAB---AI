@@ -1,4 +1,4 @@
-# sheet_compat.py
+﻿# sheet_compat.py
 #
 # ALSAAB AI — PostgreSQL replacement for the Google Apps Script backend.
 #
@@ -225,11 +225,24 @@ def _period_month_key(value):
 
 def build_commission_unique_key(data):
     """
-    Exact port of buildCommissionUniqueKey() (line 1689).
+    Identifies one commission slot: this subscription, this billing month, this
+    depth.
 
-    Must stay byte-identical to the Apps Script version, otherwise commissions
-    already written to the sheet would not de-duplicate against new ones after
-    the migration.
+    Ported from buildCommissionUniqueKey() (line 1689) with one deliberate
+    change -- the beneficiary is NOT part of the key.
+
+    The Apps Script version included it, which meant the same subscription
+    month could be paid twice at the same depth as long as a different partner
+    collected it. That is reachable: commissions are regenerated whenever a
+    subscription row is saved, and if the partner who earned the slot has since
+    become ineligible, compression rolls it up and the upline gets a second
+    payout for a month that was already settled. Observed live -- July 2026 on
+    sub_1TtQbe... paid depth 1 to ALS-P00007, and a later save created a second
+    depth-1 commission for the same month to ALS-P00003.
+
+    Dropping the beneficiary makes the slot itself unique, so a month can only
+    ever be paid once no matter who ends up entitled to it. Existing rows were
+    backfilled to this format, so the unique index covers old and new alike.
     """
     stripe_subscription_id = _normalize_key_part(data.get("stripe_subscription_id", ""))
     payer_client_id = _normalize_key_part(data.get("payer_client_id") or data.get("client_id") or "")
@@ -243,11 +256,13 @@ def build_commission_unique_key(data):
     )
     period_month = _period_month_key(data.get("period_start") or data.get("period_end") or "")
 
+    # beneficiary_partner_id is deliberately absent -- see the docstring.
+    del beneficiary_partner_id
+
     return "::".join([
         "commission",
         stripe_subscription_id or payer_client_id or "unknown_payer",
         source_partner_id or "unknown_source",
-        beneficiary_partner_id or "unknown_beneficiary",
         "depth_" + (commission_depth or "unknown_depth"),
         package_name or "unknown_package",
         period_month,
@@ -722,7 +737,7 @@ def _calculate_partner_level_progress(cur, partner_id):
     #     and qualified on someone else's payment.
     cur.execute(
         """
-        SELECT s.plan_name, s.subscription_status
+        SELECT s.plan_name, s.subscription_status, s.id
         FROM partners p
         JOIN subscriptions s
           ON s.client_id = p.client_id
@@ -736,6 +751,28 @@ def _calculate_partner_level_progress(cur, partner_id):
     sub = cur.fetchone()
     current_package = _text(sub[0]) if sub else ""
     subscription_status = _lower(sub[1]) if sub else ""
+
+    # Honour the payment grace period on the partner's OWN subscription.
+    #
+    # A customer whose payment failed keeps counting towards their referrer for
+    # the length of the grace period, because the count comes from the
+    # partner_active_direct_customers view, which is built on
+    # subscriptions_counting_as_active. The partner's own subscription was read
+    # straight off `subscriptions`, so the same failed payment dropped THEM to
+    # level 0 immediately -- grace for their customers, none for themselves.
+    # ALS-P00006 and ALS-P00007 were both sitting in that contradiction.
+    #
+    # The raw status is kept for display; only the value handed to the level
+    # engine is normalised, and only while the grace window is genuinely open
+    # (the view checks payment_grace_until > now()).
+    if sub and subscription_status not in ACTIVE_SUBSCRIPTION_STATUSES:
+        cur.execute(
+            "SELECT 1 FROM subscriptions_counting_as_active WHERE id = ?",
+            (sub[2],),
+        )
+
+        if cur.fetchone():
+            subscription_status = "active"
 
     cur.execute(
         "SELECT COALESCE(active_direct_customers, 0) "

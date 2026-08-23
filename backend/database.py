@@ -3460,7 +3460,7 @@ def get_partner_client_mapping(partner_id):
 
 
 def get_partner_subscription_snapshot(partner_id):
-    from level_engine import normalize_package_name
+    from level_engine import ACTIVE_SUBSCRIPTION_STATUSES, normalize_package_name
 
     mapping = get_partner_client_mapping(partner_id)
     client_id = str(mapping.get("client_id") or "").strip()
@@ -3576,6 +3576,36 @@ def get_partner_subscription_snapshot(partner_id):
 
         if amount_col:
             snapshot["package_amount"] = str(values.get(amount_col) or snapshot["package_amount"] or "").strip()
+
+        # Honour the payment grace period, the same way
+        # sheet_compat._calculate_partner_level_progress does. A failed payment
+        # leaves subscription_status as "payment_failed" while the customer is
+        # still being served and Stripe is still retrying; counting that as
+        # lapsed made a partner ineligible for commission on day one of a
+        # fifteen-day window, even though their own customers in the same state
+        # kept counting for them.
+        if snapshot["subscription_status"] not in ACTIVE_SUBSCRIPTION_STATUSES:
+            grace_id = snapshot["stripe_subscription_id"]
+
+            if grace_id and _level_db_table_exists("subscriptions_counting_as_active"):
+                grace_conn = get_connection()
+
+                try:
+                    grace_cursor = grace_conn.cursor()
+                    grace_cursor.execute(
+                        "SELECT 1 FROM subscriptions_counting_as_active "
+                        "WHERE stripe_subscription_id = ? LIMIT 1",
+                        (grace_id,),
+                    )
+
+                    if grace_cursor.fetchone():
+                        snapshot["subscription_status"] = "active"
+
+                except Exception as grace_error:
+                    print(f"PARTNER SUBSCRIPTION GRACE CHECK SKIPPED {grace_error}", flush=True)
+
+                finally:
+                    grace_conn.close()
 
         return snapshot
 
