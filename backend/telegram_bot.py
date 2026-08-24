@@ -729,70 +729,144 @@ ADMIN_ACTIONS = {
 }
 
 
+# Arguments any action may carry. Declared once so the enum stays the only
+# thing the model has to get right.
+_ACTION_ARGS = {
+    "partner_id": "معرّف الشريك، مثل ALS-P00006.",
+    "request_id": "رقم الطلب، للإلغاء أو الترقية أو طلبات الموقع وواتساب.",
+    "commission_id": "معرّف عمولة واحدة.",
+    "client_id": "معرّف العميل، لتشغيل أو إيقاف بوته.",
+    "status": "الحالة الجديدة. للعمولات: pending أو approved أو hold أو rejected أو paid. "
+              "للشركاء: active أو inactive أو suspended. للطلبات: approved أو rejected.",
+    "query": "نص البحث: معرّف أو اسم أو هاتف أو إيميل.",
+    "bot_enabled": "true أو false.",
+    "reason": "سبب الإجراء، يُسجَّل في سجل التدقيق.",
+}
+
+_ACTION_GUIDE = """اختر الإجراء من هذه القائمة بالمطابقة الحرفية لما طلبه المالك:
+
+  recalculate_all_levels        «أعد حساب المستويات» / «حدّث المستويات»
+  partner_lookup                «ابحث عن شريك ...» (يحتاج query)
+  partner_payout_history        «سجل مدفوعات الشريك ...» (يحتاج partner_id)
+  audit_log                     «سجل التدقيق» / «آخر العمليات»
+  cancellation_requests         «طلبات الإلغاء»
+  upgrade_requests              «طلبات الترقية»
+  website_requests              «طلبات المواقع»
+  whatsapp_requests             «طلبات واتساب»
+  downline_transfer_preview     «اعرض ما سيحدث لو نقلنا شبكة ...» (يحتاج partner_id)
+
+  update_commission_status      «غيّر حالة العمولة ...» (commission_id + status)
+  bulk_update_commission_status «اعتمد / علّق / ارفض عمولات الشريك ...» (partner_id + status)
+  auto_approve_pending_commissions  «اعتمد كل العمولات المعلّقة»
+  mark_partner_commissions_paid «سجّل عمولات ... كمدفوعة» (partner_id)
+  update_partner_status         «أوقف / نشّط / علّق الشريك ...» (partner_id + status)
+  cancellation_decision         «اعتمد / ارفض طلب الإلغاء ...» (request_id + status)
+  upgrade_decision              «اعتمد / ارفض طلب الترقية ...» (request_id + status)
+  website_decision              «حدّث طلب الموقع ...» (request_id + status)
+  whatsapp_decision             «حدّث طلب واتساب ...» (request_id + status)
+  transfer_downline_to_company  «انقل شبكة ... إلى الشركة» (partner_id)
+  bot_control                   «شغّل / أوقف بوت العميل ...» (client_id + bot_enabled)
+
+لا تستعمل هذه الأداة للإجابة عن سؤال. الأسئلة تُجاب من sql_query وحدها."""
+
+
 def _tools():
-    tools = [{
-        "type": "function",
-        "function": {
-            "name": "sql_query",
-            "description": (
-                "نفّذ استعلام SELECT للقراءة فقط على قاعدة PostgreSQL الحيّة "
-                "واحصل على النتائج. استعمله لكل سؤال عن أرقام أو بيانات."
-            ),
-            "parameters": {
-                "type": "object",
-                "properties": {
-                    "sql": {"type": "string", "description": "استعلام SELECT أو WITH واحد."},
-                    "limit": {"type": "integer", "description": "أقصى عدد صفوف (افتراضي 200)."},
-                },
-                "required": ["sql"],
-            },
-        },
-    }]
-
-    for name, (_action, required, description) in ADMIN_ACTIONS.items():
-        properties = {}
-
-        for argument in required:
-            properties[argument] = {"type": "string"}
-
-        properties["reason"] = {
-            "type": "string",
-            "description": "سبب الإجراء، يُسجَّل في سجل التدقيق.",
-        }
-
-        tools.append({
+    return [
+        {
             "type": "function",
             "function": {
-                "name": name,
-                "description": description,
+                "name": "sql_query",
+                "description": (
+                    "اقرأ البيانات الحقيقية بـ SELECT من قاعدة PostgreSQL الحيّة. "
+                    "هذه أداتك لكل سؤال عن أرقام أو أسماء أو حالات أو تواريخ. "
+                    "استعملها عدّة مرات إن لزم."
+                ),
                 "parameters": {
                     "type": "object",
-                    "properties": properties,
-                    "required": required,
+                    "properties": {
+                        "sql": {
+                            "type": "string",
+                            "description": "استعلام SELECT أو WITH واحد، بلا فاصلة منقوطة.",
+                        },
+                        "limit": {
+                            "type": "integer",
+                            "description": "أقصى عدد صفوف، الافتراضي 200.",
+                        },
+                    },
+                    "required": ["sql"],
                 },
             },
-        })
-
-    return tools
+        },
+        {
+            "type": "function",
+            "function": {
+                "name": "run_admin_action",
+                "description": (
+                    "نفّذ إجراءً إدارياً واحداً على النظام. "
+                    "استعملها فقط عندما يطلب المالك فعلاً صريحاً، لا لإجابة سؤال.\n\n"
+                    + _ACTION_GUIDE
+                ),
+                "parameters": {
+                    "type": "object",
+                    "properties": dict(
+                        {
+                            "action": {
+                                "type": "string",
+                                "enum": sorted(ADMIN_ACTIONS),
+                                "description": "اسم الإجراء من القائمة أعلاه.",
+                            }
+                        },
+                        **{
+                            name: {"type": "string", "description": description}
+                            for name, description in _ACTION_ARGS.items()
+                        },
+                    ),
+                    "required": ["action"],
+                },
+            },
+        },
+    ]
 
 
 def _run_tool(name, arguments, is_admin):
+    arguments = arguments or {}
+
     if name == "sql_query":
         return sql_query(arguments.get("sql"), arguments.get("limit"))
 
-    if name not in ADMIN_ACTIONS:
+    if name != "run_admin_action":
         return {"error": f"unknown tool {name}"}
+
+    action_name = str(arguments.get("action") or "").strip()
+
+    if action_name not in ADMIN_ACTIONS:
+        return {
+            "error": "إجراء غير معروف: " + (action_name or "(فارغ)"),
+            "allowed": sorted(ADMIN_ACTIONS),
+        }
 
     if not is_admin:
         return {"error": "هذه المحادثة غير مصرّح لها بتنفيذ إجراءات إدارية."}
 
-    action, required, _description = ADMIN_ACTIONS[name]
+    action, required, _description = ADMIN_ACTIONS[action_name]
     missing = [a for a in required if not str(arguments.get(a) or "").strip()]
 
     if missing:
-        return {"error": "ناقص: " + ", ".join(missing)}
+        return {"error": "ناقص: " + ", ".join(missing), "action": action_name}
 
-    return _call_action(action, arguments)
+    payload = {
+        key: value
+        for key, value in arguments.items()
+        if key != "action" and value not in (None, "")
+    }
+
+    result = _call_action(action, payload)
+
+    if isinstance(result, dict):
+        result = dict(result)
+        result["ran_action"] = action_name
+
+    return result
 
 
 # ---------------------------------------------------------------------------
@@ -916,10 +990,12 @@ def ask_ai(question, chat_id, is_admin):
                     result.get("status", "")
                 ).lower() in ("success", "ok")
 
+                label = (result or {}).get("ran_action") or arguments.get("action") or name
+
                 if ok:
-                    ran.append(name)
+                    ran.append(label)
                 else:
-                    print(f"TELEGRAM TOOL FAILED {name} {str(result)[:200]}", flush=True)
+                    print(f"TELEGRAM ACTION FAILED {label} {str(result)[:200]}", flush=True)
 
             messages.append({
                 "role": "tool",
