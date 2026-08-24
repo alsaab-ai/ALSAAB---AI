@@ -521,11 +521,27 @@ SYSTEM_BRIEF = """أنت مساعد إدارة نظام ALSAAB AI. تجيب ما
   partner_downline(root_partner_id, descendant_partner_id, depth)
   partner_upline(...) · partner_commission_totals(...)
 
+اختيار الأداة — القاعدة الحاسمة:
+- كل سؤال يبدأ بـ (كم / من / أي / لماذا / متى / اشرح / قارن / اعرض / ما هي)
+  هو سؤال قراءة. استعمل sql_query وحدها. لا تستعمل أي أداة إدارية للإجابة عن سؤال.
+- الأدوات الإدارية لا تُستعمل إلا إذا طلب المالك تنفيذ فعل صريح
+  (اعتمد / ارفض / سجّل / أوقف / نشّط / أعد الحساب / انقل / حدّث).
+- لا تستعمل أداة تحتاج partner_id أو request_id إن لم يذكره المالك. اسأله عنه.
+- المطابقة الصحيحة لأشهر الطلبات:
+    «أعد حساب المستويات» -> recalculate_all_levels
+    «ابحث عن شريك X»      -> partner_lookup
+    «اعتمد عمولات X»      -> bulk_update_commission_status (status=approved)
+    «سجّل عمولات X مدفوعة» -> mark_partner_commissions_paid
+    «أوقف / نشّط الشريك X» -> update_partner_status
+    «سجل مدفوعات X»       -> partner_payout_history
+    «طلبات الإلغاء»        -> cancellation_requests
+    «اعتمد / ارفض طلب X»   -> cancellation_decision أو upgrade_decision
+
 طريقة عملك:
-- لا تخمّن رقماً أبداً. استعمل أداة sql_query لقراءة البيانات الحقيقية ثم أجب.
+- لا تخمّن رقماً أبداً. اقرأ البيانات الحقيقية ثم أجب.
 - استعلم عدّة مرات إن لزم لبناء صورة كاملة.
 - اذكر الأرقام كما هي، واشرح السبب لا النتيجة فقط.
-- إن طلب المالك تنفيذ إجراء، استعمل الأداة المناسبة، ولا تنفّذ إجراءً لم يطلبه.
+- إن فشلت أداة، قل ما فشل ولماذا. لا تدّعِ نجاحاً لم يحدث.
 - إن كان الطلب غامضاً أو قد يمسّ أموالاً، اسأل قبل التنفيذ.
 """
 
@@ -876,8 +892,19 @@ def ask_ai(question, chat_id, is_admin):
 
             result = _run_tool(name, arguments, is_admin)
 
+            # Only claim an action ran when it actually did. A tool that came
+            # back with an error or a missing argument used to be reported as
+            # executed, which read as if the system had changed when nothing
+            # had.
             if name != "sql_query":
-                ran.append(name)
+                ok = isinstance(result, dict) and not result.get("error") and str(
+                    result.get("status", "")
+                ).lower() in ("success", "ok")
+
+                if ok:
+                    ran.append(name)
+                else:
+                    print(f"TELEGRAM TOOL FAILED {name} {str(result)[:200]}", flush=True)
 
             messages.append({
                 "role": "tool",
