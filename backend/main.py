@@ -896,6 +896,18 @@ def stripe_webhook():
             flush=True
         )
 
+        telegram_notify(
+            f"💵 <b>تجديد مدفوع</b>"
+            "\n"
+            f"العميل: {session_id}"
+            "\n"
+            f"الباقة: {plan_name}"
+            "\n"
+            f"الراعي: {source_partner_id or '-'}"
+            "\n"
+            f"الفاتورة: <code>{invoice_id}</code>"
+        )
+
         return jsonify({
             "status": "success",
             "message": "invoice.paid handled",
@@ -1112,6 +1124,26 @@ def stripe_webhook():
             flush=True
         )
 
+        telegram_notify(
+            f"🔴 <b>فشل دفع</b>"
+            "\n"
+            f"العميل: {session_id}"
+            "\n"
+            f"الباقة: {plan_name}"
+            "\n"
+            f"الراعي: {source_partner_id or '-'}"
+            "\n"
+            f"المحاولة: {attempt}"
+            "\n"
+            f"فترة السماح: {grace_days} يوماً"
+            "\n"
+            f"محاولة Stripe القادمة: {next_attempt or '-'}"
+            "\n"
+            f"رابط الدفع الآن: {hosted_invoice_url or 'غير متاح'}"
+            "\n"
+            f"الفاتورة: <code>{invoice_id}</code>"
+        )
+
         return jsonify({
             "status": "success",
             "message": "invoice.payment_failed handled",
@@ -1187,6 +1219,20 @@ def stripe_webhook():
         print(
             f"STRIPE SUBSCRIPTION DELETED HANDLED ⚠️ session_id={session_id} plan={plan_name} source_partner_id={source_partner_id} stripe_subscription_id={stripe_subscription_id}",
             flush=True
+        )
+
+        telegram_notify(
+            f"⚫ <b>انتهى اشتراك</b>"
+            "\n"
+            f"العميل: {session_id}"
+            "\n"
+            f"الباقة: {plan_name}"
+            "\n"
+            f"الراعي: {source_partner_id or '-'}"
+            "\n"
+            f"Stripe: <code>{stripe_subscription_id}</code>"
+            "\n"
+            f"الخدمة توقفت وسيسقط العميل من عدّاد الراعي."
         )
 
         return jsonify({
@@ -3733,6 +3779,28 @@ def admin_dashboard_data():
         }), 500
 
 
+# ===== ALSAAB TELEGRAM BILLING NOTICE V1 START =====
+def telegram_notify(text):
+    """
+    Push a billing event to Telegram.
+
+    sheet_compat.handle() already notifies every data action, but the Stripe
+    billing events carry detail that never reaches one -- the grace deadline,
+    the retry number, the pay-now link. Those are pushed from here. Never
+    raises: a telegram problem must not fail a payment webhook.
+    """
+    try:
+        try:
+            from telegram_bot import notify_text
+        except ImportError:
+            from backend.telegram_bot import notify_text
+
+        notify_text(text)
+    except Exception as error:
+        print(f"TELEGRAM BILLING NOTICE SKIPPED {error}", flush=True)
+# ===== ALSAAB TELEGRAM BILLING NOTICE V1 END =====
+
+
 # ===== ALSAAB ADMIN MISSING REQUIREMENT TEXT V1 START =====
 def humanize_missing_requirements(value):
     """
@@ -4071,6 +4139,70 @@ def admin_dashboard_view():
 
 
 # ===== ALSAAB_ADMIN_RECALCULATE_LEVEL_V1 START =====
+
+# ===== ALSAAB TELEGRAM WEBHOOK V1 START =====
+@app.route("/telegram-webhook", methods=["POST"])
+def telegram_webhook():
+    """
+    Telegram delivers every message the bot receives here.
+
+    Always answers 200. Telegram retries a non-2xx and then backs the webhook
+    off entirely, so an error inside one message must not look like a transport
+    failure -- the failure is reported into the chat instead.
+    """
+    try:
+        update = request.get_json(force=True, silent=True) or {}
+    except Exception:
+        update = {}
+
+    try:
+        try:
+            from telegram_bot import handle_update
+        except ImportError:
+            from backend.telegram_bot import handle_update
+
+        result = handle_update(update)
+
+    except Exception as error:
+        print(f"TELEGRAM WEBHOOK ERROR {type(error).__name__}: {error}", flush=True)
+        result = {"status": "error", "message": str(error)[:200]}
+
+    return jsonify(result), 200
+
+
+@app.route("/telegram-setup", methods=["POST", "GET"])
+def telegram_setup():
+    """Register the webhook with Telegram, and report what it thinks is set."""
+    key = request.args.get("key", "").strip() or (request.form.get("key", "") or "").strip()
+
+    if key != ADMIN_KEY:
+        return jsonify({"error": "Unauthorized"}), 401
+
+    try:
+        try:
+            from telegram_bot import get_webhook_info, self_test, set_webhook
+        except ImportError:
+            from backend.telegram_bot import get_webhook_info, self_test, set_webhook
+
+        base_url = (
+            request.args.get("base_url", "").strip()
+            or os.getenv("APP_BASE_URL", "").strip()
+            or request.url_root.rstrip("/")
+        )
+
+        registered = set_webhook(base_url) if request.method == "POST" else None
+
+        return jsonify({
+            "status": "success",
+            "bot": self_test(),
+            "registered": registered,
+            "webhook_info": get_webhook_info(),
+        })
+
+    except Exception as error:
+        return jsonify({"status": "error", "message": str(error)[:300]}), 500
+# ===== ALSAAB TELEGRAM WEBHOOK V1 END =====
+
 
 @app.route("/admin/recalculate-all-levels", methods=["POST"])
 def admin_recalculate_all_levels_route():

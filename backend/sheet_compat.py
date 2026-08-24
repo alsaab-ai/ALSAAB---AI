@@ -1469,6 +1469,21 @@ def handle(payload, label="unknown"):
             print(f"SHEET COMPAT DUAL-WRITE WARNING | action={action} | {error}", flush=True)
 
     print(f"SHEET COMPAT OK | action={action} | status={result.get('status')}", flush=True)
+
+    # Telegram notification. Every data action passes through here, so hooking
+    # this one point covers the whole system instead of relying on a call being
+    # added at each new write site. telegram_bot filters the read-only chatter
+    # and swallows its own errors, so a telegram outage cannot fail an action.
+    try:
+        try:
+            from telegram_bot import notify_action
+        except ImportError:
+            from backend.telegram_bot import notify_action
+
+        notify_action(action, payload, result)
+    except Exception as notify_error:
+        print(f"TELEGRAM HOOK SKIPPED | action={action} | {notify_error}", flush=True)
+
     return result
 
 
