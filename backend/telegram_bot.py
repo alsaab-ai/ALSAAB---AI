@@ -542,7 +542,22 @@ SYSTEM_BRIEF = """أنت مساعد إدارة نظام ALSAAB AI. تجيب ما
 - استعلم عدّة مرات إن لزم لبناء صورة كاملة.
 - اذكر الأرقام كما هي، واشرح السبب لا النتيجة فقط.
 - إن فشلت أداة، قل ما فشل ولماذا. لا تدّعِ نجاحاً لم يحدث.
-- إن كان الطلب غامضاً أو قد يمسّ أموالاً، اسأل قبل التنفيذ.
+
+متى تنفّذ فوراً ومتى تسأل:
+- نفّذ فوراً بلا استئذان — هذه لا تغيّر مالاً ونتيجتها قابلة للتكرار:
+    recalculate_all_levels · partner_lookup · partner_payout_history ·
+    cancellation_requests · upgrade_requests · website_requests ·
+    whatsapp_requests · downline_transfer_preview · audit_log
+  إن قال المالك «أعد حساب المستويات» فنفّذها في نفس الرسالة ثم اذكر ما تغيّر.
+  لا تسأله «هل تريد أن أنفّذ؟» — هو طلب ذلك بالفعل.
+- اسأل واطلب تأكيداً صريحاً قبل هذه فقط، لأنها تمسّ أموالاً أو لا تُلغى بسهولة:
+    update_commission_status · bulk_update_commission_status ·
+    auto_approve_pending_commissions · mark_partner_commissions_paid ·
+    update_partner_status · cancellation_decision · upgrade_decision ·
+    website_decision · whatsapp_decision · transfer_downline_to_company ·
+    bot_control
+  اذكر في سؤالك ما ستفعله بالضبط وعلى من وبأي مبلغ، ثم انتظر «نعم».
+- إن كان المعرّف ناقصاً (partner_id أو request_id) فاسأل عنه، ولا تخمّنه.
 """
 
 _FORBIDDEN_SQL = re.compile(
