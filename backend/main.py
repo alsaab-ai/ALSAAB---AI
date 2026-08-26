@@ -520,7 +520,19 @@ def pay(plan_name):
         }), 400
 
     if not session_id:
-        return render_template("pay.html"), 400
+        # A visitor arriving from /plans has no chat session, and refusing them
+        # here dead-ended every direct signup on "open the payment link from
+        # inside the chat". Mint one instead -- it is exactly what the chat does
+        # for its own visitors. The id travels to Stripe inside
+        # client_reference_id and comes back on checkout.session.completed as
+        # the customer's client_id, so a signup from the pricing page lands the
+        # same way a signup from a conversation does.
+        session_id = str(uuid.uuid4())
+
+        print(
+            f"PAY SESSION MINTED FOR DIRECT CHECKOUT session_id={session_id} plan={plan_name}",
+            flush=True
+        )
 
     if not source_partner_id:
         try:
