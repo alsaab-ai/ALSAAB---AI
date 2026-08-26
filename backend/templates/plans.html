@@ -1,4 +1,4 @@
-<!-- ALSAAB AI - public pricing / signup -->
+﻿<!-- ALSAAB AI - public pricing / signup -->
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>الباقات والأسعار - ALSAAB AI</title>
@@ -68,7 +68,24 @@ html, body {
 
 .brand { display: flex; align-items: center; gap: 13px; }
 
+.logo-mark img {
+    display: block;
+    width: 100%;
+    height: auto;
+    filter: drop-shadow(0 6px 22px rgba(0, 0, 0, 0.55));
+}
+
 .logo-mark {
+    width: 168px;
+    height: auto;
+    border: 0;
+    background: none;
+    box-shadow: none;
+    border-radius: 0;
+    display: block;
+}
+
+.logo-mark-legacy {
     width: 54px; height: 54px; border-radius: 17px;
     display: grid; place-items: center;
     background:
@@ -237,7 +254,9 @@ li::after {
 
   <div class="top">
     <div class="brand">
-      <div class="logo-mark"><span>A</span></div>
+      <div class="logo-mark">
+          <img src="/static/logo-white.png" alt="ALSAAB — الصعب لإدارة المشاريع">
+        </div>
       <div>
         <h1>ALSAAB AI</h1>
         <p>موظّف المبيعات الذكي لمشروعك</p>

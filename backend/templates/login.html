@@ -1,4 +1,4 @@
-<!-- ALSAAB AI - passwordless email login -->
+﻿<!-- ALSAAB AI - passwordless email login -->
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>تسجيل الدخول - ALSAAB AI</title>
@@ -74,6 +74,23 @@ html, body {
 }
 
 .logo-mark {
+    width: 100%;
+    max-width: 232px;
+    margin: 0 auto 22px;
+    display: block;
+}
+
+.logo-mark img {
+    display: block;
+    width: 100%;
+    height: auto;
+    /* The file is already white with a transparent background, so it sits on
+       the dark card without a plate behind it. The glow keeps it from looking
+       pasted on. */
+    filter: drop-shadow(0 6px 22px rgba(0, 0, 0, 0.55));
+}
+
+.logo-mark-unused {
     width: 64px;
     height: 64px;
     border-radius: 20px;
@@ -224,6 +241,37 @@ button[disabled] { opacity: .55; cursor: not-allowed; transform: none; }
     .card { padding: 30px 22px 26px; border-radius: 22px; }
     h1 { font-size: 20px; }
 }
+
+.code-input {
+    text-align: center;
+    font-size: 30px;
+    font-weight: 800;
+    letter-spacing: 14px;
+    padding-right: 14px;
+    direction: ltr;
+    font-family: "Courier New", Courier, monospace;
+    color: var(--gold-2);
+}
+
+.resend {
+    background: none;
+    border: 0;
+    color: var(--text-muted);
+    font-family: inherit;
+    font-size: 13px;
+    cursor: pointer;
+    text-decoration: underline;
+    padding: 6px;
+}
+
+.resend:hover { color: var(--gold-2); }
+
+.mailed-to {
+    color: var(--text-muted);
+    font-size: 13px;
+    margin: -4px 0 16px;
+    direction: ltr;
+}
 </style>
 
 <div class="luxury-bg"></div>
@@ -231,37 +279,59 @@ button[disabled] { opacity: .55; cursor: not-allowed; transform: none; }
 <div class="wrap">
   <div class="card">
 
-    <div class="logo-mark"><span>A</span></div>
+    <div class="logo-mark">
+      <img src="/static/logo-white.png" alt="ALSAAB — الصعب لإدارة المشاريع">
+    </div>
 
     <h1>تسجيل الدخول</h1>
+
+    {% if stage == "code" %}
+
+    <p class="sub">أدخل الرمز المكوّن من 6 أرقام الذي أرسلناه إلى بريدك.</p>
+
+    {% if email %}<div class="mailed-to">{{ email }}</div>{% endif %}
+
+    {% if error %}
+      <div class="note err">{{ error }}</div>
+    {% else %}
+      <div class="note ok">
+        إن كان هذا البريد مسجّلاً لدينا، فقد وصلك الرمز الآن.<br>
+        صالح لمدة <b>10 دقائق</b> ولمرة واحدة.
+      </div>
+    {% endif %}
+
+    <form method="POST" action="/login" autocomplete="one-time-code">
+      <label for="code">رمز التحقّق</label>
+      <input id="code" name="code" class="code-input" type="text"
+             inputmode="numeric" pattern="[0-9]*" maxlength="6" required
+             autocomplete="one-time-code" autofocus placeholder="------">
+      <button type="submit" id="go">تحقّق وادخل</button>
+    </form>
+
+    <form method="GET" action="/login" style="margin-top:10px;">
+      <button type="submit" class="resend">لم يصلك الرمز؟ أرسل رمزاً جديداً</button>
+    </form>
+
+    {% else %}
+
     <p class="sub">
-      اكتب بريدك الإلكتروني ونرسل لك رابط دخول مباشر.<br>
+      اكتب بريدك الإلكتروني ونرسل لك رمز دخول.<br>
       بلا كلمة مرور تحفظها أو تنساها.
     </p>
 
-    {% if sent %}
-      <div class="note ok">
-        إن كان هذا البريد مسجّلاً لدينا، فقد وصلك رابط الدخول الآن.<br>
-        الرابط صالح لمدة <b>15 دقيقة</b> ويُستخدم مرة واحدة.<br><br>
-        لم يصلك؟ تحقّق من مجلد الرسائل غير المرغوبة، ثم أعد المحاولة.
-      </div>
-    {% elif error %}
+    {% if error %}
       <div class="note err">{{ error }}</div>
     {% endif %}
 
-    {% if not sent %}
     <form method="POST" action="/login" autocomplete="on">
       <label for="email">البريد الإلكتروني</label>
       <input id="email" name="email" type="email" required
              placeholder="you@example.com"
              value="{{ email or '' }}"
              autocomplete="email" dir="ltr">
-      <button type="submit" id="go">إرسال رابط الدخول</button>
+      <button type="submit" id="go">إرسال رمز الدخول</button>
     </form>
-    {% else %}
-    <form method="GET" action="/login">
-      <button type="submit">إرسال مرة أخرى</button>
-    </form>
+
     {% endif %}
 
     <div class="divider">أو</div>
@@ -276,11 +346,26 @@ button[disabled] { opacity: .55; cursor: not-allowed; transform: none; }
 </div>
 
 <script>
-  var form = document.querySelector('form[action="/login"]');
+  var form = document.querySelector('form[method="POST"][action="/login"]');
   if (form) {
     form.addEventListener('submit', function () {
       var b = document.getElementById('go');
-      if (b) { b.disabled = true; b.textContent = 'جارٍ الإرسال...'; }
+      if (b) { b.disabled = true; b.textContent = 'جارٍ المعالجة...'; }
     });
+  }
+
+  // Typing the sixth digit submits, so the code step needs no extra tap. The
+  // paste path matters too: a phone that offers the code from the mail app
+  // fills the whole field at once and never fires six keystrokes.
+  var code = document.getElementById('code');
+  if (code) {
+    var submitWhenFull = function () {
+      code.value = code.value.replace(/\D/g, '').slice(0, 6);
+      if (code.value.length === 6 && form) {
+        form.requestSubmit ? form.requestSubmit() : form.submit();
+      }
+    };
+    code.addEventListener('input', submitWhenFull);
+    code.addEventListener('paste', function () { setTimeout(submitWhenFull, 0); });
   }
 </script>
