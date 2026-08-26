@@ -1,0 +1,290 @@
+<!-- ALSAAB AI - public pricing / signup -->
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>الباقات والأسعار - ALSAAB AI</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+
+<style>
+* { box-sizing: border-box; }
+
+:root {
+    --bg-main: #05070d;
+    --bg-card: rgba(12, 16, 26, 0.92);
+    --bg-card-soft: rgba(255, 255, 255, 0.045);
+    --border-soft: rgba(255, 255, 255, 0.08);
+    --gold: #d6a84f;
+    --gold-2: #f3d37b;
+    --gold-3: #a97824;
+    --green: #22c55e;
+    --text-main: #f8fafc;
+    --text-soft: #cbd5e1;
+    --text-muted: #94a3b8;
+    --shadow: 0 24px 80px rgba(0,0,0,0.55);
+}
+
+html, body {
+    margin: 0;
+    padding: 0;
+    background: var(--bg-main);
+    font-family: "Cairo", Arial, sans-serif;
+    color: var(--text-main);
+    direction: rtl;
+}
+
+.luxury-bg {
+    position: fixed;
+    inset: 0;
+    background:
+        radial-gradient(circle at 15% 10%, rgba(214, 168, 79, 0.16), transparent 30%),
+        radial-gradient(circle at 85% 90%, rgba(214, 168, 79, 0.12), transparent 32%),
+        linear-gradient(135deg, #03050a 0%, #0a0f1d 42%, #060810 100%);
+    z-index: -3;
+}
+
+.luxury-bg::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background-image:
+        linear-gradient(rgba(255,255,255,0.025) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255,255,255,0.025) 1px, transparent 1px);
+    background-size: 42px 42px;
+}
+
+.page { max-width: 1220px; margin: 0 auto; padding: 44px 20px 70px; }
+
+/* ---------- header ---------- */
+
+.top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    margin-bottom: 44px;
+    flex-wrap: wrap;
+}
+
+.brand { display: flex; align-items: center; gap: 13px; }
+
+.logo-mark {
+    width: 54px; height: 54px; border-radius: 17px;
+    display: grid; place-items: center;
+    background:
+        linear-gradient(145deg, rgba(255,255,255,0.08), rgba(255,255,255,0.02)),
+        radial-gradient(circle at top, rgba(243,211,123,0.25), transparent 60%);
+    border: 1px solid rgba(214,168,79,0.45);
+    box-shadow: 0 12px 30px rgba(0,0,0,0.35), 0 0 24px rgba(214,168,79,0.12);
+    font-weight: 900; font-size: 28px; line-height: 1;
+}
+
+.logo-mark span {
+    background: linear-gradient(180deg, #ffffff, #d6a84f);
+    -webkit-background-clip: text; background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+.brand h1 { margin: 0; font-size: 20px; font-weight: 900; }
+.brand p  { margin: 2px 0 0; font-size: 11.5px; color: var(--text-muted); }
+
+.login-link {
+    padding: 11px 20px; border-radius: 12px; text-decoration: none;
+    font-size: 13.5px; font-weight: 800; color: var(--gold-2);
+    border: 1px solid rgba(214,168,79,0.4); background: rgba(214,168,79,0.06);
+    transition: background .18s, border-color .18s;
+}
+
+.login-link:hover { background: rgba(214,168,79,0.12); border-color: rgba(214,168,79,0.7); }
+
+/* ---------- hero ---------- */
+
+.hero { text-align: center; margin-bottom: 46px; }
+
+.hero h2 {
+    margin: 0 0 12px;
+    font-size: 34px; font-weight: 900; line-height: 1.35;
+}
+
+.hero h2 b {
+    background: linear-gradient(180deg, var(--gold-2), var(--gold));
+    -webkit-background-clip: text; background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+.hero p { margin: 0 auto; max-width: 640px; color: var(--text-soft); font-size: 15px; line-height: 1.9; }
+
+/* ---------- cards ---------- */
+
+.grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(272px, 1fr));
+    gap: 20px;
+    align-items: stretch;
+}
+
+.plan {
+    position: relative;
+    display: flex; flex-direction: column;
+    background: var(--bg-card);
+    border: 1px solid var(--border-soft);
+    border-radius: 22px;
+    padding: 30px 24px 26px;
+    box-shadow: var(--shadow);
+    transition: transform .2s, border-color .2s;
+}
+
+.plan:hover { transform: translateY(-4px); border-color: rgba(214,168,79,0.35); }
+
+.plan.featured {
+    border-color: rgba(214,168,79,0.55);
+    background:
+        linear-gradient(180deg, rgba(214,168,79,0.07), transparent 42%),
+        var(--bg-card);
+}
+
+.tag {
+    position: absolute; top: -12px; inset-inline-start: 24px;
+    padding: 5px 14px; border-radius: 999px;
+    font-size: 11px; font-weight: 900; color: #1a1206;
+    background: linear-gradient(135deg, var(--gold-2), var(--gold));
+    box-shadow: 0 8px 20px rgba(214,168,79,0.28);
+}
+
+.plan h3 { margin: 0 0 4px; font-size: 19px; font-weight: 900; }
+.plan .en { margin: 0 0 18px; font-size: 11.5px; color: var(--text-muted); letter-spacing: .6px; text-transform: uppercase; }
+
+.price { display: flex; align-items: baseline; gap: 7px; margin-bottom: 4px; }
+
+.price .num {
+    font-size: 38px; font-weight: 900; line-height: 1;
+    background: linear-gradient(180deg, #ffffff, var(--gold));
+    -webkit-background-clip: text; background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+.price .cur { font-size: 14px; font-weight: 800; color: var(--text-soft); }
+.per { margin: 0 0 20px; font-size: 12px; color: var(--text-muted); }
+
+.replies {
+    margin-bottom: 18px; padding: 11px 14px; border-radius: 12px;
+    background: var(--bg-card-soft); border: 1px solid var(--border-soft);
+    font-size: 13px; font-weight: 700; color: var(--text-soft);
+}
+
+.replies b { color: var(--gold-2); }
+
+ul { list-style: none; margin: 0 0 24px; padding: 0; flex: 1; }
+
+li {
+    position: relative; padding-inline-start: 25px; margin-bottom: 11px;
+    font-size: 13.2px; line-height: 1.7; color: var(--text-soft);
+}
+
+li::before {
+    content: "";
+    position: absolute; inset-inline-start: 0; top: 8px;
+    width: 15px; height: 15px; border-radius: 50%;
+    background: rgba(34,197,94,0.14);
+    border: 1px solid rgba(34,197,94,0.45);
+}
+
+li::after {
+    content: "";
+    position: absolute; inset-inline-start: 5px; top: 11px;
+    width: 4px; height: 7px;
+    border: solid var(--green); border-width: 0 1.6px 1.6px 0;
+    transform: rotate(45deg);
+}
+
+.cta {
+    display: block; text-align: center; text-decoration: none;
+    padding: 14px 16px; border-radius: 14px;
+    font-size: 14.5px; font-weight: 900; color: #1a1206;
+    background: linear-gradient(135deg, var(--gold-2), var(--gold) 55%, var(--gold-3));
+    box-shadow: 0 14px 34px rgba(214,168,79,0.20);
+    transition: transform .14s, box-shadow .18s;
+}
+
+.cta:hover { transform: translateY(-1px); box-shadow: 0 18px 40px rgba(214,168,79,0.3); }
+
+.cta.soft {
+    color: var(--gold-2); background: rgba(214,168,79,0.07);
+    border: 1px solid rgba(214,168,79,0.4); box-shadow: none;
+}
+
+.cta.soft:hover { background: rgba(214,168,79,0.14); }
+
+/* ---------- footer ---------- */
+
+.foot {
+    margin-top: 46px; text-align: center;
+    font-size: 12.5px; color: var(--text-muted); line-height: 2;
+}
+
+.foot a { color: var(--text-soft); text-decoration: none; }
+.foot a:hover { color: var(--gold-2); }
+
+@media (max-width: 640px) {
+    .hero h2 { font-size: 25px; }
+    .page { padding: 30px 16px 54px; }
+}
+</style>
+
+<div class="luxury-bg"></div>
+
+<div class="page">
+
+  <div class="top">
+    <div class="brand">
+      <div class="logo-mark"><span>A</span></div>
+      <div>
+        <h1>ALSAAB AI</h1>
+        <p>موظّف المبيعات الذكي لمشروعك</p>
+      </div>
+    </div>
+    <a class="login-link" href="/login">لديك حساب؟ تسجيل الدخول</a>
+  </div>
+
+  <div class="hero">
+    <h2>اختر الباقة التي <b>تناسب مشروعك</b></h2>
+    <p>
+      بوت مبيعات يعمل على مدار الساعة، يردّ على عملائك بلغتهم، ويحفظ كل محادثة.
+      يبدأ العمل خلال دقائق من الاشتراك.
+    </p>
+  </div>
+
+  <div class="grid">
+    {% for plan in plans %}
+    <div class="plan {% if plan.featured %}featured{% endif %}">
+      {% if plan.featured %}<div class="tag">الأكثر طلباً</div>{% endif %}
+
+      <h3>{{ plan.name_ar }}</h3>
+      <p class="en">{{ plan.key }}</p>
+
+      <div class="price">
+        <span class="num">{{ plan.amount }}</span>
+        <span class="cur">درهم</span>
+      </div>
+      <p class="per">شهرياً · يُجدَّد تلقائياً · يمكنك الإلغاء متى شئت</p>
+
+      <div class="replies"><b>{{ plan.replies }}</b> ردّ شهري للعملاء</div>
+
+      <ul>
+        {% for feature in plan.features %}
+        <li>{{ feature }}</li>
+        {% endfor %}
+      </ul>
+
+      <a class="cta {% if not plan.featured %}soft{% endif %}"
+         href="{{ plan.checkout_url }}">اشترك الآن</a>
+    </div>
+    {% endfor %}
+  </div>
+
+  <p class="foot">
+    كل الأسعار بالدرهم الإماراتي وتشمل التجديد الشهري التلقائي.<br>
+    غير متأكد أي باقة تناسبك؟ <a href="/">تحدّث مع مساعد الصعب</a> وسيرشدك.
+  </p>
+
+</div>

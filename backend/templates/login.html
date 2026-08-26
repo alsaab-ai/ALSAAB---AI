@@ -1,0 +1,286 @@
+<!-- ALSAAB AI - passwordless email login -->
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>تسجيل الدخول - ALSAAB AI</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+
+<style>
+* { box-sizing: border-box; }
+
+:root {
+    --bg-main: #05070d;
+    --bg-card: rgba(12, 16, 26, 0.92);
+    --bg-card-soft: rgba(255, 255, 255, 0.045);
+    --border-soft: rgba(255, 255, 255, 0.08);
+    --gold: #d6a84f;
+    --gold-2: #f3d37b;
+    --gold-3: #a97824;
+    --green: #22c55e;
+    --red: #ef4444;
+    --text-main: #f8fafc;
+    --text-soft: #cbd5e1;
+    --text-muted: #94a3b8;
+    --shadow: 0 24px 80px rgba(0,0,0,0.55);
+}
+
+html, body {
+    margin: 0;
+    padding: 0;
+    min-height: 100%;
+    background: var(--bg-main);
+    font-family: "Cairo", Arial, sans-serif;
+    color: var(--text-main);
+}
+
+.luxury-bg {
+    position: fixed;
+    inset: 0;
+    background:
+        radial-gradient(circle at 15% 15%, rgba(214, 168, 79, 0.16), transparent 28%),
+        radial-gradient(circle at 85% 85%, rgba(214, 168, 79, 0.12), transparent 32%),
+        linear-gradient(135deg, #03050a 0%, #0a0f1d 42%, #060810 100%);
+    z-index: -3;
+}
+
+.luxury-bg::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background-image:
+        linear-gradient(rgba(255,255,255,0.025) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255,255,255,0.025) 1px, transparent 1px);
+    background-size: 42px 42px;
+}
+
+.wrap {
+    min-height: 100vh;
+    display: grid;
+    place-items: center;
+    padding: 28px 18px;
+}
+
+.card {
+    width: 100%;
+    max-width: 460px;
+    background: var(--bg-card);
+    border: 1px solid var(--border-soft);
+    border-radius: 26px;
+    box-shadow: var(--shadow);
+    padding: 38px 32px 32px;
+    text-align: center;
+    direction: rtl;
+}
+
+.logo-mark {
+    width: 64px;
+    height: 64px;
+    border-radius: 20px;
+    margin: 0 auto 16px;
+    display: grid;
+    place-items: center;
+    background:
+        linear-gradient(145deg, rgba(255,255,255,0.08), rgba(255,255,255,0.02)),
+        radial-gradient(circle at top, rgba(243,211,123,0.25), transparent 60%);
+    border: 1px solid rgba(214,168,79,0.45);
+    box-shadow: 0 12px 30px rgba(0,0,0,0.35), 0 0 24px rgba(214,168,79,0.12);
+    font-weight: 900;
+    font-size: 32px;
+    line-height: 1;
+}
+
+.logo-mark span {
+    background: linear-gradient(180deg, #ffffff, #d6a84f);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+h1 {
+    margin: 0 0 6px;
+    font-size: 23px;
+    font-weight: 900;
+    letter-spacing: 0.3px;
+}
+
+.sub {
+    margin: 0 0 26px;
+    color: var(--text-muted);
+    font-size: 13px;
+    line-height: 1.8;
+}
+
+label {
+    display: block;
+    text-align: right;
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--text-soft);
+    margin-bottom: 8px;
+}
+
+input[type="email"] {
+    width: 100%;
+    padding: 15px 16px;
+    border-radius: 14px;
+    border: 1px solid var(--border-soft);
+    background: var(--bg-card-soft);
+    color: var(--text-main);
+    font-family: "Cairo", Arial, sans-serif;
+    font-size: 15px;
+    text-align: right;
+    direction: ltr;
+    outline: none;
+    transition: border-color .18s, box-shadow .18s;
+}
+
+input[type="email"]:focus {
+    border-color: rgba(214,168,79,0.65);
+    box-shadow: 0 0 0 4px rgba(214,168,79,0.10);
+}
+
+button {
+    width: 100%;
+    margin-top: 16px;
+    padding: 15px 16px;
+    border: none;
+    border-radius: 14px;
+    cursor: pointer;
+    font-family: "Cairo", Arial, sans-serif;
+    font-size: 15px;
+    font-weight: 900;
+    color: #1a1206;
+    background: linear-gradient(135deg, var(--gold-2), var(--gold) 55%, var(--gold-3));
+    box-shadow: 0 14px 34px rgba(214,168,79,0.22);
+    transition: transform .14s, box-shadow .18s, opacity .18s;
+}
+
+button:hover { transform: translateY(-1px); box-shadow: 0 18px 40px rgba(214,168,79,0.3); }
+button:active { transform: translateY(0); }
+button[disabled] { opacity: .55; cursor: not-allowed; transform: none; }
+
+.note {
+    margin: 22px 0 0;
+    padding: 15px 16px;
+    border-radius: 14px;
+    font-size: 13px;
+    line-height: 1.85;
+    text-align: right;
+    border: 1px solid var(--border-soft);
+    background: var(--bg-card-soft);
+    color: var(--text-soft);
+}
+
+.note.ok  { border-color: rgba(34,197,94,0.35);  background: rgba(34,197,94,0.07); }
+.note.err { border-color: rgba(239,68,68,0.35);  background: rgba(239,68,68,0.07); }
+
+.divider {
+    margin: 26px 0 18px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    color: var(--text-muted);
+    font-size: 12px;
+}
+
+.divider::before, .divider::after {
+    content: "";
+    flex: 1;
+    height: 1px;
+    background: var(--border-soft);
+}
+
+.signup {
+    display: block;
+    padding: 14px 16px;
+    border-radius: 14px;
+    text-decoration: none;
+    font-size: 14px;
+    font-weight: 800;
+    color: var(--gold-2);
+    border: 1px solid rgba(214,168,79,0.4);
+    background: rgba(214,168,79,0.06);
+    transition: background .18s, border-color .18s, transform .14s;
+}
+
+.signup:hover {
+    background: rgba(214,168,79,0.12);
+    border-color: rgba(214,168,79,0.7);
+    transform: translateY(-1px);
+}
+
+.foot {
+    margin-top: 22px;
+    font-size: 11.5px;
+    color: var(--text-muted);
+    line-height: 1.8;
+}
+
+.foot a { color: var(--text-soft); text-decoration: none; }
+.foot a:hover { color: var(--gold-2); }
+
+@media (max-width: 480px) {
+    .card { padding: 30px 22px 26px; border-radius: 22px; }
+    h1 { font-size: 20px; }
+}
+</style>
+
+<div class="luxury-bg"></div>
+
+<div class="wrap">
+  <div class="card">
+
+    <div class="logo-mark"><span>A</span></div>
+
+    <h1>تسجيل الدخول</h1>
+    <p class="sub">
+      اكتب بريدك الإلكتروني ونرسل لك رابط دخول مباشر.<br>
+      بلا كلمة مرور تحفظها أو تنساها.
+    </p>
+
+    {% if sent %}
+      <div class="note ok">
+        إن كان هذا البريد مسجّلاً لدينا، فقد وصلك رابط الدخول الآن.<br>
+        الرابط صالح لمدة <b>15 دقيقة</b> ويُستخدم مرة واحدة.<br><br>
+        لم يصلك؟ تحقّق من مجلد الرسائل غير المرغوبة، ثم أعد المحاولة.
+      </div>
+    {% elif error %}
+      <div class="note err">{{ error }}</div>
+    {% endif %}
+
+    {% if not sent %}
+    <form method="POST" action="/login" autocomplete="on">
+      <label for="email">البريد الإلكتروني</label>
+      <input id="email" name="email" type="email" required
+             placeholder="you@example.com"
+             value="{{ email or '' }}"
+             autocomplete="email" dir="ltr">
+      <button type="submit" id="go">إرسال رابط الدخول</button>
+    </form>
+    {% else %}
+    <form method="GET" action="/login">
+      <button type="submit">إرسال مرة أخرى</button>
+    </form>
+    {% endif %}
+
+    <div class="divider">أو</div>
+
+    <a class="signup" href="/plans">ليس لديك حساب؟ اشترك الآن</a>
+
+    <p class="foot">
+      واجهت مشكلة؟ <a href="/">تحدّث مع مساعد الصعب</a>
+    </p>
+
+  </div>
+</div>
+
+<script>
+  var form = document.querySelector('form[action="/login"]');
+  if (form) {
+    form.addEventListener('submit', function () {
+      var b = document.getElementById('go');
+      if (b) { b.disabled = true; b.textContent = 'جارٍ الإرسال...'; }
+    });
+  }
+</script>

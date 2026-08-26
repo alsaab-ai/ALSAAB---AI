@@ -685,6 +685,25 @@ def stripe_webhook():
                 contact_conn.commit()
                 contact_conn.close()
 
+                # The partner row is created before Stripe hands the contact
+                # over, so mirror it there too. partners.email is the key the
+                # WordPress hand-off and the email login both look up, and it
+                # was empty for every partner in the table. NULLIF keeps an
+                # existing value from being overwritten with a blank.
+                partner_conn = _contact_connection()
+                partner_cursor = partner_conn.cursor()
+                partner_cursor.execute(
+                    """
+                    UPDATE partners
+                    SET email = COALESCE(NULLIF(email, ''), NULLIF(?, '')),
+                        phone = COALESCE(NULLIF(phone, ''), NULLIF(?, ''))
+                    WHERE client_id = ? OR client_id = ?
+                    """,
+                    (captured_email, captured_phone, session_id, session_id),
+                )
+                partner_conn.commit()
+                partner_conn.close()
+
                 print(
                     f"CUSTOMER CONTACT CAPTURED ✅ session_id={session_id} "
                     f"email={'yes' if captured_email else 'no'} "
@@ -2465,7 +2484,10 @@ def partner_dashboard_view():
     if sso_payload:
         session["partner_id"] = partner_id
     elif not is_dashboard_access_allowed(partner_id, key):
-        print(f"DASHBOARD DIRECT ACCESS BYPASS partner partner_id={partner_id}", flush=True)
+        print(f"DASHBOARD ACCESS DENIED partner partner_id={partner_id}", flush=True)
+        return redirect(build_dashboard_login_redirect(
+            "partner", partner_id, request.values.get("lang", "ar")
+        )), 302
 
     if not partner_id:
         return "partner_id is required", 400
@@ -2832,7 +2854,10 @@ def client_dashboard_view():
     if sso_payload:
         session["partner_id"] = partner_id
     elif not is_dashboard_access_allowed(partner_id, key):
-        print(f"DASHBOARD DIRECT ACCESS BYPASS client partner_id={partner_id}", flush=True)
+        print(f"DASHBOARD ACCESS DENIED client partner_id={partner_id}", flush=True)
+        return redirect(build_dashboard_login_redirect(
+            "client", partner_id, request.values.get("lang", "ar")
+        )), 302
 
     if not partner_id:
         return "partner_id is required", 400
@@ -3134,7 +3159,10 @@ def client_dashboard_save_image_group():
     if sso_payload:
         session["partner_id"] = partner_id
     elif not is_dashboard_access_allowed(partner_id, key):
-        print(f"DASHBOARD DIRECT ACCESS BYPASS client form partner_id={partner_id}", flush=True)
+        print(f"DASHBOARD ACCESS DENIED client form partner_id={partner_id}", flush=True)
+        return redirect(build_dashboard_login_redirect(
+            "client", partner_id, request.values.get("lang", "ar")
+        )), 302
     client_id = request.form.get("client_id", "").strip() or partner_id
     lang = request.form.get("lang", "ar").strip().lower()
 
@@ -3217,7 +3245,10 @@ def client_dashboard_save_payment_link():
     if sso_payload:
         session["partner_id"] = partner_id
     elif not is_dashboard_access_allowed(partner_id, key):
-        print(f"DASHBOARD DIRECT ACCESS BYPASS client form partner_id={partner_id}", flush=True)
+        print(f"DASHBOARD ACCESS DENIED client form partner_id={partner_id}", flush=True)
+        return redirect(build_dashboard_login_redirect(
+            "client", partner_id, request.values.get("lang", "ar")
+        )), 302
     client_id = request.form.get("client_id", "").strip() or partner_id
     lang = request.form.get("lang", "ar").strip().lower()
 
@@ -3307,7 +3338,10 @@ def client_dashboard_save_project_data():
     if sso_payload:
         session["partner_id"] = partner_id
     elif not is_dashboard_access_allowed(partner_id, key):
-        print(f"DASHBOARD DIRECT ACCESS BYPASS client form partner_id={partner_id}", flush=True)
+        print(f"DASHBOARD ACCESS DENIED client form partner_id={partner_id}", flush=True)
+        return redirect(build_dashboard_login_redirect(
+            "client", partner_id, request.values.get("lang", "ar")
+        )), 302
     client_id = request.form.get("client_id", "").strip() or partner_id
     lang = request.form.get("lang", "ar").strip().lower()
 
@@ -3369,7 +3403,10 @@ def owner_advisory_view():
     if sso_payload:
         session["partner_id"] = partner_id
     elif not is_dashboard_access_allowed(partner_id, key):
-        print(f"DASHBOARD DIRECT ACCESS BYPASS advisory partner_id={partner_id}", flush=True)
+        print(f"DASHBOARD ACCESS DENIED advisory partner_id={partner_id}", flush=True)
+        return redirect(build_dashboard_login_redirect(
+            "advisory", partner_id, request.values.get("lang", "ar")
+        )), 302
     lang = request.args.get("lang", "ar").strip().lower()
 
     if lang not in ("ar", "en"):
@@ -3604,7 +3641,9 @@ def build_dashboard_login_redirect(target="client", partner_id="", lang="ar"):
     if partner_id:
         params["partner_id"] = partner_id
 
-    return "/account-login-placeholder?" + urlencode(params)
+    # /account-login-placeholder was a stub that only explained that login did
+    # not exist yet. /login is the real passwordless page.
+    return "/login?" + urlencode(params)
 
 
 @app.route("/dashboard-sso", methods=["GET"])
@@ -3688,6 +3727,12 @@ def admin_create_dashboard_sso_link():
 
 @app.route("/account-login-placeholder", methods=["GET"])
 def account_login_placeholder():
+    # Superseded by /login. Kept so any link already handed out still lands
+    # somewhere useful.
+    return redirect("/login"), 302
+
+
+def _retired_account_login_placeholder():
     return render_template(
         "account_login_placeholder.html"
     )
@@ -5380,7 +5425,10 @@ def client_dashboard_save_whatsapp_setup():
     if sso_payload:
         session["partner_id"] = partner_id
     elif not is_dashboard_access_allowed(partner_id, key):
-        print(f"DASHBOARD DIRECT ACCESS BYPASS client lang partner_id={partner_id}", flush=True)
+        print(f"DASHBOARD ACCESS DENIED client lang partner_id={partner_id}", flush=True)
+        return redirect(build_dashboard_login_redirect(
+            "client", partner_id, request.values.get("lang", "ar")
+        )), 302
 
     business_name = request.form.get("business_name", "").strip()
     whatsapp_number = request.form.get("whatsapp_number", "").strip()
@@ -5643,6 +5691,17 @@ def inject_admin_whatsapp_requests_button(response):
 
 
 # ===== ALSAAB WEBSITE SETUP ROUTES REGISTER START =====
+
+# ===== ALSAAB CUSTOMER AUTH V1 START =====
+# Passwordless sign-in (/login), public pricing (/plans) and /logout.
+try:
+    from auth_routes import register_auth_routes
+except ImportError:
+    from backend.auth_routes import register_auth_routes
+
+register_auth_routes(app)
+# ===== ALSAAB CUSTOMER AUTH V1 END =====
+
 try:
     from website_setup_routes import register_website_setup_routes
 except ImportError:
