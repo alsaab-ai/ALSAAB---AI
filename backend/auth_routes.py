@@ -1,4 +1,4 @@
-# -*- coding: utf-8 -*-
+﻿# -*- coding: utf-8 -*-
 """
 Customer-facing sign-in and pricing.
 
@@ -261,9 +261,20 @@ def register_auth_routes(app):
                 error="حاولت كثيراً خلال وقت قصير. انتظر ربع ساعة ثم أعد المحاولة.",
             ), 429
 
+        # The owner signs in the same way everybody else does. Their
+        # address is not in `partners`, so it is matched against
+        # ADMIN_EMAILS first and given an admin token; the mail, the
+        # neutral reply and the rate limit are identical either way, so
+        # the form still cannot be used to find out who is an admin.
+        try:
+            import main as _app
+        except ImportError:
+            from backend import main as _app
+
+        is_admin = email in (getattr(_app, "ADMIN_EMAILS", []) or [])
         partner_id = _find_partner_by_email(email)
 
-        if partner_id:
+        if is_admin or partner_id:
             try:
                 import main as app_module
             except ImportError:
@@ -275,8 +286,14 @@ def register_auth_routes(app):
                 from backend import mailer
 
             try:
+                # An admin token still needs a partner id in the payload, and
+                # the owner has no row in `partners`. The company root is the
+                # honest stand-in: it is a real row meaning "the company", and
+                # the admin flag rides on target, not on this field.
                 token = app_module.create_dashboard_sso_token(
-                    partner_id, target="client", lang="ar",
+                    partner_id or getattr(app_module, "COMPANY_OWNER_PARTNER_ID", "alsaab"),
+                    target="admin" if is_admin else "client",
+                    lang="ar",
                     ttl_seconds=TOKEN_TTL_SECONDS,
                 )
 
@@ -289,11 +306,15 @@ def register_auth_routes(app):
                 mailer.send(
                     email,
                     "رابط الدخول إلى ALSAAB AI",
-                    _login_email_html(link, partner_id),
+                    _login_email_html(link, partner_id or "الإدارة"),
                     f"رابط الدخول (صالح 15 دقيقة): {link}",
                 )
 
-                print(f"LOGIN LINK SENT partner_id={partner_id}", flush=True)
+                print(
+                    "LOGIN LINK SENT %s"
+                    % ("admin" if is_admin else f"partner_id={partner_id}"),
+                    flush=True,
+                )
 
             except Exception as error:
                 # The customer still sees the neutral message; only the log

@@ -2104,7 +2104,7 @@ def activate_subscription():
     payload = get_admin_payload()
     key = get_admin_key(payload)
 
-    if key != ADMIN_KEY:
+    if not admin_access_granted(key):
         return jsonify({"error": "Unauthorized"}), 401
 
     if request.method == "GET":
@@ -2214,7 +2214,7 @@ def activate_subscription():
 def usage_summary():
     key = request.args.get("key")
 
-    if key != ADMIN_KEY:
+    if not admin_access_granted(key):
         return jsonify({"error": "Unauthorized"}), 401
 
     session_id = request.args.get("session_id", "").strip()
@@ -2238,7 +2238,7 @@ def create_partner():
     payload = get_admin_payload()
     key = get_admin_key(payload)
 
-    if key != ADMIN_KEY:
+    if not admin_access_granted(key):
         return jsonify({"error": "Unauthorized"}), 401
 
     if request.method == "GET":
@@ -2358,7 +2358,7 @@ def create_partner():
 def leads_json():
     key = request.args.get("key")
 
-    if key != ADMIN_KEY:
+    if not admin_access_granted(key):
         return jsonify({"error": "Unauthorized"}), 401
 
     return jsonify(get_leads())
@@ -2368,7 +2368,7 @@ def leads_json():
 def leads_view():
     key = request.args.get("key")
 
-    if key != ADMIN_KEY:
+    if not admin_access_granted(key):
         return "Unauthorized", 401
 
     leads = get_leads()
@@ -2399,7 +2399,7 @@ def partner_dashboard_data():
     payload = get_admin_payload()
     key = get_admin_key(payload)
 
-    if key != ADMIN_KEY:
+    if not admin_access_granted(key):
         return jsonify({"error": "Unauthorized"}), 401
 
     partner_id = (
@@ -3506,7 +3506,7 @@ def create_dashboard_sso_token(partner_id, target="client", lang="ar", ttl_secon
 
     target = str(target or "client").strip().lower()
 
-    if target not in ("client", "partner", "advisory"):
+    if target not in ("client", "partner", "advisory", "admin"):
         target = "client"
 
     lang = str(lang or "ar").strip().lower()
@@ -3581,7 +3581,7 @@ def verify_dashboard_sso_token(token):
 
     target = str(payload.get("target") or "client").strip().lower()
 
-    if target not in ("client", "partner", "advisory"):
+    if target not in ("client", "partner", "advisory", "admin"):
         target = "client"
 
     payload["target"] = target
@@ -3596,11 +3596,44 @@ def verify_dashboard_sso_token(token):
     return payload, ""
 
 
+# ===== ALSAAB ADMIN SESSION ACCESS V1 START =====
+ADMIN_EMAILS = [
+    part.strip().lower()
+    for part in (os.getenv("ADMIN_EMAILS", "") or "").split(",")
+    if part.strip()
+]
+
+
+def admin_access_granted(key=""):
+    """
+    True when the caller may act as the owner.
+
+    Two ways in, and they are not equivalent:
+
+      - a session opened by signing in with an address listed in ADMIN_EMAILS,
+        which is the normal route and the one a person should use;
+      - ADMIN_KEY in the query string, kept as a break-glass fallback for the
+        case where mail delivery is down and the owner would otherwise be
+        locked out of their own system.
+
+    Every admin route asks this instead of comparing the key itself, so the
+    two routes cannot drift apart.
+    """
+    if key and ADMIN_KEY and key == ADMIN_KEY:
+        return True
+
+    try:
+        return bool(session.get("is_admin"))
+    except Exception:
+        return False
+# ===== ALSAAB ADMIN SESSION ACCESS V1 END =====
+
+
 def is_dashboard_access_allowed(partner_id, key=""):
     partner_id = normalize_dashboard_partner_id(partner_id)
 
     # Internal admin bypass only. Do not use key in public/customer links.
-    if key and key == ADMIN_KEY:
+    if admin_access_granted(key):
         return True
 
     session_partner_id = normalize_dashboard_partner_id(session.get("partner_id", ""))
@@ -3679,6 +3712,15 @@ def dashboard_sso():
 
     encoded_token = quote(token)
 
+    # An admin token opens the owner session and lands on the admin dashboard.
+    # The token is signed by the same secret and verified by the same code as
+    # every other target, so nothing new decides who becomes an admin -- only
+    # /login, and only for an address listed in ADMIN_EMAILS.
+    if target == "admin":
+        session["is_admin"] = True
+        session.permanent = True
+        return redirect(f"/admin-dashboard?lang={lang}")
+
     if target == "partner":
         return redirect(f"/partner-dashboard?lang={lang}&sso={encoded_token}")
 
@@ -3692,14 +3734,14 @@ def dashboard_sso():
 def admin_create_dashboard_sso_link():
     key = request.args.get("key", "").strip()
 
-    if key != ADMIN_KEY:
+    if not admin_access_granted(key):
         return jsonify({"error": "Unauthorized"}), 401
 
     partner_id = normalize_dashboard_partner_id(request.args.get("partner_id", ""))
     target = request.args.get("target", "client").strip().lower()
     lang = request.args.get("lang", "ar").strip().lower()
 
-    if target not in ("client", "partner", "advisory"):
+    if target not in ("client", "partner", "advisory", "admin"):
         target = "client"
 
     if lang not in ("ar", "en"):
@@ -3812,7 +3854,7 @@ def admin_dashboard_data():
 
     key = request.args.get("key", "").strip()
 
-    if key != ADMIN_KEY:
+    if not admin_access_granted(key):
         return jsonify({"error": "Unauthorized"}), 401
 
     try:
@@ -3945,7 +3987,7 @@ def admin_dashboard_view():
 
     key = request.args.get("key", "").strip()
 
-    if key != ADMIN_KEY:
+    if not admin_access_granted(key):
         return "Unauthorized", 401
 
     try:
@@ -4241,7 +4283,7 @@ def telegram_setup():
     """Register the webhook with Telegram, and report what it thinks is set."""
     key = request.args.get("key", "").strip() or (request.form.get("key", "") or "").strip()
 
-    if key != ADMIN_KEY:
+    if not admin_access_granted(key):
         return jsonify({"error": "Unauthorized"}), 401
 
     try:
@@ -4283,7 +4325,7 @@ def admin_recalculate_all_levels_route():
     payload = get_admin_payload()
     key = get_admin_key(payload)
 
-    if key != ADMIN_KEY:
+    if not admin_access_granted(key):
         return jsonify({"error": "Unauthorized"}), 401
 
     try:
@@ -4325,7 +4367,7 @@ def admin_recalculate_partner_level():
     payload = get_admin_payload()
     key = get_admin_key(payload)
 
-    if key != ADMIN_KEY:
+    if not admin_access_granted(key):
         return jsonify({"error": "Unauthorized"}), 401
 
     partner_id = (
@@ -4437,7 +4479,7 @@ def admin_update_commission_status():
     payload = get_admin_payload()
     key = get_admin_key(payload)
 
-    if key != ADMIN_KEY:
+    if not admin_access_granted(key):
         return jsonify({"error": "Unauthorized"}), 401
 
     commission_id = (
@@ -4548,7 +4590,7 @@ def admin_bulk_update_commission_status():
     payload = get_admin_payload()
     key = get_admin_key(payload)
 
-    if key != ADMIN_KEY:
+    if not admin_access_granted(key):
         return jsonify({"error": "Unauthorized"}), 401
 
     partner_id = (
@@ -4678,7 +4720,7 @@ def admin_update_partner_status():
     payload = get_admin_payload()
     key = get_admin_key(payload)
 
-    if key != ADMIN_KEY:
+    if not admin_access_granted(key):
         return jsonify({"error": "Unauthorized"}), 401
 
     partner_id = (
@@ -4801,7 +4843,7 @@ def admin_downline_transfer_preview():
 
     key = request.args.get("key", "").strip()
 
-    if key != ADMIN_KEY:
+    if not admin_access_granted(key):
         return "Unauthorized", 401
 
     partner_id = request.args.get("partner_id", "").strip().upper()
@@ -4884,7 +4926,7 @@ def admin_transfer_downline_to_alsaab():
     payload = get_admin_payload()
     key = get_admin_key(payload)
 
-    if key != ADMIN_KEY:
+    if not admin_access_granted(key):
         return jsonify({"error": "Unauthorized"}), 401
 
     partner_id = (
@@ -5001,7 +5043,7 @@ def admin_auto_approve_pending_commissions():
     payload = get_admin_payload()
     key = get_admin_key(payload)
 
-    if key != ADMIN_KEY:
+    if not admin_access_granted(key):
         return jsonify({"error": "Unauthorized"}), 401
 
     partner_id = (
@@ -5091,7 +5133,7 @@ def admin_mark_partner_paid():
     payload = get_admin_payload()
     key = get_admin_key(payload)
 
-    if key != ADMIN_KEY:
+    if not admin_access_granted(key):
         return jsonify({"error": "Unauthorized"}), 401
 
     partner_id = (
@@ -5510,7 +5552,7 @@ def admin_whatsapp_setup_requests_page():
 
     key = request.args.get("key", "").strip()
 
-    if key != ADMIN_KEY:
+    if not admin_access_granted(key):
         return "Unauthorized", 401
 
     status_filter = request.args.get("status", "").strip()
@@ -5569,7 +5611,7 @@ def admin_update_whatsapp_setup_request_route():
 
     key = request.form.get("key", "").strip()
 
-    if key != ADMIN_KEY:
+    if not admin_access_granted(key):
         return "Unauthorized", 401
 
     request_id = request.form.get("request_id", "").strip()
