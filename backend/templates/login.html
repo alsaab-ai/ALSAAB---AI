@@ -243,14 +243,31 @@ button[disabled] { opacity: .55; cursor: not-allowed; transform: none; }
 }
 
 .code-input {
+    width: 100%;
+    padding: 16px;
+    border-radius: 14px;
+    border: 1px solid var(--border-soft);
+    background: var(--bg-card-soft);
+    color: var(--gold-2);
     text-align: center;
     font-size: 30px;
     font-weight: 800;
     letter-spacing: 14px;
-    padding-right: 14px;
+    padding-right: 28px;
     direction: ltr;
     font-family: "Courier New", Courier, monospace;
-    color: var(--gold-2);
+    outline: none;
+    transition: border-color .18s, box-shadow .18s;
+}
+
+.code-input::placeholder {
+    color: rgba(203, 213, 225, 0.28);
+    letter-spacing: 12px;
+}
+
+.code-input:focus {
+    border-color: rgba(214, 168, 79, 0.65);
+    box-shadow: 0 0 0 4px rgba(214, 168, 79, 0.10);
 }
 
 .resend {
@@ -295,7 +312,7 @@ button[disabled] { opacity: .55; cursor: not-allowed; transform: none; }
       <div class="note err">{{ error }}</div>
     {% else %}
       <div class="note ok">
-        إن كان هذا البريد مسجّلاً لدينا، فقد وصلك الرمز الآن.<br>
+        هذا البريد مسجّل لدينا — وصلك رمز الدخول الآن.<br>
         صالح لمدة <b>10 دقائق</b> ولمرة واحدة.
       </div>
     {% endif %}

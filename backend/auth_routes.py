@@ -475,11 +475,11 @@ def register_auth_routes(app):
                 session["is_admin"] = True
                 session.permanent = True
                 print("LOGIN OTP VERIFIED admin", flush=True)
-                return redirect("/admin-dashboard")
+                return redirect("/admin-dashboard", code=303)
 
             session.permanent = True
             print(f"LOGIN OTP VERIFIED partner_id={partner_id}", flush=True)
-            return redirect("/client-dashboard")
+            return redirect("/client-dashboard", code=303)
 
         email = (request.form.get("email") or "").strip().lower()
 
@@ -532,14 +532,22 @@ def register_auth_routes(app):
 
             except Exception as error:
                 print(f"LOGIN CODE ERROR {type(error).__name__}: {error}", flush=True)
-        else:
-            # No challenge is issued, but the page still moves to the code step
-            # so the reply cannot be used to find out which addresses exist.
-            _otp_clear()
-            session["otp_email"] = email
-            print(f"LOGIN NO MATCH for a submitted address from {_client_ip()}", flush=True)
+            return render_template(
+                "login.html", stage="code", sent=True, error="", email=email
+            )
 
-        return render_template("login.html", stage="code", sent=True, error="", email=email)
+        # Not a customer yet. Rather than mail a code that can never be used,
+        # send them where they were trying to get to: the packages. The owner
+        # asked for this deliberately -- it trades the neutral reply, which hid
+        # whether an address is registered, for a signup that does not
+        # dead-end on a code that will never arrive.
+        _otp_clear()
+        print(f"LOGIN NO MATCH -> plans, address from {_client_ip()}", flush=True)
+
+        # 303, not 302: after a POST only 303 obliges the client to switch to
+        # GET. Browsers do it for 302 anyway, but curl and several API clients
+        # keep the method and land on a 405.
+        return redirect("/plans?from=login", code=303)
 
     @app.route("/logout", methods=["GET", "POST"])
     def logout():
