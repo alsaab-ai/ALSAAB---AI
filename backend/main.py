@@ -3707,7 +3707,16 @@ def admin_create_dashboard_sso_link():
             ttl_seconds=900
         )
 
-        base_url = request.url_root.rstrip("/")
+        # Prefer APP_BASE_URL. Behind Render's proxy request.url_root reports
+        # http://, so the link handed to a partner arrived as an insecure URL
+        # that only worked because of the 301. auth_routes already prefers the
+        # configured base for the same reason.
+        try:
+            from config import APP_BASE_URL as _configured_base
+        except ImportError:
+            from backend.config import APP_BASE_URL as _configured_base
+
+        base_url = (_configured_base or "").rstrip("/") or request.url_root.rstrip("/")
         url = f"{base_url}/dashboard-sso?token={token}"
 
         return jsonify({
