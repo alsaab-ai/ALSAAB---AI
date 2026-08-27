@@ -57,9 +57,36 @@ COMPANY_OWNER_PARTNER_ID = os.getenv("COMPANY_OWNER_PARTNER_ID", "alsaab")
 # the WordPress marketing site, which has no such script, so every partner
 # created after the first two got a link that dropped the referral on the
 # floor -- the visitor arrived at a homepage and nobody was credited.
-REFERRAL_BASE_URL = os.getenv(
-    "REFERRAL_BASE_URL", "https://alsaab-ai.onrender.com/?ref="
-)
+def _default_referral_base():
+    """
+    Derive the referral base from the app's own address.
+
+    Keeping it as an independent setting is what let it drift to the marketing
+    site, which never reads ?ref -- so 18 partners were handed links that
+    credited nobody. Tying it to APP_BASE_URL means the two cannot disagree
+    again: wherever the app answers, that is where a referral lands.
+    REFERRAL_BASE_URL still overrides, for the case where the chat is served
+    from somewhere else.
+    """
+    override = (os.getenv("REFERRAL_BASE_URL") or "").strip()
+
+    if override:
+        return override
+
+    try:
+        from config import APP_BASE_URL
+    except ImportError:
+        try:
+            from backend.config import APP_BASE_URL
+        except ImportError:
+            APP_BASE_URL = ""
+
+    base = (APP_BASE_URL or "https://alsaab-ai.onrender.com").rstrip("/")
+
+    return f"{base}/?ref="
+
+
+REFERRAL_BASE_URL = _default_referral_base()
 
 ACTIVE_SUBSCRIPTION_STATUSES = ("active", "paid", "trialing")
 ACTIVE_PARTNER_STATUSES = ("active", "approved", "نشط")

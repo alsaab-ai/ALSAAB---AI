@@ -18,6 +18,7 @@
 # marks every commission paid AND writes the payout history row, or it does
 # neither. That was not possible before.
 
+import os
 import json
 import uuid
 from datetime import datetime
@@ -921,6 +922,165 @@ def admin_recalculate_all_levels(payload):
     )
 
 
+
+
+# =====================================================================
+# Names from Stripe
+# =====================================================================
+
+PLACEHOLDER_NAME_PREFIX = "ALSAAB Partner"
+
+
+def _looks_like_placeholder(name):
+    """
+    True for the names build_partner_display_name() invents when it has
+    nothing to work with -- "ALSAAB Partner smart_AL", "ALSAAB Partner
+    6202a96c". A real customer called "ALSAAB Partners LLC" would be a false
+    positive, so the check also demands that what follows is a bare token
+    rather than words.
+    """
+    text = _text(name)
+
+    if not text.startswith(PLACEHOLDER_NAME_PREFIX):
+        return False
+
+    tail = text[len(PLACEHOLDER_NAME_PREFIX):].strip()
+
+    return tail == "" or (" " not in tail)
+
+
+def admin_backfill_names_from_stripe(payload):
+    """
+    Replace invented partner names with the name the customer gave Stripe.
+
+    The checkout webhook stores the email and the phone but never stored the
+    name, so anybody who arrived through a smart link with no lead record was
+    named after their session id. Stripe has had the real name all along --
+    this reads it back for the partners already in that state. New signups do
+    not need it: the webhook now captures the name at checkout.
+
+    Runs on the server, where STRIPE_SECRET_KEY lives.
+    """
+    from sheet_compat import COMPANY_OWNER_PARTNER_ID
+
+    limit = payload.get("limit")
+
+    try:
+        limit = max(1, min(int(limit or 100), 500))
+    except (TypeError, ValueError):
+        limit = 100
+
+    dry_run = str(payload.get("dry_run") or "").strip().lower() in ("1", "true", "yes", "on")
+
+    secret = (
+        os.getenv("STRIPE_SECRET_KEY")
+        or os.getenv("STRIPE_API_KEY")
+        or os.getenv("STRIPE_KEY")
+        or ""
+    ).strip()
+
+    if not secret:
+        return _err("STRIPE_SECRET_KEY is not set")
+
+    try:
+        import stripe
+    except ImportError:
+        return _err("the stripe package is not installed")
+
+    stripe.api_key = secret
+
+    updated, skipped, failed = [], [], []
+
+    with _conn() as conn:
+        cur = conn.cursor()
+
+        cur.execute(
+            """
+            SELECT p.partner_id, p.partner_name, s.stripe_customer_id,
+                   COALESCE(NULLIF(p.email, ''), s.customer_email) AS email
+            FROM partners p
+            LEFT JOIN subscriptions s ON s.client_id = p.client_id
+            WHERE p.partner_id <> ?
+            ORDER BY p.partner_id
+            """,
+            (COMPANY_OWNER_PARTNER_ID,),
+        )
+
+        rows = [r for r in _rows(cur) if _looks_like_placeholder(r["partner_name"])][:limit]
+
+    for row in rows:
+        partner_id = _text(row["partner_id"])
+        customer_id = _text(row["stripe_customer_id"])
+
+        if not customer_id:
+            skipped.append({"partner_id": partner_id, "reason": "no_stripe_customer"})
+            continue
+
+        try:
+            customer = stripe.Customer.retrieve(customer_id)
+            name = _text(customer.get("name"))
+
+            if not name:
+                # Fall back to the local part of the address rather than leave a
+                # session id on screen -- still not a real name, but readable.
+                email = _text(row["email"])
+                name = email.split("@")[0].strip() if "@" in email else ""
+
+            if not name:
+                skipped.append({"partner_id": partner_id, "reason": "stripe_has_no_name"})
+                continue
+
+            if dry_run:
+                updated.append({
+                    "partner_id": partner_id,
+                    "before": _text(row["partner_name"]),
+                    "after": name,
+                })
+                continue
+
+            with _conn() as conn:
+                cur = conn.cursor()
+                cur.execute(
+                    "UPDATE partners SET partner_name = ? WHERE partner_id = ?",
+                    (name, partner_id),
+                )
+                cur.execute(
+                    "UPDATE partner_client_map SET partner_name = ? WHERE partner_id = ?",
+                    (name, partner_id),
+                )
+                _audit(
+                    cur, payload.get("actor"), "backfill_name_from_stripe", "partner",
+                    partner_id, partner_id,
+                    {"partner_name": _text(row["partner_name"])},
+                    {"partner_name": name},
+                    payload.get("reason"), payload.get("source"),
+                    f"name read from stripe customer {customer_id}",
+                )
+                conn.commit()
+
+            updated.append({
+                "partner_id": partner_id,
+                "before": _text(row["partner_name"]),
+                "after": name,
+            })
+
+        except Exception as error:
+            failed.append({
+                "partner_id": partner_id,
+                "error": f"{type(error).__name__}: {str(error)[:140]}",
+            })
+
+    return _ok(
+        f"{len(updated)} name(s) {'would be ' if dry_run else ''}updated"
+        f" out of {len(rows)} placeholder(s)",
+        dry_run=dry_run,
+        candidates=len(rows),
+        updated=updated,
+        skipped=skipped,
+        failed=failed,
+    )
+
+
 HANDLERS = {
     "admin_update_commission_status": admin_update_commission_status,
     "admin_bulk_update_commission_status": admin_bulk_update_commission_status,
@@ -932,4 +1092,5 @@ HANDLERS = {
     "admin_downline_transfer_preview": admin_downline_transfer_preview,
     "admin_transfer_downline_to_alsaab": admin_transfer_downline_to_alsaab,
     "admin_recalculate_all_levels": admin_recalculate_all_levels,
+    "admin_backfill_names_from_stripe": admin_backfill_names_from_stripe,
 }

@@ -681,6 +681,11 @@ def stripe_webhook():
                 or ""
             ).strip()
             captured_phone = (details.get("phone", "") or "").strip()
+            # Stripe has always sent the name too. Not reading it is why
+            # partners who arrived through a smart link ended up named
+            # after their session id -- build_partner_display_name() had
+            # nothing better to fall back on.
+            captured_name = (details.get("name", "") or "").strip()
 
             if captured_email or captured_phone:
                 contact_conn = _contact_connection()
@@ -725,6 +730,36 @@ def stripe_webhook():
 
         except Exception as contact_error:
             print(f"CUSTOMER CONTACT CAPTURE ERROR ⚠️ {contact_error}", flush=True)
+        
+        # ===== ALSAAB CAPTURE CUSTOMER NAME V1 START =====
+        # Only overwrite a name this system invented. A partner who already has
+        # a real name -- typed by a person, or read from a lead -- keeps it.
+        try:
+            if captured_name:
+                from database import get_connection as _name_connection
+
+                name_conn = _name_connection()
+                name_cursor = name_conn.cursor()
+                name_cursor.execute(
+                    """
+                    UPDATE partners
+                    SET partner_name = ?
+                    WHERE client_id = ?
+                      AND (partner_name IS NULL
+                           OR TRIM(partner_name) = ''
+                           OR partner_name LIKE 'ALSAAB Partner%')
+                    """,
+                    (captured_name, session_id),
+                )
+                name_conn.commit()
+                name_conn.close()
+
+                print(f"CUSTOMER NAME CAPTURED FROM STRIPE {captured_name}", flush=True)
+
+        except Exception as name_error:
+            print(f"CUSTOMER NAME CAPTURE SKIPPED {name_error}", flush=True)
+        # ===== ALSAAB CAPTURE CUSTOMER NAME V1 END =====
+
         # ===== ALSAAB CAPTURE CUSTOMER CONTACT V1 END =====
 
         try:
@@ -4310,6 +4345,45 @@ def telegram_setup():
     except Exception as error:
         return jsonify({"status": "error", "message": str(error)[:300]}), 500
 # ===== ALSAAB TELEGRAM WEBHOOK V1 END =====
+
+
+@app.route("/admin/backfill-names", methods=["POST"])
+def admin_backfill_names_route():
+    """
+    Read real customer names from Stripe for partners still carrying an
+    invented one.
+
+    The checkout webhook now captures the name, so this is only for the
+    partners created before it did. Pass dry_run=1 to see what would change
+    without touching anything.
+    """
+    payload = get_admin_payload()
+    key = get_admin_key(payload)
+
+    if not admin_access_granted(key):
+        return jsonify({"error": "Unauthorized"}), 401
+
+    try:
+        from database import post_to_google_sheet_json
+
+        result = post_to_google_sheet_json(
+            {
+                "token": os.getenv("GOOGLE_SHEET_TOKEN", ""),
+                "action": "admin_backfill_names_from_stripe",
+                "actor": "owner_admin",
+                "source": "admin_dashboard",
+                "reason": get_payload_value(payload, "reason", default="backfill names"),
+                "dry_run": get_payload_value(payload, "dry_run", default=""),
+                "limit": get_payload_value(payload, "limit", default=""),
+            },
+            label="admin_backfill_names_from_stripe",
+        )
+
+        return jsonify(result)
+
+    except Exception as error:
+        print(f"BACKFILL NAMES ERROR {error}", flush=True)
+        return jsonify({"status": "error", "message": str(error)}), 500
 
 
 @app.route("/admin/recalculate-all-levels", methods=["POST"])
