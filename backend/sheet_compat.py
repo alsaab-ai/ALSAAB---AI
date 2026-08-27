@@ -52,7 +52,14 @@ except ImportError:
 DATA_BACKEND = os.getenv("DATA_BACKEND", "sheets").lower().strip()
 
 COMPANY_OWNER_PARTNER_ID = os.getenv("COMPANY_OWNER_PARTNER_ID", "alsaab")
-REFERRAL_BASE_URL = os.getenv("REFERRAL_BASE_URL", "https://alsaab.io/?ref=")
+# The referral link has to land on the sales chat, which is where the smart
+# link script reads ?ref and attributes the visit. The old default pointed at
+# the WordPress marketing site, which has no such script, so every partner
+# created after the first two got a link that dropped the referral on the
+# floor -- the visitor arrived at a homepage and nobody was credited.
+REFERRAL_BASE_URL = os.getenv(
+    "REFERRAL_BASE_URL", "https://alsaab-ai.onrender.com/?ref="
+)
 
 ACTIVE_SUBSCRIPTION_STATUSES = ("active", "paid", "trialing")
 ACTIVE_PARTNER_STATUSES = ("active", "approved", "نشط")
