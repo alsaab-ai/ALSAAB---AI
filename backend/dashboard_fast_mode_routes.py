@@ -33,8 +33,19 @@ def _strip_public_smart_scripts(html):
     cleaned = html
 
     # Remove script tags that contain public smart-link/chat markers.
+    #
+    # The body of each pattern must not be allowed to run past the closing tag
+    # it belongs to. Written as a plain [\s\S]*? the match started at the FIRST
+    # <script> on the page and ended at the first </script> after the marker,
+    # so every dashboard section in between was deleted along with it -- the
+    # client dashboard lost ~51KB and rendered as a header with nothing under
+    # it. (?:(?!</script>)[\s\S])*? keeps the search inside one tag.
     for marker in PUBLIC_SMART_SCRIPT_MARKERS:
-        pattern = r"<script\b[^>]*>[\s\S]*?" + re.escape(marker) + r"[\s\S]*?</script>"
+        pattern = (
+            r"<script\b[^>]*>(?:(?!</script>)[\s\S])*?"
+            + re.escape(marker)
+            + r"(?:(?!</script>)[\s\S])*?</script>"
+        )
         cleaned = re.sub(pattern, "", cleaned, flags=re.IGNORECASE)
 
     # Remove HTML comment blocks if any were injected that way.
@@ -46,15 +57,16 @@ def _strip_public_smart_scripts(html):
         )
         cleaned = re.sub(pattern, "", cleaned, flags=re.IGNORECASE)
 
-    # Remove public floating chat styles only.
-    style_patterns = [
-        r"<style\b[^>]*>[\s\S]*?alsaab-smart-overlay[\s\S]*?</style>",
-        r"<style\b[^>]*>[\s\S]*?alsaab-smart-chat[\s\S]*?</style>",
-        r"<style\b[^>]*>[\s\S]*?alsaab-smart-income[\s\S]*?</style>",
-        r"<style\b[^>]*>[\s\S]*?alsaabSmartChat[\s\S]*?</style>",
-    ]
-
-    for pattern in style_patterns:
+    # Remove public floating chat styles only. Confined to a single tag for the
+    # same reason as the scripts above -- the head style block was acting as the
+    # start anchor and taking the page with it.
+    for needle in ("alsaab-smart-overlay", "alsaab-smart-chat",
+                   "alsaab-smart-income", "alsaabSmartChat"):
+        pattern = (
+            r"<style\b[^>]*>(?:(?!</style>)[\s\S])*?"
+            + re.escape(needle)
+            + r"(?:(?!</style>)[\s\S])*?</style>"
+        )
         cleaned = re.sub(pattern, "", cleaned, flags=re.IGNORECASE)
 
     # Remove floating chat containers if they exist.

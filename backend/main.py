@@ -499,7 +499,217 @@ def admin_get_preview(action_name, required_fields=None, example_body=None):
 
 @app.route("/")
 def home():
-    return render_template("chat.html")
+    # ===== ALSAAB_LEGACY_SMART_LINK_REDIRECT_V1 =====
+    #
+    # Keep the links customers already handed out working.
+    #
+    # Before /c/<partner_id> existed, the dashboard gave each customer
+    # "/?ref=<id>&src=wa" to paste into their WhatsApp auto-reply. Those links
+    # are printed on cards and sitting in saved replies, and they cannot be
+    # recalled -- so the old address forwards to the new one rather than
+    # dropping the visitor on ALSAAB's own sales bot.
+    #
+    # src=wa is what separates the two meanings of ?ref=: with it the link was
+    # the customer's own storefront entrance, without it it is a partner
+    # referral for ALSAAB and must stay on this page so the sale is credited.
+    source = (request.args.get("src") or "").strip().lower()
+
+    if source == "wa":
+        legacy_partner_id = normalize_dashboard_partner_id(
+            request.args.get("ref")
+            or request.args.get("partner_id")
+            or request.args.get("source_partner_id")
+            or ""
+        )
+
+        if legacy_partner_id and legacy_partner_id.lower() != "alsaab":
+            print(
+                f"LEGACY SMART LINK -> /c/{legacy_partner_id}",
+                flush=True
+            )
+            return redirect(f"/c/{legacy_partner_id}", code=302)
+
+    return render_template("chat.html", bot_partner_id="", brand={})
+
+
+class _SkipAlsaabPaymentGate(Exception):
+    """Raised to jump out of ALSAAB's payment gate on a customer's own bot."""
+
+
+def product_images_for_reply(bot_partner_id, reply_text):
+    """
+    Pictures for the products this reply actually talks about.
+
+    The prompt asks the model to paste an image link when it presents a
+    product, and it often does -- but "often" is not a feature. Matching the
+    product names in the reply against the catalogue here makes the picture
+    appear every time, and the model can go back to writing sentences.
+
+    Returns absolute URLs: the same payload feeds the web chat and channels
+    that fetch the image from outside the app.
+    """
+    if not bot_partner_id or not reply_text:
+        return []
+
+    try:
+        import client_media
+    except ImportError:
+        from backend import client_media
+
+    try:
+        from dashboard_compat import client_dashboard_data
+    except ImportError:
+        from backend.dashboard_compat import client_dashboard_data
+
+    try:
+        data = client_dashboard_data({"partner_id": bot_partner_id}) or {}
+    except Exception as error:
+        print(f"REPLY IMAGES LOOKUP ERROR ⚠️ {bot_partner_id} {error}", flush=True)
+        return []
+
+    groups = {
+        str(group.get("group_id") or ""): (group.get("image_urls") or [])
+        for group in (data.get("product_image_groups") or [])
+    }
+
+    haystack = str(reply_text).lower()
+    found = []
+
+    for item in (data.get("client_payment_links") or []):
+        name = str(item.get("product_name") or "").strip()
+
+        # Two characters would match half the alphabet; require a real name.
+        if len(name) < 3 or name.lower() not in haystack:
+            continue
+
+        for url in groups.get(str(item.get("linked_image_group_id") or ""), []):
+            absolute = client_media.absolute_url(url)
+
+            if absolute and absolute not in found:
+                found.append(absolute)
+
+    # A wall of pictures buries the answer; the first few make the point.
+    return found[:3]
+
+
+# ===== ALSAAB_CLIENT_MEDIA_V1 START =====
+
+@app.route("/client-media/<partner_id>/<group_id>/<filename>")
+def client_media(partner_id, group_id, filename):
+    """
+    Serve one image a customer uploaded for their own products.
+
+    Deliberately public, like the product images on any storefront: the bot
+    sends these links to buyers who have no account here. The filename is a
+    uuid, so a link is unguessable, and client_media.resolve_path refuses any
+    path that escapes the media root.
+    """
+    from flask import send_file
+
+    try:
+        import client_media
+    except ImportError:
+        from backend import client_media
+
+    path = client_media.resolve_path(partner_id, group_id, filename)
+
+    if not path:
+        return "Not found", 404
+
+    return send_file(
+        path,
+        mimetype=client_media.content_type_for(path),
+        max_age=31536000,          # uuid filenames never change content
+    )
+
+# ===== ALSAAB_CLIENT_MEDIA_V1 END =====
+
+
+# ===== ALSAAB_CLIENT_BOT_ENTRY_V1 START =====
+#
+# The customer's own bot, on its own address.
+#
+# ?ref=<partner_id> was carrying two incompatible meanings: credit this partner
+# for an ALSAAB signup, and be this customer's sales bot. Only the first was
+# ever implemented, so a customer who sent their WhatsApp link to their own
+# buyers got ALSAAB's bot pitching ALSAAB packages at them.
+#
+# Splitting the address settles it. /c/<partner_id> is the customer's bot and
+# nothing else; ?ref= goes back to meaning referral credit only.
+
+@app.route("/c/<partner_id>")
+def client_bot_home(partner_id):
+    partner_id = normalize_dashboard_partner_id(partner_id)
+
+    if not partner_id:
+        return redirect("/")
+
+    # Dress the page as the customer's own storefront. The replies were already
+    # theirs, but the page around them still sold ALSAAB -- a restaurant's buyer
+    # opened the link and met a pitch for a system they will never buy.
+    brand = {}
+
+    try:
+        from database import get_client_profile
+
+        try:
+            import client_media
+        except ImportError:
+            from backend import client_media
+
+        try:
+            from dashboard_compat import client_dashboard_data
+        except ImportError:
+            from backend.dashboard_compat import client_dashboard_data
+
+        profile = get_client_profile(partner_id, client_id=partner_id) or {}
+        catalog = client_dashboard_data({"partner_id": partner_id}) or {}
+
+        groups = {
+            str(group.get("group_id") or ""): (group.get("image_urls") or [])
+            for group in (catalog.get("product_image_groups") or [])
+        }
+
+        products = []
+
+        for item in (catalog.get("client_payment_links") or []):
+            name = str(item.get("product_name") or "").strip()
+
+            if not name:
+                continue
+
+            shots = groups.get(str(item.get("linked_image_group_id") or "")) or []
+
+            products.append({
+                "name": name,
+                "amount": str(item.get("amount") or "").strip(),
+                "currency": str(item.get("currency") or "").strip(),
+                "image": shots[0] if shots else "",
+            })
+
+        name = str(profile.get("business_name") or "").strip()
+        settings = client_media.load_brand(partner_id)
+
+        brand = {
+            "name": name,
+            "tagline": str(profile.get("business_type") or "").strip(),
+            "about": str(profile.get("general_description") or "").strip(),
+            "offering": str(profile.get("products") or "").strip(),
+            "logo": client_media.logo_url(partner_id),
+            "initials": (name[:2].upper() if name else partner_id[-2:]),
+            "products": products[:6],
+            # A clinic sells "خدماتنا", a shop sells "منتجاتنا", a studio has
+            # "عروضنا". The owner writes the word; nothing here guesses it.
+            "catalog_label": str(settings.get("catalog_label") or "").strip() or "منتجاتنا",
+        }
+
+    except Exception as error:
+        print(f"CLIENT BOT BRAND LOAD ERROR ⚠️ {partner_id} {error}", flush=True)
+        brand = {}
+
+    return render_template("chat.html", bot_partner_id=partner_id, brand=brand)
+
+# ===== ALSAAB_CLIENT_BOT_ENTRY_V1 END =====
 
 
 @app.route("/pay/<plan_name>", methods=["GET"])
@@ -1939,8 +2149,24 @@ def chat():
 
     source_partner_id = extract_source_partner_id_from_payload(data)
 
+    # Whose bot is answering. Set only by /c/<partner_id>, so a plain ?ref=
+    # visit still reaches ALSAAB's own sales bot and only credits the referrer.
+    bot_partner_id = normalize_dashboard_partner_id(
+        str(data.get("bot_partner_id") or "").strip()
+    )
+
+    if bot_partner_id:
+        print(f"CLIENT BOT REQUESTED ✅ bot_partner_id={bot_partner_id}", flush=True)
+
     # ===== ALSAAB_DIRECT_PAYMENT_GATE_BALANCED_V1 START =====
+    #
+    # Skipped entirely on a customer's own bot. This gate answers "send me the
+    # payment link" with ALSAAB's package menu, and it returns before think()
+    # runs -- so on /c/<partner_id> a buyer asking to pay for the customer's
+    # product was handed ALSAAB's subscription tiers instead.
     try:
+        if bot_partner_id:
+            raise _SkipAlsaabPaymentGate
         _msg = str(payment_decision_message or "").strip().lower()
         for _a, _b in {
             "\u0623": "\u0627", "\u0625": "\u0627", "\u0622": "\u0627",
@@ -1990,6 +2216,8 @@ def chat():
                 "session_id": session_id,
                 "source_partner_id": source_partner_id
             })
+    except _SkipAlsaabPaymentGate:
+        print(f"ALSAAB PAYMENT GATE SKIPPED ✅ client bot {bot_partner_id}", flush=True)
     except Exception as _e:
         print("DIRECT_PAYMENT_GATE_BALANCED_ERROR=" + str(_e), flush=True)
     # ===== ALSAAB_DIRECT_PAYMENT_GATE_BALANCED_V1 END =====
@@ -2018,7 +2246,13 @@ def chat():
         save_message(session_id, "user", payment_decision_message)
         print("MAIN USER MESSAGE SAVED ✅", flush=True)
 
-        safe_alsaab_payment_plan = (alsaab_payment_plan_v8(payment_decision_message) or alsaab_chat_explicit_payment_plan_v5(payment_decision_message))
+        # Same reason as the gate above: an ALSAAB package link has no place in
+        # a conversation between a customer and their own buyer.
+        safe_alsaab_payment_plan = "" if bot_partner_id else (
+            alsaab_payment_plan_v8(payment_decision_message)
+            or alsaab_chat_explicit_payment_plan_v5(payment_decision_message)
+        )
+
         if safe_alsaab_payment_plan:
             safe_alsaab_payment_reply = build_safe_alsaab_opportunity_payment_reply(
                 safe_alsaab_payment_plan,
@@ -2094,7 +2328,8 @@ def chat():
             reply = think(
                 brain_message,
                 session_id,
-                source_partner_id=source_partner_id
+                source_partner_id=source_partner_id,
+                bot_partner_id=bot_partner_id
             )
         except TypeError as type_error:
             if "source_partner_id" in str(type_error) or "unexpected keyword argument" in str(type_error):
@@ -2117,8 +2352,15 @@ def chat():
             record_bot_reply_usage(usage_session_id)
             print("BOT REPLY USAGE RECORDED ✅", flush=True)
 
+        final_reply = alsaab_chat_strip_unwanted_payment_links_v5(reply, payment_decision_message)
+        reply_images = product_images_for_reply(bot_partner_id, final_reply)
+
+        if reply_images:
+            print(f"REPLY IMAGES ✅ {len(reply_images)} attached", flush=True)
+
         return jsonify({
-            "reply": alsaab_chat_strip_unwanted_payment_links_v5(reply, payment_decision_message),
+            "reply": final_reply,
+            "images": reply_images,
             "session_id": session_id,
             "source_partner_id": source_partner_id
         })
@@ -2966,7 +3208,65 @@ def client_dashboard_view():
             "save_payment_links": "حفظ روابط الدفع",
             "saved_payment_links": "روابط الدفع المحفوظة",
             "saved_success": "تم الحفظ بنجاح.",
-            "empty": "لا توجد بيانات محفوظة حتى الآن."
+            "empty": "لا توجد بيانات محفوظة حتى الآن.",
+            "my_projects": "مشاريعي",
+            "my_projects_desc": "اضغط على المشروع لعرض منتجاته وإضافة المزيد.",
+            "open_project": "عرض المنتجات وإدارتها",
+            "close_project": "إخفاء المنتجات",
+            "no_project_yet": "لم تضف مشروعك بعد. املأ «بيانات المشروع» بالأسفل للبدء.",
+            "project_products": "منتجات المشروع",
+            "products_summary": "ملخص ما تبيعه",
+            "image_groups_count": "مجموعة منتجات",
+            "payment_links_count": "رابط دفع",
+            "add_products_here": "أضف منتجاتك من الأقسام التالية.",
+            "untitled_project": "مشروع بدون اسم",
+            "edit_item": "تعديل",
+            "update_item": "حفظ التعديل",
+            "delete_item": "حذف",
+            "confirm_delete": "متأكد من الحذف؟ لن يظهر هذا العنصر للبوت بعد الآن.",
+
+            "my_company": "مشروعي ومنتجاتي",
+            "my_company_desc": "من هنا تبني ملف مشروعك: بياناته، ثم منتجاته، ثم صورها. كل ما أكملت أكثر، باع البوت أفضل.",
+            "step_company": "١. بيانات المشروع",
+            "step_company_todo": "لم تُضف بعد. ابدأ من قسم «بيانات المشروع» بالأسفل.",
+            "step_products": "٢. المنتجات والأسعار",
+            "step_products_todo": "لم تُضف أي منتج بعد. البوت لن يقدر يذكر سعراً أو يرسل رابط دفع.",
+            "step_products_done": "{n} منتج جاهز للبيع.",
+            "step_images": "٣. صور المنتجات والكتالوجات",
+            "step_images_todo": "اختياري، لكنه يرفع الإقناع كثيراً.",
+            "step_images_done": "{n} مجموعة صور.",
+
+            "my_products": "المنتجات",
+            "my_products_desc": "هذه المنتجات التي سيعرضها البوت على عملائك مع أسعارها وروابط دفعها.",
+            "no_products_yet": "لا توجد منتجات بعد. أضف أول منتج بالسعر ورابط الدفع حتى يقدر البوت يبيعه ويقفل الصفقة.",
+            "add_product": "＋ إضافة منتج",
+            "save_product": "حفظ المنتج",
+            "cancel_add": "إلغاء",
+            "image_groups_desc": "ارفع صور منتجاتك أو كتالوجاتك، واكتب للبوت كيف يبيعها.",
+            "no_groups_yet": "لا توجد صور بعد. البوت يقدر يبيع بدونها، لكن الصور ترفع نسبة الإقناع.",
+            "add_group": "＋ إضافة مجموعة صور",
+
+            "saving": "جاري الحفظ...",
+            "uploading": "جاري الرفع... لا تغلق الصفحة",
+            "deleting": "جاري الحذف...",
+            "go_to_section": "اضغط للانتقال إلى هذا القسم",
+            "link_images": "صور هذا المنتج",
+            "link_images_hint": "اختر مجموعة صور ليعرضها البوت مع هذا المنتج. أضف المجموعات من قسم «صور المنتجات» بالأسفل.",
+            "no_images": "بدون صور",
+            "linked_group": "الصور",
+            "current_images": "الصور الحالية",
+            "remove_image": "حذف هذه الصورة",
+            "add_more_images": "إضافة صور جديدة",
+            "group_has_no_images": "لا توجد صور في هذه المجموعة. اضغط «تعديل» لإضافة صور.",
+            "pick_image": "اختر صورة للمنتج",
+            "upload_now": "رفع الصور",
+            "brand_logo": "شعار المشروع",
+            "change_logo": "تغيير الشعار",
+            "brand_logo_hint": "يظهر في شاشة الشات الخاصة بمشروعك بدل شعار الصعب.",
+            "catalog_label": "ماذا تسمّي ما تبيعه؟",
+            "catalog_label_placeholder": "منتجاتنا / خدماتنا / عروضنا / باقاتنا",
+            "catalog_label_hint": "هذه الكلمة تظهر في شاشة الشات أمام عملائك. اتركها فارغة لاستخدام «منتجاتنا».",
+            "save_label": "حفظ التسمية"
         },
         "en": {
             "page_title": "ALSAAB AI - Client Dashboard",
@@ -3009,7 +3309,65 @@ def client_dashboard_view():
             "save_payment_links": "Save Payment Links",
             "saved_payment_links": "Saved Payment Links",
             "saved_success": "Saved successfully.",
-            "empty": "No saved data yet."
+            "empty": "No saved data yet.",
+            "my_projects": "My Projects",
+            "my_projects_desc": "Click a project to view its products and add more.",
+            "open_project": "View & manage products",
+            "close_project": "Hide products",
+            "no_project_yet": "You have not added your project yet. Fill in \"Project Data\" below to start.",
+            "project_products": "Project Products",
+            "products_summary": "What you sell",
+            "image_groups_count": "product groups",
+            "payment_links_count": "payment links",
+            "add_products_here": "Add your products from the sections below.",
+            "untitled_project": "Untitled project",
+            "edit_item": "Edit",
+            "update_item": "Save changes",
+            "delete_item": "Delete",
+            "confirm_delete": "Delete this item? The bot will stop showing it.",
+
+            "my_company": "My business & products",
+            "my_company_desc": "Build your business profile here: details, then products, then their images. The more you complete, the better the bot sells.",
+            "step_company": "1. Business details",
+            "step_company_todo": "Not added yet. Start from \"Project Data\" below.",
+            "step_products": "2. Products & prices",
+            "step_products_todo": "No products yet. The bot cannot quote a price or send a payment link.",
+            "step_products_done": "{n} product(s) ready to sell.",
+            "step_images": "3. Product images & catalogs",
+            "step_images_todo": "Optional, but it lifts conversion a lot.",
+            "step_images_done": "{n} image group(s).",
+
+            "my_products": "Products",
+            "my_products_desc": "These are the products the bot will offer your customers, with prices and payment links.",
+            "no_products_yet": "No products yet. Add your first one with a price and payment link so the bot can sell it and close the deal.",
+            "add_product": "＋ Add product",
+            "save_product": "Save product",
+            "cancel_add": "Cancel",
+            "image_groups_desc": "Upload your product images or catalogs, and tell the bot how to sell them.",
+            "no_groups_yet": "No images yet. The bot can sell without them, but images lift conversion.",
+            "add_group": "＋ Add image group",
+
+            "saving": "Saving...",
+            "uploading": "Uploading... do not close this page",
+            "deleting": "Deleting...",
+            "go_to_section": "Click to jump to this section",
+            "link_images": "Images for this product",
+            "link_images_hint": "Pick an image group for the bot to show with this product. Add groups in \"Product Images\" below.",
+            "no_images": "No images",
+            "linked_group": "Images",
+            "current_images": "Current images",
+            "remove_image": "Remove this image",
+            "add_more_images": "Add more images",
+            "group_has_no_images": "No images in this group yet. Click Edit to add some.",
+            "pick_image": "Choose a product image",
+            "upload_now": "Upload images",
+            "brand_logo": "Business logo",
+            "change_logo": "Change logo",
+            "brand_logo_hint": "Shown on your own chat page instead of the ALSAAB mark.",
+            "catalog_label": "What do you call what you sell?",
+            "catalog_label_placeholder": "Products / Services / Offers / Packages",
+            "catalog_label_hint": "This word appears on your chat page in front of your customers. Leave blank to use \"Products\".",
+            "save_label": "Save wording"
         }
     }[lang]
 
@@ -3071,6 +3429,46 @@ def client_dashboard_view():
 
         account_id = partner_id
         client_id = partner_id
+
+        # Lets a product card show the pictures of the group it points at,
+        # without the template hunting through the list for every product.
+        image_group_map = {
+            str(group.get("group_id") or ""): group
+            for group in product_groups
+            if group.get("group_id")
+        }
+
+        # ===== ALSAAB_CLIENT_PROJECT_MANAGER_V1 START =====
+        # The page used to render the project form with empty inputs, so the
+        # customer could never see what was already saved -- only overwrite it
+        # blind. Load the profile here and the template can both show it and
+        # pre-fill the form.
+        client_profile = {}
+
+        try:
+            from database import get_client_profile
+
+            client_profile = get_client_profile(client_id, client_id=client_id) or {}
+
+        except Exception as profile_error:
+            print(
+                f"CLIENT DASHBOARD PROFILE LOAD ERROR ⚠️ {profile_error}",
+                flush=True
+            )
+
+        has_project = bool(
+            str(client_profile.get("business_name") or "").strip()
+            or str(client_profile.get("products") or "").strip()
+        )
+
+        try:
+            import client_media as _cm
+        except ImportError:
+            from backend import client_media as _cm
+
+        brand_logo = _cm.logo_url(partner_id)
+        catalog_label = str(_cm.load_brand(partner_id).get("catalog_label") or "").strip()
+        # ===== ALSAAB_CLIENT_PROJECT_MANAGER_V1 END =====
 
         current_package = (level.get("current_package") or "").lower()
         subscription_status = level.get("subscription_status") or ""
@@ -3159,6 +3557,11 @@ def client_dashboard_view():
             channels=channels,
             product_groups=product_groups,
             client_payment_links=client_payment_links,
+            image_group_map=image_group_map,
+            brand_logo=brand_logo,
+            catalog_label=catalog_label,
+            client_profile=client_profile,
+            has_project=has_project,
             saved_message=saved_message
         )
 
@@ -3216,42 +3619,41 @@ def client_dashboard_save_image_group():
     if lang not in ("ar", "en"):
         lang = "ar"
 
-    uploaded_files = []
-
     try:
-        for file in request.files.getlist("images"):
-            if not file or not file.filename:
-                continue
-
-            raw = file.read()
-
-            if not raw:
-                continue
-
-            # MVP safety limit per file: 5 MB
-            if len(raw) > 5 * 1024 * 1024:
-                print(f"CLIENT DASHBOARD UPLOAD SKIPPED large file={file.filename}", flush=True)
-                continue
-
-            uploaded_files.append({
-                "name": file.filename,
-                "mime_type": file.content_type or "application/octet-stream",
-                "content_base64": base64.b64encode(raw).decode("ascii")
-            })
+        try:
+            import client_media
+        except ImportError:
+            from backend import client_media
 
         from database import post_to_google_sheet_json
 
         google_sheet_token = os.getenv("GOOGLE_SHEET_TOKEN", "")
+
+        # The group id has to exist before the files can be filed under it, so
+        # mint it here instead of letting the storage layer generate one.
+        #
+        # The previous version base64-encoded each upload into `uploaded_files`
+        # and posted it -- but nothing downstream ever read that key, so every
+        # image was silently discarded and each group was written with an empty
+        # image_urls. The files now go to disk and their paths go in the row.
+        group_id = request.form.get("group_id", "").strip() or ("GRP-" + uuid.uuid4().hex[:12])
+
+        image_urls = client_media.save_uploads(
+            partner_id,
+            group_id,
+            request.files.getlist("images"),
+        )
 
         payload = {
             "token": google_sheet_token,
             "action": "product_image_group",
             "partner_id": partner_id,
             "client_id": client_id,
+            "group_id": group_id,
             "group_title": request.form.get("group_title", "").strip(),
             "group_description": request.form.get("group_description", "").strip(),
             "sales_instructions": request.form.get("sales_instructions", "").strip(),
-            "uploaded_files": uploaded_files,
+            "image_urls": image_urls,
             "notes": "Saved from Client Dashboard with file upload"
         }
 
@@ -3336,6 +3738,7 @@ def client_dashboard_save_payment_link():
                 "amount": amount,
                 "currency": currency,
                 "description": description,
+                "linked_image_group_id": request.form.get("linked_image_group_id", "").strip(),
                 "notes": "Saved from Client Dashboard"
             }
 
@@ -3354,6 +3757,467 @@ def client_dashboard_save_payment_link():
         return redirect(build_dashboard_return_url("/client-dashboard", key, partner_id, lang, "payment_link_error"))
 
 # ===== ALSAAB_CLIENT_DASHBOARD_SAVE_ROUTES_V1 END =====
+
+
+# ===== ALSAAB_CLIENT_ITEM_MANAGE_V1 START =====
+#
+# Edit and delete for the two things a customer adds: product image groups and
+# payment links. Both were add-only, so a wrong price or a discontinued product
+# stayed in front of the bot permanently and could only be removed by opening
+# the database by hand.
+#
+# The storage layer already supported both operations and nothing called them:
+# requests_compat.product_image_group and .client_payment_link upsert on their
+# id, and dashboard_compat.client_dashboard_data already filters out
+# status = 'deleted'. So an edit is a save that carries the existing id, and a
+# delete is a save that sets the status. No schema change.
+
+_MANAGED_ITEMS = {
+    "payment_link": {
+        "table": "client_payment_links",
+        "id_column": "payment_link_id",
+        "action": "client_payment_link",
+        "id_field": "payment_link_id",
+        "fields": ("product_name", "payment_link", "amount", "currency",
+                   "description", "linked_image_group_id"),
+        "ok_status": "payment_link_saved",
+        "error_status": "payment_link_error",
+    },
+    "image_group": {
+        "table": "product_image_groups",
+        "id_column": "group_id",
+        "action": "product_image_group",
+        "id_field": "group_id",
+        "fields": ("group_title", "group_description", "sales_instructions"),
+        "ok_status": "image_group_saved",
+        "error_status": "image_group_error",
+    },
+}
+
+
+def _client_item_owner(kind, item_id):
+    """
+    partner_id that owns this row, or "" when it does not exist.
+
+    The upsert handlers key only on the item id, so without this check any
+    signed-in customer could edit or delete another customer's products just by
+    posting their id.
+    """
+    spec = _MANAGED_ITEMS[kind]
+
+    try:
+        from db import get_connection
+
+        conn = get_connection()
+        cursor = conn.cursor()
+        cursor.execute(
+            f"SELECT partner_id FROM {spec['table']} WHERE {spec['id_column']} = ?",
+            (item_id,),
+        )
+        row = cursor.fetchone()
+
+        return normalize_dashboard_partner_id(row[0]) if row else ""
+
+    except Exception as error:
+        print(f"CLIENT ITEM OWNER LOOKUP ERROR ❌ {kind}/{item_id} {error}", flush=True)
+        return ""
+
+
+def _image_group_urls_after_edit(partner_id, group_id):
+    """
+    The image list a group should keep after an edit: what it already had,
+    minus anything ticked for removal, plus anything newly uploaded.
+    """
+    try:
+        import client_media
+    except ImportError:
+        from backend import client_media
+
+    existing = []
+
+    try:
+        from db import get_connection
+
+        cursor = get_connection().cursor()
+        cursor.execute(
+            "SELECT image_urls FROM product_image_groups WHERE group_id = ?",
+            (group_id,),
+        )
+        row = cursor.fetchone()
+
+        if row and row[0]:
+            existing = row[0] if isinstance(row[0], list) else json.loads(row[0])
+
+    except Exception as error:
+        print(f"IMAGE GROUP URL LOAD ERROR ⚠️ {group_id} {error}", flush=True)
+        existing = []
+
+    removing = set(request.form.getlist("remove_image"))
+    kept = [url for url in existing if url not in removing]
+
+    for url in existing:
+        if url in removing:
+            client_media.delete_file(url)
+
+    added = client_media.save_uploads(
+        partner_id, group_id, request.files.getlist("images")
+    )
+
+    if removing or added:
+        print(
+            f"IMAGE GROUP MEDIA EDIT ✅ {group_id} kept={len(kept)} "
+            f"removed={len(removing)} added={len(added)}",
+            flush=True
+        )
+
+    return kept + added
+
+
+def _handle_client_item_manage(kind):
+    spec = _MANAGED_ITEMS[kind]
+
+    key = request.form.get("key", "").strip()
+    sso_token = request.form.get("sso", "").strip()
+    sso_payload = None
+
+    if sso_token:
+        sso_payload, sso_error = verify_dashboard_sso_token(sso_token)
+
+        if sso_error:
+            return redirect(build_dashboard_login_redirect(
+                "client", "", request.form.get("lang", "ar")
+            )), 302
+
+    partner_id = normalize_dashboard_partner_id(
+        request.form.get("partner_id", "").strip()
+        or (sso_payload.get("partner_id", "") if sso_payload else "")
+        or session.get("partner_id", "")
+    )
+
+    if sso_payload:
+        session["partner_id"] = partner_id
+    elif not is_dashboard_access_allowed(partner_id, key):
+        print(f"DASHBOARD ACCESS DENIED client manage partner_id={partner_id}", flush=True)
+        return redirect(build_dashboard_login_redirect(
+            "client", partner_id, request.values.get("lang", "ar")
+        )), 302
+
+    lang = request.form.get("lang", "ar").strip().lower()
+
+    if lang not in ("ar", "en"):
+        lang = "ar"
+
+    item_id = request.form.get(spec["id_field"], "").strip()
+    operation = request.form.get("op", "update").strip().lower()
+
+    if operation not in ("update", "delete"):
+        operation = "update"
+
+    if not item_id:
+        return redirect(build_dashboard_return_url(
+            "/client-dashboard", key, partner_id, lang, spec["error_status"]
+        ))
+
+    owner = _client_item_owner(kind, item_id)
+
+    if not owner or owner != partner_id:
+        print(
+            f"CLIENT ITEM MANAGE DENIED ❌ {kind}/{item_id} "
+            f"owner={owner or 'none'} caller={partner_id}",
+            flush=True
+        )
+        return redirect(build_dashboard_return_url(
+            "/client-dashboard", key, partner_id, lang, spec["error_status"]
+        ))
+
+    try:
+        import os
+
+        if operation == "delete":
+            # Flip the status column on its own. Routing a delete through the
+            # upsert would rewrite every other column from an empty payload, so
+            # the row survived as a blank marked 'deleted' -- the product name
+            # and price were gone and nothing could be restored or audited.
+            from db import get_connection
+
+            conn = get_connection()
+            cursor = conn.cursor()
+            cursor.execute(
+                f"UPDATE {spec['table']} SET status = 'deleted' "
+                f"WHERE {spec['id_column']} = ? AND partner_id = ?",
+                (item_id, partner_id),
+            )
+            conn.commit()
+
+            ok = True
+
+        else:
+            from database import post_to_google_sheet_json
+
+            payload = {
+                "token": os.getenv("GOOGLE_SHEET_TOKEN", ""),
+                "action": spec["action"],
+                "partner_id": partner_id,
+                "client_id": request.form.get("client_id", "").strip() or partner_id,
+                spec["id_field"]: item_id,
+                "status": "active",
+                "notes": "update from Client Dashboard",
+            }
+
+            for field in spec["fields"]:
+                payload[field] = request.form.get(field, "").strip()
+
+            if kind == "payment_link" and not payload.get("currency"):
+                payload["currency"] = "AED"
+
+            if kind == "image_group":
+                # The upsert rewrites image_urls from whatever this payload
+                # carries, so renaming a group would erase its pictures unless
+                # the current list is carried through. Same shape of bug the
+                # project form had, one table over.
+                payload["image_urls"] = _image_group_urls_after_edit(
+                    partner_id, item_id
+                )
+
+            result = post_to_google_sheet_json(
+                payload, label=f"client_dashboard_update_{kind}"
+            )
+
+            ok = isinstance(result, dict) and result.get("status") == "success"
+
+        print(
+            f"CLIENT ITEM {operation.upper()} {'✅' if ok else '❌'} "
+            f"{kind}/{item_id} partner_id={partner_id}",
+            flush=True
+        )
+
+        return redirect(build_dashboard_return_url(
+            "/client-dashboard", key, partner_id, lang,
+            spec["ok_status"] if ok else spec["error_status"]
+        ))
+
+    except Exception as error:
+        print(f"CLIENT ITEM MANAGE ERROR ❌ {kind}/{item_id} {error}", flush=True)
+
+        return redirect(build_dashboard_return_url(
+            "/client-dashboard", key, partner_id, lang, spec["error_status"]
+        ))
+
+
+@app.route("/client-dashboard/manage-payment-link", methods=["POST"])
+def client_dashboard_manage_payment_link():
+    return _handle_client_item_manage("payment_link")
+
+
+@app.route("/client-dashboard/save-logo", methods=["POST"])
+def client_dashboard_save_logo():
+    """Upload the account's own mark, shown on its bot page instead of ALSAAB's."""
+    try:
+        import client_media
+    except ImportError:
+        from backend import client_media
+
+    key = request.form.get("key", "").strip()
+    sso_token = request.form.get("sso", "").strip()
+    sso_payload = None
+
+    if sso_token:
+        sso_payload, sso_error = verify_dashboard_sso_token(sso_token)
+
+        if sso_error:
+            return redirect(build_dashboard_login_redirect(
+                "client", "", request.form.get("lang", "ar")
+            )), 302
+
+    partner_id = normalize_dashboard_partner_id(
+        request.form.get("partner_id", "").strip()
+        or (sso_payload.get("partner_id", "") if sso_payload else "")
+        or session.get("partner_id", "")
+    )
+
+    if sso_payload:
+        session["partner_id"] = partner_id
+    elif not is_dashboard_access_allowed(partner_id, key):
+        return redirect(build_dashboard_login_redirect(
+            "client", partner_id, request.values.get("lang", "ar")
+        )), 302
+
+    lang = request.form.get("lang", "ar").strip().lower()
+
+    if lang not in ("ar", "en"):
+        lang = "ar"
+
+    files = request.files.getlist("logo")
+    saved = client_media.save_logo(partner_id, files[0]) if files else ""
+
+    label = request.form.get("catalog_label", "").strip()
+
+    if label or "catalog_label" in request.form:
+        client_media.save_brand(partner_id, catalog_label=label)
+        saved = True
+
+    return redirect(build_dashboard_return_url(
+        "/client-dashboard", key, partner_id, lang,
+        "project_data_saved" if saved else "project_data_error"
+    ))
+
+
+@app.route("/client-dashboard/product-images", methods=["POST"])
+def client_dashboard_product_images():
+    """
+    Put pictures on one product in a single step.
+
+    Images live in groups, and a product points at a group -- fine as a data
+    model, useless as a first task: a customer with no groups yet opened the
+    product's editor to find an empty dropdown and no way forward. Here they
+    pick files on the product itself; the group is created and linked behind
+    the scenes, or reused if the product already has one.
+    """
+    import os
+
+    try:
+        import client_media
+    except ImportError:
+        from backend import client_media
+
+    key = request.form.get("key", "").strip()
+    sso_token = request.form.get("sso", "").strip()
+    sso_payload = None
+
+    if sso_token:
+        sso_payload, sso_error = verify_dashboard_sso_token(sso_token)
+
+        if sso_error:
+            return redirect(build_dashboard_login_redirect(
+                "client", "", request.form.get("lang", "ar")
+            )), 302
+
+    partner_id = normalize_dashboard_partner_id(
+        request.form.get("partner_id", "").strip()
+        or (sso_payload.get("partner_id", "") if sso_payload else "")
+        or session.get("partner_id", "")
+    )
+
+    if sso_payload:
+        session["partner_id"] = partner_id
+    elif not is_dashboard_access_allowed(partner_id, key):
+        print(f"DASHBOARD ACCESS DENIED product images partner_id={partner_id}", flush=True)
+        return redirect(build_dashboard_login_redirect(
+            "client", partner_id, request.values.get("lang", "ar")
+        )), 302
+
+    lang = request.form.get("lang", "ar").strip().lower()
+
+    if lang not in ("ar", "en"):
+        lang = "ar"
+
+    client_id = request.form.get("client_id", "").strip() or partner_id
+    payment_link_id = request.form.get("payment_link_id", "").strip()
+
+    def back(status):
+        return redirect(build_dashboard_return_url(
+            "/client-dashboard", key, partner_id, lang, status
+        ))
+
+    if not payment_link_id:
+        return back("image_group_error")
+
+    if _client_item_owner("payment_link", payment_link_id) != partner_id:
+        print(f"PRODUCT IMAGES DENIED ❌ {payment_link_id} caller={partner_id}", flush=True)
+        return back("image_group_error")
+
+    try:
+        from database import post_to_google_sheet_json
+        from db import get_connection
+
+        cursor = get_connection().cursor()
+        cursor.execute(
+            "SELECT product_name, linked_image_group_id FROM client_payment_links "
+            "WHERE payment_link_id = ?",
+            (payment_link_id,),
+        )
+        row = cursor.fetchone()
+
+        product_name = str(row[0] or "").strip() if row else ""
+        group_id = str(row[1] or "").strip() if row else ""
+        token = os.getenv("GOOGLE_SHEET_TOKEN", "")
+
+        existing_urls = []
+        group_title = product_name or "صور المنتج"
+        group_description = product_name or "صور المنتج"
+        sales_instructions = ""
+
+        if group_id:
+            cursor.execute(
+                "SELECT group_title, group_description, sales_instructions, image_urls "
+                "FROM product_image_groups WHERE group_id = ? AND partner_id = ?",
+                (group_id, partner_id),
+            )
+            found = cursor.fetchone()
+
+            if found:
+                group_title = str(found[0] or group_title)
+                group_description = str(found[1] or group_description)
+                sales_instructions = str(found[2] or "")
+                existing_urls = found[3] if isinstance(found[3], list) else (
+                    json.loads(found[3]) if found[3] else []
+                )
+            else:
+                group_id = ""
+
+        if not group_id:
+            group_id = "GRP-" + uuid.uuid4().hex[:12]
+
+        added = client_media.save_uploads(
+            partner_id, group_id, request.files.getlist("images")
+        )
+
+        if not added:
+            return back("image_group_error")
+
+        post_to_google_sheet_json({
+            "token": token,
+            "action": "product_image_group",
+            "partner_id": partner_id,
+            "client_id": client_id,
+            "group_id": group_id,
+            "group_title": group_title,
+            "group_description": group_description,
+            "sales_instructions": sales_instructions,
+            "image_urls": existing_urls + added,
+            "status": "active",
+            "notes": "Created from the product card",
+        }, label="client_dashboard_product_images")
+
+        # Point the product at the group. Done directly rather than through the
+        # payment-link upsert so the price, link and description cannot be
+        # rewritten by a form that never carried them.
+        connection = get_connection()
+        writer = connection.cursor()
+        writer.execute(
+            "UPDATE client_payment_links SET linked_image_group_id = ? "
+            "WHERE payment_link_id = ? AND partner_id = ?",
+            (group_id, payment_link_id, partner_id),
+        )
+        connection.commit()
+
+        print(
+            f"PRODUCT IMAGES ADDED ✅ {payment_link_id} group={group_id} files={len(added)}",
+            flush=True
+        )
+
+        return back("image_group_saved")
+
+    except Exception as error:
+        print(f"PRODUCT IMAGES ERROR ❌ {payment_link_id} {error}", flush=True)
+        return back("image_group_error")
+
+
+@app.route("/client-dashboard/manage-image-group", methods=["POST"])
+def client_dashboard_manage_image_group():
+    return _handle_client_item_manage("image_group")
+
+# ===== ALSAAB_CLIENT_ITEM_MANAGE_V1 END =====
 
 
 # ===== ALSAAB_CLIENT_PROJECT_DATA_AND_ADVISORY_V1 START =====

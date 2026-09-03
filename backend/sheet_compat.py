@@ -354,19 +354,19 @@ def _save_client_profile(payload):
                 whatsapp, areas, faqs, objections, tone
             ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             ON CONFLICT (session_id) DO UPDATE SET
-                client_id           = EXCLUDED.client_id,
-                business_name       = EXCLUDED.business_name,
-                business_type       = EXCLUDED.business_type,
-                general_description = EXCLUDED.general_description,
-                products            = EXCLUDED.products,
-                prices              = EXCLUDED.prices,
-                offers              = EXCLUDED.offers,
-                ordering            = EXCLUDED.ordering,
-                whatsapp            = EXCLUDED.whatsapp,
-                areas               = EXCLUDED.areas,
-                faqs                = EXCLUDED.faqs,
-                objections          = EXCLUDED.objections,
-                tone                = EXCLUDED.tone
+                client_id           = COALESCE(NULLIF(EXCLUDED.client_id, ''), client_profiles.client_id),
+                business_name       = COALESCE(NULLIF(EXCLUDED.business_name, ''), client_profiles.business_name),
+                business_type       = COALESCE(NULLIF(EXCLUDED.business_type, ''), client_profiles.business_type),
+                general_description = COALESCE(NULLIF(EXCLUDED.general_description, ''), client_profiles.general_description),
+                products            = COALESCE(NULLIF(EXCLUDED.products, ''), client_profiles.products),
+                prices              = COALESCE(NULLIF(EXCLUDED.prices, ''), client_profiles.prices),
+                offers              = COALESCE(NULLIF(EXCLUDED.offers, ''), client_profiles.offers),
+                ordering            = COALESCE(NULLIF(EXCLUDED.ordering, ''), client_profiles.ordering),
+                whatsapp            = COALESCE(NULLIF(EXCLUDED.whatsapp, ''), client_profiles.whatsapp),
+                areas               = COALESCE(NULLIF(EXCLUDED.areas, ''), client_profiles.areas),
+                faqs                = COALESCE(NULLIF(EXCLUDED.faqs, ''), client_profiles.faqs),
+                objections          = COALESCE(NULLIF(EXCLUDED.objections, ''), client_profiles.objections),
+                tone                = COALESCE(NULLIF(EXCLUDED.tone, ''), client_profiles.tone)
             """,
             (
                 _text(payload.get("session_id")),

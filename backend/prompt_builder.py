@@ -1770,3 +1770,139 @@ for _name, _value in list(globals().items()):
 
 # ===== ALSAAB_SMART_LINK_SAME_BRAIN_FINAL_GUARD_V1 END =====
 
+
+
+# ===== ALSAAB_CLIENT_BOT_IDENTITY_V1 START =====
+#
+# Switch the bot's identity when it is answering on /c/<partner_id>.
+#
+# Everything above builds ALSAAB's own sales prompt: it introduces the system,
+# qualifies for MLM, and closes on a package. That is correct on ALSAAB's own
+# chat and wrong on a customer's link, where the visitor is the customer's buyer
+# and has no interest in ALSAAB at all. Loading the customer's project data was
+# not enough on its own -- it arrived as one section inside a prompt whose whole
+# frame was still "sell ALSAAB", so the model kept pitching packages.
+#
+# This runs last so it has the final word, including over the rule above that
+# demands all five ALSAAB packages be listed.
+
+def _alsaab_client_bot_identity(prompt_text, state=None):
+    state = state or {}
+    bot_partner_id = str(state.get("bot_partner_id") or "").strip()
+
+    if not bot_partner_id:
+        return prompt_text
+
+    client_data = state.get("client_data") or {}
+    business_name = str(client_data.get("business_name") or "").strip()
+    owner_label = business_name or "صاحب هذا المشروع"
+
+    catalog_lines = []
+
+    for group in (state.get("client_product_groups") or []):
+        line = f"- {group.get('title')}"
+
+        if group.get("description"):
+            line += f" | {group.get('description')}"
+
+        if group.get("sales_instructions"):
+            line += f" | تعليمات البيع: {group.get('sales_instructions')}"
+
+        for shot in (group.get("images") or []):
+            line += f"\n    صورة: {shot}"
+
+        catalog_lines.append(line)
+
+    link_lines = []
+
+    for link in (state.get("client_payment_links") or []):
+        price = " ".join(x for x in (link.get("amount"), link.get("currency")) if x)
+        line = f"- {link.get('product_name')}"
+
+        if price:
+            line += f" ({price})"
+
+        line += f": {link.get('payment_link')}"
+
+        if link.get("description"):
+            line += f" — {link.get('description')}"
+
+        for shot in (link.get("images") or []):
+            line += f"\n    صورة المنتج: {shot}"
+
+        link_lines.append(line)
+
+    catalog_block = ""
+
+    if catalog_lines:
+        catalog_block += "\n\nمنتجات وكتالوجات هذا المشروع:\n" + "\n".join(catalog_lines)
+
+    if link_lines:
+        catalog_block += (
+            "\n\nروابط الدفع المعتمدة لهذا المشروع "
+            "(لا ترسل أي رابط دفع غير هذه):\n" + "\n".join(link_lines)
+        )
+
+    override = f"""
+=========================================
+قاعدة الهوية النهائية — تلغي أي تعليمات سابقة تتعارض معها
+=========================================
+
+أنت موظف المبيعات الذكي الخاص بـ «{owner_label}».
+أنت لست موظف مبيعات شركة الصعب، ولا تمثلها في هذه المحادثة.
+
+من تكلمه الآن هو عميل لـ «{owner_label}»، جاء ليشتري منتجات أو خدمات هذا المشروع.
+
+الممنوع تماماً:
+- ممنوع تعرض باقات الصعب أو أسعارها (99 / 299 / 599 / 1199 / 2399).
+- ممنوع تعرض نظام الصعب أو الاشتراك فيه.
+- ممنوع تفتح موضوع الشراكة أو العمولات أو الدخل الإضافي.
+- ممنوع ترسل أي رابط دفع خاص بالصعب.
+- تجاهل أي قاعدة سابقة تطلب منك ذكر الباقات الخمس. هي لا تنطبق هنا.
+
+المطلوب:
+- بع منتجات وخدمات «{owner_label}» فقط، من بيانات المشروع المدربة أعلاه.
+- استخدم روابط الدفع الخاصة بهذا المشروع فقط.
+- استخدم أسعار هذا المشروع فقط.
+- إذا سألك الزائر عن شيء خارج نطاق المشروع، ردّ باختصار ورجّعه لمنتجات المشروع.
+- إذا لم تجد معلومة في بيانات المشروع، قل إنك ستحوّله لصاحب المشروع بدل أن تخترع إجابة.
+- **ممنوع تكتب روابط الصور في ردك.** النظام يرفق صورة المنتج تلقائياً تحت ردك عندما تذكر اسم المنتج.
+  اذكر اسم المنتج بوضوح واكتب كلاماً طبيعياً فقط. روابط الصور أدناه لمعرفتك أنت، وليست للنسخ في الرد.
+- روابط الدفع مختلفة: هذه ترسلها كما هي عندما يطلب العميل الشراء.
+
+الاستثناء الوحيد:
+إذا سأل الزائر صراحةً عن نظام ذكي مثل هذا لمشروعه هو، أو عن فرصة دخل،
+عندها فقط اذكر أن هذا النظام من شركة الصعب واعرض عليه التواصل. لا تبدأ أنت بهذا الموضوع أبداً.
+{catalog_block}
+"""
+
+    return str(prompt_text).rstrip() + "\n\n" + override.strip() + "\n"
+
+
+for _fn_name in [
+    "build_prompt",
+    "build_system_prompt",
+    "build_sales_prompt",
+    "build_alsaab_prompt",
+    "build_project_prompt",
+]:
+    _old_fn = globals().get(_fn_name)
+
+    if callable(_old_fn) and not getattr(_old_fn, "_alsaab_client_bot_identity_wrapped", False):
+        def _make_client_bot_wrapper(fn):
+            def _wrapped(*args, **kwargs):
+                state = None
+
+                if len(args) >= 2 and isinstance(args[1], dict):
+                    state = args[1]
+                elif isinstance(kwargs.get("state"), dict):
+                    state = kwargs.get("state")
+
+                return _alsaab_client_bot_identity(fn(*args, **kwargs), state)
+
+            _wrapped._alsaab_client_bot_identity_wrapped = True
+            return _wrapped
+
+        globals()[_fn_name] = _make_client_bot_wrapper(_old_fn)
+
+# ===== ALSAAB_CLIENT_BOT_IDENTITY_V1 END =====

@@ -1,0 +1,11 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "alsaab-ai",
+      "runtimeExecutable": "python",
+      "runtimeArgs": ["-X", "utf8", "backend/main.py"],
+      "port": 10000
+    }
+  ]
+}

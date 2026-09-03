@@ -328,7 +328,280 @@
     }
     /* ===== ALSAAB_DASHBOARD_VISUAL_POLISH_V4 END ===== */
 
+    /* ===== ALSAAB_CLIENT_PROJECT_MANAGER_V1 START ===== */
+    .proj-card{
+      border:1px solid rgba(215,184,90,.42); border-radius:16px; padding:16px 18px;
+      background:linear-gradient(135deg,#0b0f18,#131b2b); cursor:pointer;
+      display:flex; justify-content:space-between; align-items:center; gap:14px;
+      transition:border-color .15s ease, transform .12s ease;
+    }
+    .proj-card:hover{ border-color:rgba(255,224,138,.9); transform:translateY(-1px); }
+    .proj-card h3{ margin:0 0 4px; color:#f0cc68; font-size:19px; }
+    .proj-meta{ color:#9aa4b5; font-size:13px; line-height:1.9; }
+    .proj-chevron{ color:#f0cc68; font-size:22px; flex:0 0 auto; }
+    .proj-panel{ margin-top:14px; }
+    .proj-panel[hidden]{ display:none; }
+    .proj-block{
+      border:1px solid rgba(215,184,90,.22); border-radius:14px;
+      padding:14px 16px; margin-bottom:12px; background:rgba(6,9,15,.55);
+    }
+    .proj-block h4{ margin:0 0 8px; color:#d7b85a; font-size:15px; }
+    .proj-empty{ color:#7f8899; font-size:13px; }
+    .proj-count{
+      display:inline-block; border:1px solid rgba(215,184,90,.42); border-radius:999px;
+      padding:2px 12px; margin-inline-end:8px; color:#f0cc68; font-size:12px; font-weight:700;
+    }
+    /* ===== ALSAAB_CLIENT_PROJECT_MANAGER_V1 END ===== */
+
+    /* ===== ALSAAB_CLIENT_ITEM_MANAGE_V1 START ===== */
+    .item-actions{ margin-top:10px; display:flex; gap:10px; align-items:center; }
+    .link-btn{
+      background:transparent; border:1px solid rgba(215,184,90,.5); color:#f0cc68;
+      border-radius:999px; padding:5px 16px; font-size:13px; font-weight:700; cursor:pointer;
+    }
+    .link-btn:hover{ border-color:rgba(255,224,138,.95); }
+    .link-btn.danger{ border-color:rgba(239,68,68,.55); color:#fca5a5; }
+    .link-btn.danger:hover{ border-color:rgba(239,68,68,.95); }
+    .item-edit{
+      margin-top:12px; padding:14px; border-radius:12px;
+      border:1px solid rgba(215,184,90,.3); background:rgba(6,9,15,.6);
+    }
+    .item-edit[hidden]{ display:none; }
+    .item-edit label{ display:block; margin-top:10px; margin-bottom:5px; color:#d7b85a; font-weight:700; font-size:13px; }
+    .item-edit input, .item-edit textarea{
+      width:100%; box-sizing:border-box; background:#0b0b0b; color:#fff;
+      border:1px solid rgba(215,184,90,.35); border-radius:10px; padding:10px;
+    }
+    .item-edit textarea{ min-height:70px; }
+    .item-edit .primary-btn{ margin-top:12px; }
+    /* ===== ALSAAB_CLIENT_ITEM_MANAGE_V1 END ===== */
+
+    /* ===== ALSAAB_CLIENT_PRODUCT_STUDIO_V1 START ===== */
+    .count-badge{
+      display:inline-block; min-width:26px; text-align:center;
+      background:linear-gradient(135deg,#d7b85a,#a88425); color:#0b0b0b;
+      border-radius:999px; padding:2px 11px; font-size:14px; font-weight:900;
+      margin-inline-start:9px; vertical-align:middle;
+    }
+    .steps{ display:grid; gap:10px; margin:16px 0 4px; }
+    .step{
+      display:flex; align-items:flex-start; gap:12px; padding:13px 15px;
+      border:1px solid rgba(215,184,90,.24); border-radius:13px; background:rgba(6,9,15,.5);
+    }
+    .step.done{ border-color:rgba(34,197,94,.45); background:rgba(20,83,45,.16); }
+    .step[data-jump]{ cursor:pointer; transition:border-color .15s ease, transform .12s ease; }
+    .step[data-jump]:hover{ border-color:rgba(255,224,138,.85); transform:translateY(-1px); }
+    .step[data-jump]:focus-visible{ outline:2px solid rgba(255,224,138,.85); outline-offset:2px; }
+    .step-go{ flex:0 0 auto; align-self:center; color:#f0cc68; font-size:24px; font-weight:900; opacity:.55; }
+    .step[data-jump]:hover .step-go{ opacity:1; }
+    .section:target, .section.flash{ animation:sectionFlash 1.4s ease-out; }
+    @keyframes sectionFlash{
+      0%   { box-shadow:0 0 0 3px rgba(240,204,104,.55); }
+      100% { box-shadow:0 0 0 3px rgba(240,204,104,0); }
+    }
+    .step-mark{
+      flex:0 0 auto; width:25px; height:25px; border-radius:999px; font-size:13px; font-weight:900;
+      display:flex; align-items:center; justify-content:center;
+      background:rgba(215,184,90,.16); color:#f0cc68; border:1px solid rgba(215,184,90,.45);
+    }
+    .step.done .step-mark{ background:rgba(34,197,94,.2); color:#86efac; border-color:rgba(134,239,172,.6); }
+    .step-body{ flex:1; }
+    .step-title{ color:#f5f0df; font-weight:800; font-size:15px; }
+    .step-note{ color:#8e97a8; font-size:13px; line-height:1.8; margin-top:3px; }
+
+    .prod-grid{ display:grid; gap:12px; margin-top:14px; }
+    .prod-card{
+      border:1px solid rgba(215,184,90,.28); border-radius:14px;
+      padding:15px 17px; background:rgba(6,9,15,.6);
+    }
+    .prod-head{ display:flex; justify-content:space-between; align-items:flex-start; gap:12px; flex-wrap:wrap; }
+    .prod-name{ color:#f0cc68; font-weight:900; font-size:16px; }
+    .prod-price{ color:#86efac; font-weight:900; font-size:15px; white-space:nowrap; }
+    .prod-meta{ color:#8e97a8; font-size:13px; line-height:1.9; margin-top:5px; word-break:break-all; }
+
+    .add-panel{ margin-top:16px; }
+    .add-panel[hidden]{ display:none; }
+    .add-toggle{
+      width:100%; text-align:center; border:1px dashed rgba(215,184,90,.55);
+      background:rgba(215,184,90,.06); color:#f0cc68; border-radius:14px;
+      padding:14px; font-size:15px; font-weight:900; cursor:pointer; margin-top:14px;
+    }
+    .add-toggle:hover{ background:rgba(215,184,90,.13); border-style:solid; }
+
+    .empty-hint{
+      border:1px dashed rgba(215,184,90,.35); border-radius:14px; padding:20px;
+      text-align:center; color:#8e97a8; font-size:14px; line-height:1.9; margin-top:14px;
+    }
+
+    button[disabled]{ opacity:.62; cursor:progress; }
+    /* ===== ALSAAB_CLIENT_PRODUCT_STUDIO_V1 END ===== */
+
+    /* ===== ALSAAB_CLIENT_MEDIA_V1 START ===== */
+    .prod-body{ display:flex; gap:15px; align-items:flex-start; }
+    .prod-body > div:first-child{ flex:1 1 auto; min-width:0; }
+    .thumbs{ display:flex; gap:8px; flex-wrap:wrap; }
+    .thumbs.side{ flex:0 0 auto; max-width:190px; }
+    .thumb{
+      width:56px; height:56px; border-radius:9px; overflow:hidden;
+      border:1px solid rgba(215,184,90,.35); background:#0b0b0b;
+      display:block; flex:0 0 auto;
+    }
+    .thumb img{ width:100%; height:100%; object-fit:cover; display:block; }
+    .thumb.big{ width:78px; height:78px; }
+    .thumb.pdf{
+      display:flex; align-items:center; justify-content:center;
+      color:#f0cc68; font-size:10px; font-weight:900; text-align:center; line-height:1.3;
+    }
+    .thumb-more{
+      width:56px; height:56px; border-radius:9px;
+      border:1px dashed rgba(215,184,90,.4); color:#8e97a8;
+      display:flex; align-items:center; justify-content:center;
+      font-size:12px; font-weight:800; flex:0 0 auto;
+    }
+    .no-thumb{
+      font-size:12px; color:#7f8899; border:1px dashed rgba(215,184,90,.28);
+      border-radius:9px; padding:8px 12px;
+    }
+    .media-edit{ display:grid; gap:9px; margin-top:6px; }
+    .media-row{
+      display:flex; align-items:center; gap:11px;
+      background:rgba(6,9,15,.5); border:1px solid rgba(215,184,90,.18);
+      border-radius:10px; padding:8px 11px;
+    }
+    .media-row label{ margin:0 !important; color:#fca5a5 !important; font-size:12.5px !important; cursor:pointer; }
+    .media-row input[type=checkbox]{ width:auto !important; accent-color:#ef4444; cursor:pointer; }
+
+    /* Pick an image straight from the product card. The file input is hidden
+       behind its own label, which is the only reliable way to style one. */
+    .pick-image{ display:contents; }
+    .pick-image input[type=file]{
+      position:absolute; width:1px; height:1px; opacity:0; overflow:hidden;
+      clip:rect(0 0 0 0); white-space:nowrap;
+    }
+    .pick-image label{
+      cursor:pointer; display:flex; align-items:center; justify-content:center;
+      border-radius:9px; border:1px dashed rgba(215,184,90,.55);
+      color:#f0cc68; font-weight:800; text-align:center;
+      transition:background .15s ease, border-color .15s ease;
+    }
+    .pick-image label:hover{ background:rgba(215,184,90,.13); border-style:solid; }
+    .pick-image input[type=file]:focus-visible + label{
+      outline:2px solid rgba(255,224,138,.9); outline-offset:2px;
+    }
+    .pick-image label.pick-add{ width:78px; height:78px; font-size:24px; }
+    .pick-image label.pick-empty{
+      width:170px; min-height:78px; flex-direction:column; gap:3px;
+      font-size:12.5px; line-height:1.5; padding:8px;
+    }
+    .pick-image label.pick-empty span{ font-size:21px; }
+    .pick-submit{
+      display:none; width:100%; margin-top:8px;
+      background:linear-gradient(135deg,#d7b85a,#a88425); color:#0b0b0b;
+      border:none; border-radius:999px; padding:9px 14px;
+      font-weight:900; font-size:13px; cursor:pointer;
+    }
+    .pick-image.ready .pick-submit{ display:block; }
+    /* ===== ALSAAB_CLIENT_MEDIA_V1 END ===== */
+
 </style>
+
+<script>
+/* ALSAAB_CLIENT_PRODUCT_STUDIO_V1
+   Uploading a catalog runs for several seconds with no feedback, so the button
+   looked dead and people pressed it again -- every press posting another copy.
+   Any form marked data-busy locks its submit button on the first press. */
+document.addEventListener("DOMContentLoaded", function () {
+  document.querySelectorAll("form[data-busy]").forEach(function (form) {
+    form.addEventListener("submit", function (event) {
+      // A cancelled confirm() must leave the button usable.
+      if (event.defaultPrevented) { return; }
+
+      // Second press while the first is still in flight: block it here rather
+      // than relying on the button being disabled.
+      if (form.dataset.locked === "1") {
+        event.preventDefault();
+        return;
+      }
+
+      form.dataset.locked = "1";
+
+      var button = form.querySelector("button[type=submit]");
+      if (!button) { return; }
+
+      button.textContent = form.getAttribute("data-busy") || "جاري الحفظ...";
+
+      // Do NOT disable the button inside this handler. Disabling a submit
+      // button while its own submit event is still running cancels the
+      // submission in several browsers -- the label changed to "saving..."
+      // and the request was never sent. Let this turn of the event loop
+      // finish first, by which time the browser has taken the form.
+      setTimeout(function () { button.disabled = true; }, 0);
+    });
+  });
+
+  // Picking files on a product card uploads them straight away -- choosing a
+  // file and then hunting for a save button is one step too many for the most
+  // common task on this page. The explicit button stays as the fallback for
+  // anyone whose browser does not fire change (and for keyboard users who
+  // land on it), and the label doubles as the progress readout.
+  document.querySelectorAll("input[type=file][data-autosubmit]").forEach(function (input) {
+    input.addEventListener("change", function () {
+      var form = input.form;
+      if (!form || !input.files || !input.files.length) { return; }
+
+      form.classList.add("ready");
+
+      var label = form.querySelector("label");
+      if (label) {
+        label.textContent = form.getAttribute("data-busy") || "...";
+      }
+
+      if (typeof form.requestSubmit === "function") { form.requestSubmit(); }
+      else { form.submit(); }
+    });
+  });
+
+  // Each step in the checklist jumps to the section it is about, and flashes
+  // it, so "add my products" is one click from the overview instead of a scroll
+  // hunt down a long page.
+  document.querySelectorAll("[data-jump]").forEach(function (step) {
+    function jump() {
+      var target = document.getElementById(step.getAttribute("data-jump"));
+      if (!target) { return; }
+
+      target.scrollIntoView({ behavior: "smooth", block: "start" });
+
+      target.classList.remove("flash");
+      void target.offsetWidth;          // restart the animation on repeat clicks
+      target.classList.add("flash");
+    }
+
+    step.addEventListener("click", jump);
+    step.addEventListener("keydown", function (event) {
+      if (event.key === "Enter" || event.key === " ") {
+        event.preventDefault();
+        jump();
+      }
+    });
+  });
+
+  document.querySelectorAll("[data-toggles]").forEach(function (trigger) {
+    trigger.addEventListener("click", function () {
+      var panel = document.getElementById(trigger.getAttribute("data-toggles"));
+      if (!panel) { return; }
+
+      panel.hidden = !panel.hidden;
+      trigger.textContent = panel.hidden
+        ? trigger.getAttribute("data-label-show")
+        : trigger.getAttribute("data-label-hide");
+
+      if (!panel.hidden) {
+        panel.scrollIntoView({ behavior: "smooth", block: "nearest" });
+      }
+    });
+  });
+});
+</script>
 </head>
 <body>
   <div class="page alsaab-skin-v4">
@@ -439,6 +712,290 @@
       </div>
     </div>
 
+    <!-- ===== ALSAAB_CLIENT_PROJECT_MANAGER_V1 START =====
+         No <style> or <script> tag may live in this block. The fast-mode
+         cleaner in dashboard_fast_mode_routes.py strips with patterns shaped
+         like <style ...>[\s\S]*?alsaab-smart-chat[\s\S]*?</style>, so a tag
+         opened here becomes the start anchor for a match that ends at a later
+         block -- silently deleting every section in between. Styles live in
+         the head block, behaviour is inline. -->
+
+    <div class="section alsaab-projects-v1">
+      <h2>{{ t.my_company }}</h2>
+      <div class="sub">{{ t.my_company_desc }}</div>
+
+      <div class="steps">
+        <div class="step {% if has_project %}done{% endif %}" data-jump="secProjectData"
+             role="button" tabindex="0" title="{{ t.go_to_section }}">
+          <div class="step-mark">{% if has_project %}✓{% else %}1{% endif %}</div>
+          <div class="step-body">
+            <div class="step-title">{{ t.step_company }}</div>
+            <div class="step-note">
+              {% if has_project %}
+                {{ client_profile.get("business_name") }}
+                {%- if client_profile.get("business_type") %} — {{ client_profile.get("business_type") }}{% endif %}
+              {% else %}
+                {{ t.step_company_todo }}
+              {% endif %}
+            </div>
+          </div>
+          <div class="step-go">‹</div>
+        </div>
+
+        <div class="step {% if client_payment_links %}done{% endif %}" data-jump="secProducts"
+             role="button" tabindex="0" title="{{ t.go_to_section }}">
+          <div class="step-mark">{% if client_payment_links %}✓{% else %}2{% endif %}</div>
+          <div class="step-body">
+            <div class="step-title">{{ t.step_products }}</div>
+            <div class="step-note">
+              {% if client_payment_links %}
+                {{ t.step_products_done|replace("{n}", client_payment_links|length) }}
+              {% else %}
+                {{ t.step_products_todo }}
+              {% endif %}
+            </div>
+          </div>
+          <div class="step-go">‹</div>
+        </div>
+
+        <div class="step {% if product_groups %}done{% endif %}" data-jump="secImageGroups"
+             role="button" tabindex="0" title="{{ t.go_to_section }}">
+          <div class="step-mark">{% if product_groups %}✓{% else %}3{% endif %}</div>
+          <div class="step-body">
+            <div class="step-title">{{ t.step_images }}</div>
+            <div class="step-note">
+              {% if product_groups %}
+                {{ t.step_images_done|replace("{n}", product_groups|length) }}
+              {% else %}
+                {{ t.step_images_todo }}
+              {% endif %}
+            </div>
+          </div>
+          <div class="step-go">‹</div>
+        </div>
+      </div>
+
+      {% if has_project %}
+        <div class="proj-card" id="projCard"
+             onclick="var p=document.getElementById('projPanel');var c=document.getElementById('projChevron');p.hidden=!p.hidden;c.textContent=p.hidden?'▾':'▴';">
+          <div>
+            <h3>{{ client_profile.get("business_name") or t.untitled_project }}</h3>
+            <div class="proj-meta">
+              {{ client_profile.get("business_type") or "-" }}
+              {% if client_profile.get("general_description") %}
+                &middot; {{ client_profile.get("general_description") }}
+              {% endif %}
+            </div>
+            <div class="proj-meta" style="margin-top:8px;">
+              <span class="proj-count">{{ client_payment_links|length }} {{ t.payment_links_count }}</span>
+              <span class="proj-count">{{ product_groups|length }} {{ t.image_groups_count }}</span>
+            </div>
+          </div>
+          <div class="proj-chevron" id="projChevron">▾</div>
+        </div>
+
+        <div class="proj-panel" id="projPanel" hidden>
+          <div class="proj-block">
+            <h4>{{ t.products_summary }}</h4>
+            {% if client_profile.get("products") %}
+              <div style="white-space:pre-wrap;line-height:1.9;">{{ client_profile.get("products") }}</div>
+            {% else %}
+              <div class="proj-empty">{{ t.empty }}</div>
+            {% endif %}
+            <button class="link-btn" type="button" style="margin-top:12px;"
+                    onclick="document.getElementById('secProjectData').scrollIntoView({behavior:'smooth',block:'start'});">{{ t.edit_item }}</button>
+          </div>
+        </div>
+      {% else %}
+        <div class="empty-hint">{{ t.no_project_yet }}</div>
+      {% endif %}
+    </div>
+
+    <div class="section" id="secProducts">
+      <h2>{{ t.my_products }}<span class="count-badge">{{ client_payment_links|length }}</span></h2>
+      <div class="sub">{{ t.my_products_desc }}</div>
+
+      {% if client_payment_links %}
+        <div class="prod-grid">
+          {% for link in client_payment_links %}
+            {% set linked = image_group_map.get(link.get("linked_image_group_id") or "") %}
+            {% set shots = (linked.get("image_urls") if linked else []) or [] %}
+            <div class="prod-card">
+              <div class="prod-head">
+                <div class="prod-name">{{ link.get("product_name") or "-" }}</div>
+                <div class="prod-price">
+                  {{ link.get("amount") or "-" }} {{ link.get("currency") or "" }}
+                </div>
+              </div>
+
+              <div class="prod-body">
+                <div>
+                  {% if link.get("description") %}
+                    <div class="prod-meta">{{ link.get("description") }}</div>
+                  {% endif %}
+
+                  <div class="prod-meta">
+                    <a href="{{ link.get('payment_link') }}" target="_blank" rel="noopener">{{ link.get("payment_link") }}</a>
+                  </div>
+
+                  {% if linked %}
+                    <div class="prod-meta">{{ t.linked_group }}: {{ linked.get("group_title") }}</div>
+                  {% endif %}
+                </div>
+
+                <div class="thumbs side">
+                  {% for shot in shots[:4] %}
+                    <a class="thumb big" href="{{ shot }}" target="_blank" rel="noopener">
+                      {% if shot.lower().endswith(".pdf") %}
+                        <span class="thumb pdf" style="width:100%;height:100%;border:none;">PDF</span>
+                      {% else %}
+                        <img src="{{ shot }}" alt="{{ link.get('product_name') }}" loading="lazy">
+                      {% endif %}
+                    </a>
+                  {% endfor %}
+                  {% if shots|length > 4 %}
+                    <div class="thumb-more">+{{ shots|length - 4 }}</div>
+                  {% endif %}
+
+                  <form method="POST" action="/client-dashboard/product-images"
+                        enctype="multipart/form-data" data-busy="{{ t.uploading }}"
+                        class="pick-image">
+                    <input type="hidden" name="key" value="{{ key }}">
+                    <input type="hidden" name="sso" value="{{ sso_token }}">
+                    <input type="hidden" name="partner_id" value="{{ partner_id }}">
+                    <input type="hidden" name="client_id" value="{{ client_id }}">
+                    <input type="hidden" name="lang" value="{{ lang }}">
+                    <input type="hidden" name="payment_link_id" value="{{ link.get('payment_link_id') }}">
+
+                    <input type="file" name="images" multiple accept="image/*,.pdf"
+                           id="pick{{ loop.index }}" data-autosubmit>
+                    <label for="pick{{ loop.index }}" class="{% if shots %}pick-add{% else %}pick-empty{% endif %}">
+                      {% if shots %}＋{% else %}<span>＋</span>{{ t.pick_image }}{% endif %}
+                    </label>
+                    <button type="submit" class="pick-submit">{{ t.upload_now }}</button>
+                  </form>
+                </div>
+              </div>
+
+              <div class="item-actions">
+                <button class="link-btn" type="button"
+                        onclick="var f=document.getElementById('editProd{{ loop.index }}');f.hidden=!f.hidden;">{{ t.edit_item }}</button>
+
+                <form method="POST" action="/client-dashboard/manage-payment-link" style="display:inline"
+                      data-busy="{{ t.deleting }}" onsubmit="return confirm('{{ t.confirm_delete }}');">
+                  <input type="hidden" name="key" value="{{ key }}">
+                  <input type="hidden" name="sso" value="{{ sso_token }}">
+                  <input type="hidden" name="partner_id" value="{{ partner_id }}">
+                  <input type="hidden" name="client_id" value="{{ client_id }}">
+                  <input type="hidden" name="lang" value="{{ lang }}">
+                  <input type="hidden" name="payment_link_id" value="{{ link.get('payment_link_id') }}">
+                  <input type="hidden" name="op" value="delete">
+                  <button class="link-btn danger" type="submit">{{ t.delete_item }}</button>
+                </form>
+              </div>
+
+              <form method="POST" action="/client-dashboard/manage-payment-link"
+                    class="item-edit" id="editProd{{ loop.index }}" data-busy="{{ t.saving }}" hidden>
+                <input type="hidden" name="key" value="{{ key }}">
+                <input type="hidden" name="sso" value="{{ sso_token }}">
+                <input type="hidden" name="partner_id" value="{{ partner_id }}">
+                <input type="hidden" name="client_id" value="{{ client_id }}">
+                <input type="hidden" name="lang" value="{{ lang }}">
+                <input type="hidden" name="payment_link_id" value="{{ link.get('payment_link_id') }}">
+                <input type="hidden" name="op" value="update">
+
+                <label>{{ t.product_name }}</label>
+                <input type="text" name="product_name" value="{{ link.get('product_name') or '' }}" required>
+
+                <label>{{ t.payment_link }}</label>
+                <input type="url" name="payment_link" value="{{ link.get('payment_link') or '' }}" required>
+
+                <label>{{ t.amount }}</label>
+                <input type="number" step="0.01" name="amount" value="{{ link.get('amount') or '' }}">
+
+                <label>{{ t.currency }}</label>
+                <input type="text" name="currency" value="{{ link.get('currency') or 'AED' }}">
+
+                <label>{{ t.payment_description }}</label>
+                <textarea name="description">{{ link.get('description') or '' }}</textarea>
+
+                <label>{{ t.link_images }}</label>
+                <select name="linked_image_group_id">
+                  <option value="">{{ t.no_images }}</option>
+                  {% for group in product_groups %}
+                    <option value="{{ group.get('group_id') }}"
+                            {% if group.get('group_id') == link.get('linked_image_group_id') %}selected{% endif %}>
+                      {{ group.get("group_title") }} ({{ group.get("image_urls")|length }})
+                    </option>
+                  {% endfor %}
+                </select>
+
+                <button class="primary-btn" type="submit">{{ t.update_item }}</button>
+              </form>
+            </div>
+          {% endfor %}
+        </div>
+      {% else %}
+        <div class="empty-hint">{{ t.no_products_yet }}</div>
+      {% endif %}
+
+      <button class="add-toggle" type="button" data-toggles="addProductPanel"
+              data-label-show="{{ t.add_product }}" data-label-hide="{{ t.cancel_add }}">{{ t.add_product }}</button>
+
+      <div class="add-panel" id="addProductPanel" hidden>
+        <form method="POST" action="/client-dashboard/save-payment-link" data-busy="{{ t.saving }}">
+          <input type="hidden" name="key" value="{{ key }}">
+          <input type="hidden" name="sso" value="{{ sso_token }}">
+          <input type="hidden" name="partner_id" value="{{ partner_id }}">
+          <input type="hidden" name="client_id" value="{{ client_id }}">
+          <input type="hidden" name="lang" value="{{ lang }}">
+
+          <div class="form-grid">
+            <div class="field">
+              <label>{{ t.product_name }}</label>
+              <input type="text" name="product_name" placeholder="{{ t.product_name }}" required>
+            </div>
+
+            <div class="field">
+              <label>{{ t.payment_link }}</label>
+              <input type="url" name="payment_link" placeholder="https://..." required>
+            </div>
+
+            <div class="field">
+              <label>{{ t.amount }}</label>
+              <input type="number" step="0.01" name="amount" placeholder="499">
+            </div>
+
+            <div class="field">
+              <label>{{ t.currency }}</label>
+              <input type="text" name="currency" value="AED">
+            </div>
+
+            <div class="field full">
+              <label>{{ t.payment_description }}</label>
+              <textarea name="description" placeholder="{{ t.payment_description }}"></textarea>
+            </div>
+
+            <div class="field full">
+              <label>{{ t.link_images }}</label>
+              <select name="linked_image_group_id">
+                <option value="">{{ t.no_images }}</option>
+                {% for group in product_groups %}
+                  <option value="{{ group.get('group_id') }}">
+                    {{ group.get("group_title") }} ({{ group.get("image_urls")|length }})
+                  </option>
+                {% endfor %}
+              </select>
+              <div class="step-note">{{ t.link_images_hint }}</div>
+            </div>
+          </div>
+
+          <button class="primary-btn" type="submit">{{ t.save_product }}</button>
+        </form>
+      </div>
+    </div>
+    <!-- ===== ALSAAB_CLIENT_PROJECT_MANAGER_V1 END ===== -->
+
     <div class="section">
       <h2>{{ t.channels }}</h2>
       <div class="sub">{{ channels | join(", ") if channels else "-" }}</div>
@@ -450,11 +1007,52 @@
       <a class="primary-btn" href="{{ owner_advisory_url }}">{{ t.ask_advisor }}</a>
     </div>
 
-    <div class="section">
+    <div class="section" id="secProjectData">
       <h2>{{ t.project_data }}</h2>
       <div class="sub">{{ t.project_data_desc }}</div>
 
-      <form method="POST" action="/client-dashboard/save-project-data">
+      <div class="media-row" style="margin-bottom:16px;">
+        <div class="thumb big">
+          {% if brand_logo %}
+            <img src="{{ brand_logo }}" alt="{{ t.brand_logo }}">
+          {% else %}
+            <span class="thumb pdf" style="width:100%;height:100%;border:none;">—</span>
+          {% endif %}
+        </div>
+
+        <form method="POST" action="/client-dashboard/save-logo" enctype="multipart/form-data"
+              data-busy="{{ t.uploading }}" class="pick-image" style="display:flex;align-items:center;gap:10px;">
+          <input type="hidden" name="key" value="{{ key }}">
+          <input type="hidden" name="sso" value="{{ sso_token }}">
+          <input type="hidden" name="partner_id" value="{{ partner_id }}">
+          <input type="hidden" name="lang" value="{{ lang }}">
+
+          <input type="file" name="logo" accept="image/*" id="brandLogoPick" data-autosubmit>
+          <label for="brandLogoPick" class="pick-add" style="width:auto;padding:7px 15px;font-size:12.5px;">
+            {% if brand_logo %}{{ t.change_logo }}{% else %}{{ t.brand_logo }}{% endif %}
+          </label>
+          <button type="submit" class="pick-submit">{{ t.upload_now }}</button>
+        </form>
+
+        <div class="step-note" style="flex:1;">{{ t.brand_logo_hint }}</div>
+      </div>
+
+      <form method="POST" action="/client-dashboard/save-logo" class="item-edit"
+            data-busy="{{ t.saving }}" style="margin:0 0 16px;">
+        <input type="hidden" name="key" value="{{ key }}">
+        <input type="hidden" name="sso" value="{{ sso_token }}">
+        <input type="hidden" name="partner_id" value="{{ partner_id }}">
+        <input type="hidden" name="lang" value="{{ lang }}">
+
+        <label>{{ t.catalog_label }}</label>
+        <input type="text" name="catalog_label" value="{{ catalog_label }}"
+               placeholder="{{ t.catalog_label_placeholder }}" maxlength="40">
+        <div class="step-note">{{ t.catalog_label_hint }}</div>
+
+        <button class="primary-btn" type="submit">{{ t.save_label }}</button>
+      </form>
+
+      <form method="POST" action="/client-dashboard/save-project-data" data-busy="{{ t.saving }}">
         <input type="hidden" name="key" value="{{ key }}">
         <input type="hidden" name="sso" value="{{ sso_token }}">
         <input type="hidden" name="partner_id" value="{{ partner_id }}">
@@ -464,22 +1062,24 @@
         <div class="form-grid">
           <div class="field">
             <label>{{ t.business_name }}</label>
-            <input type="text" name="business_name" placeholder="{{ t.business_name }}">
+            <input type="text" name="business_name" placeholder="{{ t.business_name }}"
+                   value="{{ client_profile.get('business_name') or '' }}">
           </div>
 
           <div class="field">
             <label>{{ t.business_type }}</label>
-            <input type="text" name="business_type" placeholder="{{ t.business_type }}">
+            <input type="text" name="business_type" placeholder="{{ t.business_type }}"
+                   value="{{ client_profile.get('business_type') or '' }}">
           </div>
 
           <div class="field full">
             <label>{{ t.general_description }}</label>
-            <textarea name="general_description" placeholder="{{ t.general_description }}"></textarea>
+            <textarea name="general_description" placeholder="{{ t.general_description }}">{{ client_profile.get('general_description') or '' }}</textarea>
           </div>
 
           <div class="field full">
             <label>{{ t.products_notes }}</label>
-            <textarea name="products" placeholder="{{ t.products_notes }}"></textarea>
+            <textarea name="products" placeholder="{{ t.products_notes }}">{{ client_profile.get('products') or '' }}</textarea>
           </div>
         </div>
 
@@ -487,10 +1087,20 @@
       </form>
     </div>
 
-    <div class="section">
-      <h2>{{ t.image_groups }}</h2>
+    <div class="section" id="secImageGroups">
+      <h2>{{ t.image_groups }}<span class="count-badge">{{ product_groups|length }}</span></h2>
+      <div class="sub">{{ t.image_groups_desc }}</div>
 
-      <form method="POST" action="/client-dashboard/save-image-group" enctype="multipart/form-data">
+      {% if not product_groups %}
+        <div class="empty-hint">{{ t.no_groups_yet }}</div>
+      {% endif %}
+
+      <button class="add-toggle" type="button" data-toggles="addGroupPanel"
+              data-label-show="{{ t.add_group }}" data-label-hide="{{ t.cancel_add }}">{{ t.add_group }}</button>
+
+      <div class="add-panel" id="addGroupPanel" hidden>
+      <form method="POST" action="/client-dashboard/save-image-group" enctype="multipart/form-data"
+            data-busy="{{ t.uploading }}">
         <input type="hidden" name="key" value="{{ key }}">
         <input type="hidden" name="sso" value="{{ sso_token }}">
         <input type="hidden" name="partner_id" value="{{ partner_id }}">
@@ -521,80 +1131,101 @@
 
         <button class="primary-btn" type="submit">{{ t.save_image_group }}</button>
       </form>
+      </div>
 
       <div class="small-list">
         <h3 style="color:#d7b85a;">{{ t.saved_image_groups }}</h3>
-        {% for group in product_groups[:8] %}
+        {% for group in product_groups %}
           <div class="small-item">
-            <div class="small-item-title">{{ group.get("Group Title") or "-" }}</div>
-            <div class="muted">{{ group.get("Group Description") or "-" }}</div>
-            <div class="muted">Status: {{ group.get("Status") or "-" }}</div>
-          </div>
-        {% else %}
-          <div class="muted">{{ t.empty }}</div>
-        {% endfor %}
-      </div>
-    </div>
+            <div class="small-item-title">{{ group.get("group_title") or "-" }}</div>
+            <div class="muted">{{ group.get("group_description") or "-" }}</div>
 
-    <div class="section">
-      <h2>{{ t.payment_links }}</h2>
-
-      <form method="POST" action="/client-dashboard/save-payment-link">
-        <input type="hidden" name="key" value="{{ key }}">
-        <input type="hidden" name="sso" value="{{ sso_token }}">
-        <input type="hidden" name="partner_id" value="{{ partner_id }}">
-        <input type="hidden" name="client_id" value="{{ client_id }}">
-        <input type="hidden" name="lang" value="{{ lang }}">
-
-        <div id="paymentRows">
-          <div class="payment-row">
-            <div class="form-grid">
-              <div class="field">
-                <label>{{ t.product_name }}</label>
-                <input type="text" name="product_name" placeholder="{{ t.product_name }}" required>
+            {% if group.get("image_urls") %}
+              <div class="thumbs" style="margin-top:10px;">
+                {% for shot in group.get("image_urls") %}
+                  <a class="thumb" href="{{ shot }}" target="_blank" rel="noopener"
+                     title="{{ group.get('group_title') }}">
+                    {% if shot.lower().endswith(".pdf") %}
+                      <span class="thumb pdf" style="width:100%;height:100%;border:none;">PDF</span>
+                    {% else %}
+                      <img src="{{ shot }}" alt="{{ group.get('group_title') }}" loading="lazy">
+                    {% endif %}
+                  </a>
+                {% endfor %}
               </div>
+            {% else %}
+              <div class="no-thumb" style="margin-top:10px;">{{ t.group_has_no_images }}</div>
+            {% endif %}
 
-              <div class="field">
-                <label>{{ t.payment_link }}</label>
-                <input type="url" name="payment_link" placeholder="https://..." required>
-              </div>
+            <div class="item-actions">
+              <button class="link-btn" type="button"
+                      onclick="var f=document.getElementById('editGrp{{ loop.index }}');f.hidden=!f.hidden;">{{ t.edit_item }}</button>
 
-              <div class="field">
-                <label>{{ t.amount }}</label>
-                <input type="number" step="0.01" name="amount" placeholder="499">
-              </div>
-
-              <div class="field">
-                <label>{{ t.currency }}</label>
-                <input type="text" name="currency" value="AED">
-              </div>
-
-              <div class="field full">
-                <label>{{ t.payment_description }}</label>
-                <textarea name="description" placeholder="{{ t.payment_description }}"></textarea>
-              </div>
+              <form method="POST" action="/client-dashboard/manage-image-group" style="display:inline"
+                    data-busy="{{ t.deleting }}" onsubmit="return confirm('{{ t.confirm_delete }}');">
+                <input type="hidden" name="key" value="{{ key }}">
+                <input type="hidden" name="sso" value="{{ sso_token }}">
+                <input type="hidden" name="partner_id" value="{{ partner_id }}">
+                <input type="hidden" name="client_id" value="{{ client_id }}">
+                <input type="hidden" name="lang" value="{{ lang }}">
+                <input type="hidden" name="group_id" value="{{ group.get('group_id') }}">
+                <input type="hidden" name="op" value="delete">
+                <button class="link-btn danger" type="submit">{{ t.delete_item }}</button>
+              </form>
             </div>
-          </div>
-        </div>
 
-        <button class="primary-btn" type="button" onclick="addPaymentRow()">{{ t.add_more_payment }}</button>
-        <button class="primary-btn" type="submit">{{ t.save_payment_links }}</button>
-      </form>
+            <form method="POST" action="/client-dashboard/manage-image-group"
+                  enctype="multipart/form-data"
+                  class="item-edit" id="editGrp{{ loop.index }}" data-busy="{{ t.uploading }}" hidden>
+              <input type="hidden" name="key" value="{{ key }}">
+              <input type="hidden" name="sso" value="{{ sso_token }}">
+              <input type="hidden" name="partner_id" value="{{ partner_id }}">
+              <input type="hidden" name="client_id" value="{{ client_id }}">
+              <input type="hidden" name="lang" value="{{ lang }}">
+              <input type="hidden" name="group_id" value="{{ group.get('group_id') }}">
+              <input type="hidden" name="op" value="update">
 
-      <div class="small-list">
-        <h3 style="color:#d7b85a;">{{ t.saved_payment_links }}</h3>
-        {% for link in client_payment_links[:8] %}
-          <div class="small-item">
-            <div class="small-item-title">{{ link.get("Product Name") or "-" }}</div>
-            <div><a href="{{ link.get("Payment Link") }}" target="_blank">{{ link.get("Payment Link") }}</a></div>
-            <div class="muted">{{ link.get("Amount") or "-" }} {{ link.get("Currency") or "" }}</div>
-            <div class="muted">{{ link.get("Description") or "-" }}</div>
+              <label>{{ t.image_group_title }}</label>
+              <input type="text" name="group_title" value="{{ group.get('group_title') or '' }}" required>
+
+              <label>{{ t.image_group_description }}</label>
+              <textarea name="group_description" required>{{ group.get('group_description') or '' }}</textarea>
+
+              <label>{{ t.sales_instructions }}</label>
+              <textarea name="sales_instructions">{{ group.get('sales_instructions') or '' }}</textarea>
+
+              {% if group.get("image_urls") %}
+                <label>{{ t.current_images }}</label>
+                <div class="media-edit">
+                  {% for shot in group.get("image_urls") %}
+                    <div class="media-row">
+                      <a class="thumb" href="{{ shot }}" target="_blank" rel="noopener">
+                        {% if shot.lower().endswith(".pdf") %}
+                          <span class="thumb pdf" style="width:100%;height:100%;border:none;">PDF</span>
+                        {% else %}
+                          <img src="{{ shot }}" alt="" loading="lazy">
+                        {% endif %}
+                      </a>
+                      <input type="checkbox" name="remove_image" value="{{ shot }}"
+                             id="rm{{ loop.index0 }}g{{ group.get('group_id') }}">
+                      <label for="rm{{ loop.index0 }}g{{ group.get('group_id') }}">{{ t.remove_image }}</label>
+                    </div>
+                  {% endfor %}
+                </div>
+              {% endif %}
+
+              <label>{{ t.add_more_images }}</label>
+              <input type="file" name="images" multiple accept="image/*,.pdf">
+
+              <button class="primary-btn" type="submit">{{ t.update_item }}</button>
+            </form>
           </div>
         {% else %}
           <div class="muted">{{ t.empty }}</div>
         {% endfor %}
       </div>
     </div>
+
 
   </div>
 <div class="section" id="alsaabClientSmartLinkCancel" dir="rtl">
@@ -603,10 +1234,10 @@
   <h2 style="color:#d7b85a;">مدخل واتساب الذكي</h2>
   <div class="sub" style="line-height:1.8;">انسخ هذا الرابط وضعه في الرد الآلي داخل WhatsApp Business حتى يدخل الزائر على موظف المبيعات الذكي الخاص بمشروعك.</div>
   <label style="display:block;color:#f0cc68;font-weight:900;margin-top:14px;">رابط موظف المبيعات الذكي</label>
-  <input id="alsaabSmartLinkDirect" readonly value="https://alsaab-ai.onrender.com/?ref={{ partner_id }}&src=wa" style="width:100%;box-sizing:border-box;margin-top:8px;background:#0b0b0b;color:#fff;border:1px solid rgba(215,184,90,.45);border-radius:12px;padding:12px;font-weight:800;">
+  <input id="alsaabSmartLinkDirect" readonly value="https://alsaab-ai.onrender.com/c/{{ partner_id }}" style="width:100%;box-sizing:border-box;margin-top:8px;background:#0b0b0b;color:#fff;border:1px solid rgba(215,184,90,.45);border-radius:12px;padding:12px;font-weight:800;">
   <button class="primary-btn" type="button" onclick="copyClientDashboardText('alsaabSmartLinkDirect')">نسخ الرابط</button>
   <label style="display:block;color:#f0cc68;font-weight:900;margin-top:18px;">رسالة واتساب جاهزة للنسخ</label>
-  <textarea id="alsaabWhatsAppMessageDirect" readonly style="width:100%;box-sizing:border-box;min-height:125px;margin-top:8px;background:#0b0b0b;color:#fff;border:1px solid rgba(215,184,90,.45);border-radius:12px;padding:12px;line-height:1.8;">هلا وسهلا 👋&#10;عشان نخدمك بسرعة، تقدر تتكلم مع موظف المبيعات الذكي من هذا الرابط:&#10;https://alsaab-ai.onrender.com/?ref={{ partner_id }}&src=wa&#10;&#10;بيفهم طلبك، يشرح لك التفاصيل، ويرسل لك رابط الدفع أو يحولك لفريق العمل إذا احتجت.</textarea>
+  <textarea id="alsaabWhatsAppMessageDirect" readonly style="width:100%;box-sizing:border-box;min-height:125px;margin-top:8px;background:#0b0b0b;color:#fff;border:1px solid rgba(215,184,90,.45);border-radius:12px;padding:12px;line-height:1.8;">هلا وسهلا 👋&#10;عشان نخدمك بسرعة، تقدر تتكلم مع موظف المبيعات الذكي من هذا الرابط:&#10;https://alsaab-ai.onrender.com/c/{{ partner_id }}&#10;&#10;بيفهم طلبك، يشرح لك التفاصيل، ويرسل لك رابط الدفع أو يحولك لفريق العمل إذا احتجت.</textarea>
   <button class="primary-btn" type="button" onclick="copyClientDashboardText('alsaabWhatsAppMessageDirect')">نسخ رسالة واتساب</button>
   <!-- ALSAAB_SMART_LINK_CLIENT_DASHBOARD_UI_V1 END -->
   <hr style="border:0;border-top:1px solid rgba(215,184,90,.22);margin:24px 0;">

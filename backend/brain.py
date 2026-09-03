@@ -468,6 +468,91 @@ def load_client_profile_into_state(session_id, current_state):
                 current_state["client_id"] = clean_profile.get("client_id")
 
 
+def load_client_catalog_into_state(partner_id, current_state):
+    """
+    Product groups and payment links for the account whose bot is answering.
+
+    client_profiles only holds the trained description; the things the bot has
+    to actually quote and send live in their own tables. Without this the
+    customer's bot could describe the business but could not name a price or
+    hand over a payment link.
+    """
+    if not partner_id:
+        return
+
+    try:
+        from dashboard_compat import client_dashboard_data
+
+        data = client_dashboard_data({"partner_id": partner_id}) or {}
+    except Exception as error:
+        print(f"CLIENT CATALOG LOAD ERROR ⚠️ {partner_id} {error}", flush=True)
+        return
+
+    try:
+        import client_media
+    except ImportError:
+        from backend import client_media
+
+    groups = []
+    images_by_group = {}
+
+    for group in (data.get("product_image_groups") or []):
+        title = str(group.get("group_title") or "").strip()
+
+        if not title:
+            continue
+
+        # Image paths are stored relative so the dashboard works on any host.
+        # A link the bot sends leaves the app, so it needs a real host in front
+        # of it -- this is the one place that conversion belongs.
+        shots = [
+            client_media.absolute_url(url)
+            for url in (group.get("image_urls") or [])
+            if url
+        ]
+
+        images_by_group[str(group.get("group_id") or "")] = shots
+
+        groups.append({
+            "title": title,
+            "description": str(group.get("group_description") or "").strip(),
+            "sales_instructions": str(group.get("sales_instructions") or "").strip(),
+            "images": shots,
+        })
+
+    links = []
+
+    for link in (data.get("client_payment_links") or []):
+        name = str(link.get("product_name") or "").strip()
+        url = str(link.get("payment_link") or "").strip()
+
+        if not name or not url:
+            continue
+
+        links.append({
+            "product_name": name,
+            "payment_link": url,
+            "amount": str(link.get("amount") or "").strip(),
+            "currency": str(link.get("currency") or "").strip(),
+            "description": str(link.get("description") or "").strip(),
+            "images": images_by_group.get(
+                str(link.get("linked_image_group_id") or ""), []
+            ),
+        })
+
+    if groups:
+        current_state["client_product_groups"] = groups
+
+    if links:
+        current_state["client_payment_links"] = links
+
+    print(
+        f"CLIENT CATALOG LOADED ✅ partner_id={partner_id} "
+        f"groups={len(groups)} links={len(links)}",
+        flush=True
+    )
+
+
 def build_name_context(current_state):
     customer_name = get_customer_name(current_state)
 
@@ -585,8 +670,16 @@ def _alsaab_gate_reply(kind, current_state, customer_name=""):
     )
 
 
-def think(message, session_id, source_partner_id=""):
+def think(message, session_id, source_partner_id="", bot_partner_id=""):
     current_state = get_session_state(session_id)
+
+    # Which account's project this bot speaks for. A visitor arriving at
+    # /c/<partner_id> is talking to that customer's bot, so the project data has
+    # to be looked up under the link owner. Keyed on the visitor's own brand new
+    # session it came back empty every time, and the bot fell back to selling
+    # ALSAAB packages to the customer's own buyers.
+    if bot_partner_id:
+        current_state["bot_partner_id"] = bot_partner_id
     msg = message.lower().strip()
 
     # مهم: نخزن session_id داخل state عشان prompt_builder يقدر يبني روابط الدفع الداخلية
@@ -809,7 +902,21 @@ def think(message, session_id, source_partner_id=""):
     current_state = apply_source_partner_to_state(current_state, source_partner_id)
 
     # استرجاع بيانات المشروع المدربة إن وجدت
-    load_client_profile_into_state(session_id, current_state)
+    #
+    # On /c/<partner_id> the project belongs to the link owner, not the visitor.
+    # The dashboard writes the profile with the partner_id as its session_id, so
+    # the partner_id is the key to read it back with. Fall back to the visitor's
+    # own session, which is what the owner-advisory chat needs.
+    profile_key = current_state.get("bot_partner_id") or session_id
+
+    load_client_profile_into_state(profile_key, current_state)
+
+    if profile_key != session_id and not current_state.get("client_data"):
+        print(f"CLIENT BOT PROFILE EMPTY ⚠️ partner_id={profile_key}", flush=True)
+        load_client_profile_into_state(session_id, current_state)
+
+    if current_state.get("bot_partner_id"):
+        load_client_catalog_into_state(current_state["bot_partner_id"], current_state)
 
     # Lead Capture خلف الكواليس
     update_lead_data(message, session_id, current_state)

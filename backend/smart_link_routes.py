@@ -858,8 +858,25 @@ def register_smart_link_routes(app):
 
         return None
 
+    def _is_client_bot_page():
+        """
+        True on /c/<partner_id>, a customer's own bot.
+
+        Everything this module injects is ALSAAB's: the floating chat overlay,
+        the "I want extra income" button, the packages prompts. On a customer's
+        page that is somebody else's advertisement sitting on top of their
+        storefront, in front of their buyers.
+        """
+        try:
+            return (request.path or "").startswith("/c/")
+        except Exception:
+            return False
+
     def smart_link_injector(response):
         try:
+            if _is_client_bot_page():
+                return response
+
             if response.direct_passthrough:
                 return response
 
@@ -1421,6 +1438,12 @@ def register_smart_link_routes(app):
 
     def smart_project_context_ui_injector(response):
         try:
+            # /c/<partner_id> resolves the project server-side, from the link
+            # owner's own record. Injecting the client-side context prompt too
+            # would have two mechanisms describing the same shop at once.
+            if _is_client_bot_page():
+                return response
+
             if response.direct_passthrough:
                 return response
 

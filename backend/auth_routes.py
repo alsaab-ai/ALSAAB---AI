@@ -542,7 +542,17 @@ def register_auth_routes(app):
         # whether an address is registered, for a signup that does not
         # dead-end on a code that will never arrive.
         _otp_clear()
-        print(f"LOGIN NO MATCH -> plans, address from {_client_ip()}", flush=True)
+
+        # Masked, never the whole address: enough to tell a typo from an
+        # address that genuinely is not registered, without writing customer
+        # addresses into a log file.
+        _name, _, _host = email.partition("@")
+        _masked = (_name[:3] + "***@" + _host) if len(_name) > 3 else ("***@" + _host)
+
+        print(
+            f"LOGIN NO MATCH -> plans, {_masked} from {_client_ip()}",
+            flush=True
+        )
 
         # 303, not 302: after a POST only 303 obliges the client to switch to
         # GET. Browsers do it for 302 anyway, but curl and several API clients

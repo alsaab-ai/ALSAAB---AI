@@ -855,6 +855,36 @@ textarea::placeholder {
   }
   /* ===== ALSAAB_WEBSITE_CHAT_FIX_V2 END ===== */
 
+
+/* ===== ALSAAB_CLIENT_BRAND_CHAT_V1 START =====
+   The customer's own storefront: their mark, their products, their photos. */
+.brand-photo{
+  width:100%; height:100%; object-fit:cover; border-radius:inherit; display:block;
+}
+.side-products{ display:grid; gap:9px; margin-top:4px; }
+.side-product{
+  display:flex; align-items:center; gap:11px; width:100%; text-align:start;
+  background:rgba(255,255,255,.03); border:1px solid rgba(215,184,90,.28);
+  border-radius:13px; padding:8px 10px; cursor:pointer; color:inherit;
+  font-family:inherit; transition:border-color .15s ease, background .15s ease;
+}
+.side-product:hover{ background:rgba(215,184,90,.12); border-color:rgba(247,215,116,.75); }
+.side-product img,
+.side-product .side-product-blank{
+  width:44px; height:44px; flex:0 0 auto; border-radius:10px; object-fit:cover;
+  background:#0b0b0b; border:1px solid rgba(215,184,90,.3);
+  display:flex; align-items:center; justify-content:center;
+  color:#f7d774; font-weight:900; font-size:17px;
+}
+.side-product-copy{ display:flex; flex-direction:column; gap:2px; min-width:0; }
+.side-product-copy b{ font-size:13.5px; font-weight:800; line-height:1.4;
+  overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.side-product-copy i{ font-style:normal; font-size:12px; color:#7fd39a; font-weight:700; }
+
+.chat-photo{ display:block; margin:10px 0; max-width:230px; border-radius:14px;
+  overflow:hidden; border:1px solid rgba(215,184,90,.35); }
+.chat-photo img{ width:100%; height:auto; display:block; }
+/* ===== ALSAAB_CLIENT_BRAND_CHAT_V1 END ===== */
 </style>
 </head>
 
@@ -865,6 +895,49 @@ textarea::placeholder {
     <div class="chat-shell">
 
         <aside class="sidebar">
+          {% if brand and brand.get("name") %}
+            <div class="brand-block">
+                <div class="logo-mark">
+                    {% if brand.get("logo") %}
+                        <img src="{{ brand.get('logo') }}" alt="{{ brand.get('name') }}" class="brand-photo">
+                    {% else %}
+                        <span>{{ brand.get("initials") }}</span>
+                    {% endif %}
+                </div>
+                <div class="brand-text">
+                    <h1>{{ brand.get("name") }}</h1>
+                    <p>{{ brand.get("tagline") or "خدمة العملاء" }}</p>
+                </div>
+            </div>
+
+            {% if brand.get("about") %}
+            <div class="side-card gold">
+                <div class="side-label">عن المشروع</div>
+                <p class="side-text">{{ brand.get("about") }}</p>
+            </div>
+            {% endif %}
+
+            {% if brand.get("products") %}
+            <div class="side-card">
+                <div class="side-label">{{ brand.get("catalog_label") }}</div>
+                <div class="side-products">
+                    {% for item in brand.get("products") %}
+                        <button class="side-product" onclick="sendQuick('أبغى أعرف تفاصيل {{ item.name }}')">
+                            {% if item.image %}
+                                <img src="{{ item.image }}" alt="{{ item.name }}" loading="lazy">
+                            {% else %}
+                                <span class="side-product-blank">{{ item.name[:1] }}</span>
+                            {% endif %}
+                            <span class="side-product-copy">
+                                <b>{{ item.name }}</b>
+                                {% if item.amount %}<i>{{ item.amount }} {{ item.currency }}</i>{% endif %}
+                            </span>
+                        </button>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endif %}
+          {% else %}
             <div class="brand-block">
                 <div class="logo-mark"><span>ALSAAB</span></div>
                 <div class="brand-text">
@@ -906,15 +979,29 @@ textarea::placeholder {
                     اكتب رسالتك، والبوت بيساعدك تفهم أفضل خطوة لمشروعك أو دخلك.
                 </p>
             </div>
+          {% endif %}
         </aside>
 
         <main class="main-chat">
             <header class="chat-header">
                 <div class="header-title">
-                    <div class="header-logo"><span>ALSAAB</span></div>
+                    <div class="header-logo">
+                        {% if brand and brand.get("logo") %}
+                            <img src="{{ brand.get('logo') }}" alt="{{ brand.get('name') }}" class="brand-photo">
+                        {% elif brand and brand.get("name") %}
+                            <span>{{ brand.get("initials") }}</span>
+                        {% else %}
+                            <span>ALSAAB</span>
+                        {% endif %}
+                    </div>
                     <div class="header-copy">
-                        <h2>ALSAAB AI</h2>
-                        <p>مساعدك الذكي للمبيعات، الرد، الإقناع، والإغلاق</p>
+                        {% if brand and brand.get("name") %}
+                            <h2>{{ brand.get("name") }}</h2>
+                            <p>{{ brand.get("tagline") or "مساعدك للطلبات والاستفسارات" }}</p>
+                        {% else %}
+                            <h2>ALSAAB AI</h2>
+                            <p>مساعدك الذكي للمبيعات، الرد، الإقناع، والإغلاق</p>
+                        {% endif %}
                     </div>
                 </div>
 
@@ -932,6 +1019,26 @@ textarea::placeholder {
 
             <section class="messages-wrap">
                 <div id="messages" class="messages">
+                  {% if brand and brand.get("name") %}
+                    <div class="welcome-card">
+                        <h3 class="welcome-title">هلا وسهلا في {{ brand.get("name") }} 👋</h3>
+                        <p class="welcome-text">
+                            {% if brand.get("offering") %}
+                                {{ brand.get("offering") }}
+                            {% else %}
+                                اسألني عن أي منتج أو خدمة وأساعدك تختار الأنسب لك.
+                            {% endif %}
+                        </p>
+
+                        <div class="quick-actions">
+                            {% for item in brand.get("products")[:3] %}
+                                <button class="quick-chip" onclick="sendQuick('أبغى أعرف تفاصيل {{ item.name }}')">{{ item.name }}</button>
+                            {% endfor %}
+                            <button class="quick-chip" onclick="sendQuick('ايش الخدمات اللي تقدمونها؟')">كل {{ brand.get("catalog_label") }}</button>
+                            <button class="quick-chip" onclick="sendQuick('أبغى أطلب')">أبغى أطلب</button>
+                        </div>
+                    </div>
+                  {% else %}
                     <div class="welcome-card">
                         <h3 class="welcome-title">هلا وسهلا 👋</h3>
                         <p class="welcome-text">
@@ -945,6 +1052,7 @@ textarea::placeholder {
                             <button class="quick-chip" onclick="sendQuick('محتاج دخل إضافي')">دخل إضافي</button>
                         </div>
                     </div>
+                  {% endif %}
                 </div>
 
                 <div id="typingWrap" class="typing-wrap">
@@ -1085,6 +1193,16 @@ function linkify(text) {
             let cleanUrl = url.replace(/[،,.؛:!?)]$/, "");
             let tail = url.substring(cleanUrl.length);
             let href = cleanUrl.replace(/^http:\/\/alsaab-ai\.onrender\.com/i, "https://alsaab-ai.onrender.com");
+
+            // A product photo the bot sends should be looked at, not read as a
+            // URL. Show the picture; the raw address is only useful to a
+            // machine. Anything else stays a link.
+            if (/\.(png|jpe?g|gif|webp)(\?[^\s]*)?$/i.test(cleanUrl)) {
+                return '<a href="' + escapeHtml(href) + '" target="_blank" rel="noopener noreferrer" class="chat-photo">' +
+                       '<img src="' + escapeHtml(href) + '" alt="" loading="lazy">' +
+                       '</a>' + escapeHtml(tail);
+            }
+
             return '<a href="' + escapeHtml(href) + '" target="_blank" rel="noopener noreferrer" style="color:#f7d774;text-decoration:underline;">' + escapeHtml(cleanUrl) + '</a>' + escapeHtml(tail);
         }
     );
@@ -1120,7 +1238,7 @@ function scrollToBottom() {
     });
 }
 
-function addMsg(text, type) {
+function addMsg(text, type, images) {
     const box = document.getElementById("messages");
 
     const isBot = type !== "user";
@@ -1131,8 +1249,21 @@ function addMsg(text, type) {
     const div = document.createElement("div");
     div.className = "msg-bubble " + (isBot ? "bot" : "user");
 
+    // Pictures the server matched to the products named in this reply. Sent
+    // apart from the text so the answer reads as a sentence and the photos sit
+    // under it, instead of a raw URL in the middle of a paragraph.
+    let gallery = "";
+
+    if (isBot && images && images.length) {
+        gallery = '<div class="reply-gallery">' + images.map(function (src) {
+            return '<a href="' + escapeHtml(src) + '" target="_blank" rel="noopener noreferrer" class="chat-photo">' +
+                   '<img src="' + escapeHtml(src) + '" alt="" loading="lazy">' +
+                   '</a>';
+        }).join("") + '</div>';
+    }
+
     if (isBot) {
-        div.innerHTML = linkify(sanitizeBotText(text)) + '<div class="meta-line">' + currentTime() + '</div>';
+        div.innerHTML = linkify(sanitizeBotText(text)) + gallery + '<div class="meta-line">' + currentTime() + '</div>';
     } else {
         div.innerHTML = escapeHtml(text).replace(/\n/g, "<br>") + '<div class="meta-line">' + currentTime() + '</div>';
     }
@@ -1201,6 +1332,7 @@ async function sendMsg() {
                 source_partner_id: sourcePartnerId,
                 ref: sourcePartnerId,
                 smart_link_ref: sourcePartnerId,
+                bot_partner_id: "{{ bot_partner_id or '' }}",
                 page_url: window.location.href,
                 referrer_url: document.referrer || "",
                 src: new URLSearchParams(window.location.search).get("src") || ""
@@ -1221,7 +1353,7 @@ async function sendMsg() {
         }
 
         showTyping(false);
-        addMsg(data.reply, "bot");
+        addMsg(data.reply, "bot", data.images);
         scrollToBottom();
 
     } catch (error) {
