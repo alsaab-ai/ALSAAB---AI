@@ -644,6 +644,7 @@ document.addEventListener("DOMContentLoaded", function () {
       <div class="info-row"><div class="label">{{ t.status }}</div><div class="value"><span class="badge">{{ profile.status or "-" }}</span></div></div>
       <div class="info-row"><div class="label">{{ t.sponsor }}</div><div class="value">{{ profile.sponsor_partner_id or "-" }}</div></div>
       <div class="info-row"><div class="label">{{ t.referral_link }}</div><div class="value"><a href="{{ profile.referral_link }}" target="_blank">{{ profile.referral_link }}</a></div></div>
+      <div class="info-row"><div class="label">{{ t.share_mybot }}</div><div class="value"><a href="{{ checkout_base }}/c/{{ profile.partner_id }}" target="_blank">{{ checkout_base }}/c/{{ profile.partner_id }}</a></div></div>
     </div>
 
     <!-- ===== ALSAAB_PARTNER_CHECKOUT_LINKS_V1 START =====
@@ -666,7 +667,25 @@ document.addEventListener("DOMContentLoaded", function () {
         <div class="share-row">
           <input readonly value="{{ checkout_base }}/plans?ref={{ profile.partner_id }}"
                  id="sharePlans" onclick="this.select();">
-          <button type="button" class="share-copy" data-copy="sharePlans">{{ t.copy }}</button>
+          <button type="button" class="share-copy" data-copy="sharePlans">{{ t["copy"] }}</button>
+        </div>
+      </div>
+
+      <!-- The account's own bot, on /c/<id>. Kept apart from the ?ref= link
+           below because they sell different things to different people: this
+           one sells the partner's own products to their buyers, that one sells
+           ALSAAB and pays a commission. Same page, opposite purposes. -->
+      <div class="share-link">
+        <div class="share-head">
+          <div>
+            <div class="share-title">{{ t.share_mybot }}</div>
+            <div class="muted">{{ t.share_mybot_note }}</div>
+          </div>
+        </div>
+        <div class="share-row">
+          <input readonly value="{{ checkout_base }}/c/{{ profile.partner_id }}"
+                 id="shareMyBot" onclick="this.select();">
+          <button type="button" class="share-copy" data-copy="shareMyBot">{{ t["copy"] }}</button>
         </div>
       </div>
 
@@ -680,7 +699,7 @@ document.addEventListener("DOMContentLoaded", function () {
         <div class="share-row">
           <input readonly value="{{ checkout_base }}/?ref={{ profile.partner_id }}"
                  id="shareChat" onclick="this.select();">
-          <button type="button" class="share-copy" data-copy="shareChat">{{ t.copy }}</button>
+          <button type="button" class="share-copy" data-copy="shareChat">{{ t["copy"] }}</button>
         </div>
       </div>
 
@@ -692,7 +711,7 @@ document.addEventListener("DOMContentLoaded", function () {
           <span class="share-plan">{{ plan.label }}<b>{{ plan.price }}</b></span>
           <input readonly value="{{ checkout_base }}/pay/{{ plan.key }}?ref={{ profile.partner_id }}"
                  id="sharePay{{ plan.key }}" onclick="this.select();">
-          <button type="button" class="share-copy" data-copy="sharePay{{ plan.key }}">{{ t.copy }}</button>
+          <button type="button" class="share-copy" data-copy="sharePay{{ plan.key }}">{{ t["copy"] }}</button>
         </div>
       {% endfor %}
     </div>
