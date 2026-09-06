@@ -201,6 +201,23 @@ def _al_pay_reply(message,mode,plan_name="",plan_label="",pay_url=""):
     return f"{before.format(p=plan)}\n\n{pay_url}\n\n{after}"
 # ALSAAB_PAYMENT_REPLY_LANGUAGE_V1_END
 
+# Arabic buying intent, in the forms customers actually type.
+#
+# _AL_PAY_TERMS above reaches a dozen languages and barely covers the one this
+# bot sells in: it has no word for "buy". So "ابغى اشتري باقة الماسية" was not
+# read as wanting to pay, and the visitor was asked which package they meant --
+# having just named it. Both gates read this list so they cannot drift apart.
+#
+# Written in the normalised form the gates compare against (ة -> ه, ى -> ي,
+# أ إ آ -> ا), and only ever acted on together with a named package.
+_AL_PAY_TERMS_AR = (
+    "رابط", "دفع", "ادفع", "اشتراك", "اشترك",
+    "اشتري", "نشتري", "بشتري", "شراء", "اشتريت",
+    "باخذ", "ابا اخذ", "ابي اخذ", "ابغي اخذ", "اخذ الباقه",
+    "تفعيل", "فعلي", "سجلني", "ضمني",
+)
+
+
 def build_safe_alsaab_opportunity_payment_reply(plan_name, session_id, source_partner_id=""):
     # ALSAAB_SAFE_PAYMENT_FUNCTION_HARD_GUARD_V1
     try:
@@ -222,6 +239,7 @@ def build_safe_alsaab_opportunity_payment_reply(plan_name, session_id, source_pa
     ]
 
     _payment_words.extend(_AL_PAY_TERMS)
+    _payment_words.extend(_AL_PAY_TERMS_AR)
 
     _plan_aliases = [
         ("diamond", ["diamond", "2399", "\u0627\u0644\u0645\u0627\u0633\u064a\u0629", "\u0645\u0627\u0633\u064a\u0629"]),
@@ -2158,6 +2176,17 @@ def chat():
     if bot_partner_id:
         print(f"CLIENT BOT REQUESTED ✅ bot_partner_id={bot_partner_id}", flush=True)
 
+    # A visitor's first message has no session id yet, and the payment gate
+    # below needs one: the checkout URL carries it so Stripe can hand it back
+    # on the webhook and the subscription lands on the right account. Minting
+    # it here rather than thirty lines further down is the difference between
+    # "I want the Growth package" as an opening line getting a checkout link
+    # and getting an empty reply -- build_safe_alsaab_opportunity_payment_reply
+    # returns "" without one, and an empty string is what the visitor saw.
+    if not session_id:
+        session_id = str(uuid.uuid4())
+        print(f"MAIN NEW SESSION CREATED ✅ {session_id}", flush=True)
+
     # ===== ALSAAB_DIRECT_PAYMENT_GATE_BALANCED_V1 START =====
     #
     # Skipped entirely on a customer's own bot. This gate answers "send me the
@@ -2189,12 +2218,10 @@ def chat():
         elif any(x in _msg for x in ["entry", "\u0627\u0646\u062a\u0631\u064a", "\u0627\u0644\u062f\u062e\u0648\u0644", "\u062f\u062e\u0648\u0644", "99"]):
             _plan = "entry"
 
-        _has_payment_intent = any(x in _msg for x in [
-            "\u0631\u0627\u0628\u0637", "\u062f\u0641\u0639", "\u0627\u062f\u0641\u0639",
-            "\u0627\u0634\u062a\u0631\u0627\u0643", "\u0627\u0634\u062a\u0631\u0643",
-            "\u0628\u0627\u062e\u0630", "\u0628\u0627\u062e\u0630", "\u0627\u0628\u0627 \u0627\u062e\u0630",
-            "\u0627\u0628\u064a \u0627\u062e\u0630", "\u0627\u0628\u063a\u064a \u0627\u062e\u0630"
-        ])
+        _has_payment_intent = (
+            any(x in _msg for x in _AL_PAY_TERMS_AR)
+            or any(x in _msg for x in _AL_PAY_TERMS)
+        )
 
         # Link only when payment intent + package/price are clear.
         if _has_payment_intent and _plan:
@@ -2226,10 +2253,6 @@ def chat():
     print(f"MAIN MESSAGE ✅ {message}", flush=True)
     print(f"MAIN SESSION BEFORE ✅ {session_id}", flush=True)
     print(f"MAIN SOURCE PARTNER ✅ {source_partner_id}", flush=True)
-
-    if not session_id:
-        session_id = str(uuid.uuid4())
-        print(f"MAIN NEW SESSION CREATED ✅ {session_id}", flush=True)
 
     if not message:
         print("MAIN EMPTY MESSAGE ❌", flush=True)
@@ -2814,6 +2837,16 @@ def partner_dashboard_view():
             "status": "الحالة",
             "sponsor": "Sponsor",
             "referral_link": "Referral Link",
+            "share_links": "روابط المشاركة والاشتراك",
+            "share_links_desc": "أرسل أي رابط من هنا لعميلك. أي اشتراك يتم من خلاله يُحسب لك تلقائياً وتصبح أنت الراعي.",
+            "share_plans": "رابط الباقات",
+            "share_plans_note": "يفتح صفحة الباقات الخمس ويختار العميل ما يناسبه ثم يدفع مباشرة.",
+            "share_chat": "رابط المحادثة",
+            "share_chat_note": "يفتح موظف المبيعات الذكي ليقنع العميل أولاً ثم يعطيه رابط الدفع.",
+            "share_direct": "روابط دفع مباشرة لكل باقة",
+            "share_direct_note": "تنقل العميل إلى صفحة الدفع فوراً بدون خطوات وسيطة.",
+            "recommended": "الأنسب",
+            "copy": "نسخ",
             "level_progress": "المستوى والترقية",
             "completed_sales": "المبيعات المكتملة",
             "required_sales": "المبيعات المطلوبة",
@@ -2865,6 +2898,16 @@ def partner_dashboard_view():
             "status": "Status",
             "sponsor": "Sponsor",
             "referral_link": "Referral Link",
+            "share_links": "Share & subscribe links",
+            "share_links_desc": "Send any of these to a customer. Every subscription made through them is credited to you and you become their sponsor.",
+            "share_plans": "Packages link",
+            "share_plans_note": "Opens the five packages so the customer picks one and pays.",
+            "share_chat": "Chat link",
+            "share_chat_note": "Opens the smart sales assistant, which sells first and then hands over the payment link.",
+            "share_direct": "Direct payment link per package",
+            "share_direct_note": "Takes the customer straight to checkout with no steps in between.",
+            "recommended": "Best choice",
+            "copy": "Copy",
             "level_progress": "Level & Progress",
             "completed_sales": "Completed Sales",
             "required_sales": "Required Sales",
@@ -3074,12 +3117,41 @@ def partner_dashboard_view():
                 return f"{value or 0} AED"
 
 
+        # Ready-made checkout links for this partner to share. Built from the
+        # same config the checkout uses, so a new package appears here the day
+        # it is added rather than whenever someone remembers this page.
+        try:
+            from config import STRIPE_PLAN_CONFIG as _plans_cfg, PACKAGES as _pkgs
+
+            checkout_plans = [
+                {
+                    "key": _key,
+                    "label": (_pkgs.get(_key) or {}).get("name_ar") or _key.title(),
+                    "price": (_plans_cfg.get(_key) or {}).get("package_amount") or "",
+                }
+                for _key in ["entry", "starter", "growth", "elite", "diamond"]
+                if _key in _plans_cfg
+            ]
+
+        except Exception as _plans_error:
+            print(f"PARTNER CHECKOUT LINKS ERROR ⚠️ {_plans_error}", flush=True)
+            checkout_plans = []
+
+        try:
+            from config import APP_BASE_URL as _base
+        except ImportError:
+            _base = "https://alsaab-ai.onrender.com"
+
+        checkout_base = str(_base or "").rstrip("/")
+
         return render_template(
             "partner_dashboard.html",
             lang=lang,
             direction=direction,
             text_align=text_align,
             t=t,
+            checkout_plans=checkout_plans,
+            checkout_base=checkout_base,
             website_url=WEBSITE_URL,
             language_url=language_url,
             partner_dashboard_url=partner_dashboard_url,

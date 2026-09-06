@@ -509,7 +509,74 @@
     }
     /* ===== ALSAAB_DASHBOARD_VISUAL_POLISH_V4 END ===== */
 
+/* ===== ALSAAB_PARTNER_CHECKOUT_LINKS_V1 START ===== */
+.share-link{
+  border:1px solid rgba(215,184,90,.28); border-radius:14px;
+  padding:15px 17px; margin-bottom:13px; background:rgba(6,9,15,.5);
+}
+.share-head{ display:flex; justify-content:space-between; align-items:flex-start; gap:12px; margin-bottom:11px; }
+.share-title{ color:#f0cc68; font-weight:900; font-size:15px; }
+.share-tag{
+  flex:0 0 auto; border:1px solid rgba(34,197,94,.55); color:#86efac;
+  background:rgba(34,197,94,.12); border-radius:999px;
+  padding:3px 12px; font-size:11.5px; font-weight:800; white-space:nowrap;
+}
+.share-row{ display:flex; align-items:center; gap:9px; margin-bottom:9px; flex-wrap:wrap; }
+.share-row input{
+  flex:1 1 320px; min-width:0; background:#0b0b0b; color:#fff; direction:ltr; text-align:left;
+  border:1px solid rgba(215,184,90,.4); border-radius:10px;
+  padding:10px 12px; font-size:12.5px; font-weight:700; cursor:text;
+}
+.share-plan{
+  flex:0 0 auto; display:flex; align-items:baseline; gap:7px; min-width:132px;
+  color:#cbd5e1; font-size:13px; font-weight:700;
+}
+.share-plan b{ color:#86efac; font-size:12.5px; font-weight:900; }
+.share-copy{
+  flex:0 0 auto; border:1px solid rgba(215,184,90,.6);
+  background:linear-gradient(135deg,#d7b85a,#a88425); color:#0b0b0b;
+  border-radius:999px; padding:9px 18px; font-weight:900; font-size:12.5px; cursor:pointer;
+}
+.share-copy:hover{ filter:brightness(1.08); }
+.share-copy.done{ background:linear-gradient(135deg,#22c55e,#14532d); color:#fff; border-color:rgba(134,239,172,.8); }
+/* ===== ALSAAB_PARTNER_CHECKOUT_LINKS_V1 END ===== */
 </style>
+
+<script>
+/* Copy a link with one press. A partner sends these over WhatsApp all day;
+   selecting a long URL by hand on a phone is where the sharing stops. */
+document.addEventListener("DOMContentLoaded", function () {
+  document.querySelectorAll(".share-copy").forEach(function (button) {
+    button.addEventListener("click", function () {
+      var field = document.getElementById(button.getAttribute("data-copy"));
+      if (!field) { return; }
+
+      field.select();
+      field.setSelectionRange(0, 99999);
+
+      var done = function () {
+        var original = button.textContent;
+        button.textContent = "✓";
+        button.classList.add("done");
+        setTimeout(function () {
+          button.textContent = original;
+          button.classList.remove("done");
+        }, 1400);
+      };
+
+      // navigator.clipboard needs a secure context, which a plain-http run of
+      // this dashboard is not, so keep the old command as the fallback.
+      if (navigator.clipboard && window.isSecureContext) {
+        navigator.clipboard.writeText(field.value).then(done, function () {
+          try { document.execCommand("copy"); done(); } catch (e) {}
+        });
+      } else {
+        try { document.execCommand("copy"); done(); } catch (e) {}
+      }
+    });
+  });
+});
+</script>
 </head>
 <body>
   <div class="page alsaab-skin-v4">
@@ -578,6 +645,58 @@
       <div class="info-row"><div class="label">{{ t.sponsor }}</div><div class="value">{{ profile.sponsor_partner_id or "-" }}</div></div>
       <div class="info-row"><div class="label">{{ t.referral_link }}</div><div class="value"><a href="{{ profile.referral_link }}" target="_blank">{{ profile.referral_link }}</a></div></div>
     </div>
+
+    <!-- ===== ALSAAB_PARTNER_CHECKOUT_LINKS_V1 START =====
+         The dashboard offered one link, to the chat, and a partner who just
+         wanted to send somebody straight to a checkout had nothing to copy.
+         Every link here carries ?ref= through /plans and /pay/<plan> into the
+         Stripe client_reference_id, so the sale is credited to this partner. -->
+    <div class="section" id="secShareLinks">
+      <h2>{{ t.share_links }}</h2>
+      <div class="muted" style="line-height:1.9;margin-bottom:14px;">{{ t.share_links_desc }}</div>
+
+      <div class="share-link">
+        <div class="share-head">
+          <div>
+            <div class="share-title">{{ t.share_plans }}</div>
+            <div class="muted">{{ t.share_plans_note }}</div>
+          </div>
+          <span class="share-tag">{{ t.recommended }}</span>
+        </div>
+        <div class="share-row">
+          <input readonly value="{{ checkout_base }}/plans?ref={{ profile.partner_id }}"
+                 id="sharePlans" onclick="this.select();">
+          <button type="button" class="share-copy" data-copy="sharePlans">{{ t.copy }}</button>
+        </div>
+      </div>
+
+      <div class="share-link">
+        <div class="share-head">
+          <div>
+            <div class="share-title">{{ t.share_chat }}</div>
+            <div class="muted">{{ t.share_chat_note }}</div>
+          </div>
+        </div>
+        <div class="share-row">
+          <input readonly value="{{ checkout_base }}/?ref={{ profile.partner_id }}"
+                 id="shareChat" onclick="this.select();">
+          <button type="button" class="share-copy" data-copy="shareChat">{{ t.copy }}</button>
+        </div>
+      </div>
+
+      <div class="share-title" style="margin:20px 0 10px;">{{ t.share_direct }}</div>
+      <div class="muted" style="margin-bottom:12px;">{{ t.share_direct_note }}</div>
+
+      {% for plan in checkout_plans %}
+        <div class="share-row">
+          <span class="share-plan">{{ plan.label }}<b>{{ plan.price }}</b></span>
+          <input readonly value="{{ checkout_base }}/pay/{{ plan.key }}?ref={{ profile.partner_id }}"
+                 id="sharePay{{ plan.key }}" onclick="this.select();">
+          <button type="button" class="share-copy" data-copy="sharePay{{ plan.key }}">{{ t.copy }}</button>
+        </div>
+      {% endfor %}
+    </div>
+    <!-- ===== ALSAAB_PARTNER_CHECKOUT_LINKS_V1 END ===== -->
 
     <div class="section" style="border-color: {{ rank_ui.color }}; box-shadow: 0 0 32px {{ rank_ui.glow }};">
       <h2>{{ t.level_progress }}</h2>

@@ -885,6 +885,33 @@ textarea::placeholder {
   overflow:hidden; border:1px solid rgba(215,184,90,.35); }
 .chat-photo img{ width:100%; height:auto; display:block; }
 /* ===== ALSAAB_CLIENT_BRAND_CHAT_V1 END ===== */
+
+/* ===== ALSAAB_VISIBLE_CHECKOUT_V1 START =====
+   The way to buy must be on screen at all times, not something the bot has to
+   remember to offer. .mini-cta is an <a> now, so it needs the parts a button
+   got for free. */
+a.mini-cta{
+  display:block;
+  text-align:center;
+  text-decoration:none;
+  box-sizing:border-box;
+}
+a.mini-cta:hover{ filter:brightness(1.07); }
+a.mini-cta:focus-visible{ outline:2px solid #f3d37b; outline-offset:3px; }
+
+.footer-plans-link{
+  display:inline-block;
+  color:#f3d37b;
+  font-weight:800;
+  font-size:12.5px;
+  text-decoration:none;
+  border-bottom:1px solid rgba(243,211,123,.45);
+  padding-bottom:1px;
+  margin-bottom:6px;
+}
+.footer-plans-link:hover{ color:#fff; border-bottom-color:#fff; }
+.footer-plans-link:focus-visible{ outline:2px solid #f3d37b; outline-offset:3px; }
+/* ===== ALSAAB_VISIBLE_CHECKOUT_V1 END ===== */
 </style>
 </head>
 
@@ -968,9 +995,14 @@ textarea::placeholder {
                     </div>
                 </div>
 
-                <button class="mini-cta" onclick="sendQuick('أبغي أعرف الباقات')">
-                    عرض الباقات
-                </button>
+                <!-- A real link to the packages, not a message to the bot.
+                     This button used to type "أبغي أعرف الباقات" into the chat
+                     and hope the reply contained a link, so buying depended on
+                     the bot phrasing its answer correctly. The page with the
+                     five checkout buttons is one click away either way. -->
+                <a class="mini-cta" id="plansCta" href="/plans">
+                    عرض الباقات والاشتراك
+                </a>
             </div>
 
             <div class="side-card">
@@ -1073,6 +1105,12 @@ textarea::placeholder {
                     <button id="sendBtn" class="send-btn" onclick="sendMsg()" title="إرسال">➤</button>
                 </div>
 
+                {% if not (brand and brand.get("name")) %}
+                <div class="footer-note">
+                    <a id="plansCtaFooter" href="/plans" class="footer-plans-link">اشترك الآن — عرض الباقات والأسعار</a>
+                </div>
+                {% endif %}
+
                 <div class="footer-note">
                     Powered by ALSAAB AI • Sales Automation
                 </div>
@@ -1145,6 +1183,23 @@ function captureSourcePartnerId() {
 }
 
 sourcePartnerId = captureSourcePartnerId();
+
+// Carry the referrer onto the packages links.
+//
+// A visitor who arrived on /?ref=ALS-P00021 and then clicked through to the
+// packages would have lost the partner on the way, and the sale would have
+// been credited to nobody. /plans reads ?ref= and passes it on to checkout,
+// so it only has to survive this one hop.
+(function attachReferrerToPlansLinks() {
+    if (!sourcePartnerId) { return; }
+
+    ["plansCta", "plansCtaFooter"].forEach(function (id) {
+        var link = document.getElementById(id);
+        if (!link) { return; }
+
+        link.setAttribute("href", "/plans?ref=" + encodeURIComponent(sourcePartnerId));
+    });
+})();
 
 function escapeHtml(text) {
     return String(text)
