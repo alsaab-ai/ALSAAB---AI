@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<title>شجرة الشركاء - ALSAAB AI</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#0b0b0b;
+    --surface:#121212;
+    --surface-2:#191919;
+    --line:rgba(215,184,90,.22);
+    --rail:rgba(215,184,90,.42);
+    --gold:#d7b85a;
+    --gold-2:#f0cc68;
+    --ink:#f5f0df;
+    --ink-2:#cfc7ad;
+    --muted:#8d8a7c;
+    --ok:#7fd39a;
+    --ok-bg:rgba(127,211,154,.10);
+    --warn:#e0a83f;
+    --warn-bg:rgba(224,168,63,.10);
+    --crit:#ef8383;
+    --crit-bg:rgba(239,131,131,.10);
+  }
+
+  *{ box-sizing:border-box; }
+
+  body{
+    margin:0; background:var(--bg); color:var(--ink);
+    font-family:Cairo,Arial,Tahoma,sans-serif; line-height:1.7;
+  }
+
+  .page{ max-width:1280px; margin:0 auto; padding:26px 20px 70px; }
+
+  .topbar{
+    display:flex; justify-content:space-between; align-items:center;
+    gap:14px; flex-wrap:wrap; margin-bottom:20px;
+  }
+  .back{
+    border:1px solid var(--line); color:var(--gold-2); background:var(--surface);
+    padding:9px 16px; border-radius:999px; text-decoration:none; font-size:14px; font-weight:600;
+  }
+  .back:hover{ background:var(--surface-2); border-color:var(--gold); }
+
+  h1{ color:var(--gold); margin:0 0 6px; font-size:27px; font-weight:800; }
+  .sub{ color:var(--ink-2); margin:0 0 22px; font-size:14.5px; max-width:70ch; }
+
+  .totals{
+    display:grid; gap:1px; background:var(--line);
+    grid-template-columns:repeat(auto-fit,minmax(126px,1fr));
+    border:1px solid var(--line); border-radius:14px; overflow:hidden; margin-bottom:20px;
+  }
+  .tot{ background:var(--surface); padding:14px 16px; }
+  .tot b{ display:block; font-size:25px; font-weight:800; line-height:1.2; font-variant-numeric:tabular-nums; }
+  .tot span{ display:block; color:var(--muted); font-size:12.5px; }
+  .tot.g b{ color:var(--gold); }
+  .tot.k b{ color:var(--ok); }
+  .tot.c b{ color:var(--crit); }
+  .tot.w b{ color:var(--warn); }
+
+  .filters{ display:flex; gap:8px; flex-wrap:wrap; align-items:center; margin-bottom:14px; }
+  .cap{ font-family:"IBM Plex Mono",monospace; font-size:11px; letter-spacing:.12em;
+        text-transform:uppercase; color:var(--muted); margin-inline-end:4px; }
+  .chip{
+    font-family:inherit; font-size:13px; font-weight:700; cursor:pointer;
+    border:1px solid var(--line); background:var(--surface); color:var(--ink-2);
+    border-radius:999px; padding:6px 16px;
+  }
+  .chip:hover{ border-color:var(--gold); color:var(--ink); }
+  .chip[aria-pressed="true"]{ background:rgba(215,184,90,.14); border-color:var(--gold); color:var(--gold-2); }
+  .chip:focus-visible{ outline:2px solid var(--gold); outline-offset:2px; }
+
+  .canvas{
+    border:1px solid var(--line); border-radius:18px; background:var(--surface);
+    overflow-x:auto; overflow-y:hidden; padding:30px 20px 34px;
+  }
+  .canvas::-webkit-scrollbar{ height:9px; }
+  .canvas::-webkit-scrollbar-thumb{ background:var(--rail); border-radius:99px; }
+
+  .tree, .tree ul{
+    display:flex; justify-content:center; margin:0; padding:0; list-style:none; direction:rtl;
+  }
+  .tree{ min-width:max-content; }
+  .tree ul{ padding-top:24px; }
+  .tree li{
+    position:relative; padding:24px 6px 0;
+    display:flex; flex-direction:column; align-items:center;
+  }
+  .tree li::before, .tree li::after{
+    content:""; position:absolute; top:0; width:50%; height:24px;
+    border-top:1.5px solid var(--rail);
+  }
+  .tree li::before{ inset-inline-end:50%; }
+  .tree li::after{ inset-inline-start:50%; border-inline-start:1.5px solid var(--rail); }
+  .tree li:only-child::before, .tree li:only-child::after{ display:none; }
+  .tree li:first-child::before{ border:0 none; }
+  .tree li:last-child::after{ border:0 none; }
+  .tree li:last-child::before{ border-inline-end:1.5px solid var(--rail); border-start-end-radius:7px; }
+  .tree li:first-child::after{ border-start-start-radius:7px; }
+  .tree ul::before{
+    content:""; position:absolute; top:0; inset-inline-start:50%;
+    border-inline-start:1.5px solid var(--rail); width:0; height:24px;
+  }
+  .tree > li{ padding-top:0; }
+  .tree > li::before, .tree > li::after{ display:none; }
+
+  .card{
+    position:relative; width:172px;
+    border:1px solid var(--line); border-radius:13px; background:var(--surface-2);
+    padding:11px 12px 10px; text-align:center;
+    transition:opacity .18s ease, transform .12s ease, border-color .15s ease;
+  }
+  .card:hover{ transform:translateY(-2px); border-color:var(--gold); }
+  .card.dim{ opacity:.18; }
+  .card::before{
+    content:""; position:absolute; top:-1px; inset-inline:16px;
+    height:3px; border-radius:0 0 3px 3px; background:var(--ok);
+  }
+  .card.s-payment_failed::before{ background:var(--crit); }
+  .card.s-cancelled::before{ background:var(--warn); }
+  .card.s-root::before, .card.s-unknown::before{ background:var(--gold); }
+  .card.s-payment_failed{ background:var(--crit-bg); }
+  .card.s-root{ background:rgba(215,184,90,.12); border-color:var(--gold); width:196px; }
+
+  .pid{ display:block; font-family:"IBM Plex Mono",monospace; font-size:10.5px;
+        color:var(--gold); margin-bottom:2px; }
+  .nm{ display:block; font-weight:700; font-size:13.5px; line-height:1.5; overflow-wrap:anywhere; }
+  .mail{
+    display:block; font-family:"IBM Plex Mono",monospace; font-size:10px;
+    color:var(--muted); direction:ltr; unicode-bidi:plaintext;
+    margin-top:2px; overflow-wrap:anywhere;
+  }
+  .meta{ display:flex; justify-content:center; gap:5px; flex-wrap:wrap; margin-top:7px; }
+  .tag{ font-size:10.5px; font-weight:700; border-radius:999px; padding:1px 8px;
+        border:1px solid currentColor; white-space:nowrap; }
+  .tag.plan{ color:var(--ink-2); border-color:var(--line); background:var(--surface); }
+  .tag.ok{ color:var(--ok); background:var(--ok-bg); }
+  .tag.warn{ color:var(--warn); background:var(--warn-bg); }
+  .tag.crit{ color:var(--crit); background:var(--crit-bg); }
+  .tag.gold{ color:var(--gold-2); background:rgba(215,184,90,.13); }
+
+  .pay{
+    margin-top:7px; padding-top:6px; border-top:1px solid var(--line);
+    font-family:"IBM Plex Mono",monospace; font-size:10.5px; color:var(--ink-2);
+    font-variant-numeric:tabular-nums;
+  }
+  .pay em{ font-style:normal; color:var(--muted); }
+  .pay.late{ color:var(--crit); }
+  .load{ font-family:"IBM Plex Mono",monospace; font-size:10.5px; color:var(--muted); margin-top:4px; }
+  .load b{ color:var(--gold); font-weight:500; }
+
+  .legend{ display:flex; gap:15px; flex-wrap:wrap; margin-top:14px; font-size:12.5px; color:var(--muted); }
+  .legend span{ display:flex; align-items:center; gap:6px; }
+  .sw{ width:11px; height:11px; border-radius:3px; }
+
+  @media (prefers-reduced-motion: reduce){ *{ transition:none !important; } }
+</style>
+</head>
+<body>
+<div class="page">
+
+  <div class="topbar">
+    <div>
+      <h1>شجرة الشركاء</h1>
+      <div class="sub">
+        من يجلس تحت من — وهو ما يحدّد وجهة العمولة. الشريك المتوقف لا يستلم حصته،
+        فترتفع لمن فوقه، ومن تحته يبقون في الشبكة.
+      </div>
+    </div>
+    <a class="back" href="/admin-dashboard{% if key %}?key={{ key }}{% endif %}">← لوحة الأدمن</a>
+  </div>
+
+  <div class="totals">
+    <div class="tot g"><b>{{ counts.total }}</b><span>شريك</span></div>
+    <div class="tot k"><b>{{ counts.active }}</b><span>اشتراك نشط</span></div>
+    <div class="tot c"><b>{{ counts.failed }}</b><span>دفعة فاشلة</span></div>
+    <div class="tot w"><b>{{ counts.cancelled }}</b><span>ملغى</span></div>
+    <div class="tot"><b>{{ tree.direct }}</b><span>مباشرون تحت الشركة</span></div>
+  </div>
+
+  <div class="filters">
+    <span class="cap">إبراز</span>
+    <button class="chip" type="button" data-filter="all" aria-pressed="true">الكل</button>
+    <button class="chip" type="button" data-filter="active" aria-pressed="false">النشط</button>
+    <button class="chip" type="button" data-filter="broken" aria-pressed="false">المتعثّر</button>
+  </div>
+
+  <div class="canvas">
+    <ul class="tree">
+      {% macro node(n) %}
+        <li>
+          <div class="card s-{{ n.status }}" data-status="{{ n.status }}">
+            {% if n.id != "alsaab" %}<span class="pid">{{ n.id }}</span>{% endif %}
+            <span class="nm">{{ n.name }}</span>
+            {% if n.email %}<span class="mail">{{ n.email }}</span>{% endif %}
+
+            <div class="meta">
+              {% if n.plan %}<span class="tag plan">{{ n.plan }}</span>{% endif %}
+              {% if n.status == "active" %}<span class="tag ok">نشط</span>
+              {% elif n.status == "payment_failed" %}<span class="tag crit">دفعة فاشلة</span>
+              {% elif n.status == "cancelled" %}<span class="tag warn">ملغى</span>
+              {% elif n.status == "root" %}<span class="tag gold">الشركة</span>
+              {% else %}<span class="tag gold">بلا اشتراك</span>{% endif %}
+            </div>
+
+            {% if n.paid %}
+              <div class="pay{% if n.due and n.due < today %} late{% endif %}">
+                <em>آخر دفعة</em> {{ n.paid }}
+                {% if n.due and n.due < today %}<br><em>استحقت</em> {{ n.due }}{% endif %}
+              </div>
+            {% endif %}
+
+            {% if n.below %}
+              <div class="load">{{ n.direct }} مباشر ← <b>{{ n.below }}</b> في الفرع</div>
+            {% endif %}
+          </div>
+
+          {% if n.kids %}
+            <ul>{% for kid in n.kids %}{{ node(kid) }}{% endfor %}</ul>
+          {% endif %}
+        </li>
+      {% endmacro %}
+      {{ node(tree) }}
+    </ul>
+  </div>
+
+  <div class="legend">
+    <span><i class="sw" style="background:var(--gold)"></i> جذر الشبكة</span>
+    <span><i class="sw" style="background:var(--ok)"></i> نشط</span>
+    <span><i class="sw" style="background:var(--crit)"></i> دفعة فاشلة</span>
+    <span><i class="sw" style="background:var(--warn)"></i> ملغى</span>
+    <span>التاريخ الأحمر = دورة انتهت ولم تُجدَّد</span>
+  </div>
+</div>
+
+<script>
+  var chips = document.querySelectorAll(".chip");
+  var cards = document.querySelectorAll(".card");
+
+  chips.forEach(function (chip) {
+    chip.addEventListener("click", function () {
+      chips.forEach(function (c) { c.setAttribute("aria-pressed", String(c === chip)); });
+      var mode = chip.getAttribute("data-filter");
+
+      cards.forEach(function (el) {
+        var s = el.getAttribute("data-status");
+        var broken = s === "payment_failed" || s === "cancelled";
+        var keep = mode === "all" || s === "root" ||
+                   (mode === "active" && s === "active") ||
+                   (mode === "broken" && broken);
+        el.classList.toggle("dim", !keep);
+      });
+    });
+  });
+</script>
+</body>
+</html>

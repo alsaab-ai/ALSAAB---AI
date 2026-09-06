@@ -4948,6 +4948,132 @@ def humanize_missing_requirements(value):
 # ===== ALSAAB ADMIN MISSING REQUIREMENT TEXT V1 END =====
 
 
+# ===== ALSAAB_ADMIN_PARTNER_TREE_V1 START =====
+
+@app.route("/admin/partner-tree", methods=["GET"])
+def admin_partner_tree():
+    """
+    The sponsor network drawn as a tree.
+
+    The dashboard already lists partners, subscriptions and levels in separate
+    tables, and none of them show the one thing that decides where a commission
+    goes: who sits under whom. A stalled partner in the middle of a branch is
+    invisible in a flat list and obvious here.
+
+    Read-only, and behind the same admin check as every other /admin route.
+    """
+    if not admin_access_granted(request.args.get("key", "").strip()):
+        return "Unauthorized", 401
+
+    try:
+        from datetime import datetime, timezone
+        from db import get_connection
+
+        cursor = get_connection().cursor()
+        cursor.execute(
+            """
+            SELECT p.partner_id,
+                   COALESCE(p.partner_name, ''),
+                   COALESCE(p.email, ''),
+                   COALESCE(p.sponsor_partner_id, 'alsaab'),
+                   COALESCE(s.plan_name, ''),
+                   COALESCE(s.subscription_status, ''),
+                   s.current_period_start,
+                   s.current_period_end,
+                   s.payment_failed_at
+            FROM partners p
+            LEFT JOIN subscriptions s ON s.client_id = p.client_id
+            ORDER BY p.partner_id
+            """
+        )
+
+        def as_date(value):
+            return value.strftime("%Y-%m-%d") if value else ""
+
+        people = {
+            "alsaab": {
+                "id": "alsaab", "name": "شركة الصعب", "email": "",
+                "sponsor": "", "plan": "", "status": "root",
+                "paid": "", "due": "", "failed": "", "kids": [],
+            }
+        }
+
+        for row in cursor.fetchall():
+            pid, name, email, sponsor, plan, status, paid, due, failed = row
+
+            people[pid] = {
+                "id": pid,
+                "name": name or pid,
+                "email": email,
+                "sponsor": sponsor or "alsaab",
+                "plan": plan,
+                "status": status or "unknown",
+                "paid": as_date(paid),
+                "due": as_date(due),
+                "failed": as_date(failed),
+                "kids": [],
+            }
+
+        for pid, person in people.items():
+            parent = person["sponsor"]
+
+            if parent and parent in people and parent != pid:
+                people[parent]["kids"].append(pid)
+
+        def branch_size(pid, seen=None):
+            seen = seen if seen is not None else set()
+            total = 0
+
+            for child in people[pid]["kids"]:
+                if child in seen:
+                    continue
+
+                seen.add(child)
+                total += 1 + branch_size(child, seen)
+
+            return total
+
+        def build(pid):
+            person = people[pid]
+
+            return {
+                "id": person["id"],
+                "name": person["name"],
+                "email": person["email"],
+                "plan": person["plan"],
+                "status": person["status"],
+                "paid": person["paid"],
+                "due": person["due"],
+                "failed": person["failed"],
+                "direct": len(person["kids"]),
+                "below": branch_size(pid),
+                "kids": [build(k) for k in sorted(person["kids"])],
+            }
+
+        tree = build("alsaab")
+
+        counts = {
+            "total": len(people) - 1,
+            "active": sum(1 for p in people.values() if p["status"] == "active"),
+            "failed": sum(1 for p in people.values() if p["status"] == "payment_failed"),
+            "cancelled": sum(1 for p in people.values() if p["status"] == "cancelled"),
+        }
+
+        return render_template(
+            "admin_partner_tree.html",
+            tree=tree,
+            counts=counts,
+            key=request.args.get("key", "").strip(),
+            today=datetime.now(timezone.utc).strftime("%Y-%m-%d"),
+        )
+
+    except Exception as error:
+        print(f"ADMIN PARTNER TREE ERROR ❌ {error}", flush=True)
+        return f"Partner tree failed: {error}", 500
+
+# ===== ALSAAB_ADMIN_PARTNER_TREE_V1 END =====
+
+
 @app.route("/admin-dashboard", methods=["GET"])
 def admin_dashboard_view():
     """

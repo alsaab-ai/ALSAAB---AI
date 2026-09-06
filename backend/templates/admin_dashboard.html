@@ -952,6 +952,19 @@
       </div>
     </div>
 
+    <!-- The tables below list partners row by row; none of them show who sits
+         under whom, which is the thing that decides where a commission goes. -->
+    <div class="section">
+      <h2>شجرة الشركاء</h2>
+      <div class="muted" style="margin-bottom:12px;line-height:1.8;">
+        الشبكة كاملة كشجرة: من تحت من، حالة كل اشتراك، وتاريخ آخر دفعة.
+        شريك متوقف وسط فرع يظهر هنا فوراً — وهو ما لا يظهر في أي جدول.
+      </div>
+      <a class="primary-btn" href="/admin/partner-tree{% if key %}?key={{ key }}{% endif %}">
+        فتح شجرة الشركاء
+      </a>
+    </div>
+
     <div class="section">
       <h2>آخر الشركاء</h2>
       <div class="table-wrap">
