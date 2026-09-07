@@ -285,7 +285,11 @@ _AL_ALSAAB_INTEREST = (
 # than with "tell me which package you want" -- the visitor is asking precisely
 # because they do not know yet, and the canned deflection sent them away.
 _AL_PLAN_LIST_TERMS = (
-    "الباقات", "باقات", "الاسعار", "اسعار", "الاسعر",
+    "الباقات", "باقات",
+    # Typed in a hurry, and often. Worth matching: the alternative is the bot
+    # answering a price question with small talk over one missing letter.
+    "البقات", "بقات", "الباقت", "الباقه", "باقه",
+    "الاسعار", "اسعار", "الاسعر",
     "كم السعر", "بكم", "كم سعر", "شو الاسعار", "ايش الاسعار",
     "العروض", "الخطط", "الاشتراكات",
     "packages", "plans", "pricing", "prices", "price list",
@@ -2358,6 +2362,15 @@ def chat():
                     _state["alsaab_handoff"] = True
                     _state["source_partner_id"] = source_partner_id
                     _state["referrer_partner_id"] = source_partner_id
+
+                    # think() remembers which shop's bot is speaking in the
+                    # session and never cleared it, so the handoff only worked
+                    # on a brand new session: in a real conversation the first
+                    # message had already stored the shop, and every later reply
+                    # kept loading the shop's profile no matter what this gate
+                    # decided. Clearing it here is what makes the handoff hold
+                    # for a visitor who said hello first.
+                    _state["bot_partner_id"] = ""
 
                 _handoff_note = "kept" if _handed_over else "new"
 
