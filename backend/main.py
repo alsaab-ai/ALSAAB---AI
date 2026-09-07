@@ -175,7 +175,37 @@ def _al_pay_lang(message):
         lang=str(detect_language(text) or "en").lower()
     except Exception: lang="en"
     return lang
-def _al_pay_reply(message,mode,plan_name="",plan_label="",pay_url=""):
+def _al_pay_plan_links(session_id="", source_partner_id=""):
+    """
+    A payment link per package, ready to paste into the "choose one" reply.
+
+    Listing the five packages without links is what produced the loop people
+    kept hitting: the bot answered "which package?", the visitor answered
+    "the 99 one", and the bot asked again. A link under each line ends the
+    conversation at the first reply instead of the third.
+    """
+    from urllib.parse import urlencode
+
+    base = str(globals().get("APP_BASE_URL", "https://alsaab-ai.onrender.com")).rstrip("/")
+    links = {}
+
+    for plan in ("entry", "starter", "growth", "elite", "diamond"):
+        params = {}
+
+        if session_id:
+            params["sid"] = session_id
+
+        if source_partner_id:
+            params["ref"] = source_partner_id
+            params["source_partner_id"] = source_partner_id
+
+        query = ("?" + urlencode(params)) if params else ""
+        links[plan] = f"{base}/pay/{plan}{query}"
+
+    return links
+
+
+def _al_pay_reply(message,mode,plan_name="",plan_label="",pay_url="",session_id="",source_partner_id=""):
     lang=_al_pay_lang(message); plan=(str(plan_label or plan_name) if lang=="ar" else str(plan_name).title())
     t={
     "ar":("أكيد، أي باقة تريد رابط الدفع الخاص بها؟","درهم شهرياً","تمام ✅\nهذا رابط دفع باقة {p} في ALSAAB AI:","بعد الدفع بيتفعل الاشتراك تلقائياً، وبيتم ربطه بالشريك الصحيح."),
@@ -193,10 +223,17 @@ def _al_pay_reply(message,mode,plan_name="",plan_label="",pay_url=""):
     "zh":("您需要哪个套餐的付款链接？","AED/月","已准备好 ✅\n这是 ALSAAB AI 中 {p} 套餐的付款链接：","付款后，订阅将自动激活并关联到正确的合作伙伴。"),
     "ja":("どのプランのお支払いリンクをご希望ですか？","AED/月","準備できました ✅\nALSAAB AIの{p}プランのお支払いリンクです：","お支払い後、サブスクリプションは自動的に有効化され、正しいパートナーに紐付けられます。"),
     "ko":("어떤 요금제의 결제 링크가 필요하신가요?","AED/월","준비되었습니다 ✅\nALSAAB AI의 {p} 요금제 결제 링크입니다:","결제 후 구독이 자동으로 활성화되고 올바른 파트너에게 연결됩니다.")}
-    if lang not in t: return ("Entry — 99 AED\nStarter — 299 AED\nGrowth — 599 AED\nElite — 1199 AED\nDiamond — 2399 AED" if mode=="choose" else f"✅ ALSAAB AI — {plan}\n\n{pay_url}")
+    _links=_al_pay_plan_links(session_id,source_partner_id)
+    _plans=(("Entry",99,"entry"),("Starter",299,"starter"),("Growth",599,"growth"),("Elite",1199,"elite"),("Diamond",2399,"diamond"))
+    if lang not in t:
+        if mode=="choose":
+            return "\n\n".join(f"{n} — {p} AED\n{_links[k]}" for n,p,k in _plans)
+        return f"✅ ALSAAB AI — {plan}\n\n{pay_url}"
     intro,suffix,before,after=t[lang]
     if mode=="choose":
-        lines="\n".join(f"• {n} — {p} {suffix}" for n,p in (("Entry",99),("Starter",299),("Growth",599),("Elite",1199),("Diamond",2399)))
+        # Each package carries its own link, so answering "the 99 one" is never
+        # needed -- the visitor can just open the one they want.
+        lines="\n\n".join(f"• {n} — {p} {suffix}\n{_links[k]}" for n,p,k in _plans)
         return f"{intro}\n\n{lines}"
     return f"{before.format(p=plan)}\n\n{pay_url}\n\n{after}"
 # ALSAAB_PAYMENT_REPLY_LANGUAGE_V1_END
@@ -216,6 +253,60 @@ _AL_PAY_TERMS_AR = (
     "باخذ", "ابا اخذ", "ابي اخذ", "ابغي اخذ", "اخذ الباقه",
     "تفعيل", "فعلي", "سجلني", "ضمني",
 )
+
+
+# How a visitor names a package, in the normalised form the gates compare
+# against. Ordered most specific first, because "الاولي" and "99" both mean
+# entry and either may arrive alone.
+_AL_PLAN_ALIASES = (
+    ("diamond", ("diamond", "دايموند", "ماسيه", "الماسيه", "2399",
+                 "الخامسه", "الاخيره", "الاعلي", "اغلي")),
+    ("elite",   ("elite", "ايليت", "نخبه", "النخبه", "1199", "الرابعه")),
+    ("growth",  ("growth", "نمو", "النمو", "599", "الثالثه", "التالته")),
+    ("starter", ("starter", "ستارتر", "بدايه", "البدايه", "299",
+                 "الثانيه", "التانيه")),
+    ("entry",   ("entry", "انتري", "الدخول", "دخول", "99",
+                 "الاولي", "الاول", "الارخص", "الاقل")),
+)
+
+
+# A visitor on a customer's own bot who says any of these is asking about
+# ALSAAB, not about the shop they arrived at.
+_AL_ALSAAB_INTEREST = (
+    "الصعب", "صعب", "alsaab",
+    "دخل اضافي", "دخل إضافي", "دخل شهري",
+    "شراكه", "الشراكه", "شريك", "عموله", "عمولات",
+    "فرصه", "الفرصه", "نظام مثل", "نظام زي", "بوت مثل", "بوت زي",
+    "ابغي نظام", "عايز نظام", "اشترك في النظام",
+)
+
+
+def _al_detect_plan(normalised_message):
+    """Which package this message names, or "" when it names none."""
+    for plan, aliases in _AL_PLAN_ALIASES:
+        if any(alias in normalised_message for alias in aliases):
+            return plan
+
+    return ""
+
+
+def _al_is_plan_choice(normalised_message, plan):
+    """
+    True when the message is an answer to "which package?" rather than a
+    question that happens to mention one.
+
+    The bot asks which package, the visitor replies "باقة 99" or "الأولى", and
+    that carries no word for paying -- so the intent check failed and the bot
+    asked the same question again, indefinitely. A message this short that
+    names a package is a choice; a long one is a question, and belongs to the
+    model.
+    """
+    if not plan:
+        return False
+
+    words = [w for w in str(normalised_message or "").split() if w]
+
+    return len(words) <= 4
 
 
 def build_safe_alsaab_opportunity_payment_reply(plan_name, session_id, source_partner_id=""):
@@ -249,7 +340,6 @@ def build_safe_alsaab_opportunity_payment_reply(plan_name, session_id, source_pa
         ("entry", ["entry", "99", "\u0627\u0644\u062f\u062e\u0648\u0644", "\u062f\u062e\u0648\u0644"]),
     ]
 
-    _has_payment = any(w in incoming_msg for w in _payment_words)
     _requested_plan = None
 
     for _plan, _aliases in _plan_aliases:
@@ -257,8 +347,19 @@ def build_safe_alsaab_opportunity_payment_reply(plan_name, session_id, source_pa
             _requested_plan = _plan
             break
 
+    # Fall back to the shared alias table, which knows the ordinals and the
+    # bare prices. Without it "باقة 99" reached here, matched nothing, and was
+    # answered with the same "which package?" the visitor had just replied to.
+    if not _requested_plan:
+        _requested_plan = _al_detect_plan(incoming_msg) or None
+
+    _has_payment = (
+        any(w in incoming_msg for w in _payment_words)
+        or _al_is_plan_choice(incoming_msg, _requested_plan)
+    )
+
     if not (_has_payment and _requested_plan):
-        return _al_pay_reply(incoming_msg,"choose")
+        return _al_pay_reply(incoming_msg,"choose",session_id=session_id,source_partner_id=source_partner_id)
 
     plan_name = _requested_plan
     # ALSAAB_SAFE_PAYMENT_FUNCTION_HARD_GUARD_V1_END
@@ -2194,8 +2295,6 @@ def chat():
     # runs -- so on /c/<partner_id> a buyer asking to pay for the customer's
     # product was handed ALSAAB's subscription tiers instead.
     try:
-        if bot_partner_id:
-            raise _SkipAlsaabPaymentGate
         _msg = str(payment_decision_message or "").strip().lower()
         for _a, _b in {
             "\u0623": "\u0627", "\u0625": "\u0627", "\u0622": "\u0627",
@@ -2206,21 +2305,65 @@ def chat():
             _msg = _msg.replace(_a, _b)
         _msg = " ".join(_msg.split())
 
-        _plan = None
-        if any(x in _msg for x in ["diamond", "\u062f\u0627\u064a\u0645\u0648\u0646\u062f", "\u0645\u0627\u0633\u064a\u0647", "2399"]):
-            _plan = "diamond"
-        elif any(x in _msg for x in ["elite", "\u0627\u064a\u0644\u064a\u062a", "\u0646\u062e\u0628\u0647", "1199"]):
-            _plan = "elite"
-        elif any(x in _msg for x in ["growth", "\u0646\u0645\u0648", "599"]):
-            _plan = "growth"
-        elif any(x in _msg for x in ["starter", "\u0633\u062a\u0627\u0631\u062a\u0631", "\u0628\u062f\u0627\u064a\u0647", "299"]):
-            _plan = "starter"
-        elif any(x in _msg for x in ["entry", "\u0627\u0646\u062a\u0631\u064a", "\u0627\u0644\u062f\u062e\u0648\u0644", "\u062f\u062e\u0648\u0644", "99"]):
-            _plan = "entry"
+        # On a customer's own bot the gate stays out of the way -- except when
+        # the visitor asks about ALSAAB itself. Someone who opened a shop's link
+        # and then asked about extra income or the partnership is asking about
+        # ALSAAB, and turning them away there loses a signup the shop owner
+        # would have been credited for. So ALSAAB answers, and the shop owner
+        # is the referrer.
+        if bot_partner_id:
+            # Once a visitor has been handed to ALSAAB, keep them there for the
+            # rest of the conversation. The handoff used to be judged per
+            # message, so "أبغى دخل إضافي" reached ALSAAB and the very next
+            # message -- "أبغى أشترك في باقة النمو" -- fell back to the shop's
+            # bot and returned the shop's payment link. The visitor was buying
+            # ALSAAB and being sent to a web-hosting checkout.
+            _handed_over = False
+
+            try:
+                from brain import get_session_state
+
+                _state = get_session_state(session_id)
+                _handed_over = bool(_state.get("alsaab_handoff"))
+
+            except Exception as _state_error:
+                print(f"HANDOFF STATE READ FAILED ⚠️ {_state_error}", flush=True)
+                _state = None
+
+            if _handed_over or any(x in _msg for x in _AL_ALSAAB_INTEREST):
+                # Hand the whole request over, not just the gate: clearing
+                # bot_partner_id is what makes think() answer as ALSAAB further
+                # down. Crediting the shop owner while leaving their own bot in
+                # charge produced a bot explaining the partnership in the shop's
+                # voice, with no way to sign up.
+                source_partner_id = normalize_source_partner_id(bot_partner_id) or source_partner_id
+                bot_partner_id = ""
+
+                if _state is not None:
+                    _state["alsaab_handoff"] = True
+                    _state["source_partner_id"] = source_partner_id
+                    _state["referrer_partner_id"] = source_partner_id
+
+                _handoff_note = "kept" if _handed_over else "new"
+
+                print(
+                    "CLIENT BOT -> ALSAAB HANDOFF \u2705 "
+                    + _handoff_note
+                    + " referrer=" + str(source_partner_id),
+                    flush=True
+                )
+            else:
+                raise _SkipAlsaabPaymentGate
+
+        _plan = _al_detect_plan(_msg)
 
         _has_payment_intent = (
             any(x in _msg for x in _AL_PAY_TERMS_AR)
             or any(x in _msg for x in _AL_PAY_TERMS)
+            # "\u0628\u0627\u0642\u0629 99" answers the question the bot just asked. It carries no
+            # word for paying, and demanding one is what made the bot repeat
+            # itself instead of sending the link.
+            or _al_is_plan_choice(_msg, _plan)
         )
 
         # Link only when payment intent + package/price are clear.
@@ -2239,7 +2382,7 @@ def chat():
         # If payment link requested but package is unclear, ask one clean question. No payment link.
         if _has_payment_intent and not _plan:
             return jsonify({
-                "reply": _al_pay_reply(payment_decision_message,"choose"),
+                "reply": _al_pay_reply(payment_decision_message,"choose",session_id=session_id,source_partner_id=source_partner_id),
                 "session_id": session_id,
                 "source_partner_id": source_partner_id
             })
