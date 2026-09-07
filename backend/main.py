@@ -281,6 +281,21 @@ _AL_ALSAAB_INTEREST = (
 )
 
 
+# Asking to see what is on offer. Answered with the list and its links rather
+# than with "tell me which package you want" -- the visitor is asking precisely
+# because they do not know yet, and the canned deflection sent them away.
+_AL_PLAN_LIST_TERMS = (
+    "الباقات", "باقات", "الاسعار", "اسعار", "الاسعر",
+    "كم السعر", "بكم", "كم سعر", "شو الاسعار", "ايش الاسعار",
+    "العروض", "الخطط", "الاشتراكات",
+    "packages", "plans", "pricing", "prices", "price list",
+)
+
+
+def _al_wants_plan_list(normalised_message):
+    return any(term in normalised_message for term in _AL_PLAN_LIST_TERMS)
+
+
 def _al_detect_plan(normalised_message):
     """Which package this message names, or "" when it names none."""
     for plan, aliases in _AL_PLAN_ALIASES:
@@ -2366,6 +2381,30 @@ def chat():
             or _al_is_plan_choice(_msg, _plan)
         )
 
+        # "أريد الباقات" is a question the price list answers. It used to reach
+        # the model, which replied that it would not send a payment link until
+        # the visitor named a package -- refusing to show the menu to someone
+        # asking to see the menu. The list carries a link per package, so this
+        # answers the question and the next step at once.
+        if _al_wants_plan_list(_msg) and not _plan:
+            return jsonify({
+                "reply": _al_pay_reply(
+                    payment_decision_message, "choose",
+                    session_id=session_id, source_partner_id=source_partner_id
+                ),
+                "session_id": session_id,
+                "source_partner_id": source_partner_id,
+                # The link firewall replaces any reply carrying a payment link
+                # unless the reply is marked as one this gate produced. Without
+                # the marker it swallowed the price list and answered "I will
+                # not send a payment link until you name a package" -- to
+                # someone who had asked to see the packages.
+                "safe_alsaab_opportunity_payment": {
+                    "plan": "list",
+                    "source_partner_id": source_partner_id
+                }
+            })
+
         # Link only when payment intent + package/price are clear.
         if _has_payment_intent and _plan:
             _reply = build_safe_alsaab_opportunity_payment_reply(_plan, session_id, source_partner_id=source_partner_id)
@@ -2379,12 +2418,18 @@ def chat():
                 }
             })
 
-        # If payment link requested but package is unclear, ask one clean question. No payment link.
+        # Payment asked for, package unclear: show the list, each line carrying
+        # its own link. Marked like the branch above so the firewall lets the
+        # links through.
         if _has_payment_intent and not _plan:
             return jsonify({
                 "reply": _al_pay_reply(payment_decision_message,"choose",session_id=session_id,source_partner_id=source_partner_id),
                 "session_id": session_id,
-                "source_partner_id": source_partner_id
+                "source_partner_id": source_partner_id,
+                "safe_alsaab_opportunity_payment": {
+                    "plan": "list",
+                    "source_partner_id": source_partner_id
+                }
             })
     except _SkipAlsaabPaymentGate:
         print(f"ALSAAB PAYMENT GATE SKIPPED ✅ client bot {bot_partner_id}", flush=True)
