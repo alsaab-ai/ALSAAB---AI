@@ -2221,7 +2221,94 @@ def alsaab_chat_explicit_payment_plan_v5(message):
     return None
 
 
-def alsaab_chat_strip_unwanted_payment_links_v5(reply, payment_decision_message):
+# ===== ALSAAB_STAMP_REFERRER_ON_LINKS_V1 START =====
+# Three customers subscribed through a link the model wrote itself --
+# /pay/growth?sid=... with no ref on it -- so their subscriptions were credited
+# to the company instead of the partner whose bot they were reading. The
+# payment gate attaches the referrer to the links it builds, but nothing
+# attached it to the ones that came back out of the model, and the reply is the
+# last place we can tell the difference. So stamp every checkout link on the
+# way out, whoever wrote it.
+_AL_PAY_LINK_RE = re.compile(
+    r"(?:https?://[^\s<>\"']*?)?/pay/(?P<plan>entry|starter|growth|elite|diamond)"
+    r"(?P<query>\?[^\s<>\"'\)\]]*)?",
+    flags=re.IGNORECASE,
+)
+
+_AL_STRIPE_LINK_RE = re.compile(
+    r"https?://buy\.stripe\.com/[^\s<>\"'\)\]]+",
+    flags=re.IGNORECASE,
+)
+
+
+def _al_stripe_link_plans():
+    """The five Stripe payment links, keyed by URL, so a raw one can be named."""
+    plans = {}
+
+    for plan_name, plan_config in STRIPE_PLAN_CONFIG.items():
+        link = str((plan_config or {}).get("payment_link") or "").strip()
+
+        if link:
+            plans[link.rstrip("/").lower()] = plan_name
+
+    return plans
+
+
+def alsaab_stamp_referrer_on_payment_links(reply, session_id="", source_partner_id=""):
+    """
+    Put the session and the referrer on every checkout link in a reply.
+
+    Idempotent: a link the gate already built correctly comes back unchanged.
+    """
+    reply_text = str(reply or "")
+
+    if not session_id:
+        return reply_text
+
+    if "/pay/" not in reply_text and "buy.stripe.com" not in reply_text.lower():
+        return reply_text
+
+    base = str(globals().get("APP_BASE_URL", "https://alsaab-ai.onrender.com")).rstrip("/")
+    partner_id = normalize_source_partner_id(source_partner_id)
+
+    def stamp_internal(match):
+        params = dict(parse_qsl((match.group("query") or "").lstrip("?")))
+        params["sid"] = session_id
+
+        if partner_id:
+            params["ref"] = partner_id
+            params["source_partner_id"] = partner_id
+
+        return f"{base}/pay/{match.group('plan').lower()}?{urlencode(params)}"
+
+    def stamp_stripe(match):
+        url = match.group(0)
+        parsed = urlparse(url)
+        plan_name = _al_stripe_link_plans().get(
+            f"{parsed.scheme}://{parsed.netloc}{parsed.path}".rstrip("/").lower(), ""
+        )
+
+        # An unrecognised buy.stripe.com URL is not ours to rewrite.
+        if not plan_name:
+            return url
+
+        params = dict(parse_qsl(parsed.query))
+        params["client_reference_id"] = build_stripe_client_reference_id(
+            session_id, plan_name, partner_id
+        )
+
+        return urlunparse(parsed._replace(query=urlencode(params)))
+
+    reply_text = _AL_PAY_LINK_RE.sub(stamp_internal, reply_text)
+    reply_text = _AL_STRIPE_LINK_RE.sub(stamp_stripe, reply_text)
+
+    return reply_text
+# ===== ALSAAB_STAMP_REFERRER_ON_LINKS_V1 END =====
+
+
+def alsaab_chat_strip_unwanted_payment_links_v5(
+    reply, payment_decision_message, session_id="", source_partner_id=""
+):
     import re
 
     reply_text = str(reply or "")
@@ -2236,9 +2323,16 @@ def alsaab_chat_strip_unwanted_payment_links_v5(reply, payment_decision_message)
         return reply_text
 
     if alsaab_chat_explicit_payment_plan_v5(payment_decision_message):
-        return reply_text.replace("http://alsaab-ai.onrender.com", "https://alsaab-ai.onrender.com")
+        return alsaab_stamp_referrer_on_payment_links(
+            reply_text.replace("http://alsaab-ai.onrender.com", "https://alsaab-ai.onrender.com"),
+            session_id=session_id,
+            source_partner_id=source_partner_id,
+        )
 
-    return _al_pay_reply(payment_decision_message,"choose")
+    return _al_pay_reply(
+        payment_decision_message, "choose",
+        session_id=session_id, source_partner_id=source_partner_id
+    )
 # ALSAAB_CHAT_PAYMENT_GATE_V5_END
 
 @app.route("/chat", methods=["POST"])
@@ -2533,7 +2627,10 @@ def chat():
             )
 
             if safe_alsaab_payment_reply:
-                safe_alsaab_payment_reply = alsaab_chat_strip_unwanted_payment_links_v5(safe_alsaab_payment_reply, payment_decision_message)
+                safe_alsaab_payment_reply = alsaab_chat_strip_unwanted_payment_links_v5(
+                    safe_alsaab_payment_reply, payment_decision_message,
+                    session_id=session_id, source_partner_id=source_partner_id
+                )
                 save_message(session_id, "bot", safe_alsaab_payment_reply)
                 print(
                     f"SAFE ALSAAB OPPORTUNITY PAYMENT LINK REPLY OK session_id={session_id} plan={safe_alsaab_payment_plan} source_partner_id={source_partner_id}",
@@ -2541,7 +2638,10 @@ def chat():
                 )
 
                 return jsonify({
-                    "reply": alsaab_chat_strip_unwanted_payment_links_v5(safe_alsaab_payment_reply, payment_decision_message),
+                    "reply": alsaab_chat_strip_unwanted_payment_links_v5(
+                    safe_alsaab_payment_reply, payment_decision_message,
+                    session_id=session_id, source_partner_id=source_partner_id
+                ),
                     "session_id": session_id,
                     "source_partner_id": source_partner_id,
                     "bot_mode": current_bot_mode(),
@@ -2618,7 +2718,10 @@ def chat():
         reply = alsaab_guard_auto_payment_links(reply, payment_decision_message)
         print(f"MAIN THINK REPLY AFTER PAYMENT GUARD ✅ {reply}", flush=True)
 
-        reply = alsaab_chat_strip_unwanted_payment_links_v5(reply, payment_decision_message)
+        reply = alsaab_chat_strip_unwanted_payment_links_v5(
+            reply, payment_decision_message,
+            session_id=session_id, source_partner_id=source_partner_id
+        )
 
         save_message(session_id, "bot", reply)
         print("MAIN BOT MESSAGE SAVED ✅", flush=True)
@@ -2627,7 +2730,10 @@ def chat():
             record_bot_reply_usage(usage_session_id)
             print("BOT REPLY USAGE RECORDED ✅", flush=True)
 
-        final_reply = alsaab_chat_strip_unwanted_payment_links_v5(reply, payment_decision_message)
+        final_reply = alsaab_chat_strip_unwanted_payment_links_v5(
+            reply, payment_decision_message,
+            session_id=session_id, source_partner_id=source_partner_id
+        )
         reply_images = product_images_for_reply(bot_partner_id, final_reply)
 
         if reply_images:
