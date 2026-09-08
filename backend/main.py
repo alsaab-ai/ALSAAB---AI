@@ -2296,6 +2296,33 @@ def chat():
     if bot_partner_id:
         print(f"CLIENT BOT REQUESTED ✅ bot_partner_id={bot_partner_id}", flush=True)
 
+    # ===== ALSAAB_BOT_MODE_SWITCH_V1 =====
+    # Which of the two bots the visitor picked with the switch in the header of
+    # /c/<partner_id>. "alsaab" hands them over exactly like asking about extra
+    # income does; "client" hands them back, which nothing could do before --
+    # once the handoff was stored the visitor was stuck with ALSAAB for the
+    # rest of the conversation. Anything else leaves the decision to the
+    # wording of the message, as before.
+    requested_bot_mode = str(data.get("bot_mode") or "").strip().lower()
+
+    if requested_bot_mode not in ("alsaab", "client"):
+        requested_bot_mode = ""
+
+    # bot_partner_id is cleared on handoff, so keep the page's own owner to
+    # report the resulting mode back to the browser.
+    page_bot_partner_id = bot_partner_id
+
+    def current_bot_mode():
+        """
+        Which bot is answering right now, for the switch in the page header.
+        bot_partner_id is cleared the moment a visitor is handed to ALSAAB,
+        so this reads it live rather than being computed once.
+        """
+        if not page_bot_partner_id:
+            return ""
+
+        return "client" if bot_partner_id else "alsaab"
+
     # A visitor's first message has no session id yet, and the payment gate
     # below needs one: the checkout URL carries it so Stripe can hand it back
     # on the webhook and the subscription lands on the right account. Minting
@@ -2348,6 +2375,23 @@ def chat():
             except Exception as _state_error:
                 print(f"HANDOFF STATE READ FAILED ⚠️ {_state_error}", flush=True)
                 _state = None
+
+            # Pressing the ALSAAB tab hands the visitor over even when they
+            # typed nothing that asks for it -- that press IS the request.
+            if requested_bot_mode == "alsaab":
+                _handed_over = True
+
+            # Pressing the shop's tab drops the stored handoff, and then gets
+            # out of the way. It must not veto the words below: the page sends
+            # bot_mode="client" on every message while that tab is lit, so
+            # deciding here would mean "دخل إضافي" and "شركة الصعب" never
+            # reached ALSAAB again unless the visitor found the tab first.
+            elif requested_bot_mode == "client":
+                _handed_over = False
+
+                if _state is not None:
+                    _state["alsaab_handoff"] = False
+                    _state["bot_partner_id"] = bot_partner_id
 
             if _handed_over or any(x in _msg for x in _AL_ALSAAB_INTEREST):
                 # Hand the whole request over, not just the gate: clearing
@@ -2407,6 +2451,7 @@ def chat():
                 ),
                 "session_id": session_id,
                 "source_partner_id": source_partner_id,
+                "bot_mode": current_bot_mode(),
                 # The link firewall replaces any reply carrying a payment link
                 # unless the reply is marked as one this gate produced. Without
                 # the marker it swallowed the price list and answered "I will
@@ -2414,7 +2459,7 @@ def chat():
                 # someone who had asked to see the packages.
                 "safe_alsaab_opportunity_payment": {
                     "plan": "list",
-                    "source_partner_id": source_partner_id
+                    "source_partner_id": source_partner_id,
                 }
             })
 
@@ -2425,9 +2470,10 @@ def chat():
                 "reply": _reply,
                 "session_id": session_id,
                 "source_partner_id": source_partner_id,
+                "bot_mode": current_bot_mode(),
                 "safe_alsaab_opportunity_payment": {
                     "plan": _plan,
-                    "source_partner_id": source_partner_id
+                    "source_partner_id": source_partner_id,
                 }
             })
 
@@ -2439,9 +2485,10 @@ def chat():
                 "reply": _al_pay_reply(payment_decision_message,"choose",session_id=session_id,source_partner_id=source_partner_id),
                 "session_id": session_id,
                 "source_partner_id": source_partner_id,
+                "bot_mode": current_bot_mode(),
                 "safe_alsaab_opportunity_payment": {
                     "plan": "list",
-                    "source_partner_id": source_partner_id
+                    "source_partner_id": source_partner_id,
                 }
             })
     except _SkipAlsaabPaymentGate:
@@ -2460,7 +2507,8 @@ def chat():
         return jsonify({
             "reply": "اكتب رسالتك عشان أقدر أساعدك.",
             "session_id": session_id,
-            "source_partner_id": source_partner_id
+            "source_partner_id": source_partner_id,
+            "bot_mode": current_bot_mode()
         })
 
     usage_session_id = session_id
@@ -2496,9 +2544,10 @@ def chat():
                     "reply": alsaab_chat_strip_unwanted_payment_links_v5(safe_alsaab_payment_reply, payment_decision_message),
                     "session_id": session_id,
                     "source_partner_id": source_partner_id,
+                    "bot_mode": current_bot_mode(),
                     "safe_alsaab_opportunity_payment": {
                         "plan": safe_alsaab_payment_plan,
-                        "source_partner_id": source_partner_id
+                        "source_partner_id": source_partner_id,
                     }
                 })
 
@@ -2514,6 +2563,7 @@ def chat():
                 "reply": TRAINING_LOCKED_REPLY,
                 "session_id": session_id,
                 "source_partner_id": source_partner_id,
+                "bot_mode": current_bot_mode(),
                 "training": {
                     "allowed": False,
                     "reason": "no_active_subscription"
@@ -2539,6 +2589,7 @@ def chat():
                     "reply": blocked_reply,
                     "session_id": session_id,
                     "source_partner_id": source_partner_id,
+                    "bot_mode": current_bot_mode(),
                     "usage": {
                         "allowed": False,
                         "reason": usage_check.get("reason"),
@@ -2586,7 +2637,8 @@ def chat():
             "reply": final_reply,
             "images": reply_images,
             "session_id": session_id,
-            "source_partner_id": source_partner_id
+            "source_partner_id": source_partner_id,
+            "bot_mode": current_bot_mode(),
         })
 
     except Exception as error:
@@ -2596,6 +2648,7 @@ def chat():
             "reply": "صار خطأ تقني مؤقت. جرب مرة ثانية.",
             "session_id": session_id,
             "source_partner_id": source_partner_id,
+            "bot_mode": current_bot_mode(),
             "error": str(error)
         }), 500
 
@@ -3035,6 +3088,12 @@ def partner_dashboard_view():
             "commission_count": "عددها",
             "partner_info": "بيانات الشريك",
             "name": "الاسم",
+            "edit_name": "تعديل",
+            "save_name": "حفظ",
+            "cancel_edit": "إلغاء",
+            "name_saved": "تم حفظ الاسم",
+            "name_failed": "تعذّر الحفظ، حاول مرة أخرى",
+            "name_hint": "الاسم الذي يظهر لك وللإدارة وفي التقارير. من 2 إلى 80 حرفاً.",
             "status": "الحالة",
             "sponsor": "Sponsor",
             "referral_link": "Referral Link",
@@ -3098,6 +3157,12 @@ def partner_dashboard_view():
             "commission_count": "Count",
             "partner_info": "Partner Information",
             "name": "Name",
+            "edit_name": "Edit",
+            "save_name": "Save",
+            "cancel_edit": "Cancel",
+            "name_saved": "Name saved",
+            "name_failed": "Could not save, please try again",
+            "name_hint": "The name shown to you, to the admin and in reports. 2 to 80 characters.",
             "status": "Status",
             "sponsor": "Sponsor",
             "referral_link": "Referral Link",
@@ -3390,6 +3455,86 @@ def partner_dashboard_view():
         ), 500
 
 # ===== ALSAAB_PARTNER_DASHBOARD_UI_MVP_V1 END =====
+
+# ===== ALSAAB_PARTNER_EDIT_NAME_V1 START =====
+# A partner who reached checkout without chatting first was named after their
+# own session id -- "ALSAAB Partner 23e81d7e" -- because neither the chat nor
+# Stripe had handed over a real name by the time the partner row was written.
+# Rather than leave them stuck with it, let them correct it themselves.
+PARTNER_NAME_MIN_LENGTH = 2
+PARTNER_NAME_MAX_LENGTH = 80
+
+
+@app.route("/partner-dashboard/save-name", methods=["POST"])
+def partner_dashboard_save_name():
+    """
+    Rename the signed-in partner. Same access check as the dashboard itself:
+    the SSO token, the browser session, or an admin key -- so a partner can
+    only ever rename their own record.
+    """
+    sso_token = request.form.get("sso", "").strip()
+    sso_payload = None
+
+    if sso_token:
+        sso_payload, sso_error = verify_dashboard_sso_token(sso_token)
+
+        if sso_error:
+            return jsonify({"status": "error", "message": "unauthorized"}), 401
+
+    key = request.form.get("key", "").strip()
+
+    partner_id = normalize_dashboard_partner_id(
+        request.form.get("partner_id", "").strip()
+        or (sso_payload.get("partner_id", "") if sso_payload else "")
+        or session.get("partner_id", "")
+    )
+
+    if sso_payload:
+        session["partner_id"] = partner_id
+    elif not is_dashboard_access_allowed(partner_id, key):
+        print(f"PARTNER NAME SAVE DENIED partner_id={partner_id}", flush=True)
+        return jsonify({"status": "error", "message": "unauthorized"}), 403
+
+    if not partner_id:
+        return jsonify({"status": "error", "message": "partner_id_required"}), 400
+
+    # This name is printed into the admin tree, the commission tables and the
+    # partner reports, so collapse the whitespace and drop anything that is
+    # not printable before it is stored.
+    new_name = " ".join(str(request.form.get("partner_name", "")).split())
+    new_name = "".join(character for character in new_name if character.isprintable())
+
+    if len(new_name) < PARTNER_NAME_MIN_LENGTH or len(new_name) > PARTNER_NAME_MAX_LENGTH:
+        return jsonify({"status": "error", "message": "invalid_name"}), 400
+
+    try:
+        from db import get_connection
+
+        connection = get_connection()
+        cursor = connection.cursor()
+        cursor.execute(
+            "UPDATE partners SET partner_name = ?, updated_at = CURRENT_TIMESTAMP "
+            "WHERE partner_id = ?",
+            (new_name, partner_id),
+        )
+        rows_changed = cursor.rowcount
+        connection.commit()
+        connection.close()
+
+        if not rows_changed:
+            return jsonify({"status": "error", "message": "partner_not_found"}), 404
+
+        print(f"PARTNER NAME UPDATED partner_id={partner_id}", flush=True)
+
+        return jsonify({"status": "success", "partner_name": new_name})
+
+    except Exception as error:
+        print(f"PARTNER NAME SAVE ERROR partner_id={partner_id} error={error}", flush=True)
+        return jsonify({"status": "error", "message": "save_failed"}), 500
+
+# ===== ALSAAB_PARTNER_EDIT_NAME_V1 END =====
+
+
 
 
 # ===== ALSAAB_CLIENT_DASHBOARD_UI_MVP_V1 START =====

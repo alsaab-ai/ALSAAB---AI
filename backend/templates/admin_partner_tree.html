@@ -74,12 +74,54 @@
   .chip[aria-pressed="true"]{ background:rgba(215,184,90,.14); border-color:var(--gold); color:var(--gold-2); }
   .chip:focus-visible{ outline:2px solid var(--gold); outline-offset:2px; }
 
+  /* The network outgrew the screen: it is five levels deep and the widest row
+     runs past any monitor, so reading it meant hunting with a scrollbar. Drag
+     to move, zoom out to see the shape. */
   .canvas{
+    position:relative;
     border:1px solid var(--line); border-radius:18px; background:var(--surface);
-    overflow-x:auto; overflow-y:hidden; padding:30px 20px 34px;
+    overflow:hidden; padding:0;
+    height:min(72vh, 760px); min-height:420px;
+    cursor:grab; touch-action:none;
   }
-  .canvas::-webkit-scrollbar{ height:9px; }
-  .canvas::-webkit-scrollbar-thumb{ background:var(--rail); border-radius:99px; }
+  .canvas.dragging{ cursor:grabbing; }
+  .canvas.dragging *{ user-select:none; }
+
+  /* Physical top/left and a 0 0 origin: the pan maths below stays the same
+     whether the page is RTL or LTR. */
+  .stage{
+    position:absolute; top:0; left:0;
+    transform-origin:0 0;
+    padding:30px 20px 34px;
+    will-change:transform;
+  }
+
+  .zoom{
+    position:absolute; inset-block-start:12px; inset-inline-start:12px; z-index:5;
+    display:flex; gap:6px; align-items:center;
+    background:rgba(11,11,11,.86); border:1px solid var(--line);
+    border-radius:999px; padding:5px 7px; backdrop-filter:blur(6px);
+  }
+  .zoom button{
+    width:31px; height:31px; border-radius:50%;
+    border:1px solid var(--line); background:var(--surface-2); color:var(--gold-2);
+    font-size:16px; font-weight:800; cursor:pointer; line-height:1;
+    display:flex; align-items:center; justify-content:center;
+    font-family:inherit;
+  }
+  .zoom button:hover{ border-color:var(--gold); background:rgba(215,184,90,.16); }
+  .zoom button:focus-visible{ outline:2px solid var(--gold); outline-offset:2px; }
+  .zoom button.wide{ width:auto; border-radius:999px; padding:0 13px; font-size:12.5px; }
+  .zoom .pct{
+    font-family:"IBM Plex Mono",monospace; font-size:12px; color:var(--ink-2);
+    min-width:44px; text-align:center; font-variant-numeric:tabular-nums;
+  }
+
+  .drag-hint{
+    position:absolute; inset-block-end:12px; inset-inline-start:14px; z-index:5;
+    font-size:12px; color:var(--muted); pointer-events:none;
+    background:rgba(11,11,11,.7); border-radius:999px; padding:3px 12px;
+  }
 
   .tree, .tree ul{
     display:flex; justify-content:center; margin:0; padding:0; list-style:none; direction:rtl;
@@ -189,7 +231,18 @@
     <button class="chip" type="button" data-filter="broken" aria-pressed="false">المتعثّر</button>
   </div>
 
-  <div class="canvas">
+  <div class="canvas" id="canvas">
+    <div class="zoom">
+      <button type="button" id="zoomOut" title="تصغير" aria-label="تصغير">−</button>
+      <span class="pct" id="zoomPct">100%</span>
+      <button type="button" id="zoomIn" title="تكبير" aria-label="تكبير">+</button>
+      <button type="button" class="wide" id="zoomFit" title="عرض الشبكة كاملة">الكل</button>
+      <button type="button" class="wide" id="zoomReset" title="رجوع للحجم الأصلي">توسيط</button>
+    </div>
+
+    <div class="drag-hint">اسحب للتحريك · عجلة الماوس للتكبير</div>
+
+    <div class="stage" id="stage">
     <ul class="tree">
       {% macro node(n) %}
         <li>
@@ -226,6 +279,7 @@
       {% endmacro %}
       {{ node(tree) }}
     </ul>
+    </div>
   </div>
 
   <div class="legend">
@@ -256,6 +310,131 @@
       });
     });
   });
+
+  /* ---- Pan and zoom -----------------------------------------------------
+     Once the network passes a couple of dozen partners the tree is wider
+     than any screen, so the canvas is a fixed window and the stage moves
+     inside it: drag anywhere empty, wheel to zoom, buttons for the rest. */
+  (function () {
+    var canvas = document.getElementById("canvas");
+    var stage  = document.getElementById("stage");
+    var pctBox = document.getElementById("zoomPct");
+    if (!canvas || !stage) { return; }
+
+    var MIN = 0.2, MAX = 2;
+    var scale = 1, tx = 0, ty = 0;
+
+    function keepOnScreen() {
+      var w = stage.offsetWidth * scale, h = stage.offsetHeight * scale;
+      var edge = 90;
+      tx = Math.min(canvas.clientWidth - edge, Math.max(edge - w, tx));
+      ty = Math.min(canvas.clientHeight - edge, Math.max(edge - h, ty));
+    }
+
+    function draw() {
+      keepOnScreen();
+      stage.style.transform =
+        "translate(" + Math.round(tx) + "px," + Math.round(ty) + "px) scale(" + scale + ")";
+      if (pctBox) { pctBox.textContent = Math.round(scale * 100) + "%"; }
+    }
+
+    function centre() {
+      tx = (canvas.clientWidth - stage.offsetWidth * scale) / 2;
+      ty = 0;
+      draw();
+    }
+
+    /* Zoom around a point given in canvas coordinates, so whatever sits
+       under the cursor stays under the cursor. */
+    function zoomTo(next, ax, ay) {
+      next = Math.max(MIN, Math.min(MAX, next));
+      if (next === scale) { return; }
+      var k = next / scale;
+      tx = ax - (ax - tx) * k;
+      ty = ay - (ay - ty) * k;
+      scale = next;
+      draw();
+    }
+
+    function stepZoom(k) {
+      zoomTo(scale * k, canvas.clientWidth / 2, canvas.clientHeight / 2);
+    }
+
+    function fitAll() {
+      var w = stage.offsetWidth, h = stage.offsetHeight;
+      if (!w || !h) { return; }
+      scale = Math.max(MIN, Math.min(canvas.clientWidth / w, canvas.clientHeight / h, 1));
+      centre();
+    }
+
+    function resetView() {
+      scale = 1;
+      centre();
+    }
+
+    /* First view: shrink just enough that the whole width is readable. */
+    function openingView() {
+      var w = stage.offsetWidth;
+      if (!w) { return; }
+      scale = Math.max(0.45, Math.min(canvas.clientWidth / w, 1));
+      centre();
+    }
+
+    var dragging = false, grabX = 0, grabY = 0, fromX = 0, fromY = 0;
+
+    canvas.addEventListener("pointerdown", function (e) {
+      if (e.button !== 0) { return; }
+      if (e.target.closest && e.target.closest(".zoom")) { return; }
+      dragging = true;
+      grabX = e.clientX; grabY = e.clientY;
+      fromX = tx; fromY = ty;
+      canvas.classList.add("dragging");
+      try { canvas.setPointerCapture(e.pointerId); } catch (err) {}
+    });
+
+    canvas.addEventListener("pointermove", function (e) {
+      if (!dragging) { return; }
+      tx = fromX + (e.clientX - grabX);
+      ty = fromY + (e.clientY - grabY);
+      draw();
+    });
+
+    function stopDrag(e) {
+      if (!dragging) { return; }
+      dragging = false;
+      canvas.classList.remove("dragging");
+      try { canvas.releasePointerCapture(e.pointerId); } catch (err) {}
+    }
+    canvas.addEventListener("pointerup", stopDrag);
+    canvas.addEventListener("pointercancel", stopDrag);
+    canvas.addEventListener("pointerleave", stopDrag);
+
+    canvas.addEventListener("wheel", function (e) {
+      e.preventDefault();
+      var box = canvas.getBoundingClientRect();
+      zoomTo(scale * (e.deltaY < 0 ? 1.12 : 1 / 1.12),
+             e.clientX - box.left, e.clientY - box.top);
+    }, { passive: false });
+
+    canvas.addEventListener("dblclick", function (e) {
+      var box = canvas.getBoundingClientRect();
+      zoomTo(scale * 1.4, e.clientX - box.left, e.clientY - box.top);
+    });
+
+    document.getElementById("zoomIn").addEventListener("click", function () { stepZoom(1.2); });
+    document.getElementById("zoomOut").addEventListener("click", function () { stepZoom(1 / 1.2); });
+    document.getElementById("zoomFit").addEventListener("click", fitAll);
+    document.getElementById("zoomReset").addEventListener("click", resetView);
+
+    window.addEventListener("resize", draw);
+    /* The cards are set in a web font, so the tree's width changes once it
+       loads - measure again then. */
+    window.addEventListener("load", openingView);
+    if (document.fonts && document.fonts.ready) {
+      document.fonts.ready.then(openingView);
+    }
+    openingView();
+  })();
 </script>
 </body>
 </html>

@@ -540,6 +540,39 @@
 .share-copy:hover{ filter:brightness(1.08); }
 .share-copy.done{ background:linear-gradient(135deg,#22c55e,#14532d); color:#fff; border-color:rgba(134,239,172,.8); }
 /* ===== ALSAAB_PARTNER_CHECKOUT_LINKS_V1 END ===== */
+
+/* ===== ALSAAB_PARTNER_EDIT_NAME_V1 START =====
+   Partners who paid without chatting first were auto-named after their
+   session id. This lets them put their real name in without an admin. */
+.name-value{ display:flex; align-items:center; gap:10px; flex-wrap:wrap; }
+.name-text{ font-weight:700; }
+.name-edit{
+  flex:0 0 auto; border:1px solid rgba(215,184,90,.5); background:transparent;
+  color:#d7b85a; border-radius:999px; padding:4px 13px;
+  font-family:inherit; font-size:12px; font-weight:800; cursor:pointer;
+}
+.name-edit:hover{ background:rgba(215,184,90,.12); }
+.name-form{ display:none; gap:8px; flex-wrap:wrap; align-items:center; width:100%; }
+.name-form.open{ display:flex; }
+.name-value.editing{ display:none; }
+.name-form input{
+  flex:1 1 240px; min-width:0; background:#0b0b0b; color:#fff;
+  border:1px solid rgba(215,184,90,.5); border-radius:10px;
+  padding:9px 12px; font-family:inherit; font-size:14px; font-weight:700;
+}
+.name-form button{
+  flex:0 0 auto; border-radius:999px; padding:9px 18px;
+  font-family:inherit; font-size:12.5px; font-weight:900; cursor:pointer;
+}
+.name-save{ border:1px solid rgba(215,184,90,.6);
+  background:linear-gradient(135deg,#d7b85a,#a88425); color:#0b0b0b; }
+.name-save[disabled]{ opacity:.55; cursor:default; }
+.name-cancel{ border:1px solid rgba(255,255,255,.18); background:transparent; color:#cbd5e1; }
+.name-hint{ width:100%; color:#8d8a7c; font-size:12px; }
+.name-note{ width:100%; font-size:12.5px; font-weight:700; }
+.name-note.ok{ color:#86efac; }
+.name-note.bad{ color:#ef8383; }
+/* ===== ALSAAB_PARTNER_EDIT_NAME_V1 END ===== */
 </style>
 
 <script>
@@ -575,6 +608,101 @@ document.addEventListener("DOMContentLoaded", function () {
       }
     });
   });
+
+  /* ===== ALSAAB_PARTNER_EDIT_NAME_V1 =====
+     Save without leaving the page: this row sits between the partner's
+     figures and their share links, and a full reload loses that place. */
+  var nameView   = document.getElementById("nameView");
+  var nameForm   = document.getElementById("nameForm");
+  var nameInput  = document.getElementById("nameInput");
+  var nameText   = document.getElementById("nameText");
+  var nameNote   = document.getElementById("nameNote");
+  var nameEdit   = document.getElementById("nameEdit");
+  var nameSave   = document.getElementById("nameSave");
+  var nameCancel = document.getElementById("nameCancel");
+
+  if (nameView && nameForm && nameInput) {
+    var savedName = nameInput.value;
+
+    var note = function (message, good) {
+      nameNote.textContent = message;
+      nameNote.className = "name-note " + (good ? "ok" : "bad");
+      nameNote.hidden = !message;
+    };
+
+    var openEditor = function () {
+      nameView.classList.add("editing");
+      nameForm.classList.add("open");
+      note("", true);
+      nameInput.focus();
+      nameInput.select();
+    };
+
+    var closeEditor = function () {
+      nameView.classList.remove("editing");
+      nameForm.classList.remove("open");
+    };
+
+    nameEdit.addEventListener("click", openEditor);
+
+    nameCancel.addEventListener("click", function () {
+      nameInput.value = savedName;
+      closeEditor();
+      note("", true);
+    });
+
+    nameSave.addEventListener("click", function () {
+      var wanted = nameInput.value.trim().replace(/\s+/g, " ");
+
+      if (wanted.length < 2 || wanted.length > 80) {
+        note({{ t.name_hint | tojson }}, false);
+        return;
+      }
+
+      /* key / sso / partner_id already identify this dashboard in the
+         address bar; the session cookie covers a logged-in partner. */
+      var here = new URLSearchParams(window.location.search);
+      var body = new URLSearchParams();
+      body.set("partner_name", wanted);
+      body.set("partner_id", here.get("partner_id") || {{ profile.partner_id | tojson }});
+      if (here.get("key")) { body.set("key", here.get("key")); }
+      if (here.get("sso") || here.get("token")) {
+        body.set("sso", here.get("sso") || here.get("token"));
+      }
+
+      nameSave.disabled = true;
+
+      fetch("/partner-dashboard/save-name", {
+        method: "POST",
+        credentials: "same-origin",
+        headers: { "Content-Type": "application/x-www-form-urlencoded" },
+        body: body.toString()
+      }).then(function (response) {
+        return response.json().catch(function () { return {}; });
+      }).then(function (result) {
+        nameSave.disabled = false;
+
+        if (result && result.status === "success") {
+          savedName = result.partner_name;
+          nameText.textContent = result.partner_name;
+          nameInput.value = result.partner_name;
+          closeEditor();
+          note({{ t.name_saved | tojson }}, true);
+          setTimeout(function () { note("", true); }, 2500);
+        } else {
+          note({{ t.name_failed | tojson }}, false);
+        }
+      }).catch(function () {
+        nameSave.disabled = false;
+        note({{ t.name_failed | tojson }}, false);
+      });
+    });
+
+    nameInput.addEventListener("keydown", function (event) {
+      if (event.key === "Enter") { event.preventDefault(); nameSave.click(); }
+      if (event.key === "Escape") { nameCancel.click(); }
+    });
+  }
 });
 </script>
 </head>
@@ -640,7 +768,24 @@ document.addEventListener("DOMContentLoaded", function () {
     <div class="section">
       <h2>{{ t.partner_info }}</h2>
       <div class="info-row"><div class="label">{{ t.partner_id }}</div><div class="value">{{ profile.partner_id }}</div></div>
-      <div class="info-row"><div class="label">{{ t.name }}</div><div class="value">{{ profile.partner_name or "-" }}</div></div>
+      <div class="info-row">
+        <div class="label">{{ t.name }}</div>
+        <div class="value">
+          <div class="name-value" id="nameView">
+            <span class="name-text" id="nameText">{{ profile.partner_name or "-" }}</span>
+            <button type="button" class="name-edit" id="nameEdit">{{ t.edit_name }}</button>
+          </div>
+          <div class="name-form" id="nameForm">
+            <input type="text" id="nameInput" maxlength="80"
+                   value="{{ profile.partner_name or '' }}"
+                   aria-label="{{ t.name }}">
+            <button type="button" class="name-save" id="nameSave">{{ t.save_name }}</button>
+            <button type="button" class="name-cancel" id="nameCancel">{{ t.cancel_edit }}</button>
+            <div class="name-hint">{{ t.name_hint }}</div>
+          </div>
+          <div class="name-note" id="nameNote" hidden></div>
+        </div>
+      </div>
       <div class="info-row"><div class="label">{{ t.status }}</div><div class="value"><span class="badge">{{ profile.status or "-" }}</span></div></div>
       <div class="info-row"><div class="label">{{ t.sponsor }}</div><div class="value">{{ profile.sponsor_partner_id or "-" }}</div></div>
       <div class="info-row"><div class="label">{{ t.referral_link }}</div><div class="value"><a href="{{ profile.referral_link }}" target="_blank">{{ profile.referral_link }}</a></div></div>

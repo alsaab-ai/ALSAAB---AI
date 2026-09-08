@@ -458,6 +458,72 @@ html, body {
     margin-top: 14px;
 }
 
+/* ===== ALSAAB_BOT_MODE_SWITCH_V1 START =====
+   A visitor on a shop's bot could only reach ALSAAB by happening to type
+   "دخل إضافي", and once there nothing brought them back to the shop.
+   Two tabs make both directions a press. */
+.bot-switch-bar {
+    flex-shrink: 0;
+    padding: 12px 22px 10px;
+    border-bottom: 1px solid rgba(214,168,79,0.16);
+    background: rgba(255,255,255,0.018);
+}
+
+.bot-switch {
+    display: flex;
+    gap: 6px;
+    padding: 5px;
+    border-radius: 999px;
+    border: 1px solid rgba(214,168,79,0.22);
+    background: rgba(0,0,0,0.35);
+}
+
+.bot-tab {
+    flex: 1 1 0;
+    min-width: 0;
+    border: 1px solid transparent;
+    background: transparent;
+    color: var(--text-muted);
+    border-radius: 999px;
+    padding: 9px 12px;
+    font-family: "Cairo", Arial, sans-serif;
+    font-size: 12.5px;
+    font-weight: 800;
+    cursor: pointer;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    transition: color .15s ease, background .15s ease, border-color .15s ease;
+}
+
+.bot-tab:hover {
+    color: var(--text-soft);
+}
+
+.bot-tab.is-on {
+    color: #1a1206;
+    background: linear-gradient(135deg, var(--gold-2), var(--gold-3));
+    border-color: rgba(243,211,123,0.75);
+}
+
+.bot-tab:disabled {
+    opacity: 0.55;
+    cursor: default;
+}
+
+.bot-switch-note {
+    margin: 8px 2px 0;
+    font-size: 11.5px;
+    font-weight: 600;
+    color: var(--text-muted);
+}
+
+@media (max-width: 720px) {
+    .bot-switch-bar { padding: 10px 14px 8px; }
+    .bot-tab { font-size: 11.5px; padding: 8px 9px; }
+}
+/* ===== ALSAAB_BOT_MODE_SWITCH_V1 END ===== */
+
 .quick-chip {
     border: 1px solid rgba(214,168,79,0.35);
     color: var(--gold-2);
@@ -1049,6 +1115,19 @@ a.mini-cta:focus-visible{ outline:2px solid #f3d37b; outline-offset:3px; }
                 </div>
             </header>
 
+            {% if brand and brand.get("name") %}
+            <!-- ===== ALSAAB_BOT_MODE_SWITCH_V1 ===== -->
+            <div class="bot-switch-bar">
+                <div class="bot-switch" id="botSwitch" role="group" aria-label="اختر الموظف">
+                    <button type="button" class="bot-tab is-on" data-mode="client"
+                            onclick="switchBotMode('client')">موظف {{ brand.get("name") }}</button>
+                    <button type="button" class="bot-tab" data-mode="alsaab"
+                            onclick="switchBotMode('alsaab')">موظف الصعب · دخل إضافي</button>
+                </div>
+                <p class="bot-switch-note" id="botSwitchNote">اسأل عن منتجات وخدمات {{ brand.get("name") }}</p>
+            </div>
+            {% endif %}
+
             <section class="messages-wrap">
                 <div id="messages" class="messages">
                   {% if brand and brand.get("name") %}
@@ -1335,6 +1414,49 @@ function showTyping(show) {
     scrollToBottom();
 }
 
+/* ===== ALSAAB_BOT_MODE_SWITCH_V1 ===== */
+const PAGE_BOT_PARTNER_ID = "{{ bot_partner_id or '' }}";
+const BRAND_NAME = {{ (brand.get("name") if brand else "") | tojson }};
+let botMode = "client";
+
+function paintBotMode(mode) {
+    botMode = mode === "alsaab" ? "alsaab" : "client";
+
+    const tabs = document.querySelectorAll(".bot-tab");
+    tabs.forEach(function (tab) {
+        tab.classList.toggle("is-on", tab.getAttribute("data-mode") === botMode);
+    });
+
+    const note = document.getElementById("botSwitchNote");
+    if (note) {
+        note.textContent = botMode === "alsaab"
+            ? "تسأل عن الصعب: الباقات، العمولات، والاشتراك — وأي اشتراك يُحسب لـ " + BRAND_NAME
+            : "تسأل عن منتجات وخدمات " + BRAND_NAME;
+    }
+
+    const input = document.getElementById("msg");
+    if (input) {
+        input.placeholder = botMode === "alsaab"
+            ? "اسأل عن باقات الصعب والدخل الإضافي..."
+            : "اكتب رسالتك هنا...";
+    }
+}
+
+/* Pressing a tab does what typing "دخل إضافي" does: it switches the bot
+   AND asks it the opening question, so the visitor gets a real answer
+   instead of an empty screen with a different label on it. */
+function switchBotMode(mode) {
+    if (isSending) { return; }
+    if (!PAGE_BOT_PARTNER_ID) { return; }
+    if (mode === botMode) { return; }
+
+    paintBotMode(mode);
+
+    sendQuick(mode === "alsaab"
+        ? "أبغى أعرف عن الصعب والدخل الإضافي"
+        : "أبغى أرجع أسأل عن منتجات وخدمات " + BRAND_NAME);
+}
+
 function sendQuick(text) {
     const input = document.getElementById("msg");
     input.value = text;
@@ -1387,7 +1509,11 @@ async function sendMsg() {
                 source_partner_id: sourcePartnerId,
                 ref: sourcePartnerId,
                 smart_link_ref: sourcePartnerId,
-                bot_partner_id: "{{ bot_partner_id or '' }}",
+                // Always send the page's owner, in both modes: it is what
+                // tells the server whose shop this visitor came from, and
+                // dropping it in ALSAAB mode cost the shop the commission.
+                bot_partner_id: PAGE_BOT_PARTNER_ID,
+                bot_mode: PAGE_BOT_PARTNER_ID ? botMode : "",
                 page_url: window.location.href,
                 referrer_url: document.referrer || "",
                 src: new URLSearchParams(window.location.search).get("src") || ""
@@ -1405,6 +1531,12 @@ async function sendMsg() {
             if (sourcePartnerId) {
                 localStorage.setItem("source_partner_id", sourcePartnerId);
             }
+        }
+
+        // The bot hands a visitor over on its own when they ask about extra
+        // income, so follow the server rather than assume the tabs are right.
+        if (data.bot_mode) {
+            paintBotMode(data.bot_mode);
         }
 
         showTyping(false);
