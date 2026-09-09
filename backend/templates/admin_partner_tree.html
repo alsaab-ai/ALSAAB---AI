@@ -503,30 +503,39 @@
       centre();
     }
 
-    var dragging = false, grabX = 0, grabY = 0, fromX = 0, fromY = 0;
+    var dragging = false, captured = false, grabX = 0, grabY = 0, fromX = 0, fromY = 0;
 
     canvas.addEventListener("pointerdown", function (e) {
       if (e.button !== 0) { return; }
       if (e.target.closest && e.target.closest(".zoom")) { return; }
       dragging = true;
+      captured = false;
       // Cleared here and set once the pointer really travels, so the card
       // click handler can tell a press apart from the end of a drag.
       canvas.dataset.dragged = "0";
       grabX = e.clientX; grabY = e.clientY;
       fromX = tx; fromY = ty;
-      canvas.classList.add("dragging");
-      try { canvas.setPointerCapture(e.pointerId); } catch (err) {}
     });
 
     canvas.addEventListener("pointermove", function (e) {
       if (!dragging) { return; }
-      tx = fromX + (e.clientX - grabX);
-      ty = fromY + (e.clientY - grabY);
 
-      if (Math.abs(e.clientX - grabX) > 4 || Math.abs(e.clientY - grabY) > 4) {
+      var travelled = Math.abs(e.clientX - grabX) > 4 || Math.abs(e.clientY - grabY) > 4;
+
+      // Capturing on pointerdown would retarget the click that follows to the
+      // canvas, and a plain press on a partner card would never reach it -- so
+      // the panel never opened. Capture only once this is really a drag.
+      if (travelled && !captured) {
+        captured = true;
         canvas.dataset.dragged = "1";
+        canvas.classList.add("dragging");
+        try { canvas.setPointerCapture(e.pointerId); } catch (err) {}
       }
 
+      if (!captured) { return; }
+
+      tx = fromX + (e.clientX - grabX);
+      ty = fromY + (e.clientY - grabY);
       draw();
     });
 
@@ -534,7 +543,11 @@
       if (!dragging) { return; }
       dragging = false;
       canvas.classList.remove("dragging");
-      try { canvas.releasePointerCapture(e.pointerId); } catch (err) {}
+
+      if (captured) {
+        try { canvas.releasePointerCapture(e.pointerId); } catch (err) {}
+        captured = false;
+      }
     }
     canvas.addEventListener("pointerup", stopDrag);
     canvas.addEventListener("pointercancel", stopDrag);
