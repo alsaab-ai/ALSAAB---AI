@@ -28,7 +28,7 @@ import time
 import hmac
 import hashlib
 import re
-from urllib.parse import urlencode, urlparse, urlunparse, parse_qsl
+from urllib.parse import urlencode, urlparse, urlunparse, parse_qsl, quote
 
 app = Flask(__name__)
 
@@ -3204,6 +3204,10 @@ def partner_dashboard_view():
             "sponsor": "Sponsor",
             "referral_link": "Referral Link",
             "share_links": "روابط المشاركة والاشتراك",
+            "my_tree": "شجرة شبكتي",
+            "my_tree_text": "من انضم تحتك ومن تحتهم، حتى خمس درجات، وحالة اشتراك كل واحد.",
+            "my_info": "معلوماتي",
+            "my_info_text": "عمولاتك بالشهور ومن أين جاءت، ومن توقف تحتك وكم يكلفك شهرياً.",
             "share_links_desc": "أرسل أي رابط من هنا لعميلك. أي اشتراك يتم من خلاله يُحسب لك تلقائياً وتصبح أنت الراعي.",
             "share_plans": "رابط الباقات",
             "share_plans_note": "يفتح صفحة الباقات الخمس ويختار العميل ما يناسبه ثم يدفع مباشرة.",
@@ -3273,6 +3277,10 @@ def partner_dashboard_view():
             "sponsor": "Sponsor",
             "referral_link": "Referral Link",
             "share_links": "Share & subscribe links",
+            "my_tree": "My network",
+            "my_tree_text": "Who joined under you and under them, up to five levels, with each one's subscription state.",
+            "my_info": "My figures",
+            "my_info_text": "Your commissions month by month and where they came from, plus who stopped under you and what it costs.",
             "share_links_desc": "Send any of these to a customer. Every subscription made through them is credited to you and you become their sponsor.",
             "share_plans": "Packages link",
             "share_plans_note": "Opens the five packages so the customer picks one and pays.",
@@ -3364,6 +3372,10 @@ def partner_dashboard_view():
         partner_dashboard_url = build_dashboard_nav_url("/partner-dashboard", partner_id, lang, key)
         client_dashboard_url = build_dashboard_nav_url("/client-dashboard", partner_id, lang, key)
         owner_advisory_url = build_dashboard_nav_url("/owner-advisory", partner_id, lang, key)
+        # The tree and the earnings panel, rooted at this partner rather
+        # than the company. ?view=info opens the panel instead of the tree.
+        network_url = build_dashboard_nav_url("/partner-dashboard/network", partner_id, lang, key)
+        network_info_url = network_url + "&view=info"
 
         # ALSAAB_FIX_PARTNER_LEVEL_ALIAS_V1
         search_profile = profile
@@ -3533,6 +3545,8 @@ def partner_dashboard_view():
             partner_dashboard_url=partner_dashboard_url,
             client_dashboard_url=client_dashboard_url,
             owner_advisory_url=owner_advisory_url,
+            network_url=network_url,
+            network_info_url=network_info_url,
             data=result,
             profile=profile,
             level=level,
@@ -5419,6 +5433,39 @@ def admin_partner_tree():
 
     try:
         from datetime import datetime, timezone
+
+        tree, counts = build_partner_network("alsaab", show_emails=True)
+
+        return render_template(
+            "admin_partner_tree.html",
+            tree=tree,
+            counts=counts,
+            key=request.args.get("key", "").strip(),
+            today=datetime.now(timezone.utc).strftime("%Y-%m-%d"),
+            scope="admin",
+            detail_url="/admin/partner-detail?key=" + quote(request.args.get("key", "").strip()),
+            back_url=build_dashboard_nav_url(
+                "/admin-dashboard", "", "ar", request.args.get("key", "").strip()
+            ),
+            back_label="لوحة الأدمن",
+            heading="شجرة الشركاء",
+            auto_open="",
+        )
+
+    except Exception as error:
+        print(f"ADMIN PARTNER TREE ERROR ❌ {error}", flush=True)
+        return f"Partner tree failed: {error}", 500
+
+
+def build_partner_network(root_id="alsaab", show_emails=True):
+    """
+    The sponsor network as a nested tree, from any root.
+
+    Admin reads it from "alsaab" and sees everyone; a partner reads it from
+    their own id and sees only their branch, which is the whole point of
+    passing a root rather than filtering afterwards.
+    """
+    try:
         from db import get_connection
 
         cursor = get_connection().cursor()
@@ -5456,7 +5503,10 @@ def admin_partner_tree():
             people[pid] = {
                 "id": pid,
                 "name": name or pid,
-                "email": email,
+                # A partner looking at their own branch sees people four levels
+                # down that they never recruited. Their names place them in the
+                # tree; their addresses are not the partner's to hold.
+                "email": email if show_emails else "",
                 "sponsor": sponsor or "alsaab",
                 "plan": plan,
                 "status": status or "unknown",
@@ -5502,26 +5552,32 @@ def admin_partner_tree():
                 "kids": [build(k) for k in sorted(person["kids"])],
             }
 
-        tree = build("alsaab")
+        if root_id not in people:
+            raise ValueError("unknown root partner: " + str(root_id))
+
+        tree = build(root_id)
+
+        def walk(node, seen):
+            seen.append(node)
+            for kid in node["kids"]:
+                walk(kid, seen)
+            return seen
+
+        branch = walk(tree, [])
+        counted = branch[1:] if root_id == "alsaab" else branch
 
         counts = {
-            "total": len(people) - 1,
-            "active": sum(1 for p in people.values() if p["status"] == "active"),
-            "failed": sum(1 for p in people.values() if p["status"] == "payment_failed"),
-            "cancelled": sum(1 for p in people.values() if p["status"] == "cancelled"),
+            "total": len(branch) - 1,
+            "active": sum(1 for n in counted if n["status"] == "active"),
+            "failed": sum(1 for n in counted if n["status"] == "payment_failed"),
+            "cancelled": sum(1 for n in counted if n["status"] == "cancelled"),
         }
 
-        return render_template(
-            "admin_partner_tree.html",
-            tree=tree,
-            counts=counts,
-            key=request.args.get("key", "").strip(),
-            today=datetime.now(timezone.utc).strftime("%Y-%m-%d"),
-        )
+        return tree, counts
 
     except Exception as error:
-        print(f"ADMIN PARTNER TREE ERROR ❌ {error}", flush=True)
-        return f"Partner tree failed: {error}", 500
+        print(f"PARTNER NETWORK BUILD ERROR ❌ root={root_id} {error}", flush=True)
+        raise
 
 # ===== ALSAAB_ADMIN_PARTNER_TREE_V1 END =====
 
@@ -5581,6 +5637,24 @@ def admin_partner_detail():
     if not partner_id:
         return jsonify({"error": "partner_id is required"}), 400
 
+    return partner_detail_response(partner_id, show_emails=True)
+
+
+def partner_detail_response(partner_id, show_emails=True):
+    """Shared by the admin view and by a partner reading their own numbers."""
+    try:
+        return jsonify(build_partner_detail(partner_id, show_emails=show_emails))
+    except LookupError:
+        return jsonify({"error": "partner_not_found", "partner_id": partner_id}), 404
+    except Exception as error:
+        return jsonify({"error": str(error), "partner_id": partner_id}), 500
+
+
+def build_partner_detail(partner_id, show_emails=True):
+    """
+    Everything behind one card: earnings by month, who paid them, and who in
+    the branch below has stopped renewing.
+    """
     try:
         from datetime import datetime, timezone
         from db import get_connection
@@ -5608,15 +5682,15 @@ def admin_partner_detail():
         row = cursor.fetchone()
 
         if not row:
-            return jsonify({"error": "partner_not_found", "partner_id": partner_id}), 404
+            raise LookupError(partner_id)
 
         cycle_end = _detail_date(row[12])
 
         partner = {
             "partner_id": row[0],
             "name": row[2] or partner_id,
-            "email": row[3] or "",
-            "phone": row[4] or "",
+            "email": (row[3] or "") if show_emails else "",
+            "phone": (row[4] or "") if show_emails else "",
             "sponsor": row[5] or "",
             "rank": row[6] or "",
             "status": row[7] or "",
@@ -5756,7 +5830,7 @@ def admin_partner_detail():
             member = {
                 "partner_id": member_id,
                 "name": line[2] or member_id,
-                "email": line[3] or "",
+                "email": (line[3] or "") if show_emails else "",
                 "depth": depth,
                 "sponsor": line[4] or "",
                 "path": chain_to_root(member_id),
@@ -5828,7 +5902,7 @@ def admin_partner_detail():
 
         month_list = sorted(months.values(), key=lambda item: item["month"], reverse=True)
 
-        return jsonify({
+        return {
             "partner": partner,
             "totals": totals,
             "months": month_list,
@@ -5841,13 +5915,138 @@ def admin_partner_detail():
             },
             "rates": {str(depth): rate for depth, rate in COMMISSION_RATES_BY_DEPTH.items()},
             "today": today.isoformat(),
-        })
+        }
 
+    except LookupError:
+        raise
     except Exception as error:
-        print(f"ADMIN PARTNER DETAIL ERROR {partner_id} {error}", flush=True)
-        return jsonify({"error": str(error), "partner_id": partner_id}), 500
+        print(f"PARTNER DETAIL ERROR {partner_id} {error}", flush=True)
+        raise
 
 # ===== ALSAAB_ADMIN_PARTNER_DETAIL_V1 END =====
+
+# ===== ALSAAB_PARTNER_OWN_NETWORK_V1 START =====
+# The tree and the earnings panel were admin-only, so a partner could see a
+# total on their dashboard but never who it came from or who under them had
+# stopped paying. Same two views, rooted at the partner instead of the company,
+# and behind the dashboard's own access check rather than the admin key.
+
+
+def resolve_dashboard_caller():
+    """
+    Which partner is asking, by the same three ways the dashboards accept:
+    an SSO token, the browser session, or an admin key.
+
+    Returns (partner_id, "") or ("", reason).
+    """
+    sso_token = request.values.get("sso", "").strip() or request.values.get("token", "").strip()
+    sso_payload = None
+
+    if sso_token:
+        sso_payload, sso_error = verify_dashboard_sso_token(sso_token)
+
+        if sso_error:
+            return "", "unauthorized"
+
+    key = request.values.get("key", "").strip()
+
+    partner_id = normalize_dashboard_partner_id(
+        request.values.get("partner_id", "").strip()
+        or (sso_payload.get("partner_id", "") if sso_payload else "")
+        or session.get("partner_id", "")
+    )
+
+    if sso_payload:
+        session["partner_id"] = partner_id
+    elif not is_dashboard_access_allowed(partner_id, key):
+        return "", "unauthorized"
+
+    if not partner_id:
+        return "", "partner_id_required"
+
+    return partner_id, ""
+
+
+@app.route("/partner-dashboard/detail", methods=["GET"])
+def partner_dashboard_detail():
+    """
+    A partner's own earnings and downline, as JSON.
+
+    Only ever their own: the id comes from whoever is signed in, never from a
+    parameter, so this cannot be pointed at somebody else's numbers.
+    """
+    partner_id, problem = resolve_dashboard_caller()
+
+    if problem:
+        return jsonify({"error": problem}), 403 if problem == "unauthorized" else 400
+
+    return partner_detail_response(partner_id, show_emails=False)
+
+
+@app.route("/partner-dashboard/network", methods=["GET"])
+def partner_dashboard_network():
+    """
+    The partner's own branch of the tree, and their earnings panel.
+
+    Rooted at them, so the page cannot show anybody above them or in a
+    different branch. ?view=info opens their panel straight away.
+    """
+    partner_id, problem = resolve_dashboard_caller()
+
+    if problem == "unauthorized":
+        return redirect(build_dashboard_login_redirect(
+            "partner", request.values.get("partner_id", ""), request.values.get("lang", "ar")
+        )), 302
+
+    if problem:
+        return "partner_id is required", 400
+
+    try:
+        from datetime import datetime, timezone
+        from urllib.parse import urlencode
+
+        # Emails stay out: a partner's branch includes people several levels
+        # down that they never recruited and have no dealings with.
+        tree, counts = build_partner_network(partner_id, show_emails=False)
+
+        key = request.values.get("key", "").strip()
+        lang = request.values.get("lang", "ar").strip().lower()
+        lang = lang if lang in ("ar", "en") else "ar"
+
+        carried = {"lang": lang}
+        sso_token = request.values.get("sso", "").strip() or request.values.get("token", "").strip()
+
+        if sso_token:
+            carried["sso"] = sso_token
+        elif key:
+            carried["key"] = key
+            carried["partner_id"] = partner_id
+
+        return render_template(
+            "admin_partner_tree.html",
+            tree=tree,
+            counts=counts,
+            key=key,
+            today=datetime.now(timezone.utc).strftime("%Y-%m-%d"),
+            scope="partner",
+            detail_url="/partner-dashboard/detail?" + urlencode(carried),
+            back_url=build_dashboard_nav_url("/partner-dashboard", partner_id, lang, key),
+            back_label="لوحة الشريك",
+            heading="شبكتي",
+            # Clicking any other card would open that person's earnings, which
+            # are not this partner's to read.
+            clickable_partner_id=partner_id,
+            auto_open=(partner_id if request.values.get("view", "").strip() == "info" else ""),
+        )
+
+    except ValueError:
+        return "partner not found", 404
+    except Exception as error:
+        print(f"PARTNER NETWORK PAGE ERROR ❌ {partner_id} {error}", flush=True)
+        return f"Network view failed: {error}", 500
+
+# ===== ALSAAB_PARTNER_OWN_NETWORK_V1 END =====
+
 
 
 
