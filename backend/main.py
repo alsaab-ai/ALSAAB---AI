@@ -5695,7 +5695,8 @@ def admin_partner_detail():
             totals["all"] = round(totals["all"] + amount, 2)
             totals[bucket_key] = round(totals[bucket_key] + amount, 2)
 
-        month_list = sorted(months.values(), key=lambda item: item["month"], reverse=True)
+        # month_list is built after the downline below: an empty month needs
+        # the renewals it is waiting on before it can be shown.
 
         # ---------------------------------------------------- the downline
         cursor.execute(
@@ -5777,6 +5778,55 @@ def admin_partner_detail():
             (lapsed if is_lapsed else active).append(member)
 
         lapsed.sort(key=lambda item: (-item["worth"], item["depth"]))
+
+        # ------------------------------------------- months, gaps included
+        # A month with no commissions is not a month that earned nothing --
+        # almost always the renewal date simply has not arrived yet. Leaving
+        # the month off the screen made partners look skipped, so show every
+        # month and hand each one the renewals it is still waiting on. "3
+        # people renew on the 24th" reads very differently from a bare zero.
+        current_month = today.strftime("%Y-%m")
+        real_months = sorted(key for key in months if re.fullmatch(r"\d{4}-\d{2}", key))
+        walker = real_months[0] if real_months else current_month
+
+        while walker <= current_month:
+            months.setdefault(walker, {
+                "month": walker,
+                "label": _detail_month_label(walker),
+                "count": 0,
+                "total": 0.0,
+                "paid": 0.0,
+                "pending": 0.0,
+                "rows": [],
+            })
+
+            year, month = int(walker[:4]), int(walker[5:7])
+            year, month = (year + 1, 1) if month == 12 else (year, month + 1)
+            walker = "%04d-%02d" % (year, month)
+
+        for bucket in months.values():
+            already_paid = set(row["payer_id"] for row in bucket["rows"])
+            waiting = [
+                {
+                    "partner_id": member["partner_id"],
+                    "name": member["name"],
+                    "depth": member["depth"],
+                    "plan": member["plan"],
+                    "package_amount": member["package_amount"],
+                    "due_on": member["due_on"],
+                    "percent": member["percent"],
+                    "worth": member["worth"],
+                }
+                for member in active
+                if member["partner_id"] not in already_paid
+                and (member["due_on"] or "")[:7] == bucket["month"]
+            ]
+
+            waiting.sort(key=lambda item: item["due_on"])
+            bucket["expected"] = waiting
+            bucket["expected_total"] = round(sum(item["worth"] for item in waiting), 2)
+
+        month_list = sorted(months.values(), key=lambda item: item["month"], reverse=True)
 
         return jsonify({
             "partner": partner,

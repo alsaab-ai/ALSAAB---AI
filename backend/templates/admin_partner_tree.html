@@ -271,6 +271,9 @@
     display:block; font-family:"IBM Plex Mono",monospace; font-size:13px;
     font-weight:600; color:var(--ok); font-variant-numeric:tabular-nums;
   }
+  /* Nothing has landed in this month yet -- neutral, not green, so it is not
+     mistaken for money already earned. */
+  .month .m-sum.waiting{ color:var(--muted); }
   .month .m-count{ display:block; font-size:10.5px; color:var(--muted); }
 
   .grid-table{ width:100%; overflow-x:auto; }
@@ -667,11 +670,50 @@
     }
 
     /* --- one month's commissions, line by line, with the total --- */
+    /* A month with nothing in it yet: say what it is waiting for. A bare zero
+       reads as a bad month, when almost always the renewal date has simply
+       not come round. */
+    function renderWaiting(month) {
+      if (!month.expected || !month.expected.length) {
+        return '<div class="empty">لا توجد عمولات في ' + esc(month.label) +
+               '، ولا تجديدات مستحقة فيه.</div>';
+      }
+
+      var rows = month.expected.map(function (m) {
+        return '<tr>' +
+          '<td>' + esc(m.name) + '<span class="path">' + esc(m.partner_id) + '</span></td>' +
+          '<td class="num">' + esc(m.depth) + '</td>' +
+          '<td>' + esc(m.plan || "—") + '</td>' +
+          '<td class="num">' + money(m.package_amount) + '</td>' +
+          '<td class="num">' + esc(m.due_on) + '</td>' +
+          '<td class="num">' + esc(m.percent) + '%</td>' +
+          '<td class="num">' + money(m.worth) + '</td>' +
+        '</tr>';
+      }).join("");
+
+      return '<p class="hint">لم تصل أي دفعة في ' + esc(month.label) + ' بعد. ' +
+          'هؤلاء مواعيد تجديدهم في هذا الشهر ولم يحن دورهم — العمولة تُحسب يوم ' +
+          'وصول الدفعة، لا في أول الشهر.</p>' +
+        '<div class="grid-table"><table class="t">' +
+          '<thead><tr>' +
+            '<th>في انتظار</th><th>الدرجة</th><th>الباقة</th><th>المبلغ</th>' +
+            '<th>يجدّد في</th><th>النسبة</th><th>متوقع</th>' +
+          '</tr></thead>' +
+          '<tbody>' + rows + '</tbody>' +
+          '<tfoot><tr>' +
+            '<td colspan="6">المتوقع في ' + esc(month.label) + '</td>' +
+            '<td class="num">' + money(month.expected_total) + '</td>' +
+          '</tr></tfoot>' +
+        '</table></div>';
+    }
+
     function renderMonth(month) {
       var target = document.getElementById("monthRows");
 
-      if (!month || !month.rows.length) {
-        target.innerHTML = '<div class="empty">لا توجد عمولات في هذا الشهر.</div>';
+      if (!month) { return; }
+
+      if (!month.rows.length) {
+        target.innerHTML = renderWaiting(month);
         return;
       }
 
@@ -712,11 +754,21 @@
       }
 
       var chips = data.months.map(function (m, index) {
+        // An empty month shows what it is still owed rather than 0.00, which
+        // would read as a month that went badly.
+        var sum = m.count
+          ? '<span class="m-sum">' + money(m.total) + '</span>' +
+            '<span class="m-count">' + esc(m.count) + ' عمولة</span>'
+          : '<span class="m-sum waiting">' +
+              (m.expected_total ? money(m.expected_total) : "—") + '</span>' +
+            '<span class="m-count">' +
+              (m.expected && m.expected.length
+                ? "بانتظار " + esc(m.expected.length)
+                : "لا شيء") + '</span>';
+
         return '<button type="button" class="month" data-month="' + esc(m.month) + '" ' +
                'aria-pressed="' + (index === 0 ? "true" : "false") + '">' +
-                 '<span class="m-name">' + esc(m.label) + '</span>' +
-                 '<span class="m-sum">' + money(m.total) + '</span>' +
-                 '<span class="m-count">' + esc(m.count) + ' عمولة</span>' +
+                 '<span class="m-name">' + esc(m.label) + '</span>' + sum +
                '</button>';
       }).join("");
 
