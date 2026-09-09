@@ -5525,6 +5525,281 @@ def admin_partner_tree():
 
 # ===== ALSAAB_ADMIN_PARTNER_TREE_V1 END =====
 
+# ===== ALSAAB_ADMIN_PARTNER_DETAIL_V1 START =====
+# The tree answers "who sits under whom" and stops there. Everything an admin
+# actually asks next -- what did this partner earn, in which month, off whom,
+# and who under them has quietly stopped paying -- lived in three tables that
+# nobody could join by eye. This is that join, for one partner, as JSON.
+
+_PARTNER_DETAIL_MAX_DEPTH = 5
+
+_ARABIC_MONTHS = (
+    "", "يناير", "فبراير", "مارس", "أبريل", "مايو", "يونيو",
+    "يوليو", "أغسطس", "سبتمبر", "أكتوبر", "نوفمبر", "ديسمبر",
+)
+
+
+def _detail_money(value):
+    """Amounts arrive as '599 AED', '599.00' or a Decimal."""
+    try:
+        cleaned = re.sub(r"[^0-9.\-]", "", str(value if value is not None else ""))
+        return round(float(cleaned or 0), 2)
+    except Exception:
+        return 0.0
+
+
+def _detail_date(value):
+    if not value:
+        return ""
+
+    try:
+        return value.strftime("%Y-%m-%d")
+    except AttributeError:
+        return str(value)[:10]
+
+
+def _detail_month_label(month_key):
+    try:
+        year, month = month_key.split("-")
+        return f"{_ARABIC_MONTHS[int(month)]} {year}"
+    except Exception:
+        return month_key
+
+
+@app.route("/admin/partner-detail", methods=["GET"])
+def admin_partner_detail():
+    """
+    One partner's earnings by month, and the people under them who lapsed.
+
+    Read-only, behind the same admin check as every other /admin route.
+    """
+    if not admin_access_granted(request.args.get("key", "").strip()):
+        return jsonify({"error": "Unauthorized"}), 401
+
+    partner_id = normalize_dashboard_partner_id(request.args.get("partner_id", "").strip())
+
+    if not partner_id:
+        return jsonify({"error": "partner_id is required"}), 400
+
+    try:
+        from datetime import datetime, timezone
+        from db import get_connection
+        from level_engine import COMMISSION_RATES_BY_DEPTH
+
+        today = datetime.now(timezone.utc).date()
+        cursor = get_connection().cursor()
+
+        # ---------------------------------------------------------- header
+        cursor.execute(
+            """
+            SELECT p.partner_id, p.client_id, p.partner_name, p.email, p.phone,
+                   p.sponsor_partner_id, p.partner_rank, p.status,
+                   s.plan_name, s.package_amount, s.subscription_status,
+                   s.billing_cycle_start, s.billing_cycle_end, s.next_renewal_at,
+                   l.current_level, l.commission_eligible, l.active_direct_customers
+            FROM partners p
+            LEFT JOIN subscriptions s ON s.client_id = p.client_id
+            LEFT JOIN partner_levels l ON l.partner_id = p.partner_id
+            WHERE p.partner_id = ?
+            LIMIT 1
+            """,
+            (partner_id,),
+        )
+        row = cursor.fetchone()
+
+        if not row:
+            return jsonify({"error": "partner_not_found", "partner_id": partner_id}), 404
+
+        cycle_end = _detail_date(row[12])
+
+        partner = {
+            "partner_id": row[0],
+            "name": row[2] or partner_id,
+            "email": row[3] or "",
+            "phone": row[4] or "",
+            "sponsor": row[5] or "",
+            "rank": row[6] or "",
+            "status": row[7] or "",
+            "plan": row[8] or "",
+            "package_amount": _detail_money(row[9]),
+            "subscription_status": row[10] or "",
+            "paid_on": _detail_date(row[11]),
+            "renews_on": _detail_date(row[13]) or cycle_end,
+            "level": int(row[14] or 0),
+            "commission_eligible": bool(row[15]),
+            "direct_customers": int(row[16] or 0),
+            # An "active" row whose cycle ended is the case nobody catches: the
+            # renewal never arrived and the status was never moved.
+            "cycle_overdue": bool(
+                cycle_end
+                and cycle_end < today.isoformat()
+                and str(row[10] or "").lower() == "active"
+            ),
+        }
+
+        # ------------------------------------------------- earnings by month
+        cursor.execute(
+            """
+            SELECT c.commission_id, c.payer_client_id, c.payer_name, c.commission_depth,
+                   c.package, c.package_amount, c.commission_percent, c.commission_amount,
+                   c.status, c.period_start, c.period_end, c.source_partner_id, c.created_at,
+                   -- payer_name was almost never filled in, leaving the admin
+                   -- reading a session id. The payer is a partner too, so
+                   -- their row has the name.
+                   payer.partner_name, payer.partner_id
+            FROM commissions c
+            LEFT JOIN partners payer ON payer.client_id = c.payer_client_id
+            WHERE c.beneficiary_partner_id = ?
+            ORDER BY c.period_start DESC NULLS LAST, c.created_at DESC
+            """,
+            (partner_id,),
+        )
+
+        months = {}
+        totals = {"paid": 0.0, "pending": 0.0, "all": 0.0, "count": 0}
+
+        for line in cursor.fetchall():
+            month_key = _detail_date(line[9] or line[12])[:7] or "unknown"
+            amount = _detail_money(line[7])
+            status = str(line[8] or "pending").lower()
+            bucket_key = status if status in ("paid", "pending") else "pending"
+
+            bucket = months.setdefault(month_key, {
+                "month": month_key,
+                "label": _detail_month_label(month_key),
+                "count": 0,
+                "total": 0.0,
+                "paid": 0.0,
+                "pending": 0.0,
+                "rows": [],
+            })
+
+            bucket["count"] += 1
+            bucket["total"] = round(bucket["total"] + amount, 2)
+            bucket[bucket_key] = round(bucket[bucket_key] + amount, 2)
+            bucket["rows"].append({
+                "commission_id": line[0],
+                "payer_id": line[14] or line[1] or "",
+                "payer_name": line[13] or line[2] or "",
+                "depth": int(line[3] or 0),
+                "package": line[4] or "",
+                "package_amount": _detail_money(line[5]),
+                "percent": _detail_money(line[6]),
+                "amount": amount,
+                "status": status,
+                "from": _detail_date(line[9]),
+                "to": _detail_date(line[10]),
+            })
+
+            totals["count"] += 1
+            totals["all"] = round(totals["all"] + amount, 2)
+            totals[bucket_key] = round(totals[bucket_key] + amount, 2)
+
+        month_list = sorted(months.values(), key=lambda item: item["month"], reverse=True)
+
+        # ---------------------------------------------------- the downline
+        cursor.execute(
+            """
+            SELECT d.descendant_partner_id, d.depth, p.partner_name, p.email,
+                   p.sponsor_partner_id, p.status,
+                   s.plan_name, s.package_amount, s.subscription_status,
+                   s.billing_cycle_end, s.next_renewal_at, s.payment_failed_at
+            FROM partner_downline d
+            JOIN partners p ON p.partner_id = d.descendant_partner_id
+            LEFT JOIN subscriptions s ON s.client_id = p.client_id
+            WHERE d.root_partner_id = ? AND d.depth <= ?
+            ORDER BY d.depth, p.partner_name
+            """,
+            (partner_id, _PARTNER_DETAIL_MAX_DEPTH),
+        )
+        downline_rows = cursor.fetchall()
+
+        sponsors = {line[0]: (line[4] or "") for line in downline_rows}
+
+        def chain_to_root(member_id):
+            """Where this person sits under the partner, as a readable path."""
+            path = []
+            walker = sponsors.get(member_id, "")
+
+            while walker and walker != partner_id and len(path) < _PARTNER_DETAIL_MAX_DEPTH:
+                path.append(walker)
+                walker = sponsors.get(walker, "")
+
+            return " ← ".join([partner_id] + list(reversed(path)) + [member_id])
+
+        active = []
+        lapsed = []
+
+        for line in downline_rows:
+            member_id, depth = line[0], int(line[1] or 0)
+            status = str(line[8] or "").lower()
+            due = _detail_date(line[9])
+            rate = float(COMMISSION_RATES_BY_DEPTH.get(depth, 0) or 0)
+            amount = _detail_money(line[7])
+
+            overdue = bool(due and due < today.isoformat())
+            is_lapsed = (
+                status in ("cancelled", "payment_failed", "past_due", "expired")
+                or not status
+                or (status == "active" and overdue)
+            )
+
+            days_late = 0
+
+            if due and overdue:
+                try:
+                    days_late = (today - datetime.strptime(due, "%Y-%m-%d").date()).days
+                except Exception:
+                    days_late = 0
+
+            member = {
+                "partner_id": member_id,
+                "name": line[2] or member_id,
+                "email": line[3] or "",
+                "depth": depth,
+                "sponsor": line[4] or "",
+                "path": chain_to_root(member_id),
+                "plan": line[6] or "",
+                "package_amount": amount,
+                "subscription_status": status or "none",
+                "due_on": due,
+                "days_late": days_late,
+                "percent": rate,
+                # What this renewal is worth to this partner if it arrives.
+                "worth": round(amount * rate / 100.0, 2),
+                "payment_failed_at": _detail_date(line[11]),
+                # An "active" row past its date is a renewal that silently never
+                # happened, which reads very differently from a customer who
+                # cancelled on purpose.
+                "silent": bool(status == "active" and overdue),
+            }
+
+            (lapsed if is_lapsed else active).append(member)
+
+        lapsed.sort(key=lambda item: (-item["worth"], item["depth"]))
+
+        return jsonify({
+            "partner": partner,
+            "totals": totals,
+            "months": month_list,
+            "downline": {
+                "active": active,
+                "lapsed": lapsed,
+                "active_count": len(active),
+                "lapsed_count": len(lapsed),
+                "missing_monthly": round(sum(item["worth"] for item in lapsed), 2),
+            },
+            "rates": {str(depth): rate for depth, rate in COMMISSION_RATES_BY_DEPTH.items()},
+            "today": today.isoformat(),
+        })
+
+    except Exception as error:
+        print(f"ADMIN PARTNER DETAIL ERROR {partner_id} {error}", flush=True)
+        return jsonify({"error": str(error), "partner_id": partner_id}), 500
+
+# ===== ALSAAB_ADMIN_PARTNER_DETAIL_V1 END =====
+
+
 
 @app.route("/admin-dashboard", methods=["GET"])
 def admin_dashboard_view():

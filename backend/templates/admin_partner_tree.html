@@ -200,6 +200,122 @@
   .sw{ width:11px; height:11px; border-radius:3px; }
 
   @media (prefers-reduced-motion: reduce){ *{ transition:none !important; } }
+
+  /* ===== ALSAAB_ADMIN_PARTNER_DETAIL_V1 START =====
+     Clicking a card in the tree opens this. The tree says who sits where; an
+     admin's next question is always what the person earned and who under them
+     stopped paying, and that answer used to need three SQL queries. */
+  .card{ cursor:pointer; }
+  .card.s-root{ cursor:default; }
+  .card:focus-visible{ outline:2px solid var(--gold); outline-offset:3px; }
+
+  .sheet-back{
+    position:fixed; inset:0; z-index:40; background:rgba(6,6,6,.74);
+    backdrop-filter:blur(3px); display:none;
+  }
+  .sheet-back.open{ display:block; }
+
+  .sheet{
+    position:fixed; z-index:41; inset-block:0; inset-inline-end:0;
+    width:min(760px, 100vw); background:var(--bg); border-inline-start:1px solid var(--line);
+    box-shadow:-24px 0 70px rgba(0,0,0,.6);
+    display:none; flex-direction:column;
+  }
+  .sheet.open{ display:flex; }
+
+  .sheet-head{
+    flex:0 0 auto; padding:18px 22px 14px; border-bottom:1px solid var(--line);
+    background:linear-gradient(180deg, rgba(215,184,90,.10), transparent);
+  }
+  .sheet-head .row{ display:flex; align-items:flex-start; gap:12px; justify-content:space-between; }
+  .sheet-head h2{ margin:0; font-size:20px; font-weight:800; color:var(--gold); line-height:1.4; }
+  .sheet-head .pid{ font-family:"IBM Plex Mono",monospace; font-size:12px; color:var(--ink-2); }
+  .sheet-close{
+    flex:0 0 auto; width:34px; height:34px; border-radius:50%;
+    border:1px solid var(--line); background:var(--surface); color:var(--ink);
+    font-size:17px; font-weight:800; cursor:pointer; font-family:inherit; line-height:1;
+  }
+  .sheet-close:hover{ border-color:var(--gold); color:var(--gold); }
+
+  .facts{ display:flex; flex-wrap:wrap; gap:7px; margin-top:11px; }
+  .fact{
+    border:1px solid var(--line); border-radius:999px; padding:4px 12px;
+    font-size:12px; color:var(--ink-2); background:var(--surface);
+  }
+  .fact b{ color:var(--ink); font-weight:700; }
+  .fact.ok{ color:var(--ok); border-color:currentColor; }
+  .fact.crit{ color:var(--crit); border-color:currentColor; }
+  .fact.warn{ color:var(--warn); border-color:currentColor; }
+
+  .sheet-body{ flex:1 1 auto; overflow-y:auto; padding:18px 22px 40px; }
+
+  .block{ margin-bottom:26px; }
+  .block h3{
+    margin:0 0 10px; font-size:13px; font-weight:800; color:var(--gold-2);
+    letter-spacing:.02em;
+  }
+  .block .hint{ color:var(--muted); font-size:12px; margin:-4px 0 11px; line-height:1.7; }
+
+  .months{ display:flex; gap:8px; flex-wrap:wrap; margin-bottom:14px; }
+  .month{
+    border:1px solid var(--line); background:var(--surface); color:var(--ink-2);
+    border-radius:12px; padding:9px 14px; cursor:pointer; font-family:inherit;
+    text-align:center; min-width:118px; line-height:1.5;
+  }
+  .month:hover{ border-color:var(--gold); }
+  .month[aria-pressed="true"]{
+    border-color:var(--gold); background:rgba(215,184,90,.13); color:var(--gold-2);
+  }
+  .month .m-name{ display:block; font-size:12.5px; font-weight:800; }
+  .month .m-sum{
+    display:block; font-family:"IBM Plex Mono",monospace; font-size:13px;
+    font-weight:600; color:var(--ok); font-variant-numeric:tabular-nums;
+  }
+  .month .m-count{ display:block; font-size:10.5px; color:var(--muted); }
+
+  .grid-table{ width:100%; overflow-x:auto; }
+  table.t{
+    width:100%; border-collapse:collapse; font-size:12.5px;
+    border:1px solid var(--line); border-radius:12px; overflow:hidden;
+  }
+  table.t th{
+    text-align:start; padding:9px 11px; background:var(--surface-2);
+    color:var(--muted); font-weight:700; font-size:11px; white-space:nowrap;
+    border-bottom:1px solid var(--line);
+  }
+  table.t td{
+    padding:9px 11px; border-bottom:1px solid rgba(215,184,90,.10);
+    color:var(--ink-2); vertical-align:top;
+  }
+  table.t tr:last-child td{ border-bottom:0; }
+  table.t tfoot td{
+    background:var(--surface-2); color:var(--ink); font-weight:800;
+    border-top:1px solid var(--line);
+  }
+  .num{ font-family:"IBM Plex Mono",monospace; font-variant-numeric:tabular-nums; white-space:nowrap; }
+  .good{ color:var(--ok); }
+  .bad{ color:var(--crit); }
+  .dim2{ color:var(--muted); font-size:11px; }
+  .path{
+    font-family:"IBM Plex Mono",monospace; font-size:10.5px; color:var(--muted);
+    direction:ltr; unicode-bidi:plaintext; display:block; margin-top:3px;
+  }
+  .pill{
+    display:inline-block; border-radius:999px; padding:2px 9px;
+    font-size:10.5px; font-weight:800; border:1px solid currentColor; white-space:nowrap;
+  }
+  .pill.ok{ color:var(--ok); background:var(--ok-bg); }
+  .pill.crit{ color:var(--crit); background:var(--crit-bg); }
+  .pill.warn{ color:var(--warn); background:var(--warn-bg); }
+
+  .empty{ color:var(--muted); font-size:12.5px; padding:14px 2px; }
+
+  @media (max-width: 640px){
+    .sheet{ width:100vw; }
+    .sheet-body{ padding:15px 14px 40px; }
+    .sheet-head{ padding:14px; }
+  }
+  /* ===== ALSAAB_ADMIN_PARTNER_DETAIL_V1 END ===== */
 </style>
 </head>
 <body>
@@ -290,6 +406,13 @@
     <span>التاريخ الأحمر = دورة انتهت ولم تُجدَّد</span>
   </div>
 </div>
+
+<!-- ===== ALSAAB_ADMIN_PARTNER_DETAIL_V1 ===== -->
+<div class="sheet-back" id="sheetBack"></div>
+<aside class="sheet" id="sheet" role="dialog" aria-modal="true" aria-label="تفاصيل الشريك">
+  <div class="sheet-head" id="sheetHead"></div>
+  <div class="sheet-body" id="sheetBody"></div>
+</aside>
 
 <script>
   var chips = document.querySelectorAll(".chip");
@@ -386,6 +509,9 @@
       if (e.button !== 0) { return; }
       if (e.target.closest && e.target.closest(".zoom")) { return; }
       dragging = true;
+      // Cleared here and set once the pointer really travels, so the card
+      // click handler can tell a press apart from the end of a drag.
+      canvas.dataset.dragged = "0";
       grabX = e.clientX; grabY = e.clientY;
       fromX = tx; fromY = ty;
       canvas.classList.add("dragging");
@@ -396,6 +522,11 @@
       if (!dragging) { return; }
       tx = fromX + (e.clientX - grabX);
       ty = fromY + (e.clientY - grabY);
+
+      if (Math.abs(e.clientX - grabX) > 4 || Math.abs(e.clientY - grabY) > 4) {
+        canvas.dataset.dragged = "1";
+      }
+
       draw();
     });
 
@@ -434,6 +565,312 @@
       document.fonts.ready.then(openingView);
     }
     openingView();
+  })();
+
+  /* ===== ALSAAB_ADMIN_PARTNER_DETAIL_V1 =====
+     Everything the tree cannot show: what a partner earned, month by month,
+     off whom, and who under them has stopped renewing. */
+  (function () {
+    var backdrop = document.getElementById("sheetBack");
+    var sheet    = document.getElementById("sheet");
+    var body     = document.getElementById("sheetBody");
+    var head     = document.getElementById("sheetHead");
+    var adminKey = new URLSearchParams(window.location.search).get("key") || "";
+    var loaded   = null;
+
+    function esc(value) {
+      return String(value === null || value === undefined ? "" : value)
+        .replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;");
+    }
+
+    function money(value) {
+      var number = Number(value || 0);
+      return number.toLocaleString("en-US", {
+        minimumFractionDigits: 2, maximumFractionDigits: 2
+      });
+    }
+
+    function close() {
+      sheet.classList.remove("open");
+      backdrop.classList.remove("open");
+      document.body.style.overflow = "";
+    }
+
+    function open() {
+      sheet.classList.add("open");
+      backdrop.classList.add("open");
+      document.body.style.overflow = "hidden";
+    }
+
+    backdrop.addEventListener("click", close);
+    document.addEventListener("keydown", function (event) {
+      if (event.key === "Escape") { close(); }
+    });
+
+    /* --- the header: who this is, and whether their own line is healthy --- */
+    function renderHead(data) {
+      var p = data.partner;
+      var facts = [];
+
+      facts.push('<span class="fact">المستوى <b>' + esc(p.level) + '</b></span>');
+
+      if (p.plan) {
+        facts.push('<span class="fact">الباقة <b>' + esc(p.plan) + '</b> · ' +
+                   money(p.package_amount) + '</span>');
+      }
+
+      if (p.subscription_status === "active" && !p.cycle_overdue) {
+        facts.push('<span class="fact ok">اشتراكه نشط</span>');
+      } else if (p.cycle_overdue) {
+        facts.push('<span class="fact crit">دورته انتهت ولم تُجدَّد</span>');
+      } else if (p.subscription_status) {
+        facts.push('<span class="fact crit">' + esc(p.subscription_status) + '</span>');
+      } else {
+        facts.push('<span class="fact warn">بلا اشتراك</span>');
+      }
+
+      facts.push('<span class="fact">' +
+        (p.commission_eligible ? "مؤهل للعمولة" : "<b>غير مؤهل للعمولة</b>") + '</span>');
+
+      if (p.paid_on)   { facts.push('<span class="fact">آخر دفعة <b>' + esc(p.paid_on) + '</b></span>'); }
+      if (p.renews_on) { facts.push('<span class="fact">يجدّد <b>' + esc(p.renews_on) + '</b></span>'); }
+      if (p.sponsor)   { facts.push('<span class="fact">راعيه <b>' + esc(p.sponsor) + '</b></span>'); }
+
+      facts.push('<span class="fact">مباشرون <b>' + esc(p.direct_customers) + '</b></span>');
+
+      head.innerHTML =
+        '<div class="row">' +
+          '<div>' +
+            '<span class="pid">' + esc(p.partner_id) + '</span>' +
+            '<h2>' + esc(p.name) + '</h2>' +
+            (p.email ? '<div class="pid">' + esc(p.email) + '</div>' : '') +
+          '</div>' +
+          '<button type="button" class="sheet-close" id="sheetClose" aria-label="إغلاق">✕</button>' +
+        '</div>' +
+        '<div class="facts">' + facts.join("") + '</div>';
+
+      document.getElementById("sheetClose").addEventListener("click", close);
+    }
+
+    /* --- one month's commissions, line by line, with the total --- */
+    function renderMonth(month) {
+      var target = document.getElementById("monthRows");
+
+      if (!month || !month.rows.length) {
+        target.innerHTML = '<div class="empty">لا توجد عمولات في هذا الشهر.</div>';
+        return;
+      }
+
+      var rows = month.rows.map(function (r) {
+        return '<tr>' +
+          '<td>' + esc(r.payer_name || r.payer_id) +
+            (r.payer_name && r.payer_id ? '<span class="path">' + esc(r.payer_id) + '</span>' : '') +
+          '</td>' +
+          '<td class="num">' + esc(r.depth) + '</td>' +
+          '<td>' + esc(r.package) + '</td>' +
+          '<td class="num">' + money(r.package_amount) + '</td>' +
+          '<td class="num">' + esc(r.percent) + '%</td>' +
+          '<td class="num good">' + money(r.amount) + '</td>' +
+          '<td><span class="pill ' + (r.status === "paid" ? "ok" : "warn") + '">' +
+            (r.status === "paid" ? "مدفوعة" : "معلّقة") + '</span></td>' +
+        '</tr>';
+      }).join("");
+
+      target.innerHTML =
+        '<div class="grid-table"><table class="t">' +
+          '<thead><tr>' +
+            '<th>من</th><th>الدرجة</th><th>الباقة</th><th>المبلغ</th>' +
+            '<th>النسبة</th><th>العمولة</th><th>الحالة</th>' +
+          '</tr></thead>' +
+          '<tbody>' + rows + '</tbody>' +
+          '<tfoot><tr>' +
+            '<td colspan="5">إجمالي ' + esc(month.label) + '</td>' +
+            '<td class="num good">' + money(month.total) + '</td>' +
+            '<td class="dim2">مدفوع ' + money(month.paid) + ' · معلّق ' + money(month.pending) + '</td>' +
+          '</tr></tfoot>' +
+        '</table></div>';
+    }
+
+    function renderMonths(data) {
+      if (!data.months.length) {
+        return '<div class="block"><h3>العمولات بالشهور</h3>' +
+               '<div class="empty">لم يكسب هذا الشريك أي عمولة بعد.</div></div>';
+      }
+
+      var chips = data.months.map(function (m, index) {
+        return '<button type="button" class="month" data-month="' + esc(m.month) + '" ' +
+               'aria-pressed="' + (index === 0 ? "true" : "false") + '">' +
+                 '<span class="m-name">' + esc(m.label) + '</span>' +
+                 '<span class="m-sum">' + money(m.total) + '</span>' +
+                 '<span class="m-count">' + esc(m.count) + ' عمولة</span>' +
+               '</button>';
+      }).join("");
+
+      return '<div class="block">' +
+        '<h3>العمولات بالشهور</h3>' +
+        '<p class="hint">اضغط على أي شهر لعرض تفاصيله. الإجمالي: ' +
+          '<b>' + money(data.totals.all) + '</b> — مدفوع ' + money(data.totals.paid) +
+          ' · معلّق ' + money(data.totals.pending) + '</p>' +
+        '<div class="months" id="monthChips">' + chips + '</div>' +
+        '<div id="monthRows"></div>' +
+      '</div>';
+    }
+
+    /* --- who stopped paying, where they sit, and what it costs this partner --- */
+    function renderLapsed(data) {
+      var d = data.downline;
+
+      if (!d.lapsed.length) {
+        return '<div class="block"><h3>من لم يجدّد تحته</h3>' +
+               '<div class="empty">كل من تحته مشترك ونشط. ' +
+               esc(d.active_count) + ' شخص.</div></div>';
+      }
+
+      var rows = d.lapsed.map(function (m) {
+        var state = m.silent
+          ? '<span class="pill crit">لم يجدّد</span>'
+          : m.subscription_status === "cancelled"
+            ? '<span class="pill warn">ملغى</span>'
+            : m.subscription_status === "payment_failed"
+              ? '<span class="pill crit">دفعة فاشلة</span>'
+              : '<span class="pill warn">' + esc(m.subscription_status) + '</span>';
+
+        return '<tr>' +
+          '<td>' + esc(m.name) +
+            '<span class="path">' + esc(m.path) + '</span>' +
+          '</td>' +
+          '<td class="num">' + esc(m.depth) + '</td>' +
+          '<td>' + esc(m.plan || "—") + '</td>' +
+          '<td>' + state + '</td>' +
+          '<td class="num">' + esc(m.due_on || "—") +
+            (m.days_late ? '<span class="path bad">متأخر ' + esc(m.days_late) + ' يوم</span>' : '') +
+          '</td>' +
+          '<td class="num">' + esc(m.percent) + '%</td>' +
+          '<td class="num bad">' + money(m.worth) + '</td>' +
+        '</tr>';
+      }).join("");
+
+      return '<div class="block">' +
+        '<h3>من لم يجدّد تحته — ' + esc(d.lapsed_count) + ' شخص</h3>' +
+        '<p class="hint">"لم يجدّد" تعني أن دورته انتهت ولم تصل دفعة جديدة، حتى لو ما زالت ' +
+          'حالته مكتوبة نشطة. العمود الأخير هو ما يخسره هذا الشريك شهرياً بسببهم.</p>' +
+        '<div class="grid-table"><table class="t">' +
+          '<thead><tr>' +
+            '<th>الاسم وموقعه في الشجرة</th><th>الدرجة</th><th>الباقة</th>' +
+            '<th>الحالة</th><th>كان يجدّد</th><th>نسبته</th><th>يخسر شهرياً</th>' +
+          '</tr></thead>' +
+          '<tbody>' + rows + '</tbody>' +
+          '<tfoot><tr>' +
+            '<td colspan="6">إجمالي المفقود شهرياً</td>' +
+            '<td class="num bad">' + money(d.missing_monthly) + '</td>' +
+          '</tr></tfoot>' +
+        '</table></div>' +
+      '</div>';
+    }
+
+    /* --- who is still paying: the other half of the same question --- */
+    function renderActive(data) {
+      var d = data.downline;
+
+      if (!d.active.length) {
+        return '<div class="block"><h3>المشتركون تحته</h3>' +
+               '<div class="empty">لا أحد نشط تحته الآن.</div></div>';
+      }
+
+      var earning = 0;
+
+      var rows = d.active.map(function (m) {
+        earning += m.worth;
+        return '<tr>' +
+          '<td>' + esc(m.name) + '<span class="path">' + esc(m.path) + '</span></td>' +
+          '<td class="num">' + esc(m.depth) + '</td>' +
+          '<td>' + esc(m.plan || "—") + '</td>' +
+          '<td class="num">' + money(m.package_amount) + '</td>' +
+          '<td class="num">' + esc(m.due_on || "—") + '</td>' +
+          '<td class="num">' + esc(m.percent) + '%</td>' +
+          '<td class="num good">' + money(m.worth) + '</td>' +
+        '</tr>';
+      }).join("");
+
+      return '<div class="block">' +
+        '<h3>المشتركون تحته — ' + esc(d.active_count) + ' شخص</h3>' +
+        '<p class="hint">ما يدخل لهذا الشريك في الشهر إذا جدّد الجميع.</p>' +
+        '<div class="grid-table"><table class="t">' +
+          '<thead><tr>' +
+            '<th>الاسم وموقعه في الشجرة</th><th>الدرجة</th><th>الباقة</th>' +
+            '<th>المبلغ</th><th>يجدّد في</th><th>نسبته</th><th>يكسب شهرياً</th>' +
+          '</tr></thead>' +
+          '<tbody>' + rows + '</tbody>' +
+          '<tfoot><tr>' +
+            '<td colspan="6">الدخل الشهري المتوقع</td>' +
+            '<td class="num good">' + money(earning) + '</td>' +
+          '</tr></tfoot>' +
+        '</table></div>' +
+      '</div>';
+    }
+
+    function render(data) {
+      loaded = data;
+      renderHead(data);
+      body.innerHTML = renderMonths(data) + renderLapsed(data) + renderActive(data);
+
+      if (!data.months.length) { return; }
+
+      renderMonth(data.months[0]);
+
+      document.getElementById("monthChips").addEventListener("click", function (event) {
+        var chip = event.target.closest(".month");
+        if (!chip) { return; }
+
+        this.querySelectorAll(".month").forEach(function (other) {
+          other.setAttribute("aria-pressed", String(other === chip));
+        });
+
+        var wanted = chip.getAttribute("data-month");
+        renderMonth(loaded.months.filter(function (m) { return m.month === wanted; })[0]);
+      });
+    }
+
+    function load(partnerId) {
+      open();
+      head.innerHTML = '<div class="row"><h2>' + esc(partnerId) + '</h2>' +
+        '<button type="button" class="sheet-close" id="sheetClose">✕</button></div>';
+      document.getElementById("sheetClose").addEventListener("click", close);
+      body.innerHTML = '<div class="empty">جاري التحميل...</div>';
+
+      fetch("/admin/partner-detail?key=" + encodeURIComponent(adminKey) +
+            "&partner_id=" + encodeURIComponent(partnerId), { credentials: "same-origin" })
+        .then(function (response) { return response.json(); })
+        .then(function (data) {
+          if (data.error) {
+            body.innerHTML = '<div class="empty">تعذّر التحميل: ' + esc(data.error) + '</div>';
+            return;
+          }
+          render(data);
+        })
+        .catch(function () {
+          body.innerHTML = '<div class="empty">تعذّر الاتصال. حاول مرة أخرى.</div>';
+        });
+    }
+
+    /* One listener on the stage: the tree is redrawn by the filter chips and
+       per-card listeners would go stale. */
+    document.getElementById("stage").addEventListener("click", function (event) {
+      var card = event.target.closest(".card");
+      if (!card) { return; }
+
+      // Letting go of a drag over a card still fires a click. Opening the
+      // panel then would make the tree feel like it grabs at you.
+      var canvas = document.getElementById("canvas");
+      if (canvas && canvas.dataset.dragged === "1") {
+        canvas.dataset.dragged = "0";
+        return;
+      }
+
+      var pid = (card.querySelector(".pid") || {}).textContent;
+      if (pid) { load(pid.trim()); }
+    });
   })();
 </script>
 </body>
