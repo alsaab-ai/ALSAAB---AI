@@ -6303,6 +6303,284 @@ def monthly_commission_outlook():
 
 # ===== ALSAAB_MONTHLY_OUTLOOK_V1 END =====
 
+# ===== ALSAAB_STRIPE_RECONCILE_V1 START =====
+# Everything this system knows about a renewal arrives in one HTTP call from
+# Stripe. Miss it -- the service asleep, a network blip, a handler that threw
+# -- and the money left the customer's card while the subscription sits here
+# looking lapsed: the bot stops answering them and the partner above them is
+# never paid. Four subscriptions read "active" today with a cycle that ended
+# weeks ago, and nothing in the system could say which of them actually
+# stopped paying.
+#
+# So stop waiting to be told. Once a day, ask Stripe about every subscription
+# whose date has passed and write down what it says.
+
+RECONCILE_INTERVAL_SECONDS = 24 * 60 * 60
+RECONCILE_STARTUP_DELAY_SECONDS = 90
+
+_reconcile_thread_started = False
+
+
+def _stripe_client():
+    """The Stripe SDK with the key applied, or None when it is not configured."""
+    try:
+        import stripe
+
+        secret = (
+            os.getenv("STRIPE_SECRET_KEY")
+            or os.getenv("STRIPE_API_KEY")
+            or ""
+        ).strip()
+
+        if not secret:
+            return None
+
+        stripe.api_key = secret
+        return stripe
+
+    except Exception as error:
+        print(f"RECONCILE STRIPE CLIENT ERROR ⚠️ {error}", flush=True)
+        return None
+
+
+def reconcile_subscriptions_with_stripe(dry_run=False, limit=200):
+    """
+    Ask Stripe about every subscription whose cycle has run out, and correct
+    ours from the answer.
+
+    Only ever touches rows Stripe disagrees with, and only rows whose date has
+    already passed -- a subscription mid-cycle is not in question.
+    """
+    from datetime import datetime, timezone
+
+    started = datetime.now(timezone.utc)
+    report = {
+        "checked": 0, "renewed": 0, "stopped": 0, "agreed": 0,
+        "unknown": 0, "errors": 0, "dry_run": bool(dry_run), "rows": [],
+    }
+
+    stripe = _stripe_client()
+
+    if stripe is None:
+        report["errors"] = 1
+        report["message"] = "STRIPE_SECRET_KEY is not set"
+        print("RECONCILE SKIPPED ⚠️ no Stripe key", flush=True)
+        return report
+
+    try:
+        from db import get_connection
+
+        cursor = get_connection().cursor()
+        cursor.execute(
+            """
+            SELECT session_id, client_id, stripe_subscription_id, plan_name,
+                   package_amount, subscription_status, source_partner_id,
+                   billing_cycle_end::date
+            FROM subscriptions
+            WHERE COALESCE(stripe_subscription_id, '') <> ''
+              AND billing_cycle_end::date < CURRENT_DATE
+              AND LOWER(COALESCE(subscription_status, '')) <> 'cancelled'
+            ORDER BY billing_cycle_end
+            LIMIT ?
+            """,
+            (limit,),
+        )
+        overdue = cursor.fetchall()
+
+    except Exception as error:
+        report["errors"] = 1
+        report["message"] = str(error)
+        print(f"RECONCILE QUERY ERROR ❌ {error}", flush=True)
+        return report
+
+    for row in overdue:
+        (session_id, client_id, subscription_id, plan_name,
+         package_amount, our_status, source_partner_id, our_end) = row
+
+        report["checked"] += 1
+        entry = {
+            "session_id": session_id,
+            "stripe_subscription_id": subscription_id,
+            "plan": plan_name,
+            "our_status": our_status,
+            "our_cycle_end": _detail_date(our_end),
+        }
+
+        try:
+            live = stripe.Subscription.retrieve(subscription_id)
+        except Exception as error:
+            entry["outcome"] = "lookup_failed"
+            entry["detail"] = str(error)[:160]
+            report["errors"] += 1
+            report["rows"].append(entry)
+            print(f"RECONCILE LOOKUP FAILED ⚠️ {subscription_id} {error}", flush=True)
+            continue
+
+        live_status = str(live.get("status", "") or "").lower()
+        period_end = live.get("current_period_end")
+
+        if not period_end:
+            items = (live.get("items", {}) or {}).get("data", []) or []
+            period_end = items[0].get("current_period_end") if items else None
+
+        entry["stripe_status"] = live_status
+        entry["stripe_cycle_end"] = (
+            datetime.fromtimestamp(period_end, timezone.utc).strftime("%Y-%m-%d")
+            if period_end else ""
+        )
+
+        # Stripe says they are still paying and the cycle has moved on: the
+        # renewal happened and the message never reached us.
+        if live_status in ("active", "trialing") and period_end:
+            moved_on = entry["stripe_cycle_end"] > entry["our_cycle_end"]
+
+            if not moved_on:
+                entry["outcome"] = "agreed"
+                report["agreed"] += 1
+                report["rows"].append(entry)
+                continue
+
+            entry["outcome"] = "renewed_but_we_missed_it"
+            report["renewed"] += 1
+
+            if not dry_run:
+                try:
+                    create_or_update_subscription(
+                        session_id=session_id,
+                        plan_name=plan_name,
+                        client_id=client_id or session_id,
+                        status="active",
+                        stripe_customer_id=str(live.get("customer", "") or ""),
+                        stripe_subscription_id=subscription_id,
+                        package_amount=package_amount,
+                        notes=(
+                            "Recovered by daily Stripe reconciliation; "
+                            "stripe_status=" + live_status +
+                            "; stripe_period_end=" + entry["stripe_cycle_end"]
+                        ),
+                        reset_usage=True,
+                        source_partner_id=source_partner_id,
+                    )
+                    entry["fixed"] = True
+
+                except Exception as error:
+                    entry["fixed"] = False
+                    entry["detail"] = str(error)[:160]
+                    report["errors"] += 1
+                    print(f"RECONCILE FIX ERROR ❌ {session_id} {error}", flush=True)
+
+        # Stripe says they are gone. Ours still says active, which is what has
+        # been keeping dead accounts in the healthy column.
+        elif live_status in ("canceled", "cancelled", "incomplete_expired", "unpaid", "past_due"):
+            settled = "cancelled" if live_status.startswith("cancel") else "payment_failed"
+            entry["outcome"] = "stopped"
+            entry["new_status"] = settled
+            report["stopped"] += 1
+
+            if not dry_run and str(our_status or "").lower() != settled:
+                try:
+                    connection = get_connection()
+                    fix = connection.cursor()
+                    fix.execute(
+                        """
+                        UPDATE subscriptions
+                        SET subscription_status = ?, updated_at = NOW(),
+                            notes = COALESCE(notes,'') || ?
+                        WHERE stripe_subscription_id = ?
+                        """,
+                        (
+                            settled,
+                            " | corrected by daily Stripe reconciliation (stripe_status=" + live_status + ")",
+                            subscription_id,
+                        ),
+                    )
+                    connection.commit()
+                    connection.close()
+                    entry["fixed"] = True
+
+                except Exception as error:
+                    entry["fixed"] = False
+                    entry["detail"] = str(error)[:160]
+                    report["errors"] += 1
+                    print(f"RECONCILE STATUS ERROR ❌ {subscription_id} {error}", flush=True)
+
+        else:
+            entry["outcome"] = "unclear"
+            report["unknown"] += 1
+
+        report["rows"].append(entry)
+
+    report["seconds"] = round(
+        (datetime.now(timezone.utc) - started).total_seconds(), 1
+    )
+
+    print(
+        "RECONCILE DONE ✅ checked={checked} renewed={renewed} stopped={stopped} "
+        "agreed={agreed} errors={errors} dry_run={dry_run}".format(**report),
+        flush=True
+    )
+
+    return report
+
+
+@app.route("/admin/reconcile-subscriptions", methods=["GET", "POST"])
+def admin_reconcile_subscriptions():
+    """
+    Run the check by hand and read what it found.
+
+    ?dry=1 reports without changing anything, which is how you look before
+    letting it write.
+    """
+    if not admin_access_granted(request.values.get("key", "").strip()):
+        return jsonify({"error": "Unauthorized"}), 401
+
+    dry_run = request.values.get("dry", "").strip() in ("1", "true", "yes")
+
+    return jsonify(reconcile_subscriptions_with_stripe(dry_run=dry_run))
+
+
+def start_daily_reconciler():
+    """
+    Once a day, in the background, for as long as the service is up.
+
+    Render has no scheduler on this plan, and an external pinger is one more
+    thing to keep alive. A thread inside the app is the arrangement with the
+    fewest moving parts -- and the check is safe to run twice, so a restart
+    costs nothing.
+    """
+    global _reconcile_thread_started
+
+    if _reconcile_thread_started:
+        return
+
+    if str(os.getenv("ALSAAB_DISABLE_RECONCILER", "")).strip() == "1":
+        print("DAILY RECONCILER DISABLED by ALSAAB_DISABLE_RECONCILER", flush=True)
+        return
+
+    import threading
+
+    def loop():
+        time.sleep(RECONCILE_STARTUP_DELAY_SECONDS)
+
+        while True:
+            try:
+                reconcile_subscriptions_with_stripe()
+            except Exception as error:
+                print(f"DAILY RECONCILER ERROR ❌ {error}", flush=True)
+
+            time.sleep(RECONCILE_INTERVAL_SECONDS)
+
+    threading.Thread(target=loop, name="alsaab-reconciler", daemon=True).start()
+    _reconcile_thread_started = True
+
+    print("DAILY RECONCILER STARTED ✅ every 24h", flush=True)
+
+
+start_daily_reconciler()
+
+# ===== ALSAAB_STRIPE_RECONCILE_V1 END =====
+
+
 
 
 
