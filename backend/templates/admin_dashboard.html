@@ -310,6 +310,26 @@
         grid-template-columns: 1fr;
       }
     }
+  
+    .badge.sub-ok   { color: #7fd39a; border-color: rgba(127,211,154,.55); }
+    .badge.sub-late { color: #ef8383; border-color: rgba(239,131,131,.55); }
+    .badge.sub-warn { color: #e0a83f; border-color: rgba(224,168,63,.55); }
+    .badge.sub-none { color: #8d8a7c; border-color: rgba(141,138,124,.45); }
+    .sub-note { font-size: 11px; color: #8d8a7c; margin-top: 3px; white-space: nowrap; }
+
+    /* ===== ALSAAB_MONTHLY_OUTLOOK_V1 ===== */
+    .outlook-head { white-space: nowrap; font-size: 12px; }
+
+    .outlook-cell {
+      font-family: "IBM Plex Mono", ui-monospace, monospace;
+      font-variant-numeric: tabular-nums;
+      white-space: nowrap;
+      text-align: center;
+    }
+
+    .outlook-cell.full { color: #f0cc68; font-weight: 700; }
+    .outlook-cell.got  { color: #7fd39a; font-weight: 700; }
+    .outlook-cell.lost { color: #ef8383; font-weight: 700; }
   </style>
 </head>
 
@@ -975,8 +995,15 @@
               <th>الاسم</th>
               <th>Sponsor</th>
               <th>Rank</th>
-              <th>Status</th>
+              <th>حالة الاشتراك</th>
               <th>Email</th>
+              <!-- ===== ALSAAB_MONTHLY_OUTLOOK_V1 =====
+                   The month's three figures side by side. By month end nobody
+                   is still pending, so collected + lost equals the full one --
+                   the gap between them while the month runs is the point. -->
+              <th class="outlook-head">كامل الشهر</th>
+              <th class="outlook-head">محصّل حتى الآن</th>
+              <th class="outlook-head">مفقود</th>
               <th>Referral Link</th>
             </tr>
           </thead>
@@ -987,12 +1014,36 @@
               <td>{{ p.partner_name or "-" }}</td>
               <td>{{ p.sponsor_partner_id or "-" }}</td>
               <td>{{ p.partner_rank or "-" }}</td>
-              <td><span class="badge">{{ p.status or "-" }}</span></td>
+              {# The subscription, not the account. p.status reads "active" for
+                 everybody, declined cards included, so it told you nothing. #}
+              <td>
+                {% set sub = (p.subscription_status or "")|lower %}
+                {% set overdue = p.cycle_end and outlook_today and p.cycle_end < outlook_today %}
+                {% if sub == "active" and overdue %}
+                  <span class="badge sub-late">لم يجدّد</span>
+                  <div class="sub-note">كان {{ p.cycle_end }}</div>
+                {% elif sub == "active" %}
+                  <span class="badge sub-ok">نشط</span>
+                  {% if p.cycle_end %}<div class="sub-note">يجدّد {{ p.cycle_end }}</div>{% endif %}
+                {% elif sub == "payment_failed" %}
+                  <span class="badge sub-late">دفعة فاشلة</span>
+                {% elif sub == "cancelled" %}
+                  <span class="badge sub-warn">ملغى</span>
+                {% elif sub %}
+                  <span class="badge sub-warn">{{ p.subscription_status }}</span>
+                {% else %}
+                  <span class="badge sub-none">بلا اشتراك</span>
+                {% endif %}
+              </td>
               <td>{{ p.email or "-" }}</td>
+              {% set money = partner_outlook.get(p.partner_id) if partner_outlook else None %}
+              <td class="outlook-cell full">{{ "%.2f"|format(money.potential) if money else "0.00" }}</td>
+              <td class="outlook-cell got">{{ "%.2f"|format(money.collected) if money else "0.00" }}</td>
+              <td class="outlook-cell lost">{{ "%.2f"|format(money.lost) if money else "0.00" }}</td>
               <td>{{ p.referral_link or "-" }}</td>
             </tr>
             {% else %}
-            <tr><td colspan="7">لا توجد بيانات.</td></tr>
+            <tr><td colspan="10">لا توجد بيانات.</td></tr>
             {% endfor %}
           </tbody>
         </table>

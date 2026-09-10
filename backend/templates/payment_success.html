@@ -51,9 +51,83 @@
                 ارجع للمحادثة واكتب: <strong>تدريب البوت</strong>
                 عشان نجهز النظام لمشروعك خطوة خطوة.
             </p>
+            <!-- Anyone who skipped the name on the way in gets asked once
+                 more here. The chat left its session id in this browser, so
+                 the account can be matched without Stripe sending anything. -->
+            <div id="nameBox" style="display:none;margin-top:22px;padding-top:20px;border-top:1px solid rgba(255,255,255,0.1);">
+                <label for="claimName" style="display:block;color:#cbd5e1;font-size:14px;font-weight:700;margin-bottom:9px;">
+                    الاشتراك باسم مين؟
+                </label>
+                <div style="display:flex;gap:9px;flex-wrap:wrap;">
+                    <input type="text" id="claimName" maxlength="80" placeholder="اكتب اسمك"
+                           style="flex:1 1 200px;min-width:0;background:#080b12;color:#fff;border:1px solid rgba(214,168,79,0.42);border-radius:12px;padding:12px 14px;font-family:inherit;font-size:15px;font-weight:700;">
+                    <button type="button" id="claimSave"
+                            style="flex:0 0 auto;border:0;border-radius:12px;background:linear-gradient(135deg,#f3d37b,#a97824);color:#0b0b0b;padding:12px 22px;font-family:inherit;font-size:15px;font-weight:900;cursor:pointer;">
+                        حفظ
+                    </button>
+                </div>
+                <div id="claimNote" style="margin-top:10px;font-size:13px;font-weight:700;"></div>
+            </div>
+
             <div class="note">
                 إذا ما تفعل الاشتراك مباشرة، انتظر دقيقة ثم جرب مرة ثانية.
             </div>
         </div>
+
+        <script>
+        (function () {
+            var sessionId = "";
+            try { sessionId = localStorage.getItem("session_id") || ""; } catch (e) {}
+
+            var box = document.getElementById("nameBox");
+            if (!sessionId || !box) { return; }
+
+            box.style.display = "block";
+
+            var field = document.getElementById("claimName");
+            var button = document.getElementById("claimSave");
+            var note = document.getElementById("claimNote");
+
+            button.addEventListener("click", function () {
+                var wanted = field.value.trim().replace(/\s+/g, " ");
+
+                if (wanted.length < 2) {
+                    note.style.color = "#ef8383";
+                    note.textContent = "اكتب اسمك كامل من فضلك.";
+                    return;
+                }
+
+                button.disabled = true;
+
+                fetch("/claim-name", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ session_id: sessionId, name: wanted })
+                }).then(function (response) {
+                    return response.json().catch(function () { return {}; });
+                }).then(function (result) {
+                    button.disabled = false;
+
+                    if (result && result.status === "success") {
+                        note.style.color = "#7fd39a";
+                        note.textContent = "تم الحفظ ✅ أهلاً بك " + wanted;
+                        field.disabled = true;
+                        button.disabled = true;
+                    } else {
+                        note.style.color = "#ef8383";
+                        note.textContent = "تعذّر الحفظ، حاول مرة أخرى.";
+                    }
+                }).catch(function () {
+                    button.disabled = false;
+                    note.style.color = "#ef8383";
+                    note.textContent = "تعذّر الاتصال، حاول مرة أخرى.";
+                });
+            });
+
+            field.addEventListener("keydown", function (event) {
+                if (event.key === "Enter") { event.preventDefault(); button.click(); }
+            });
+        })();
+        </script>
     </body>
     </html>

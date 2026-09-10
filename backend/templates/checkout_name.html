@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<title>باسم مين؟ - ALSAAB AI</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+  *{ box-sizing:border-box; }
+
+  body{
+    margin:0; min-height:100vh; display:grid; place-items:center; padding:24px;
+    background:
+      radial-gradient(circle at 20% 15%, rgba(214,168,79,.16), transparent 32%),
+      linear-gradient(135deg, #03050a, #0a0f1d);
+    color:#f5f0df; font-family:Cairo, Arial, sans-serif; line-height:1.8;
+  }
+
+  .card{
+    width:100%; max-width:470px;
+    background:rgba(255,255,255,.05);
+    border:1px solid rgba(214,168,79,.36);
+    border-radius:24px; padding:32px 28px;
+    box-shadow:0 24px 70px rgba(0,0,0,.5);
+  }
+
+  .plan{
+    display:inline-block; border:1px solid rgba(214,168,79,.5);
+    background:rgba(214,168,79,.10); color:#f3d37b;
+    border-radius:999px; padding:5px 15px; font-size:13px; font-weight:800;
+    margin-bottom:16px;
+  }
+
+  h1{ margin:0 0 8px; font-size:24px; font-weight:800; color:#f3d37b; }
+  p{ margin:0 0 22px; color:#cbd5e1; font-size:15px; }
+
+  label{ display:block; font-size:13px; font-weight:700; color:#cbd5e1; margin-bottom:7px; }
+
+  input[type=text]{
+    width:100%; background:#080b12; color:#fff;
+    border:1px solid rgba(214,168,79,.42); border-radius:14px;
+    padding:14px 16px; font-family:inherit; font-size:16px; font-weight:700;
+  }
+  input[type=text]:focus{ outline:2px solid rgba(243,211,123,.55); outline-offset:1px; }
+
+  .go{
+    width:100%; margin-top:16px; border:0; border-radius:14px;
+    background:linear-gradient(135deg,#f3d37b,#a97824); color:#0b0b0b;
+    padding:15px; font-family:inherit; font-size:16px; font-weight:900; cursor:pointer;
+  }
+  .go:hover{ filter:brightness(1.06); }
+
+  .skip{
+    display:block; text-align:center; margin-top:15px;
+    color:#94a3b8; font-size:13px; text-decoration:none;
+  }
+  .skip:hover{ color:#cbd5e1; text-decoration:underline; }
+
+  .why{ margin-top:20px; padding-top:16px; border-top:1px solid rgba(255,255,255,.08);
+        color:#94a3b8; font-size:12.5px; }
+</style>
+</head>
+<body>
+  <form class="card" method="get" action="/pay/{{ plan_name }}">
+    <span class="plan">{{ plan_label }}{% if package_amount %} · {{ package_amount }}{% endif %}</span>
+
+    <h1>الاشتراك باسم مين؟</h1>
+    <p>خطوة واحدة قبل الدفع، عشان يطلع حسابك وفواتيرك باسمك الصحيح.</p>
+
+    <label for="buyer_name">الاسم</label>
+    <input type="text" id="buyer_name" name="buyer_name" maxlength="80"
+           placeholder="مثال: محمد عبدالله" autocomplete="name" required autofocus>
+
+    <input type="hidden" name="sid" value="{{ session_id }}">
+    {% if source_partner_id %}
+      <input type="hidden" name="ref" value="{{ source_partner_id }}">
+      <input type="hidden" name="source_partner_id" value="{{ source_partner_id }}">
+    {% endif %}
+
+    <button type="submit" class="go">أكمل الدفع ←</button>
+
+    {# A name is not worth losing a sale over. The page after checkout asks
+       again for anyone who skips here. #}
+    <a class="skip" href="/pay/{{ plan_name }}?sid={{ session_id }}&skip_name=1{% if source_partner_id %}&ref={{ source_partner_id }}&source_partner_id={{ source_partner_id }}{% endif %}">
+      تخطّي والدفع مباشرة
+    </a>
+
+    <div class="why">الدفع نفسه يتم على صفحة Stripe الآمنة. إحنا مش بنشوف بيانات بطاقتك.</div>
+  </form>
+</body>
+</html>

@@ -579,13 +579,20 @@ def client_dashboard_data(payload):
 # =====================================================================
 
 def _admin_partners(cur):
+    # partners.status only says whether the account is switched on, and it is
+    # "active" for every single row -- including people whose card was
+    # declined weeks ago. The subscription carries the state anyone actually
+    # wants from this table, so bring it along.
     cur.execute(
         """
-        SELECT created_at, client_id, partner_id, sponsor_partner_id,
-               partner_name, phone, email, partner_rank, status, referral_link
-        FROM partners
-        WHERE LOWER(partner_id) <> LOWER(?)
-        ORDER BY created_at DESC, partner_id DESC
+        SELECT p.created_at, p.client_id, p.partner_id, p.sponsor_partner_id,
+               p.partner_name, p.phone, p.email, p.partner_rank, p.status,
+               p.referral_link,
+               s.subscription_status, s.plan_name, s.billing_cycle_end
+        FROM partners p
+        LEFT JOIN subscriptions s ON s.client_id = p.client_id
+        WHERE LOWER(p.partner_id) <> LOWER(?)
+        ORDER BY p.created_at DESC, p.partner_id DESC
         """,
         (COMPANY_OWNER_PARTNER_ID,)
     )
@@ -619,6 +626,9 @@ def _admin_partners(cur):
                 "email": _text(row["email"]),
                 "partner_rank": _text(row["partner_rank"]),
                 "status": _text(row["status"]),
+                "subscription_status": _text(row["subscription_status"]),
+                "plan_name": _text(row["plan_name"]),
+                "cycle_end": _text(row["billing_cycle_end"])[:10],
                 "referral_link": _text(row["referral_link"]),
             })
 

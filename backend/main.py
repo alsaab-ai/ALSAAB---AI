@@ -850,6 +850,144 @@ def client_bot_home(partner_id):
 # ===== ALSAAB_CLIENT_BOT_ENTRY_V1 END =====
 
 
+
+# ===== ALSAAB_ASK_FOR_NAME_V1 START =====
+# Stripe never sends a name unless billing-address collection is switched on,
+# and a visitor who goes straight to checkout never types one either, so three
+# real customers were filed as "ALSAAB Partner 23e81d7e". Ask for it ourselves:
+# once on the way to Stripe, and again on the way back for anyone who skipped.
+
+NAME_PLACEHOLDER_PREFIX = "ALSAAB Partner"
+
+
+def stored_partner_name(session_id):
+    """The name already on file for this checkout session, if it is a real one."""
+    session_id = str(session_id or "").strip()
+
+    if not session_id:
+        return ""
+
+    try:
+        from db import get_connection
+
+        cursor = get_connection().cursor()
+        cursor.execute(
+            "SELECT partner_name FROM partners WHERE client_id = ? LIMIT 1",
+            (session_id,),
+        )
+        row = cursor.fetchone()
+        name = str((row[0] if row else "") or "").strip()
+
+        if name and not name.startswith(NAME_PLACEHOLDER_PREFIX):
+            return name
+
+        # Before payment there is no partner row yet -- the name lives on the
+        # lead. Without this the page asked again on the way back from a failed
+        # card, after the visitor had already typed it.
+        cursor.execute(
+            "SELECT name FROM leads WHERE session_id = ? AND COALESCE(name,'') <> '' "
+            "ORDER BY id DESC LIMIT 1",
+            (session_id,),
+        )
+        row = cursor.fetchone()
+
+        return str((row[0] if row else "") or "").strip()
+
+    except Exception as error:
+        print(f"NAME LOOKUP ERROR ⚠️ {session_id} {error}", flush=True)
+        return ""
+
+
+def remember_partner_name(session_id, name):
+    """
+    Put a real name on a checkout session, wherever the account is up to.
+
+    Called before Stripe (no partner row yet) and after it (row exists), so it
+    writes a lead either way and updates the partner only when there is one.
+    A name a person typed is never overwritten -- only a placeholder is.
+    """
+    session_id = str(session_id or "").strip()
+    name = " ".join(str(name or "").split())
+    name = "".join(character for character in name if character.isprintable())
+
+    if not session_id or len(name) < 2 or len(name) > 80:
+        return False, "invalid"
+
+    try:
+        from db import get_connection
+
+        connection = get_connection()
+        cursor = connection.cursor()
+
+        # The lead is what build_auto_partner_name() reads first, so writing it
+        # here is what makes the account come out right when the webhook
+        # creates it moments later.
+        cursor.execute(
+            "SELECT id FROM leads WHERE session_id = ? ORDER BY id DESC LIMIT 1",
+            (session_id,),
+        )
+        existing = cursor.fetchone()
+
+        if existing:
+            cursor.execute(
+                "UPDATE leads SET name = ? WHERE id = ?",
+                (name, existing[0]),
+            )
+        else:
+            cursor.execute(
+                "INSERT INTO leads (session_id, client_id, name, status) VALUES (?, ?, ?, ?)",
+                (session_id, session_id, name, "checkout_name"),
+            )
+
+        cursor.execute(
+            """
+            UPDATE partners
+            SET partner_name = ?, updated_at = CURRENT_TIMESTAMP
+            WHERE client_id = ?
+              AND (partner_name IS NULL
+                   OR TRIM(partner_name) = ''
+                   OR partner_name LIKE ?)
+            """,
+            (name, session_id, NAME_PLACEHOLDER_PREFIX + "%"),
+        )
+        renamed = cursor.rowcount
+
+        connection.commit()
+        connection.close()
+
+        print(
+            f"CHECKOUT NAME SAVED ✅ session={session_id} partner_rows={renamed}",
+            flush=True
+        )
+
+        return True, "saved"
+
+    except Exception as error:
+        print(f"CHECKOUT NAME SAVE ERROR ❌ {session_id} {error}", flush=True)
+        return False, "error"
+
+
+@app.route("/claim-name", methods=["POST"])
+def claim_name():
+    """
+    Used by the page after checkout, which reads the session id the chat left
+    in this browser. Harmless if aimed at somebody else: it can only fill a
+    blank or replace a name this system invented, never change a real one.
+    """
+    payload = request.get_json(silent=True) or request.form or {}
+
+    saved, reason = remember_partner_name(
+        payload.get("session_id", ""), payload.get("name", "")
+    )
+
+    if not saved:
+        return jsonify({"status": "error", "reason": reason}), 400
+
+    return jsonify({"status": "success"})
+
+# ===== ALSAAB_ASK_FOR_NAME_V1 END =====
+
+
 @app.route("/pay/<plan_name>", methods=["GET"])
 def pay(plan_name):
     plan_name = str(plan_name or "").lower().strip()
@@ -890,6 +1028,26 @@ def pay(plan_name):
             source_partner_id = ""
 
     source_partner_id = normalize_source_partner_id(source_partner_id)
+
+    # One field between here and Stripe, the first time we meet somebody.
+    # Skippable, because a name is not worth losing a sale over -- and the page
+    # after checkout asks again for anyone who skips.
+    typed_name = request.args.get("buyer_name", "").strip()
+
+    if typed_name:
+        remember_partner_name(session_id, typed_name)
+
+    if (not typed_name
+            and request.args.get("skip_name", "") != "1"
+            and not stored_partner_name(session_id)):
+        return render_template(
+            "checkout_name.html",
+            plan_name=plan_name,
+            plan_label=SAFE_ALSAAB_PLAN_LABELS.get(plan_name, plan_name),
+            package_amount=STRIPE_PLAN_CONFIG[plan_name].get("package_amount", ""),
+            session_id=session_id,
+            source_partner_id=source_partner_id,
+        )
 
     plan_config = STRIPE_PLAN_CONFIG[plan_name]
     payment_link = plan_config.get("payment_link", "")
@@ -1095,9 +1253,9 @@ def stripe_webhook():
                     WHERE client_id = ?
                       AND (partner_name IS NULL
                            OR TRIM(partner_name) = ''
-                           OR partner_name LIKE 'ALSAAB Partner%')
+                           OR partner_name LIKE ?)
                     """,
-                    (captured_name, session_id),
+                    (captured_name, session_id, "ALSAAB Partner%"),
                 )
                 name_conn.commit()
                 name_conn.close()
@@ -6047,6 +6205,118 @@ def partner_dashboard_network():
 
 # ===== ALSAAB_PARTNER_OWN_NETWORK_V1 END =====
 
+# ===== ALSAAB_MONTHLY_OUTLOOK_V1 START =====
+# Three numbers per partner that only made sense together: what the month is
+# worth if the whole branch renews, what has actually landed, and what has
+# already been lost to a renewal date that came and went. By month end nobody
+# is still pending, so collected + lost is the full figure -- which is what
+# makes a gap between them readable while the month is still running.
+
+
+def monthly_commission_outlook():
+    """
+    {partner_id: {"potential": x, "collected": y, "lost": z}} for this month.
+
+    Two queries for the whole table rather than three per partner: the admin
+    dashboard lists every partner and would otherwise open seventy round trips
+    to draw one page.
+    """
+    from datetime import datetime, timezone
+    from db import get_connection
+    from level_engine import COMMISSION_RATES_BY_DEPTH
+
+    today = datetime.now(timezone.utc).date()
+    month = today.strftime("%Y-%m")
+    outlook = {}
+
+    try:
+        cursor = get_connection().cursor()
+
+        # What landed this month, and from whom -- the payer is needed so the
+        # same person is not counted again as a loss.
+        cursor.execute(
+            """
+            SELECT c.beneficiary_partner_id,
+                   payer.partner_id,
+                   SUM(c.commission_amount)
+            FROM commissions c
+            LEFT JOIN partners payer ON payer.client_id = c.payer_client_id
+            WHERE TO_CHAR(COALESCE(c.period_start, c.created_at), 'YYYY-MM') = ?
+            GROUP BY 1, 2
+            """,
+            (month,),
+        )
+
+        collected = {}
+        already_paid = set()
+
+        for beneficiary, payer_partner_id, amount in cursor.fetchall():
+            if not beneficiary:
+                continue
+
+            collected[beneficiary] = round(
+                collected.get(beneficiary, 0.0) + _detail_money(amount), 2
+            )
+
+            if payer_partner_id:
+                already_paid.add((beneficiary, payer_partner_id))
+
+        # The whole network at once, with each member's money and due date.
+        cursor.execute(
+            """
+            SELECT d.root_partner_id, d.descendant_partner_id, d.depth,
+                   s.package_amount, s.subscription_status, s.billing_cycle_end
+            FROM partner_downline d
+            LEFT JOIN partners p ON p.partner_id = d.descendant_partner_id
+            LEFT JOIN subscriptions s ON s.client_id = p.client_id
+            WHERE d.depth <= ?
+            """,
+            (_PARTNER_DETAIL_MAX_DEPTH,),
+        )
+
+        for root, member, depth, amount, status, due in cursor.fetchall():
+            if not root:
+                continue
+
+            rate = float(COMMISSION_RATES_BY_DEPTH.get(int(depth or 0), 0) or 0)
+            worth = round(_detail_money(amount) * rate / 100.0, 2)
+
+            bucket = outlook.setdefault(
+                root, {"potential": 0.0, "collected": 0.0, "lost": 0.0}
+            )
+            bucket["potential"] = round(bucket["potential"] + worth, 2)
+
+            if (root, member) in already_paid:
+                continue
+
+            due_on = _detail_date(due)
+            state = str(status or "").lower()
+
+            # Their date has passed and nothing arrived, or they stopped on
+            # purpose. Either way this partner is not getting it this month.
+            missed = (
+                (due_on and due_on < today.isoformat())
+                or state in ("cancelled", "payment_failed", "past_due", "expired")
+                or not state
+            )
+
+            if missed:
+                bucket["lost"] = round(bucket["lost"] + worth, 2)
+
+        for partner_id, amount in collected.items():
+            outlook.setdefault(
+                partner_id, {"potential": 0.0, "collected": 0.0, "lost": 0.0}
+            )["collected"] = amount
+
+        return outlook
+
+    except Exception as error:
+        print(f"MONTHLY OUTLOOK ERROR ⚠️ {error}", flush=True)
+        return {}
+
+# ===== ALSAAB_MONTHLY_OUTLOOK_V1 END =====
+
+
 
 
 
@@ -6104,6 +6374,10 @@ def admin_dashboard_view():
         eligible_counts = levels.get("eligible_counts") or {}
 
         recent_partners = partners.get("recent") or []
+        partner_outlook = monthly_commission_outlook()
+
+        from datetime import datetime as _outlook_clock, timezone as _outlook_tz
+        outlook_today = _outlook_clock.now(_outlook_tz.utc).strftime("%Y-%m-%d")
         recent_subscriptions = subscriptions.get("recent") or []
         recent_commissions = commissions.get("recent") or []
         recent_levels = levels.get("recent") or []
@@ -6305,6 +6579,8 @@ def admin_dashboard_view():
             partners=partners,
             subscriptions=subscriptions,
             recent_partners=recent_partners,
+            partner_outlook=partner_outlook,
+            outlook_today=outlook_today,
             recent_subscriptions=recent_subscriptions,
             recent_commissions=recent_commissions,
             recent_levels=recent_levels,
