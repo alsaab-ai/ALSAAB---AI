@@ -1029,25 +1029,12 @@ def pay(plan_name):
 
     source_partner_id = normalize_source_partner_id(source_partner_id)
 
-    # One field between here and Stripe, the first time we meet somebody.
-    # Skippable, because a name is not worth losing a sale over -- and the page
-    # after checkout asks again for anyone who skips.
+    # Nothing stands between this link and Stripe. The name is asked for on
+    # the page after checkout instead, where it costs nobody a sale.
     typed_name = request.args.get("buyer_name", "").strip()
 
     if typed_name:
         remember_partner_name(session_id, typed_name)
-
-    if (not typed_name
-            and request.args.get("skip_name", "") != "1"
-            and not stored_partner_name(session_id)):
-        return render_template(
-            "checkout_name.html",
-            plan_name=plan_name,
-            plan_label=SAFE_ALSAAB_PLAN_LABELS.get(plan_name, plan_name),
-            package_amount=STRIPE_PLAN_CONFIG[plan_name].get("package_amount", ""),
-            session_id=session_id,
-            source_partner_id=source_partner_id,
-        )
 
     plan_config = STRIPE_PLAN_CONFIG[plan_name]
     payment_link = plan_config.get("payment_link", "")
