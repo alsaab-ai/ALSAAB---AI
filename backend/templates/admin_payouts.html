@@ -264,13 +264,15 @@
             <input type="hidden" name="month" value="{{ data.month }}">
             <input type="hidden" name="method" value="stripe">
             <button type="submit" class="pay-stripe"
-                    {% if not p.stripe_account_id %}disabled{% endif %}>
+                    {% if not p.payouts_enabled %}disabled{% endif %}>
               أرسل عبر Stripe
             </button>
           </form>
 
           {% if not p.stripe_account_id %}
-            <span class="why">لا يوجد حساب Stripe متصل لهذا الشريك بعد.</span>
+            <span class="why">لم يسجّل هذا الشريك في Stripe بعد.</span>
+          {% elif not p.payouts_enabled %}
+            <span class="why">سجّل في Stripe، وما زال قيد المراجعة.</span>
           {% endif %}
         </div>
       {% endif %}

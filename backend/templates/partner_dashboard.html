@@ -568,6 +568,22 @@
 #bankSave[disabled]{ opacity:.55; cursor:default; }
 .bank-note{ font-size:12.5px; font-weight:700; }
 .bank-note.ok{ color:#86efac; } .bank-note.bad{ color:#ef8383; }
+.connect-box{
+  margin-top:20px; padding-top:18px; border-top:1px solid rgba(255,255,255,.09);
+}
+.connect-head{ font-size:14px; font-weight:800; color:#f0cc68; margin-bottom:6px; }
+.connect-state{
+  margin:12px 0; border-radius:12px; padding:10px 14px; font-size:13px; font-weight:700;
+}
+.connect-state.ok{ color:#86efac; background:rgba(34,197,94,.08); border:1px solid rgba(134,239,172,.4); }
+.connect-state.wait{ color:#e0a83f; background:rgba(224,168,63,.08); border:1px solid rgba(224,168,63,.4); }
+#connectStripe{
+  margin-top:12px; border:1px solid rgba(215,184,90,.55); border-radius:999px;
+  background:transparent; color:#f0cc68; cursor:pointer;
+  padding:11px 24px; font-family:inherit; font-size:13.5px; font-weight:900;
+}
+#connectStripe:hover:not([disabled]){ background:rgba(215,184,90,.12); }
+#connectStripe[disabled]{ opacity:.55; cursor:default; }
 /* ===== ALSAAB_PARTNER_CHECKOUT_LINKS_V1 END ===== */
 
 /* ===== ALSAAB_PARTNER_EDIT_NAME_V1 START =====
@@ -692,6 +708,54 @@ document.addEventListener("DOMContentLoaded", function () {
       }).catch(function () {
         bankSave.disabled = false;
         bankSay("تعذّر الاتصال، حاول مرة أخرى.", false);
+      });
+    });
+  }
+
+  /* ===== ALSAAB_STRIPE_CONNECT_ONBOARDING_V1 ===== */
+  var connectButton = document.getElementById("connectStripe");
+
+  if (connectButton) {
+    var connectNote = document.getElementById("connectNote");
+
+    connectButton.addEventListener("click", function () {
+      var here = new URLSearchParams(window.location.search);
+      var body = new URLSearchParams();
+
+      body.set("partner_id", here.get("partner_id") || {{ profile.partner_id | tojson }});
+      if (here.get("key")) { body.set("key", here.get("key")); }
+      if (here.get("sso") || here.get("token")) {
+        body.set("sso", here.get("sso") || here.get("token"));
+      }
+
+      connectButton.disabled = true;
+      connectNote.className = "bank-note ok";
+      connectNote.textContent = "جاري فتح صفحة Stripe...";
+
+      fetch("/partner-dashboard/connect-stripe", {
+        method: "POST",
+        credentials: "same-origin",
+        headers: { "Content-Type": "application/x-www-form-urlencoded" },
+        body: body.toString()
+      }).then(function (response) {
+        return response.json().catch(function () { return {}; });
+      }).then(function (result) {
+        if (result && result.status === "success" && result.url) {
+          window.location.href = result.url;
+          return;
+        }
+
+        connectButton.disabled = false;
+        connectNote.className = "bank-note bad";
+        // Stripe's own words: if Connect is not enabled for this platform,
+        // that message is the answer, and hiding it helps nobody.
+        connectNote.textContent = (result && result.message)
+          ? result.message
+          : "تعذّر فتح صفحة Stripe.";
+      }).catch(function () {
+        connectButton.disabled = false;
+        connectNote.className = "bank-note bad";
+        connectNote.textContent = "تعذّر الاتصال، حاول مرة أخرى.";
       });
     });
   }
@@ -945,6 +1009,29 @@ document.addEventListener("DOMContentLoaded", function () {
       <div class="bank-actions">
         <button type="button" id="bankSave">حفظ بيانات الحساب</button>
         <span class="bank-note" id="bankNote"></span>
+      </div>
+
+      <!-- ===== ALSAAB_STRIPE_CONNECT_ONBOARDING_V1 =====
+           The better of the two: Stripe collects the identity documents and
+           the IBAN on its own page and keeps them, so they never touch this
+           database and the checks are not ours to get wrong. -->
+      <div class="connect-box">
+        <div class="connect-head">أو استلمها تلقائياً عبر Stripe</div>
+        <div class="muted" style="line-height:1.9;">
+          تسجّل بياناتك مرة واحدة على صفحة Stripe الآمنة، وبعدها العمولات
+          تتحوّل على حسابك تلقائياً بدون ما نطلب منك أي شيء.
+        </div>
+
+        {% if connect and connect.payouts_enabled %}
+          <div class="connect-state ok">✅ حسابك جاهز — التحويل التلقائي مفعّل</div>
+        {% elif connect and connect.started %}
+          <div class="connect-state wait">⏳ Stripe بيراجع بياناتك — {{ connect.status }}</div>
+        {% endif %}
+
+        <button type="button" id="connectStripe">
+          {% if connect and connect.started %}أكمل التسجيل في Stripe{% else %}فعّل الاستلام التلقائي{% endif %}
+        </button>
+        <div class="bank-note" id="connectNote"></div>
       </div>
     </div>
 

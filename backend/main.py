@@ -1801,6 +1801,36 @@ def stripe_webhook():
             "subscription": subscription
         })
 
+    # A Connect account changes state on its own once Stripe finishes its
+    # checks -- there is no request of ours to hang that answer on.
+    if event_type == "account.updated":
+        account = event.get("data", {}).get("object", {}) or {}
+        partner_id = (account.get("metadata", {}) or {}).get("alsaab_partner_id", "")
+
+        if not partner_id:
+            try:
+                from db import get_connection
+
+                finder = get_connection().cursor()
+                finder.execute(
+                    "SELECT partner_id FROM partners WHERE stripe_account_id = ? LIMIT 1",
+                    (account.get("id", ""),),
+                )
+                found = finder.fetchone()
+                partner_id = found[0] if found else ""
+            except Exception as error:
+                print(f"CONNECT ACCOUNT LOOKUP FAILED ⚠️ {error}", flush=True)
+
+        if not partner_id:
+            return jsonify({"status": "ignored", "reason": "unknown_connect_account"})
+
+        try:
+            saved = remember_connect_account(partner_id, account)
+            return jsonify({"status": "success", "partner_id": partner_id, **saved})
+        except Exception as error:
+            print(f"CONNECT ACCOUNT SAVE FAILED ❌ {partner_id} {error}", flush=True)
+            return jsonify({"status": "error", "message": str(error)}), 500
+
     if event_type == "customer.subscription.updated":
         stripe_subscription = event.get("data", {}).get("object", {})
 
@@ -3515,6 +3545,7 @@ def partner_dashboard_view():
 
         language_url = en_url if is_ar else ar_url
         bank = partner_bank_details(partner_id)
+        connect = partner_connect_state(partner_id)
         partner_dashboard_url = build_dashboard_nav_url("/partner-dashboard", partner_id, lang, key)
         client_dashboard_url = build_dashboard_nav_url("/client-dashboard", partner_id, lang, key)
         owner_advisory_url = build_dashboard_nav_url("/owner-advisory", partner_id, lang, key)
@@ -3690,6 +3721,7 @@ def partner_dashboard_view():
             language_url=language_url,
             partner_dashboard_url=partner_dashboard_url,
             bank=bank,
+            connect=connect,
             client_dashboard_url=client_dashboard_url,
             owner_advisory_url=owner_advisory_url,
             network_url=network_url,
@@ -6620,7 +6652,8 @@ def collect_payouts_for_month(month, cursor=None):
                c.status, c.commission_depth, c.package, c.package_amount,
                c.paid_date, payer.partner_name, payer.partner_id,
                p.partner_name, p.email, p.phone, p.stripe_account_id,
-               p.bank_account_name, p.bank_name, p.bank_iban
+               p.bank_account_name, p.bank_name, p.bank_iban,
+               p.stripe_payouts_enabled
         FROM commissions c
         LEFT JOIN partners p     ON p.partner_id = c.beneficiary_partner_id
         LEFT JOIN partners payer ON payer.client_id = c.payer_client_id
@@ -6647,6 +6680,7 @@ def collect_payouts_for_month(month, cursor=None):
             "email": row[11] or "",
             "phone": row[12] or "",
             "stripe_account_id": row[13] or "",
+            "payouts_enabled": bool(row[17]),
             "bank_account_name": row[14] or "",
             "bank_name": row[15] or "",
             "iban_masked": mask_iban(row[16]),
@@ -6687,7 +6721,7 @@ def collect_payouts_for_month(month, cursor=None):
         "paid_total": round(sum(item["already_paid"] for item in rows), 2),
         "grand_total": round(sum(item["total"] for item in rows), 2),
         "owed_partners": sum(1 for item in rows if item["owed"] > 0),
-        "with_stripe": sum(1 for item in rows if item["stripe_account_id"]),
+        "with_stripe": sum(1 for item in rows if item.get("payouts_enabled")),
     }
 
 
@@ -7101,6 +7135,249 @@ def admin_partner_bank():
     return jsonify({"status": "success", "partner_id": partner_id, "bank": details})
 
 # ===== ALSAAB_PARTNER_BANK_DETAILS_V1 END =====
+
+# ===== ALSAAB_STRIPE_CONNECT_ONBOARDING_V1 START =====
+# Express onboarding: Stripe collects the identity documents and the IBAN on
+# its own hosted page and keeps them. We store an account id and whether
+# payouts are switched on -- nothing else. That is the whole reason to prefer
+# it over our own bank form: the numbers that matter never touch this
+# database, and the identity checks are not ours to get wrong.
+#
+# Until Connect is enabled on the platform account, accounts.create fails.
+# The error Stripe gives is passed through rather than swallowed, because it
+# is the answer to "is Connect available to us" -- the button is the test.
+
+CONNECT_COUNTRY = (os.getenv("STRIPE_CONNECT_COUNTRY", "AE") or "AE").strip().upper()
+
+
+def _connect_base_url():
+    base = str(globals().get("APP_BASE_URL", "") or "").strip().rstrip("/")
+
+    if base:
+        return base
+
+    try:
+        return request.url_root.rstrip("/")
+    except Exception:
+        return "https://alsaab-ai.onrender.com"
+
+
+def remember_connect_account(partner_id, account):
+    """Store what Stripe says about an account. Never the details behind it."""
+    from db import get_connection
+
+    payouts = bool(account.get("payouts_enabled"))
+    charges = bool(account.get("charges_enabled"))
+
+    requirements = account.get("requirements", {}) or {}
+    due = requirements.get("currently_due", []) or []
+    status = "ready" if payouts else ("pending_" + due[0] if due else "pending")
+
+    connection = get_connection()
+    cursor = connection.cursor()
+    cursor.execute(
+        """
+        UPDATE partners
+        SET stripe_account_id = ?, stripe_payouts_enabled = ?,
+            stripe_charges_enabled = ?, stripe_account_status = ?,
+            stripe_account_updated_at = NOW(), updated_at = NOW()
+        WHERE partner_id = ?
+        """,
+        (account.get("id", ""), payouts, charges, status[:120], partner_id),
+    )
+    connection.commit()
+    connection.close()
+
+    print(
+        f"CONNECT ACCOUNT SAVED ✅ {partner_id} {account.get('id','')} "
+        f"payouts={payouts} status={status}",
+        flush=True
+    )
+
+    return {"payouts_enabled": payouts, "charges_enabled": charges, "status": status}
+
+
+def partner_connect_state(partner_id):
+    from db import get_connection
+
+    cursor = get_connection().cursor()
+    cursor.execute(
+        """
+        SELECT stripe_account_id, stripe_payouts_enabled, stripe_account_status,
+               stripe_account_updated_at, email
+        FROM partners WHERE partner_id = ? LIMIT 1
+        """,
+        (normalize_dashboard_partner_id(partner_id),),
+    )
+    row = cursor.fetchone()
+
+    if not row:
+        return {}
+
+    return {
+        "account_id": row[0] or "",
+        "payouts_enabled": bool(row[1]),
+        "status": row[2] or "",
+        "updated_at": _detail_date(row[3]),
+        "email": row[4] or "",
+        "started": bool(row[0]),
+    }
+
+
+@app.route("/partner-dashboard/connect-stripe", methods=["POST"])
+def partner_dashboard_connect_stripe():
+    """
+    Create the partner's Express account if they have none, then hand back a
+    one-time Stripe link where they finish signing up.
+
+    Only ever their own account: the id comes from whoever is signed in.
+    """
+    partner_id, problem = resolve_dashboard_caller()
+
+    if problem:
+        return jsonify({"status": "error", "reason": problem}), (
+            403 if problem == "unauthorized" else 400
+        )
+
+    stripe = _stripe_client()
+
+    if stripe is None:
+        return jsonify({
+            "status": "error",
+            "reason": "no_stripe_key",
+            "message": "مفتاح Stripe غير مضبوط على السيرفر.",
+        }), 400
+
+    state = partner_connect_state(partner_id)
+    account_id = state.get("account_id", "")
+
+    try:
+        if not account_id:
+            account = stripe.Account.create(
+                type="express",
+                country=CONNECT_COUNTRY,
+                email=state.get("email") or None,
+                capabilities={"transfers": {"requested": True}},
+                business_type="individual",
+                metadata={"alsaab_partner_id": partner_id},
+            )
+            account_id = account.get("id", "")
+            remember_connect_account(partner_id, account)
+
+        base = _connect_base_url()
+        carry = "?partner_id=" + quote(partner_id)
+
+        link = stripe.AccountLink.create(
+            account=account_id,
+            refresh_url=base + "/partner-dashboard/connect-refresh" + carry,
+            return_url=base + "/partner-dashboard/connect-return" + carry,
+            type="account_onboarding",
+        )
+
+        return jsonify({
+            "status": "success",
+            "account_id": account_id,
+            "url": link.get("url", ""),
+        })
+
+    except Exception as error:
+        # Most likely: Connect is not enabled on the platform account, or not
+        # available for this country. Stripe's own words are more use to the
+        # reader than anything this code could invent.
+        print(f"CONNECT ONBOARDING FAILED ❌ {partner_id} {error}", flush=True)
+
+        return jsonify({
+            "status": "error",
+            "reason": "stripe_refused",
+            "message": str(error)[:400],
+        }), 400
+
+
+@app.route("/partner-dashboard/connect-return", methods=["GET"])
+def partner_dashboard_connect_return():
+    """
+    Where Stripe sends the partner when they finish.
+
+    Finishing the form is not the same as being approved, so the account is
+    re-read here rather than assumed good.
+    """
+    partner_id = normalize_dashboard_partner_id(request.args.get("partner_id", ""))
+    state = partner_connect_state(partner_id)
+    stripe = _stripe_client()
+
+    if stripe is not None and state.get("account_id"):
+        try:
+            remember_connect_account(
+                partner_id, stripe.Account.retrieve(state["account_id"])
+            )
+            state = partner_connect_state(partner_id)
+        except Exception as error:
+            print(f"CONNECT RETURN REFRESH FAILED ⚠️ {partner_id} {error}", flush=True)
+
+    return render_template("connect_done.html", partner_id=partner_id, state=state,
+                           retry=False)
+
+
+@app.route("/partner-dashboard/connect-refresh", methods=["GET"])
+def partner_dashboard_connect_refresh():
+    """Stripe sends them here when the link expired or they backed out."""
+    partner_id = normalize_dashboard_partner_id(request.args.get("partner_id", ""))
+
+    return render_template(
+        "connect_done.html", partner_id=partner_id,
+        state=partner_connect_state(partner_id), retry=True,
+    )
+
+
+@app.route("/admin/connect-status", methods=["GET"])
+def admin_connect_status():
+    """Re-read every partner's Connect account from Stripe."""
+    if not admin_access_granted(request.args.get("key", "").strip()):
+        return jsonify({"error": "Unauthorized"}), 401
+
+    stripe = _stripe_client()
+
+    if stripe is None:
+        return jsonify({"error": "STRIPE_SECRET_KEY is not set"}), 400
+
+    from db import get_connection
+
+    # Read-only: does this platform have Connect at all? Listing accounts
+    # creates nothing, and the error when it is switched off is the answer to
+    # the question that gates everything else here.
+    probe = {}
+
+    try:
+        stripe.Account.list(limit=1)
+        probe = {"connect_available": True}
+    except Exception as error:
+        probe = {"connect_available": False, "stripe_said": str(error)[:300]}
+
+    cursor = get_connection().cursor()
+    cursor.execute(
+        "SELECT partner_id, stripe_account_id FROM partners "
+        "WHERE COALESCE(stripe_account_id,'') <> ''"
+    )
+
+    checked = []
+
+    for partner_id, account_id in cursor.fetchall():
+        try:
+            saved = remember_connect_account(
+                partner_id, stripe.Account.retrieve(account_id)
+            )
+            saved["partner_id"] = partner_id
+            checked.append(saved)
+        except Exception as error:
+            checked.append({"partner_id": partner_id, "error": str(error)[:160]})
+
+    return jsonify({
+        "status": "success", "checked": len(checked),
+        "accounts": checked, "platform": probe,
+    })
+
+# ===== ALSAAB_STRIPE_CONNECT_ONBOARDING_V1 END =====
+
 
 
 
