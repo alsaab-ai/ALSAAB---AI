@@ -3546,6 +3546,7 @@ def partner_dashboard_view():
         language_url = en_url if is_ar else ar_url
         bank = partner_bank_details(partner_id)
         connect = partner_connect_state(partner_id)
+        show_payout_setup = payout_setup_visible()
         partner_dashboard_url = build_dashboard_nav_url("/partner-dashboard", partner_id, lang, key)
         client_dashboard_url = build_dashboard_nav_url("/client-dashboard", partner_id, lang, key)
         owner_advisory_url = build_dashboard_nav_url("/owner-advisory", partner_id, lang, key)
@@ -3722,6 +3723,7 @@ def partner_dashboard_view():
             partner_dashboard_url=partner_dashboard_url,
             bank=bank,
             connect=connect,
+            show_payout_setup=show_payout_setup,
             client_dashboard_url=client_dashboard_url,
             owner_advisory_url=owner_advisory_url,
             network_url=network_url,
@@ -6979,6 +6981,38 @@ def send_payout_through_stripe(partner_id, month):
 
 # ===== ALSAAB_PAYOUTS_PAGE_V1 END =====
 
+# ===== ALSAAB_PAYOUT_SETUP_VISIBILITY_V1 START =====
+# The payout setup -- bank details and Stripe onboarding -- is finished enough
+# to work but not finished enough to put in front of partners: nobody has been
+# told what it is, and a half-explained form asking for an IBAN is how you
+# teach people to type their bank details into anything that asks.
+#
+# So it is hidden wherever this runs hosted, and on by default locally, which
+# is where it is still being worked on. ALSAAB_PAYOUT_SETUP=on|off overrides
+# either way, so turning it on for everyone is one environment variable and no
+# deploy.
+
+
+def payout_setup_visible():
+    wanted = str(os.getenv("ALSAAB_PAYOUT_SETUP", "")).strip().lower()
+
+    if wanted in ("1", "on", "show", "true", "yes"):
+        return True
+
+    if wanted in ("0", "off", "hide", "false", "no"):
+        return False
+
+    # Render sets these; a laptop does not.
+    hosted = any(
+        os.getenv(name)
+        for name in ("RENDER", "RENDER_SERVICE_ID", "RENDER_EXTERNAL_URL", "RENDER_INSTANCE_ID")
+    )
+
+    return not hosted
+
+# ===== ALSAAB_PAYOUT_SETUP_VISIBILITY_V1 END =====
+
+
 # ===== ALSAAB_PARTNER_BANK_DETAILS_V1 START =====
 # Commissions are worked out to the fillier and then paid by asking the
 # partner for their IBAN over WhatsApp. Nothing in the system held one. Each
@@ -7063,6 +7097,9 @@ def partner_dashboard_save_bank():
     Only ever their own: the id comes from whoever is signed in, never from
     the form, so this cannot be pointed at somebody else's account.
     """
+    if not payout_setup_visible():
+        return jsonify({"status": "error", "reason": "not_available"}), 404
+
     partner_id, problem = resolve_dashboard_caller()
 
     if problem:
@@ -7232,6 +7269,9 @@ def partner_dashboard_connect_stripe():
 
     Only ever their own account: the id comes from whoever is signed in.
     """
+    if not payout_setup_visible():
+        return jsonify({"status": "error", "reason": "not_available"}), 404
+
     partner_id, problem = resolve_dashboard_caller()
 
     if problem:

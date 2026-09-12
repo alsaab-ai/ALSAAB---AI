@@ -964,6 +964,7 @@ document.addEventListener("DOMContentLoaded", function () {
     <!-- ===== ALSAAB_PARTNER_BANK_DETAILS_V1 =====
          Commissions were worked out to the fillier and then paid by asking
          for an IBAN over WhatsApp. This is where it lives now. -->
+    {% if show_payout_setup %}
     <div class="section" id="secBank">
       <h2>حساب استلام العمولات</h2>
       <div class="muted" style="line-height:1.9;margin-bottom:14px;">
@@ -1034,6 +1035,7 @@ document.addEventListener("DOMContentLoaded", function () {
         <div class="bank-note" id="connectNote"></div>
       </div>
     </div>
+    {% endif %}
 
     <div class="section" id="secShareLinks">
       <h2>{{ t.share_links }}</h2>
