@@ -100,6 +100,20 @@
 
   .empty{ color:var(--muted); padding:26px 2px; font-size:14px; }
 
+  .bank-line{ margin-top:7px; font-size:12px; color:var(--ink-2); line-height:1.9; }
+  .bank-line.none{ color:var(--crit); font-weight:700; }
+  .bank-line .iban{
+    display:inline-block; font-family:"IBM Plex Mono",monospace; font-size:12px;
+    color:var(--ok); direction:ltr; unicode-bidi:plaintext;
+    letter-spacing:.04em; margin-inline-end:7px;
+  }
+  .reveal{
+    border:1px solid var(--line); background:transparent; color:var(--muted);
+    border-radius:999px; padding:2px 11px; font-size:11px; font-weight:700;
+    cursor:pointer; font-family:inherit;
+  }
+  .reveal:hover{ border-color:var(--gold); color:var(--gold-2); }
+
   .banner{ border:1px solid var(--warn); background:var(--warn-bg); color:var(--warn);
            border-radius:14px; padding:14px 17px; margin-bottom:20px; font-size:13.5px; }
   .banner b{ display:block; margin-bottom:5px; font-size:14px; }
@@ -182,6 +196,17 @@
           <div class="nm">{{ p.name }}</div>
           {% if p.email %}<div class="mail">{{ p.email }}</div>{% endif %}
           {% if p.phone %}<div class="mail">{{ p.phone }}</div>{% endif %}
+          {# Masked in the list. Seeing a whole IBAN is a deliberate press,
+             and it is logged. #}
+          {% if p.has_bank %}
+            <div class="bank-line">
+              <b>{{ p.bank_account_name }}</b>{% if p.bank_name %} · {{ p.bank_name }}{% endif %}
+              <span class="iban" data-partner="{{ p.partner_id }}">{{ p.iban_masked }}</span>
+              <button type="button" class="reveal" data-partner="{{ p.partner_id }}">إظهار</button>
+            </div>
+          {% else %}
+            <div class="bank-line none">لم يسجّل حسابه البنكي بعد</div>
+          {% endif %}
         </div>
         <div class="money">
           <div class="big {% if p.owed == 0 %}done{% endif %}">{{ "%.2f"|format(p.owed) }}</div>
@@ -281,6 +306,38 @@
     document.getElementById("sheetArea").classList.remove("busy");
   });
 })();
+
+/* The whole IBAN only on request, so a shared screen or a screenshot of this
+   page does not hand out everybody's account number. */
+document.querySelectorAll(".reveal").forEach(function (button) {
+  button.addEventListener("click", function () {
+    var partnerId = button.getAttribute("data-partner");
+    var slot = document.querySelector('.iban[data-partner="' + partnerId + '"]');
+    var key = new URLSearchParams(window.location.search).get("key") || "";
+
+    button.disabled = true;
+
+    fetch("/admin/partner-bank?key=" + encodeURIComponent(key) +
+          "&partner_id=" + encodeURIComponent(partnerId), { credentials: "same-origin" })
+      .then(function (response) { return response.json(); })
+      .then(function (result) {
+        if (result && result.status === "success") {
+          slot.textContent = result.bank.iban;
+          button.textContent = "نسخ";
+          button.disabled = false;
+          button.onclick = function () {
+            navigator.clipboard.writeText(result.bank.iban).then(function () {
+              button.textContent = "✓";
+              setTimeout(function () { button.textContent = "نسخ"; }, 1400);
+            });
+          };
+        } else {
+          button.textContent = "تعذّر";
+        }
+      })
+      .catch(function () { button.textContent = "تعذّر"; button.disabled = false; });
+  });
+});
 
 /* Settling money is not something to do twice by accident, and a slow request
    with a live button is exactly how that happens. */

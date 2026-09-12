@@ -539,6 +539,35 @@
 }
 .share-copy:hover{ filter:brightness(1.08); }
 .share-copy.done{ background:linear-gradient(135deg,#22c55e,#14532d); color:#fff; border-color:rgba(134,239,172,.8); }
+/* ===== ALSAAB_PARTNER_BANK_DETAILS_V1 ===== */
+.bank-now{
+  border:1px solid rgba(134,239,172,.45); background:rgba(34,197,94,.07);
+  border-radius:14px; padding:12px 15px; margin-bottom:15px; line-height:1.85;
+}
+.bank-iban{
+  font-family:"IBM Plex Mono",ui-monospace,monospace; font-size:14px;
+  color:#86efac; direction:ltr; unicode-bidi:plaintext; letter-spacing:.04em;
+}
+.bank-grid{ display:grid; gap:12px; grid-template-columns:repeat(auto-fit,minmax(230px,1fr)); }
+.bank-grid label{ display:block; }
+.bank-grid label.wide{ grid-column:1 / -1; }
+.bank-grid span{ display:block; font-size:12.5px; font-weight:700; color:#cbd5e1; margin-bottom:6px; }
+.bank-grid em{ color:#8d8a7c; font-style:normal; font-weight:600; }
+.bank-grid input{
+  width:100%; background:#0b0b0b; color:#fff;
+  border:1px solid rgba(215,184,90,.4); border-radius:12px;
+  padding:11px 13px; font-family:inherit; font-size:14px; font-weight:700;
+}
+.bank-grid input:focus{ outline:2px solid rgba(240,204,104,.5); outline-offset:1px; }
+.bank-actions{ display:flex; gap:12px; align-items:center; flex-wrap:wrap; margin-top:14px; }
+#bankSave{
+  border:1px solid rgba(215,184,90,.6); border-radius:999px; cursor:pointer;
+  background:linear-gradient(135deg,#d7b85a,#a88425); color:#0b0b0b;
+  padding:11px 24px; font-family:inherit; font-size:13.5px; font-weight:900;
+}
+#bankSave[disabled]{ opacity:.55; cursor:default; }
+.bank-note{ font-size:12.5px; font-weight:700; }
+.bank-note.ok{ color:#86efac; } .bank-note.bad{ color:#ef8383; }
 /* ===== ALSAAB_PARTNER_CHECKOUT_LINKS_V1 END ===== */
 
 /* ===== ALSAAB_PARTNER_EDIT_NAME_V1 START =====
@@ -608,6 +637,64 @@ document.addEventListener("DOMContentLoaded", function () {
       }
     });
   });
+
+  /* ===== ALSAAB_PARTNER_BANK_DETAILS_V1 ===== */
+  var bankSave = document.getElementById("bankSave");
+
+  if (bankSave) {
+    var bankNote = document.getElementById("bankNote");
+
+    var bankSay = function (message, good) {
+      bankNote.textContent = message;
+      bankNote.className = "bank-note " + (good ? "ok" : "bad");
+    };
+
+    bankSave.addEventListener("click", function () {
+      var here = new URLSearchParams(window.location.search);
+      var body = new URLSearchParams();
+
+      body.set("account_name", document.getElementById("bankAccountName").value.trim());
+      body.set("bank_name",    document.getElementById("bankName").value.trim());
+      body.set("iban",         document.getElementById("bankIban").value.trim());
+      body.set("swift",        document.getElementById("bankSwift").value.trim());
+      body.set("partner_id",   here.get("partner_id") || {{ profile.partner_id | tojson }});
+      if (here.get("key")) { body.set("key", here.get("key")); }
+      if (here.get("sso") || here.get("token")) {
+        body.set("sso", here.get("sso") || here.get("token"));
+      }
+
+      bankSave.disabled = true;
+      bankSay("جاري الحفظ...", true);
+
+      fetch("/partner-dashboard/save-bank", {
+        method: "POST",
+        credentials: "same-origin",
+        headers: { "Content-Type": "application/x-www-form-urlencoded" },
+        body: body.toString()
+      }).then(function (response) {
+        return response.json().catch(function () { return {}; });
+      }).then(function (result) {
+        bankSave.disabled = false;
+
+        if (result && result.status === "success") {
+          bankSay("تم الحفظ ✅ " + result.iban_masked, true);
+          return;
+        }
+
+        // Say which field, because "invalid" on a bank form is useless.
+        if (result && result.reason === "iban") {
+          bankSay("رقم الـ IBAN غير صحيح. راجع الأرقام — فيه رقم ناقص أو مقلوب.", false);
+        } else if (result && result.reason === "account_name") {
+          bankSay("اكتب اسم صاحب الحساب كما هو في البنك.", false);
+        } else {
+          bankSay("تعذّر الحفظ، حاول مرة أخرى.", false);
+        }
+      }).catch(function () {
+        bankSave.disabled = false;
+        bankSay("تعذّر الاتصال، حاول مرة أخرى.", false);
+      });
+    });
+  }
 
   /* ===== ALSAAB_PARTNER_EDIT_NAME_V1 =====
      Save without leaving the page: this row sits between the partner's
@@ -810,6 +897,57 @@ document.addEventListener("DOMContentLoaded", function () {
          wanted to send somebody straight to a checkout had nothing to copy.
          Every link here carries ?ref= through /plans and /pay/<plan> into the
          Stripe client_reference_id, so the sale is credited to this partner. -->
+    <!-- ===== ALSAAB_PARTNER_BANK_DETAILS_V1 =====
+         Commissions were worked out to the fillier and then paid by asking
+         for an IBAN over WhatsApp. This is where it lives now. -->
+    <div class="section" id="secBank">
+      <h2>حساب استلام العمولات</h2>
+      <div class="muted" style="line-height:1.9;margin-bottom:14px;">
+        اكتب بيانات حسابك البنكي مرة واحدة، وتُحوَّل عليه عمولاتك.
+        الاسم لازم يطابق الاسم المسجّل في البنك، وإلا يرفض التحويل.
+      </div>
+
+      {% if bank and bank.complete %}
+        <div class="bank-now" id="bankNow">
+          <div><b>{{ bank.account_name }}</b>{% if bank.bank_name %} · {{ bank.bank_name }}{% endif %}</div>
+          <div class="bank-iban">{{ bank.iban_masked }}</div>
+          {% if bank.updated_at %}<div class="muted">آخر تحديث {{ bank.updated_at }}</div>{% endif %}
+        </div>
+      {% endif %}
+
+      <div class="bank-grid">
+        <label>
+          <span>اسم صاحب الحساب</span>
+          <input type="text" id="bankAccountName" maxlength="120"
+                 value="{{ bank.account_name if bank else '' }}"
+                 placeholder="زي ما هو مكتوب في البنك">
+        </label>
+        <label>
+          <span>اسم البنك</span>
+          <input type="text" id="bankName" maxlength="120"
+                 value="{{ bank.bank_name if bank else '' }}"
+                 placeholder="مثال: Emirates NBD">
+        </label>
+        <label class="wide">
+          <span>IBAN</span>
+          <input type="text" id="bankIban" maxlength="42" dir="ltr"
+                 value="{{ bank.iban if bank else '' }}"
+                 placeholder="AE07 0331 2345 6789 0123 456">
+        </label>
+        <label>
+          <span>SWIFT <em>(اختياري)</em></span>
+          <input type="text" id="bankSwift" maxlength="11" dir="ltr"
+                 value="{{ bank.swift if bank else '' }}"
+                 placeholder="EBILAEAD">
+        </label>
+      </div>
+
+      <div class="bank-actions">
+        <button type="button" id="bankSave">حفظ بيانات الحساب</button>
+        <span class="bank-note" id="bankNote"></span>
+      </div>
+    </div>
+
     <div class="section" id="secShareLinks">
       <h2>{{ t.share_links }}</h2>
       <div class="muted" style="line-height:1.9;margin-bottom:14px;">{{ t.share_links_desc }}</div>

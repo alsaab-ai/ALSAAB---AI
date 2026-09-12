@@ -3514,6 +3514,7 @@ def partner_dashboard_view():
         en_url = build_dashboard_nav_url("/partner-dashboard", partner_id, "en", key)
 
         language_url = en_url if is_ar else ar_url
+        bank = partner_bank_details(partner_id)
         partner_dashboard_url = build_dashboard_nav_url("/partner-dashboard", partner_id, lang, key)
         client_dashboard_url = build_dashboard_nav_url("/client-dashboard", partner_id, lang, key)
         owner_advisory_url = build_dashboard_nav_url("/owner-advisory", partner_id, lang, key)
@@ -3688,6 +3689,7 @@ def partner_dashboard_view():
             website_url=WEBSITE_URL,
             language_url=language_url,
             partner_dashboard_url=partner_dashboard_url,
+            bank=bank,
             client_dashboard_url=client_dashboard_url,
             owner_advisory_url=owner_advisory_url,
             network_url=network_url,
@@ -6617,7 +6619,8 @@ def collect_payouts_for_month(month, cursor=None):
         SELECT c.beneficiary_partner_id, c.commission_id, c.commission_amount,
                c.status, c.commission_depth, c.package, c.package_amount,
                c.paid_date, payer.partner_name, payer.partner_id,
-               p.partner_name, p.email, p.phone, p.stripe_account_id
+               p.partner_name, p.email, p.phone, p.stripe_account_id,
+               p.bank_account_name, p.bank_name, p.bank_iban
         FROM commissions c
         LEFT JOIN partners p     ON p.partner_id = c.beneficiary_partner_id
         LEFT JOIN partners payer ON payer.client_id = c.payer_client_id
@@ -6644,6 +6647,10 @@ def collect_payouts_for_month(month, cursor=None):
             "email": row[11] or "",
             "phone": row[12] or "",
             "stripe_account_id": row[13] or "",
+            "bank_account_name": row[14] or "",
+            "bank_name": row[15] or "",
+            "iban_masked": mask_iban(row[16]),
+            "has_bank": bool((row[14] or "").strip() and (row[16] or "").strip()),
             "lines": [],
             "owed": 0.0,
             "already_paid": 0.0,
@@ -6937,6 +6944,164 @@ def send_payout_through_stripe(partner_id, month):
     return settled
 
 # ===== ALSAAB_PAYOUTS_PAGE_V1 END =====
+
+# ===== ALSAAB_PARTNER_BANK_DETAILS_V1 START =====
+# Commissions are worked out to the fillier and then paid by asking the
+# partner for their IBAN over WhatsApp. Nothing in the system held one. Each
+# partner now enters their own, once, and the payouts page reads it.
+#
+# A wrong IBAN is not a typo that shows up on screen -- it is a transfer that
+# bounces a week later, or lands in a stranger's account, so it is checked
+# here rather than trusted.
+
+
+def normalise_iban(raw):
+    """Uppercase, no spaces -- how a bank wants it."""
+    return re.sub(r"[^A-Za-z0-9]", "", str(raw or "")).upper()
+
+
+def iban_is_valid(raw):
+    """
+    The IBAN's own checksum (ISO 13616 mod-97).
+
+    Catches a mistyped or transposed digit, which is the failure that costs a
+    week and a bounced transfer.
+    """
+    iban = normalise_iban(raw)
+
+    if not re.fullmatch(r"[A-Z]{2}[0-9]{2}[A-Z0-9]{10,30}", iban):
+        return False
+
+    rotated = iban[4:] + iban[:4]
+    digits = "".join(
+        str(int(character, 36)) if character.isalpha() else character
+        for character in rotated
+    )
+
+    try:
+        return int(digits) % 97 == 1
+    except ValueError:
+        return False
+
+
+def mask_iban(raw):
+    """What the admin list shows: enough to recognise, not enough to leak."""
+    iban = normalise_iban(raw)
+
+    if len(iban) < 8:
+        return iban
+
+    return iban[:4] + "·" * (len(iban) - 8) + iban[-4:]
+
+
+def partner_bank_details(partner_id):
+    from db import get_connection
+
+    cursor = get_connection().cursor()
+    cursor.execute(
+        """
+        SELECT bank_account_name, bank_name, bank_iban, bank_swift, bank_updated_at
+        FROM partners WHERE partner_id = ? LIMIT 1
+        """,
+        (normalize_dashboard_partner_id(partner_id),),
+    )
+    row = cursor.fetchone()
+
+    if not row:
+        return {}
+
+    return {
+        "account_name": row[0] or "",
+        "bank_name": row[1] or "",
+        "iban": row[2] or "",
+        "iban_masked": mask_iban(row[2]),
+        "swift": row[3] or "",
+        "updated_at": _detail_date(row[4]),
+        "complete": bool((row[0] or "").strip() and (row[2] or "").strip()),
+    }
+
+
+@app.route("/partner-dashboard/save-bank", methods=["POST"])
+def partner_dashboard_save_bank():
+    """
+    A partner records where their commissions should be sent.
+
+    Only ever their own: the id comes from whoever is signed in, never from
+    the form, so this cannot be pointed at somebody else's account.
+    """
+    partner_id, problem = resolve_dashboard_caller()
+
+    if problem:
+        return jsonify({"status": "error", "reason": problem}), (
+            403 if problem == "unauthorized" else 400
+        )
+
+    account_name = " ".join(str(request.form.get("account_name", "")).split())[:120]
+    bank_name = " ".join(str(request.form.get("bank_name", "")).split())[:120]
+    iban = normalise_iban(request.form.get("iban", ""))
+    swift = normalise_iban(request.form.get("swift", ""))[:11]
+
+    if len(account_name) < 3:
+        return jsonify({"status": "error", "reason": "account_name"}), 400
+
+    if not iban_is_valid(iban):
+        return jsonify({"status": "error", "reason": "iban"}), 400
+
+    try:
+        from db import get_connection
+
+        connection = get_connection()
+        cursor = connection.cursor()
+        cursor.execute(
+            """
+            UPDATE partners
+            SET bank_account_name = ?, bank_name = ?, bank_iban = ?,
+                bank_swift = ?, bank_updated_at = NOW(), updated_at = NOW()
+            WHERE partner_id = ?
+            """,
+            (account_name, bank_name, iban, swift, partner_id),
+        )
+        connection.commit()
+        connection.close()
+
+        # The number itself never goes to the log.
+        print(f"PARTNER BANK DETAILS SAVED ✅ {partner_id} iban={mask_iban(iban)}", flush=True)
+
+        return jsonify({
+            "status": "success",
+            "iban_masked": mask_iban(iban),
+            "account_name": account_name,
+            "bank_name": bank_name,
+        })
+
+    except Exception as error:
+        print(f"PARTNER BANK SAVE ERROR ❌ {partner_id} {error}", flush=True)
+        return jsonify({"status": "error", "reason": "save_failed"}), 500
+
+
+@app.route("/admin/partner-bank", methods=["GET"])
+def admin_partner_bank():
+    """
+    The full IBAN, one partner at a time, for the moment of making a transfer.
+
+    The payouts list shows masked numbers; seeing a whole one is a deliberate
+    act, and it is logged.
+    """
+    if not admin_access_granted(request.args.get("key", "").strip()):
+        return jsonify({"error": "Unauthorized"}), 401
+
+    partner_id = normalize_dashboard_partner_id(request.args.get("partner_id", ""))
+
+    if not partner_id:
+        return jsonify({"error": "partner_id is required"}), 400
+
+    details = partner_bank_details(partner_id)
+    print(f"ADMIN REVEALED BANK DETAILS 👁 {partner_id}", flush=True)
+
+    return jsonify({"status": "success", "partner_id": partner_id, "bank": details})
+
+# ===== ALSAAB_PARTNER_BANK_DETAILS_V1 END =====
+
 
 
 
