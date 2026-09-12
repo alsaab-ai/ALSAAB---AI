@@ -6580,6 +6580,365 @@ start_daily_reconciler()
 
 # ===== ALSAAB_STRIPE_RECONCILE_V1 END =====
 
+# ===== ALSAAB_PAYOUTS_PAGE_V1 START =====
+# Commissions were calculated, listed and totalled, and then paid by somebody
+# opening their banking app and remembering who was owed what. The four
+# payouts on record say "manual_transfer" and were typed in afterwards; seven
+# commissions were marked paid with no payout record at all. This is the page
+# that closes that: one month, who is owed, and a button that settles it and
+# writes down that it happened.
+
+
+def _payout_month(raw):
+    """The month being looked at, defaulting to the one we are in."""
+    from datetime import datetime, timezone
+
+    month = str(raw or "").strip()
+
+    if re.fullmatch(r"\d{4}-\d{2}", month):
+        return month
+
+    return datetime.now(timezone.utc).strftime("%Y-%m")
+
+
+def collect_payouts_for_month(month, cursor=None):
+    """
+    Every partner owed something that month, with their commissions and
+    whether they can be paid through Stripe yet.
+
+    Takes a cursor so the page can do its two reads down one connection --
+    opening a second one to Supabase costs most of a second on its own.
+    """
+    if cursor is None:
+        from db import get_connection
+        cursor = get_connection().cursor()
+    cursor.execute(
+        """
+        SELECT c.beneficiary_partner_id, c.commission_id, c.commission_amount,
+               c.status, c.commission_depth, c.package, c.package_amount,
+               c.paid_date, payer.partner_name, payer.partner_id,
+               p.partner_name, p.email, p.phone, p.stripe_account_id
+        FROM commissions c
+        LEFT JOIN partners p     ON p.partner_id = c.beneficiary_partner_id
+        LEFT JOIN partners payer ON payer.client_id = c.payer_client_id
+        WHERE TO_CHAR(COALESCE(c.period_start, c.created_at), 'YYYY-MM') = ?
+        ORDER BY c.beneficiary_partner_id, c.commission_id
+        """,
+        (month,),
+    )
+
+    partners = {}
+
+    for row in cursor.fetchall():
+        partner_id = row[0]
+
+        if not partner_id:
+            continue
+
+        amount = _detail_money(row[2])
+        status = str(row[3] or "pending").lower()
+
+        entry = partners.setdefault(partner_id, {
+            "partner_id": partner_id,
+            "name": row[10] or partner_id,
+            "email": row[11] or "",
+            "phone": row[12] or "",
+            "stripe_account_id": row[13] or "",
+            "lines": [],
+            "owed": 0.0,
+            "already_paid": 0.0,
+            "total": 0.0,
+            "owed_count": 0,
+        })
+
+        entry["lines"].append({
+            "commission_id": row[1],
+            "amount": amount,
+            "status": status,
+            "depth": int(row[4] or 0),
+            "package": row[5] or "",
+            "package_amount": _detail_money(row[6]),
+            "paid_date": _detail_date(row[7]),
+            "payer": row[8] or row[9] or "",
+        })
+
+        entry["total"] = round(entry["total"] + amount, 2)
+
+        if status == "paid":
+            entry["already_paid"] = round(entry["already_paid"] + amount, 2)
+        elif status != "rejected":
+            entry["owed"] = round(entry["owed"] + amount, 2)
+            entry["owed_count"] += 1
+
+    rows = sorted(partners.values(), key=lambda item: -item["owed"])
+
+    return {
+        "month": month,
+        "label": _detail_month_label(month),
+        "partners": rows,
+        "owed_total": round(sum(item["owed"] for item in rows), 2),
+        "paid_total": round(sum(item["already_paid"] for item in rows), 2),
+        "grand_total": round(sum(item["total"] for item in rows), 2),
+        "owed_partners": sum(1 for item in rows if item["owed"] > 0),
+        "with_stripe": sum(1 for item in rows if item["stripe_account_id"]),
+    }
+
+
+def available_payout_months(limit=18, cursor=None):
+    """Months that have any commission at all, newest first."""
+    try:
+        if cursor is None:
+            from db import get_connection
+            cursor = get_connection().cursor()
+
+        cursor.execute(
+            """
+            SELECT DISTINCT TO_CHAR(COALESCE(period_start, created_at), 'YYYY-MM') AS m
+            FROM commissions ORDER BY m DESC LIMIT ?
+            """,
+            (limit,),
+        )
+
+        return [
+            {"month": row[0], "label": _detail_month_label(row[0])}
+            for row in cursor.fetchall() if row[0]
+        ]
+
+    except Exception as error:
+        print(f"PAYOUT MONTHS ERROR ⚠️ {error}", flush=True)
+        return []
+
+
+def settle_partner_month(partner_id, month, method="manual_transfer", actor="admin", reason=""):
+    """
+    Mark one partner's commissions for a month paid, and write the payout
+    record that has been missing every time this was done by hand.
+    """
+    from db import get_connection
+
+    partner_id = normalize_dashboard_partner_id(partner_id)
+    month = _payout_month(month)
+
+    if not partner_id:
+        return {"status": "error", "message": "partner_id is required"}
+
+    connection = get_connection()
+    cursor = connection.cursor()
+
+    cursor.execute(
+        """
+        SELECT commission_id, commission_amount FROM commissions
+        WHERE beneficiary_partner_id = ?
+          AND TO_CHAR(COALESCE(period_start, created_at), 'YYYY-MM') = ?
+          AND LOWER(COALESCE(status,'pending')) NOT IN ('paid','rejected')
+        """,
+        (partner_id, month),
+    )
+    owing = cursor.fetchall()
+
+    if not owing:
+        connection.close()
+        return {"status": "ignored", "message": "nothing outstanding", "partner_id": partner_id}
+
+    commission_ids = [row[0] for row in owing]
+    total = round(sum(_detail_money(row[1]) for row in owing), 2)
+
+    note = f" | paid via {method} for {month}" + (f" ({reason})" if reason else "")
+
+    cursor.execute(
+        """
+        UPDATE commissions
+        SET status = 'paid', paid_date = COALESCE(paid_date, NOW()),
+            notes = COALESCE(notes,'') || ?, updated_at = NOW()
+        WHERE beneficiary_partner_id = ?
+          AND TO_CHAR(COALESCE(period_start, created_at), 'YYYY-MM') = ?
+          AND LOWER(COALESCE(status,'pending')) NOT IN ('paid','rejected')
+        """,
+        (note, partner_id, month),
+    )
+
+    cursor.execute("SELECT partner_name FROM partners WHERE partner_id = ?", (partner_id,))
+    found = cursor.fetchone()
+    partner_name = str((found[0] if found else "") or "")
+
+    payout_id = "PAY-" + str(uuid.uuid4())
+
+    cursor.execute(
+        """
+        INSERT INTO payout_history (
+            payout_id, partner_id, partner_name, commission_count, commission_ids,
+            total_amount, currency, payment_method, status, paid_date, actor,
+            reason, source, notes
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, NOW(), ?, ?, ?, ?)
+        """,
+        (
+            payout_id, partner_id, partner_name, len(commission_ids),
+            ",".join(commission_ids), total, "AED", method, "paid",
+            actor, reason, "payouts_page", f"month={month}",
+        ),
+    )
+
+    connection.commit()
+    connection.close()
+
+    print(
+        f"PAYOUT RECORDED ✅ {payout_id} {partner_id} {total} AED "
+        f"({len(commission_ids)} commissions, {month}, {method})",
+        flush=True
+    )
+
+    return {
+        "status": "success",
+        "payout_id": payout_id,
+        "partner_id": partner_id,
+        "month": month,
+        "commission_count": len(commission_ids),
+        "total_amount": total,
+        "method": method,
+    }
+
+
+@app.route("/admin/payouts", methods=["GET"])
+def admin_payouts():
+    """Who is owed what, for one month, and the buttons to settle it."""
+    if not admin_access_granted(request.args.get("key", "").strip()):
+        return "Unauthorized", 401
+
+    month = _payout_month(request.args.get("month", ""))
+
+    try:
+        from db import get_connection
+
+        shared = get_connection().cursor()
+
+        return render_template(
+            "admin_payouts.html",
+            key=request.args.get("key", "").strip(),
+            data=collect_payouts_for_month(month, cursor=shared),
+            months=available_payout_months(cursor=shared),
+            selected=month,
+            saved=request.args.get("saved", ""),
+            back_url=build_dashboard_nav_url(
+                "/admin-dashboard", "", "ar", request.args.get("key", "").strip()
+            ),
+        )
+
+    except Exception as error:
+        print(f"ADMIN PAYOUTS ERROR ❌ {error}", flush=True)
+        return f"Payouts page failed: {error}", 500
+
+
+@app.route("/admin/payouts/settle", methods=["POST"])
+def admin_payouts_settle():
+    """Record a payout that has been made, or make one through Stripe."""
+    if not admin_access_granted(request.form.get("key", "").strip()):
+        return jsonify({"error": "Unauthorized"}), 401
+
+    partner_id = normalize_dashboard_partner_id(request.form.get("partner_id", ""))
+    month = _payout_month(request.form.get("month", ""))
+    method = str(request.form.get("method", "manual_transfer")).strip().lower()
+
+    if method == "stripe":
+        result = send_payout_through_stripe(partner_id, month)
+    else:
+        result = settle_partner_month(partner_id, month, method="manual_transfer")
+
+    # The page posts a form, so send them back to it with the outcome rather
+    # than dropping them on a page of JSON.
+    if "application/json" not in str(request.headers.get("Accept", "")):
+        from urllib.parse import urlencode
+
+        if result.get("status") == "success":
+            said = "تم تسجيل صرف {amount} درهم لـ {partner} ({count} عمولة) · رقم العملية {payout}".format(
+                amount=result.get("total_amount", ""),
+                partner=result.get("partner_id", ""),
+                count=result.get("commission_count", ""),
+                payout=result.get("payout_id", ""),
+            )
+        else:
+            said = result.get("message") or result.get("reason") or "لم يتم أي تغيير"
+
+        return redirect("/admin/payouts?" + urlencode({
+            "key": request.form.get("key", "").strip(),
+            "month": month,
+            "saved": said,
+        })), 302
+
+    return jsonify(result), (200 if result.get("status") in ("success", "ignored") else 400)
+
+
+def send_payout_through_stripe(partner_id, month):
+    """
+    Pay a partner through Stripe.
+
+    Needs a connected account per partner: Stripe will not send money to
+    somebody it has never identified, and the card a customer paid with is not
+    a destination -- money only goes back there as a refund of that charge.
+    Until Connect is set up this returns why, rather than half-doing it.
+    """
+    from db import get_connection
+
+    partner_id = normalize_dashboard_partner_id(partner_id)
+    cursor = get_connection().cursor()
+    cursor.execute(
+        "SELECT stripe_account_id, partner_name FROM partners WHERE partner_id = ?",
+        (partner_id,),
+    )
+    row = cursor.fetchone()
+    account_id = str((row[0] if row else "") or "").strip()
+
+    if not account_id:
+        return {
+            "status": "error",
+            "reason": "no_connected_account",
+            "partner_id": partner_id,
+            "message": (
+                "لا يوجد حساب Stripe متصل لهذا الشريك. "
+                "التحويل عبر Stripe يحتاج Stripe Connect: الشريك يسجّل بياناته "
+                "وحسابه البنكي عند Stripe نفسه، ثم يصبح التحويل ممكناً."
+            ),
+        }
+
+    stripe = _stripe_client()
+
+    if stripe is None:
+        return {"status": "error", "reason": "no_stripe_key",
+                "message": "STRIPE_SECRET_KEY is not set"}
+
+    summary = collect_payouts_for_month(month)
+    owed = next(
+        (item["owed"] for item in summary["partners"] if item["partner_id"] == partner_id),
+        0.0,
+    )
+
+    if owed <= 0:
+        return {"status": "ignored", "message": "nothing outstanding",
+                "partner_id": partner_id, "month": month}
+
+    try:
+        transfer = stripe.Transfer.create(
+            amount=int(round(owed * 100)),
+            currency="aed",
+            destination=account_id,
+            description=f"ALSAAB commissions {month} for {partner_id}",
+        )
+
+    except Exception as error:
+        print(f"STRIPE TRANSFER FAILED ❌ {partner_id} {error}", flush=True)
+        return {"status": "error", "reason": "transfer_failed",
+                "message": str(error)[:300], "partner_id": partner_id}
+
+    settled = settle_partner_month(
+        partner_id, month, method="stripe_transfer",
+        reason=str(transfer.get("id", "")),
+    )
+    settled["stripe_transfer_id"] = transfer.get("id", "")
+
+    return settled
+
+# ===== ALSAAB_PAYOUTS_PAGE_V1 END =====
+
+
 
 
 
