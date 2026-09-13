@@ -7396,16 +7396,30 @@ def admin_connect_status():
 
     from db import get_connection
 
-    # Read-only: does this platform have Connect at all? Listing accounts
-    # creates nothing, and the error when it is switched off is the answer to
-    # the question that gates everything else here.
+    # Listing accounts succeeds on a platform that has never signed up for
+    # Connect -- it just returns nothing -- so an earlier version of this
+    # reported "connect_available: true" for an account that could not create
+    # a single one. Creating is the capability that matters and the only thing
+    # that proves it, and it is not something to do behind somebody's back, so
+    # this reports what it actually checked and says the rest is unknown.
     probe = {}
 
     try:
-        stripe.Account.list(limit=1)
-        probe = {"connect_available": True}
+        existing = stripe.Account.list(limit=1)
+        probe = {
+            "accounts_listable": True,
+            "connect_accounts_found": len(existing.get("data", []) or []),
+            "can_create_accounts": "unknown",
+            "note": (
+                "Listing works on platforms that never signed up for Connect. "
+                "Only creating an account proves the signup, and that is done "
+                "by a partner pressing the button. If Stripe answers 'You can "
+                "only create new accounts if you've signed up for Connect', "
+                "sign up once at https://dashboard.stripe.com/connect"
+            ),
+        }
     except Exception as error:
-        probe = {"connect_available": False, "stripe_said": str(error)[:300]}
+        probe = {"accounts_listable": False, "stripe_said": str(error)[:300]}
 
     cursor = get_connection().cursor()
     cursor.execute(
