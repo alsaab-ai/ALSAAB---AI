@@ -84,6 +84,24 @@
     color:#8d8a7c; font-size:12.5px;
   }
 
+  .primary-stripe{
+    border:1px solid rgba(214,168,79,.4); background:rgba(214,168,79,.06);
+    border-radius:18px; padding:20px 18px; margin-bottom:20px;
+  }
+  .why{ margin:0 0 14px; color:#cbd5e1; font-size:14px; }
+  .why b{ color:#f3d37b; }
+
+  .fallback{ margin-top:6px; border-top:1px solid rgba(255,255,255,.09); padding-top:16px; }
+  .fallback summary{
+    cursor:pointer; color:#8d8a7c; font-size:13.5px; font-weight:700;
+    padding:6px 0; list-style:none;
+  }
+  .fallback summary::-webkit-details-marker{ display:none; }
+  .fallback summary::before{ content:"▸ "; }
+  .fallback[open] summary::before{ content:"▾ "; }
+  .fallback summary:hover{ color:#cbd5e1; }
+  .fallback .why{ font-size:13px; color:#8d8a7c; margin-top:8px; }
+
   .bad-card{ text-align:center; }
   .bad-card .mark{ font-size:44px; line-height:1; margin-bottom:10px; }
 </style>
@@ -107,11 +125,44 @@
     <div class="who">{{ partner_id }}</div>
     <h1>أهلاً {{ partner_name }}</h1>
     <p class="lede">
-      اكتب بيانات حسابك البنكي مرة واحدة، وتتحوّل عليه عمولاتك.
-      الاسم لازم يطابق الاسم المسجّل في البنك بالظبط، وإلا البنك يرفض التحويل.
+      سجّل حسابك مرة واحدة، وعمولاتك تتحوّل عليه تلقائياً كل شهر.
     </p>
 
-    {% if bank and bank.complete %}
+    <!-- Stripe first, and by a distance. It collects the identity documents
+         and the IBAN on its own page and keeps them, so nothing sensitive
+         passes through here and the checks are not ours to get wrong. The
+         manual form stays underneath as a fallback, folded away. -->
+    <div class="primary-stripe">
+      {% if connect and connect.payouts_enabled %}
+        <div class="state ok">✅ حسابك جاهز — التحويل التلقائي مفعّل</div>
+        <p class="why">أي عمولة مستحقة تتحوّل على حسابك البنكي مباشرة بدون ما تعمل أي شيء.</p>
+      {% elif connect and connect.started %}
+        <div class="state wait">⏳ Stripe بيراجع بياناتك</div>
+        <p class="why">لو البيانات ناقصة، أكمّلها من نفس الصفحة. المراجعة بتاخد من دقايق لأيام قليلة.</p>
+      {% else %}
+        <p class="why">
+          تسجّل بياناتك على صفحة <b>Stripe</b> الآمنة — نفس الشركة اللي بتستقبل
+          مدفوعات الصعب. إحنا ما بنشوفش رقم حسابك ولا بياناتك، Stripe هي اللي
+          بتحتفظ بيها.
+        </p>
+      {% endif %}
+
+      <button type="button" class="connect" id="connect">
+        {% if connect and connect.payouts_enabled %}راجع بياناتك في Stripe
+        {% elif connect and connect.started %}أكمل التسجيل في Stripe
+        {% else %}سجّل حسابك عبر Stripe{% endif %}
+      </button>
+      <div class="note" id="connectNote"></div>
+    </div>
+
+    <details class="fallback">
+      <summary>أو اكتب بيانات حسابك يدوياً</summary>
+      <p class="why">
+        لو ما قدرتش تكمّل مع Stripe. التحويل ساعتها بيتم يدوي وبياخد وقت أطول،
+        والاسم لازم يطابق المسجّل في البنك بالظبط وإلا البنك يرفض.
+      </p>
+
+      {% if bank and bank.complete %}
       <div class="saved">
         <div><b>{{ bank.account_name }}</b>{% if bank.bank_name %} · {{ bank.bank_name }}{% endif %}</div>
         <div class="iban">{{ bank.iban_masked }}</div>
@@ -148,25 +199,7 @@
 
     <button type="button" class="go" id="save">حفظ بيانات الحساب</button>
     <div class="note" id="note"></div>
-
-    <div class="split">
-      <h2>أو استلمها تلقائياً عبر Stripe</h2>
-      <p>
-        تسجّل بياناتك مرة واحدة على صفحة Stripe الآمنة، وبعدها العمولات
-        تتحوّل على حسابك تلقائياً بدون ما نطلب منك أي شيء.
-      </p>
-
-      {% if connect and connect.payouts_enabled %}
-        <div class="state ok">✅ حسابك جاهز — التحويل التلقائي مفعّل</div>
-      {% elif connect and connect.started %}
-        <div class="state wait">⏳ Stripe بيراجع بياناتك</div>
-      {% endif %}
-
-      <button type="button" class="connect" id="connect">
-        {% if connect and connect.started %}أكمل التسجيل في Stripe{% else %}فعّل الاستلام التلقائي{% endif %}
-      </button>
-      <div class="note" id="connectNote"></div>
-    </div>
+    </details>
 
     <div class="safe">
       الصفحة دي خاصة بيك وحدك، ومدتها أسبوعين. بياناتك بتستخدم لتحويل عمولاتك بس.

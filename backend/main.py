@@ -7530,6 +7530,89 @@ def payout_setup_page():
 
 # ===== ALSAAB_PAYOUT_INVITE_LINK_V1 END =====
 
+# ===== ALSAAB_PAYOUT_ACCOUNTS_PAGE_V1 START =====
+# The payouts page only lists partners owed something this month, which is
+# right for paying but wrong for chasing: the people who most need to send
+# their bank details are the ones with nothing owed yet. This is every
+# partner, what they have registered, and a link to send the ones who have
+# not.
+
+
+@app.route("/admin/payout-accounts", methods=["GET"])
+def admin_payout_accounts():
+    """Every partner and whether we know where to pay them."""
+    if not admin_access_granted(request.args.get("key", "").strip()):
+        return "Unauthorized", 401
+
+    try:
+        from db import get_connection
+        from config import COMPANY_OWNER_PARTNER_ID
+
+        cursor = get_connection().cursor()
+        cursor.execute(
+            """
+            SELECT p.partner_id, p.partner_name, p.email, p.phone,
+                   p.bank_account_name, p.bank_name, p.bank_iban,
+                   p.stripe_account_id, p.stripe_payouts_enabled,
+                   p.bank_updated_at,
+                   COALESCE(owed.total, 0) AS owed
+            FROM partners p
+            LEFT JOIN (
+                SELECT beneficiary_partner_id, SUM(commission_amount) AS total
+                FROM commissions
+                WHERE LOWER(COALESCE(status,'pending')) NOT IN ('paid','rejected')
+                GROUP BY beneficiary_partner_id
+            ) owed ON owed.beneficiary_partner_id = p.partner_id
+            WHERE LOWER(p.partner_id) <> LOWER(?)
+            ORDER BY owed DESC NULLS LAST, p.partner_id
+            """,
+            (COMPANY_OWNER_PARTNER_ID,),
+        )
+
+        partners = []
+
+        for row in cursor.fetchall():
+            has_bank = bool((row[4] or "").strip() and (row[6] or "").strip())
+            ready = bool(row[8])
+
+            partners.append({
+                "partner_id": row[0],
+                "name": row[1] or row[0],
+                "email": row[2] or "",
+                "phone": row[3] or "",
+                "bank_account_name": row[4] or "",
+                "bank_name": row[5] or "",
+                "iban_masked": mask_iban(row[6]),
+                "has_bank": has_bank,
+                "stripe_started": bool(row[7]),
+                "stripe_ready": ready,
+                "updated_at": _detail_date(row[9]),
+                "owed": _detail_money(row[10]),
+                # One word for the filter chips and the badge.
+                "state": "stripe" if ready else ("bank" if has_bank else "none"),
+            })
+
+        return render_template(
+            "admin_payout_accounts.html",
+            key=request.args.get("key", "").strip(),
+            partners=partners,
+            total=len(partners),
+            missing=sum(1 for item in partners if item["state"] == "none"),
+            owed_missing=round(
+                sum(item["owed"] for item in partners if item["state"] == "none"), 2
+            ),
+            back_url=build_dashboard_nav_url(
+                "/admin-dashboard", "", "ar", request.args.get("key", "").strip()
+            ),
+        )
+
+    except Exception as error:
+        print(f"PAYOUT ACCOUNTS PAGE ERROR ❌ {error}", flush=True)
+        return f"Accounts page failed: {error}", 500
+
+# ===== ALSAAB_PAYOUT_ACCOUNTS_PAGE_V1 END =====
+
+
 
 
 

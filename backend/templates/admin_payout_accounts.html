@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<!-- No chat widget on an internal accounts screen. -->
+<!-- ALSAAB_SMART_LINK_CAPTURE_V1 -->
+<!-- ALSAAB_SMART_LINK_PROTECTION_CLIENT_V1 -->
+<!-- ALSAAB_SMART_LINK_ANALYTICS_CLIENT_V1 -->
+<!-- ALSAAB_SMART_PROJECT_CONTEXT_UI_V1 -->
+<!-- ALSAAB_SMART_WHATSAPP_HANDOFF_CLIENT_V1 -->
+<title>حسابات استلام العمولات - ALSAAB AI</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#0b0b0b; --surface:#121212; --surface-2:#191919;
+    --line:rgba(215,184,90,.22); --gold:#d7b85a; --gold-2:#f0cc68;
+    --ink:#f5f0df; --ink-2:#cfc7ad; --muted:#8d8a7c;
+    --ok:#7fd39a; --ok-bg:rgba(127,211,154,.10);
+    --warn:#e0a83f; --warn-bg:rgba(224,168,63,.10);
+    --crit:#ef8383; --crit-bg:rgba(239,131,131,.10);
+  }
+  *{ box-sizing:border-box; }
+  body{ margin:0; background:var(--bg); color:var(--ink);
+        font-family:Cairo,Arial,Tahoma,sans-serif; line-height:1.7; }
+  .page{ max-width:1120px; margin:0 auto; padding:26px 20px 80px; }
+
+  .topbar{ display:flex; justify-content:space-between; align-items:center;
+           gap:14px; flex-wrap:wrap; margin-bottom:18px; }
+  .back{ border:1px solid var(--line); color:var(--gold-2); background:var(--surface);
+         padding:9px 16px; border-radius:999px; text-decoration:none;
+         font-size:14px; font-weight:600; }
+  .back:hover{ background:var(--surface-2); border-color:var(--gold); }
+  h1{ color:var(--gold); margin:0 0 6px; font-size:26px; font-weight:800; }
+  .sub{ color:var(--ink-2); margin:0 0 20px; font-size:14.5px; max-width:74ch; }
+
+  .totals{ display:grid; gap:1px; background:var(--line);
+           grid-template-columns:repeat(auto-fit,minmax(150px,1fr));
+           border:1px solid var(--line); border-radius:14px;
+           overflow:hidden; margin-bottom:20px; }
+  .tot{ background:var(--surface); padding:15px 17px; }
+  .tot b{ display:block; font-size:24px; font-weight:800; line-height:1.25;
+          font-variant-numeric:tabular-nums; }
+  .tot span{ display:block; color:var(--muted); font-size:12.5px; }
+  .tot.c b{ color:var(--crit); } .tot.k b{ color:var(--ok); } .tot.g b{ color:var(--gold); }
+
+  .filters{ display:flex; gap:8px; flex-wrap:wrap; align-items:center; margin-bottom:15px; }
+  .cap{ font-family:"IBM Plex Mono",monospace; font-size:11px; letter-spacing:.12em;
+        text-transform:uppercase; color:var(--muted); margin-inline-end:4px; }
+  .chip{ font-family:inherit; font-size:13px; font-weight:700; cursor:pointer;
+         border:1px solid var(--line); background:var(--surface); color:var(--ink-2);
+         border-radius:999px; padding:6px 16px; }
+  .chip:hover{ border-color:var(--gold); color:var(--ink); }
+  .chip[aria-pressed="true"]{ background:rgba(215,184,90,.14);
+                              border-color:var(--gold); color:var(--gold-2); }
+
+  .row{ border:1px solid var(--line); border-radius:14px; background:var(--surface);
+        padding:14px 16px; margin-bottom:9px;
+        display:flex; justify-content:space-between; align-items:center; gap:14px; flex-wrap:wrap; }
+  .row.hide{ display:none; }
+  .who{ flex:1 1 260px; min-width:0; }
+  .who .pid{ font-family:"IBM Plex Mono",monospace; font-size:11px; color:var(--gold); }
+  .who .nm{ font-size:15px; font-weight:800; }
+  .who .mail{ font-family:"IBM Plex Mono",monospace; font-size:11px; color:var(--muted);
+              direction:ltr; unicode-bidi:plaintext; overflow-wrap:anywhere; }
+  .who .iban{ font-family:"IBM Plex Mono",monospace; font-size:11.5px; color:var(--ok);
+              direction:ltr; unicode-bidi:plaintext; }
+
+  .right{ display:flex; align-items:center; gap:10px; flex-wrap:wrap; flex:0 0 auto; }
+  .owed{ font-family:"IBM Plex Mono",monospace; font-size:15px; font-weight:800;
+         color:var(--warn); font-variant-numeric:tabular-nums; }
+  .owed.zero{ color:var(--muted); font-weight:600; }
+  .badge{ display:inline-block; border-radius:999px; padding:3px 11px;
+          font-size:11px; font-weight:800; border:1px solid currentColor; white-space:nowrap; }
+  .badge.ok{ color:var(--ok); background:var(--ok-bg); }
+  .badge.warn{ color:var(--warn); background:var(--warn-bg); }
+  .badge.crit{ color:var(--crit); background:var(--crit-bg); }
+
+  .copy{ border:1px solid rgba(215,184,90,.55); background:rgba(215,184,90,.08);
+         color:var(--gold-2); border-radius:999px; padding:8px 18px;
+         font-size:12.5px; font-weight:800; cursor:pointer; font-family:inherit;
+         white-space:nowrap; }
+  .copy:hover:not([disabled]){ background:rgba(215,184,90,.17); }
+  .copy[disabled]{ opacity:.5; cursor:default; }
+  .copy.done{ color:var(--ok); border-color:var(--ok); background:var(--ok-bg); }
+
+  .empty{ color:var(--muted); padding:26px 2px; font-size:14px; }
+</style>
+</head>
+<body>
+<div class="page">
+
+  <div class="topbar">
+    <div>
+      <h1>حسابات استلام العمولات</h1>
+      <div class="sub">
+        كل الشركاء ومين منهم سجّل حسابه. اضغط «انسخ الرابط» جنب أي حد
+        وابعتهوله — الرابط خاص بيه وحده ومدته أسبوعين.
+      </div>
+    </div>
+    <a class="back" href="{{ back_url }}">← لوحة الأدمن</a>
+  </div>
+
+  <div class="totals">
+    <div class="tot g"><b>{{ total }}</b><span>إجمالي الشركاء</span></div>
+    <div class="tot k"><b>{{ total - missing }}</b><span>سجّلوا حسابهم</span></div>
+    <div class="tot c"><b>{{ missing }}</b><span>لم يسجّلوا</span></div>
+    <div class="tot c"><b>{{ "%.2f"|format(owed_missing) }}</b><span>مستحق لمن لم يسجّل</span></div>
+  </div>
+
+  <div class="filters">
+    <span class="cap">إظهار</span>
+    <button type="button" class="chip" data-filter="none" aria-pressed="true">لم يسجّلوا</button>
+    <button type="button" class="chip" data-filter="all" aria-pressed="false">الكل</button>
+    <button type="button" class="chip" data-filter="done" aria-pressed="false">سجّلوا</button>
+  </div>
+
+  {% if not partners %}
+    <div class="empty">لا يوجد شركاء.</div>
+  {% endif %}
+
+  {% for p in partners %}
+    <div class="row" data-state="{{ p.state }}">
+      <div class="who">
+        <span class="pid">{{ p.partner_id }}</span>
+        <div class="nm">{{ p.name }}</div>
+        {% if p.email %}<div class="mail">{{ p.email }}</div>{% endif %}
+        {% if p.state == "bank" %}
+          <div class="iban">{{ p.bank_account_name }} · {{ p.iban_masked }}</div>
+        {% endif %}
+      </div>
+
+      <div class="right">
+        <span class="owed {% if not p.owed %}zero{% endif %}">
+          {{ "%.2f"|format(p.owed) }}
+        </span>
+
+        {% if p.state == "stripe" %}
+          <span class="badge ok">Stripe · جاهز</span>
+        {% elif p.state == "bank" %}
+          <span class="badge ok">حساب بنكي</span>
+        {% elif p.stripe_started %}
+          <span class="badge warn">Stripe · تحت المراجعة</span>
+        {% else %}
+          <span class="badge crit">لم يسجّل</span>
+        {% endif %}
+
+        <button type="button" class="copy" data-partner="{{ p.partner_id }}">
+          انسخ الرابط
+        </button>
+      </div>
+    </div>
+  {% endfor %}
+</div>
+
+<script>
+/* Filter first, because the list is long and the only rows that need action
+   are the ones with nothing registered. */
+var chips = document.querySelectorAll(".chip");
+var rows = document.querySelectorAll(".row");
+
+function applyFilter(mode) {
+  rows.forEach(function (row) {
+    var state = row.getAttribute("data-state");
+    var keep = mode === "all"
+      || (mode === "none" && state === "none")
+      || (mode === "done" && state !== "none");
+    row.classList.toggle("hide", !keep);
+  });
+}
+
+chips.forEach(function (chip) {
+  chip.addEventListener("click", function () {
+    chips.forEach(function (other) {
+      other.setAttribute("aria-pressed", String(other === chip));
+    });
+    applyFilter(chip.getAttribute("data-filter"));
+  });
+});
+
+applyFilter("none");
+
+/* Links are minted when asked for, not on page load: twenty-five live tokens
+   sitting in the HTML of a page nobody has read yet is not a good trade. */
+document.querySelectorAll(".copy").forEach(function (button) {
+  button.addEventListener("click", function () {
+    var partnerId = button.getAttribute("data-partner");
+    var key = new URLSearchParams(window.location.search).get("key") || "";
+    var original = button.textContent;
+
+    button.disabled = true;
+    button.textContent = "جاري...";
+
+    fetch("/admin/payout-invite?key=" + encodeURIComponent(key) +
+          "&partner_id=" + encodeURIComponent(partnerId), { credentials: "same-origin" })
+      .then(function (response) { return response.json(); })
+      .then(function (result) {
+        button.disabled = false;
+
+        if (!result || result.status !== "success") {
+          button.textContent = "تعذّر";
+          setTimeout(function () { button.textContent = original; }, 2000);
+          return;
+        }
+
+        navigator.clipboard.writeText(result.url).then(function () {
+          button.textContent = "✓ اتنسخ";
+          button.classList.add("done");
+          setTimeout(function () {
+            button.textContent = original;
+            button.classList.remove("done");
+          }, 2500);
+        }, function () {
+          // Plain http blocks the clipboard, so show it to be copied by hand.
+          window.prompt("انسخ الرابط:", result.url);
+          button.textContent = original;
+        });
+      })
+      .catch(function () {
+        button.disabled = false;
+        button.textContent = "تعذّر";
+        setTimeout(function () { button.textContent = original; }, 2000);
+      });
+  });
+});
+</script>
+</body>
+</html>
