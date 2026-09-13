@@ -5128,7 +5128,9 @@ def create_dashboard_sso_token(partner_id, target="client", lang="ar", ttl_secon
 
     target = str(target or "client").strip().lower()
 
-    if target not in ("client", "partner", "advisory", "admin"):
+    # "payout" is the invite link an admin sends a partner so they can
+    # record where their commissions go. It opens one page and nothing else.
+    if target not in ("client", "partner", "advisory", "admin", "payout"):
         target = "client"
 
     lang = str(lang or "ar").strip().lower()
@@ -5203,7 +5205,7 @@ def verify_dashboard_sso_token(token):
 
     target = str(payload.get("target") or "client").strip().lower()
 
-    if target not in ("client", "partner", "advisory", "admin"):
+    if target not in ("client", "partner", "advisory", "admin", "payout"):
         target = "client"
 
     payload["target"] = target
@@ -6993,6 +6995,18 @@ def send_payout_through_stripe(partner_id, month):
 # deploy.
 
 
+def invited_to_payout_setup():
+    """True when this request carries a live invite token."""
+    token = request.values.get("sso", "").strip() or request.values.get("token", "").strip()
+
+    if not token:
+        return False
+
+    payload, error = verify_dashboard_sso_token(token)
+
+    return bool(not error and str((payload or {}).get("target", "")).lower() == "payout")
+
+
 def payout_setup_visible():
     wanted = str(os.getenv("ALSAAB_PAYOUT_SETUP", "")).strip().lower()
 
@@ -7097,7 +7111,7 @@ def partner_dashboard_save_bank():
     Only ever their own: the id comes from whoever is signed in, never from
     the form, so this cannot be pointed at somebody else's account.
     """
-    if not payout_setup_visible():
+    if not payout_setup_visible() and not invited_to_payout_setup():
         return jsonify({"status": "error", "reason": "not_available"}), 404
 
     partner_id, problem = resolve_dashboard_caller()
@@ -7269,7 +7283,7 @@ def partner_dashboard_connect_stripe():
 
     Only ever their own account: the id comes from whoever is signed in.
     """
-    if not payout_setup_visible():
+    if not payout_setup_visible() and not invited_to_payout_setup():
         return jsonify({"status": "error", "reason": "not_available"}), 404
 
     partner_id, problem = resolve_dashboard_caller()
@@ -7417,6 +7431,105 @@ def admin_connect_status():
     })
 
 # ===== ALSAAB_STRIPE_CONNECT_ONBOARDING_V1 END =====
+
+# ===== ALSAAB_PAYOUT_INVITE_LINK_V1 START =====
+# The bank form lives inside the partner dashboard, which means signing in.
+# Asking somebody to log in before they can tell you where to send their money
+# is how you end up collecting IBANs over WhatsApp instead. This is a link an
+# admin copies and sends: it opens one page, for one partner, and expires.
+#
+# It works even while the dashboard section is hidden, which is the point --
+# invite a few partners, watch it go through, then switch it on for everyone.
+
+PAYOUT_INVITE_TTL_SECONDS = 14 * 24 * 60 * 60
+
+
+@app.route("/admin/payout-invite", methods=["GET"])
+def admin_payout_invite():
+    """Mint the link for one partner. Admin only."""
+    if not admin_access_granted(request.args.get("key", "").strip()):
+        return jsonify({"error": "Unauthorized"}), 401
+
+    partner_id = normalize_dashboard_partner_id(request.args.get("partner_id", ""))
+
+    if not partner_id:
+        return jsonify({"error": "partner_id is required"}), 400
+
+    try:
+        token = create_dashboard_sso_token(
+            partner_id=partner_id,
+            target="payout",
+            lang="ar",
+            ttl_seconds=PAYOUT_INVITE_TTL_SECONDS,
+        )
+
+    except ValueError as error:
+        # Almost always DASHBOARD_SSO_SECRET missing, which is worth saying
+        # plainly rather than as a 500.
+        return jsonify({"status": "error", "message": str(error)}), 400
+
+    url = _connect_base_url() + "/payout-setup?token=" + quote(token)
+
+    print(f"PAYOUT INVITE ISSUED ✅ {partner_id} valid 14 days", flush=True)
+
+    return jsonify({
+        "status": "success",
+        "partner_id": partner_id,
+        "url": url,
+        "valid_days": PAYOUT_INVITE_TTL_SECONDS // 86400,
+    })
+
+
+@app.route("/payout-setup", methods=["GET"])
+def payout_setup_page():
+    """
+    One page, reached by an invite link, where a partner records where their
+    commissions should be sent.
+
+    The token names the partner, so there is nothing to type and nothing to
+    guess: it cannot be pointed at somebody else's account.
+    """
+    token = request.args.get("token", "").strip()
+
+    if not token:
+        return render_template("payout_setup.html", problem="missing"), 400
+
+    payload, error = verify_dashboard_sso_token(token)
+
+    if error:
+        # Expired is the common one and reads very differently from broken.
+        return render_template(
+            "payout_setup.html",
+            problem=("expired" if "expired" in str(error).lower() else "invalid"),
+        ), 400
+
+    if str(payload.get("target", "")).lower() != "payout":
+        return render_template("payout_setup.html", problem="invalid"), 400
+
+    partner_id = normalize_dashboard_partner_id(payload.get("partner_id", ""))
+
+    # The token is the credential for the two save routes on this page, and
+    # resolve_dashboard_caller already reads it from the request.
+    session["partner_id"] = partner_id
+
+    from db import get_connection
+
+    cursor = get_connection().cursor()
+    cursor.execute("SELECT partner_name FROM partners WHERE partner_id = ?", (partner_id,))
+    row = cursor.fetchone()
+
+    return render_template(
+        "payout_setup.html",
+        problem="",
+        partner_id=partner_id,
+        partner_name=(row[0] if row else "") or partner_id,
+        token=token,
+        bank=partner_bank_details(partner_id),
+        connect=partner_connect_state(partner_id),
+    )
+
+# ===== ALSAAB_PAYOUT_INVITE_LINK_V1 END =====
+
 
 
 

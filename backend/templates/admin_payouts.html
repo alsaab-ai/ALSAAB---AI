@@ -113,6 +113,14 @@
     cursor:pointer; font-family:inherit;
   }
   .reveal:hover{ border-color:var(--gold); color:var(--gold-2); }
+  .invite-btn{
+    border:1px solid rgba(215,184,90,.5); background:rgba(215,184,90,.08);
+    color:var(--gold-2); border-radius:999px; padding:3px 13px;
+    font-size:11px; font-weight:800; cursor:pointer; font-family:inherit;
+    margin-inline-start:8px;
+  }
+  .invite-btn:hover{ background:rgba(215,184,90,.16); }
+  .invite-btn.done{ color:var(--ok); border-color:var(--ok); background:var(--ok-bg); }
 
   .banner{ border:1px solid var(--warn); background:var(--warn-bg); color:var(--warn);
            border-radius:14px; padding:14px 17px; margin-bottom:20px; font-size:13.5px; }
@@ -205,7 +213,12 @@
               <button type="button" class="reveal" data-partner="{{ p.partner_id }}">إظهار</button>
             </div>
           {% else %}
-            <div class="bank-line none">لم يسجّل حسابه البنكي بعد</div>
+            <div class="bank-line none">
+              لم يسجّل حسابه البنكي بعد
+              <button type="button" class="invite-btn" data-partner="{{ p.partner_id }}">
+                انسخ رابط التسجيل
+              </button>
+            </div>
           {% endif %}
         </div>
         <div class="money">
@@ -308,6 +321,40 @@
     document.getElementById("sheetArea").classList.remove("busy");
   });
 })();
+
+/* A link to send over WhatsApp, so nobody has to log in before they can say
+   where their money goes -- which is how IBANs end up in chat threads. */
+document.querySelectorAll(".invite-btn").forEach(function (button) {
+  button.addEventListener("click", function () {
+    var partnerId = button.getAttribute("data-partner");
+    var key = new URLSearchParams(window.location.search).get("key") || "";
+
+    button.disabled = true;
+    button.textContent = "جاري...";
+
+    fetch("/admin/payout-invite?key=" + encodeURIComponent(key) +
+          "&partner_id=" + encodeURIComponent(partnerId), { credentials: "same-origin" })
+      .then(function (response) { return response.json(); })
+      .then(function (result) {
+        button.disabled = false;
+
+        if (!result || result.status !== "success") {
+          button.textContent = (result && result.message) ? "تعذّر" : "تعذّر";
+          return;
+        }
+
+        navigator.clipboard.writeText(result.url).then(function () {
+          button.textContent = "✓ اتنسخ · صالح " + result.valid_days + " يوم";
+          button.classList.add("done");
+        }, function () {
+          // No clipboard on plain http, so show it to be copied by hand.
+          window.prompt("انسخ الرابط:", result.url);
+          button.textContent = "انسخ رابط التسجيل";
+        });
+      })
+      .catch(function () { button.disabled = false; button.textContent = "تعذّر"; });
+  });
+});
 
 /* The whole IBAN only on request, so a shared screen or a screenshot of this
    page does not hand out everybody's account number. */
