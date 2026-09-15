@@ -2,6 +2,21 @@
 <html lang="ar" dir="rtl">
 <head>
   <meta charset="utf-8">
+  <!-- ===== ALSAAB_ADMIN_SIDEBAR_V1 =====
+       Every other admin page is reachable from the sidebar now, so the
+       handlers that used to bolt a card for each of them onto the bottom of
+       this page -- and the chat widget -- are told to skip it. Each one
+       returns early when its marker is already in the page. -->
+  <!-- ALSAAB_CANCELLATION_UI_V1 -->
+  <!-- ALSAAB_UPGRADE_UI_INJECTED -->
+  <!-- ALSAAB_WEBSITE_SETUP_MODULE_INJECTED -->
+  <!-- ALSAAB_ADMIN_CHANNEL_BUTTONS_FINAL_FIX_MARKER -->
+  <!-- ALSAAB_ADMIN_WHATSAPP_REQUESTS_BUTTON_V2_HTML -->
+  <!-- ALSAAB_SMART_LINK_CAPTURE_V1 -->
+  <!-- ALSAAB_SMART_LINK_PROTECTION_CLIENT_V1 -->
+  <!-- ALSAAB_SMART_LINK_ANALYTICS_CLIENT_V1 -->
+  <!-- ALSAAB_SMART_PROJECT_CONTEXT_UI_V1 -->
+  <!-- ALSAAB_SMART_WHATSAPP_HANDOFF_CLIENT_V1 -->
   <title>ALSAAB AI - Admin Dashboard</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
 
@@ -330,6 +345,113 @@
     .outlook-cell.full { color: #f0cc68; font-weight: 700; }
     .outlook-cell.got  { color: #7fd39a; font-weight: 700; }
     .outlook-cell.lost { color: #ef8383; font-weight: 700; }
+
+    /* ===== ALSAAB_ADMIN_SIDEBAR_V1 =====
+       The page was a single column of cards, with links to the other admin
+       screens scattered through it in browser-default blue. One list down the
+       side instead: this page's sections, then every other admin page. */
+    .page { max-width: 1480px; }
+
+    .shell {
+      display: grid;
+      grid-template-columns: 250px minmax(0, 1fr);
+      gap: 22px;
+      align-items: start;
+    }
+
+    .side {
+      position: sticky;
+      top: 18px;
+      max-height: calc(100vh - 36px);
+      overflow-y: auto;
+      background: #111;
+      border: 1px solid rgba(215, 184, 90, 0.25);
+      border-radius: 18px;
+      padding: 14px 10px 16px;
+    }
+
+    .side-group + .side-group {
+      margin-top: 14px;
+      padding-top: 12px;
+      border-top: 1px solid rgba(255, 255, 255, 0.07);
+    }
+
+    .side-cap {
+      padding: 0 10px 6px;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: .04em;
+      color: #8d8a7c;
+    }
+
+    .side a {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      padding: 9px 12px;
+      border-radius: 11px;
+      color: #cfc7ad;
+      text-decoration: none;
+      font-size: 14px;
+      font-weight: 700;
+      border: 1px solid transparent;
+      transition: background .12s ease, color .12s ease, border-color .12s ease;
+    }
+
+    .side a:hover {
+      background: rgba(215, 184, 90, 0.08);
+      color: #f5f0df;
+    }
+
+    .side a.on {
+      background: rgba(215, 184, 90, 0.14);
+      border-color: rgba(215, 184, 90, 0.45);
+      color: #f0cc68;
+    }
+
+    /* Pages that leave this one get an arrow; sections on it do not. */
+    .side a.out::after {
+      content: "\2190";
+      color: #8d8a7c;
+      font-weight: 400;
+    }
+
+    .content { min-width: 0; }
+    .content [id] { scroll-margin-top: 18px; }
+
+    /* The sidebar takes 250px, and four fixed columns in what is left broke
+       "1,599.65 AED" in the middle of the digits -- word-break: break-word on
+       .big lets it split anywhere. Let the cards reflow, and only ever break
+       at the space: on a tight card "AED" drops to the next line and the
+       number stays whole. nowrap was tried first and pushed the widest figure
+       past the edge of its card instead. */
+    .content .grid { grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); }
+    .content .big { font-size: 24px; word-break: normal; overflow-wrap: normal; }
+
+    /* No browser-default blue anywhere on the page. */
+    .page a:not([class]) { color: #f0cc68; }
+    .page a:not([class]):hover { color: #f5f0df; }
+
+    @media (max-width: 900px) {
+      .shell { grid-template-columns: 1fr; }
+
+      .side {
+        top: 0;
+        z-index: 20;
+        max-height: none;
+        display: flex;
+        gap: 6px;
+        overflow-x: auto;
+        padding: 8px;
+        border-radius: 14px;
+      }
+
+      .side-group { display: flex; gap: 6px; }
+      .side-group + .side-group { margin: 0; padding: 0; border: 0; }
+      .side-cap { display: none; }
+      .side a { white-space: nowrap; padding: 8px 12px; }
+    }
   </style>
 </head>
 
@@ -350,12 +472,39 @@
       </div>
     </div>
 
-    <div class="header">
-      <h1>Admin Dashboard</h1>
-      <div class="sub">
-        هذه نسخة MVP لعرض بيانات الإدارة من Google Sheets. لاحقاً نضيف أزرار الموافقة على العمولات، الدفع، تعديل الشركاء، وإعادة حساب المستويات.
-      </div>
-    </div>
+    {% set kq = ("?key=" ~ encoded_key) if admin_key else "" %}
+
+    <div class="shell">
+      <nav class="side" aria-label="أقسام لوحة الأدمن">
+        <div class="side-group">
+          <div class="side-cap">هذه الصفحة</div>
+          <a href="#overview">نظرة عامة</a>
+          <a href="#search">بحث شريك</a>
+          <a href="#levels">المستويات والباقات</a>
+          <a href="#partners">آخر الشركاء</a>
+          <a href="#subscriptions">آخر الاشتراكات</a>
+          <a href="#commissions">آخر العمولات</a>
+          <a href="#progress">تقدم المستويات</a>
+          <a href="#courses">الكورسات</a>
+        </div>
+
+        <div class="side-group">
+          <div class="side-cap">الشبكة والعمولات</div>
+          <a class="out" href="/admin/partner-tree{{ kq }}">شجرة الشركاء</a>
+          <a class="out" href="/admin/payouts{{ kq }}">قائمة المدفوعات</a>
+          <a class="out" href="/admin/payout-accounts{{ kq }}">حسابات الاستلام</a>
+        </div>
+
+        <div class="side-group">
+          <div class="side-cap">الطلبات</div>
+          <a class="out" href="/admin/whatsapp-setup-requests{{ kq }}">ربط WhatsApp</a>
+          <a class="out" href="/admin/website-installations{{ kq }}">تركيبات المواقع</a>
+          <a class="out" href="/admin/upgrade-requests{{ kq }}">طلبات الترقية</a>
+          <a class="out" href="/admin/cancellation-requests{{ kq }}">طلبات الإلغاء</a>
+        </div>
+      </nav>
+
+      <div class="content">
 
     {% if admin_action_message %}
     <div style="background:rgba(128,226,138,.08); border:1px solid rgba(128,226,138,.4); color:#80e28a; border-radius:14px; padding:13px 16px; margin-bottom:18px; font-weight:700;">
@@ -363,7 +512,7 @@
     </div>
     {% endif %}
 
-    <div class="search-panel">
+    <div class="search-panel" id="search">
       <h2 style="color:#d7b85a; margin:0;">بحث شريك / عميل</h2>
       <div class="sub">
         ابحث بالـ Partner ID أو الاسم أو الإيميل أو رقم الهاتف. البحث يعرض ملف الشريك التفصيلي من النظام الرسمي.
@@ -854,7 +1003,7 @@
     </div>
     {% endif %}
 
-    <div class="grid">
+    <div class="grid" id="overview">
       <div class="card">
         <h3>إجمالي الشركاء</h3>
         <div class="big">{{ partner_summary.total or 0 }}</div>
@@ -904,7 +1053,7 @@
       </div>
     </div>
 
-    <div class="two-col">
+    <div class="two-col" id="levels">
       <div class="small-box">
         <h3>توزيع المستويات</h3>
         {% for level_name, count in level_counts.items() %}
@@ -972,27 +1121,7 @@
       </div>
     </div>
 
-    <!-- The tables below list partners row by row; none of them show who sits
-         under whom, which is the thing that decides where a commission goes. -->
-    <div class="section">
-      <h2>قائمة المدفوعات</h2>
-      <p>مين مستحق كام في أي شهر، وتفاصيل كل عمولة، وزر يسجّل الصرف بأثر كامل.</p>
-      <p><a href="/admin/payouts{% if key %}?key={{ key }}{% endif %}">فتح قائمة المدفوعات ←</a></p>
-      <p><a href="/admin/payout-accounts{% if key %}?key={{ key }}{% endif %}">حسابات استلام العمولات — مين سجّل ومين لأ ←</a></p>
-    </div>
-
-    <div class="section">
-      <h2>شجرة الشركاء</h2>
-      <div class="muted" style="margin-bottom:12px;line-height:1.8;">
-        الشبكة كاملة كشجرة: من تحت من، حالة كل اشتراك، وتاريخ آخر دفعة.
-        شريك متوقف وسط فرع يظهر هنا فوراً — وهو ما لا يظهر في أي جدول.
-      </div>
-      <a class="primary-btn" href="/admin/partner-tree{% if key %}?key={{ key }}{% endif %}">
-        فتح شجرة الشركاء
-      </a>
-    </div>
-
-    <div class="section">
+    <div class="section" id="partners">
       <h2>آخر الشركاء</h2>
       <div class="table-wrap">
         <table>
@@ -1057,7 +1186,7 @@
       </div>
     </div>
 
-    <div class="section">
+    <div class="section" id="subscriptions">
       <h2>آخر الاشتراكات</h2>
       <div class="table-wrap">
         <table>
@@ -1091,7 +1220,7 @@
       </div>
     </div>
 
-    <div class="section">
+    <div class="section" id="commissions">
       <h2>آخر العمولات</h2>
       <div class="table-wrap">
         <table>
@@ -1127,7 +1256,7 @@
       </div>
     </div>
 
-    <div class="section">
+    <div class="section" id="progress">
       <h2>تقدم المستويات</h2>
       <div class="table-wrap">
         <table>
@@ -1165,7 +1294,7 @@
       </div>
     </div>
 
-    <div class="section">
+    <div class="section" id="courses">
       <h2>آخر مشتريات الكورسات</h2>
       <div class="table-wrap">
         <table>
@@ -1199,6 +1328,41 @@
       </div>
     </div>
 
+      </div>
+    </div>
   </div>
+
+<script>
+/* Light up the sidebar entry for whichever section is on screen. */
+(function () {
+  var links = {};
+  document.querySelectorAll(".side a").forEach(function (link) {
+    var href = link.getAttribute("href") || "";
+    if (href.charAt(0) === "#") { links[href.slice(1)] = link; }
+  });
+
+  if (!("IntersectionObserver" in window)) { return; }
+
+  var visible = {};
+  var observer = new IntersectionObserver(function (entries) {
+    entries.forEach(function (entry) { visible[entry.target.id] = entry.isIntersecting; });
+
+    var current = null;
+    Object.keys(links).some(function (id) {
+      if (visible[id]) { current = id; return true; }
+      return false;
+    });
+
+    Object.keys(links).forEach(function (id) {
+      links[id].classList.toggle("on", id === current);
+    });
+  }, { rootMargin: "-10% 0px -60% 0px" });
+
+  Object.keys(links).forEach(function (id) {
+    var target = document.getElementById(id);
+    if (target) { observer.observe(target); }
+  });
+})();
+</script>
 </body>
 </html>
