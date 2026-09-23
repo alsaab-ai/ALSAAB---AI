@@ -244,9 +244,12 @@ class _CompatCursor:
     database.py already contains.
     """
 
-    def __init__(self, cursor):
+    def __init__(self, cursor, owner=None):
         self._cursor = cursor
         self._did_insert = False
+        # A strong reference back to the pooled connection wrapper. See
+        # _PooledConnection.cursor() for why this has to exist.
+        self._owner = owner
 
     def execute(self, sql, params=None):
         translated, pragma_table = translate_sql(sql)
@@ -349,7 +352,17 @@ class _PooledConnection:
             pass
 
     def cursor(self):
-        return _CompatCursor(self._conn.cursor())
+        # The cursor holds this wrapper alive. Without that, the very common
+        #
+        #     cursor = get_connection().cursor()
+        #
+        # drops the wrapper's last reference on the same line: the weakref
+        # finalizer above then hands the connection straight back to the pool,
+        # and the next execute() on that cursor dies with "the connection is
+        # closed" -- or worse, runs against a connection another request has
+        # since borrowed. It survived this long because collection usually
+        # happened late enough; under load it does not.
+        return _CompatCursor(self._conn.cursor(), owner=self)
 
     def commit(self):
         self._conn.commit()

@@ -1837,6 +1837,37 @@ def _alsaab_client_bot_identity(prompt_text, state=None):
     if catalog_lines:
         catalog_block += "\n\nمنتجات وكتالوجات هذا المشروع:\n" + "\n".join(catalog_lines)
 
+    menu_lines = []
+    last_category = None
+
+    for dish in (state.get("client_menu") or []):
+        if dish.get("category") != last_category:
+            last_category = dish.get("category")
+            label = last_category
+            if dish.get("category_en"):
+                label += f" / {dish.get('category_en')}"
+            menu_lines.append(f"\n[{label}]")
+
+        line = f"- {dish.get('name')}"
+        if dish.get("name_en"):
+            line += f" / {dish.get('name_en')}"
+        if dish.get("price") is not None:
+            line += f" — {dish['price']:.2f} {dish.get('currency') or 'AED'}"
+        if dish.get("description"):
+            line += f" | {dish.get('description')}"
+        if dish.get("image_url"):
+            line += f"\n    صورة: {dish.get('image_url')}"
+        menu_lines.append(line)
+
+    if menu_lines:
+        catalog_block += (
+            "\n\nمنيو هذا المشروع (هذه هي الأصناف المتاحة الآن فقط، بأسعارها — "
+            "لا تخترع أصنافاً أو أسعاراً غيرها، وإذا سُئلت عن شيء غير موجود قل إنه غير متوفر):"
+            + "\n".join(menu_lines)
+            + "\n\nإذا أراد العميل أن يطلب، اطلب منه يضغط زر «منيو» ويضيف الأصناف للسلة "
+            "ثم «إتمام الطلب»، أو اجمع منه الأصناف والكمية والاسم ورقم الجوال والعنوان."
+        )
+
     if link_lines:
         catalog_block += (
             "\n\nروابط الدفع المعتمدة لهذا المشروع "

@@ -7312,7 +7312,10 @@ def partner_dashboard_connect_stripe():
                 country=CONNECT_COUNTRY,
                 email=state.get("email") or None,
                 capabilities={"transfers": {"requested": True}},
-                business_type="individual",
+                # Not set on purpose. Hardcoding "individual" is refused
+                # outright in the UAE, and guessing between a person and a
+                # company for somebody else is not ours to do -- Stripe asks
+                # them during onboarding and records the answer.
                 metadata={"alsaab_partner_id": partner_id},
             )
             account_id = account.get("id", "")
@@ -9798,6 +9801,511 @@ except ImportError:
 
 register_smart_link_summary_cache_routes(app)
 # ===== ALSAAB SMART LINK SUMMARY CACHE REGISTER END =====
+# ===== ALSAAB_CLIENT_MENU_V1 START =====
+# A menu for restaurants (or any shop): sections, and dishes/products under
+# each, in Arabic and optionally English. The owner edits it from the client
+# dashboard; visitors open it from the chat page, ask the bot about any item,
+# or put items in a basket and send an order.
+#
+# Photos are kept in the database (menu_images), not on disk: Render wipes the
+# disk on every deploy, which is how uploaded product photos used to vanish.
+
+import json as _menu_json
+
+_MENU_READY = {"done": False}
+MENU_IMAGE_MAX_BYTES = 900 * 1024
+MENU_IMAGE_TYPES = {"image/jpeg", "image/png", "image/webp"}
+MENU_ORDER_STATUSES = ("new", "confirmed", "done", "cancelled")
+
+
+def ensure_menu_tables(cursor):
+    if _MENU_READY["done"]:
+        return
+    statements = [
+        """
+        CREATE TABLE IF NOT EXISTS menu_categories (
+            id SERIAL PRIMARY KEY,
+            partner_id TEXT NOT NULL,
+            name TEXT NOT NULL,
+            sort_order INTEGER DEFAULT 0,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )
+        """,
+        "ALTER TABLE menu_categories ADD COLUMN IF NOT EXISTS image_url TEXT DEFAULT ''",
+        "ALTER TABLE menu_categories ADD COLUMN IF NOT EXISTS name_en TEXT DEFAULT ''",
+        """
+        CREATE TABLE IF NOT EXISTS menu_items (
+            id SERIAL PRIMARY KEY,
+            partner_id TEXT NOT NULL,
+            category_id INTEGER NOT NULL,
+            name TEXT NOT NULL,
+            description TEXT DEFAULT '',
+            price NUMERIC(12,2),
+            currency TEXT DEFAULT 'AED',
+            image_url TEXT DEFAULT '',
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )
+        """,
+        "ALTER TABLE menu_items ADD COLUMN IF NOT EXISTS name_en TEXT DEFAULT ''",
+        "ALTER TABLE menu_items ADD COLUMN IF NOT EXISTS description_en TEXT DEFAULT ''",
+        "ALTER TABLE menu_items ADD COLUMN IF NOT EXISTS available BOOLEAN DEFAULT TRUE",
+        """
+        CREATE TABLE IF NOT EXISTS menu_images (
+            id SERIAL PRIMARY KEY,
+            partner_id TEXT NOT NULL,
+            mime TEXT NOT NULL,
+            data BYTEA NOT NULL,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )
+        """,
+        """
+        CREATE TABLE IF NOT EXISTS menu_settings (
+            partner_id TEXT PRIMARY KEY,
+            order_whatsapp TEXT DEFAULT '',
+            orders_enabled BOOLEAN DEFAULT TRUE
+        )
+        """,
+        """
+        CREATE TABLE IF NOT EXISTS menu_orders (
+            id SERIAL PRIMARY KEY,
+            partner_id TEXT NOT NULL,
+            session_id TEXT DEFAULT '',
+            customer_name TEXT DEFAULT '',
+            customer_phone TEXT DEFAULT '',
+            customer_address TEXT DEFAULT '',
+            notes TEXT DEFAULT '',
+            items_json TEXT DEFAULT '[]',
+            total NUMERIC(12,2) DEFAULT 0,
+            currency TEXT DEFAULT 'AED',
+            status TEXT DEFAULT 'new',
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )
+        """,
+    ]
+    for statement in statements:
+        cursor.execute(statement)
+    _MENU_READY["done"] = True
+
+
+def _menu_cursor():
+    from db import get_connection
+
+    conn = get_connection()
+    cursor = conn.cursor()
+    ensure_menu_tables(cursor)
+    conn.commit()
+    return conn, cursor
+
+
+def menu_settings(partner_id, cursor=None):
+    """Where orders go: the number set on the menu, else the account's phone."""
+    if cursor is None:
+        _, cursor = _menu_cursor()
+    cursor.execute(
+        "SELECT order_whatsapp, orders_enabled FROM menu_settings WHERE partner_id = ?",
+        (partner_id,),
+    )
+    row = cursor.fetchone()
+    number = (row[0] if row else "") or ""
+    enabled = bool(row[1]) if row and row[1] is not None else True
+
+    fallback = ""
+    cursor.execute("SELECT phone FROM partners WHERE partner_id = ?", (partner_id,))
+    phone_row = cursor.fetchone()
+    if phone_row:
+        fallback = phone_row[0] or ""
+
+    digits = "".join(ch for ch in (number or fallback) if ch.isdigit())
+    return {"order_whatsapp": number, "fallback_phone": fallback,
+            "whatsapp_digits": digits, "orders_enabled": enabled}
+
+
+def load_partner_menu(partner_id, include_hidden=False):
+    _, cursor = _menu_cursor()
+
+    cursor.execute(
+        """
+        SELECT id, name, image_url, COALESCE(name_en, '')
+        FROM menu_categories WHERE partner_id = ? ORDER BY sort_order, id
+        """,
+        (partner_id,),
+    )
+    categories = [
+        {"id": row[0], "name": row[1], "image_url": row[2] or "",
+         "name_en": row[3], "items": []}
+        for row in cursor.fetchall()
+    ]
+    by_id = {item["id"]: item for item in categories}
+
+    cursor.execute(
+        """
+        SELECT id, category_id, name, description, price, currency, image_url,
+               COALESCE(name_en, ''), COALESCE(description_en, ''),
+               COALESCE(available, TRUE)
+        FROM menu_items WHERE partner_id = ? ORDER BY id
+        """,
+        (partner_id,),
+    )
+    for row in cursor.fetchall():
+        category = by_id.get(row[1])
+        if not category or (not row[9] and not include_hidden):
+            continue
+        category["items"].append({
+            "id": row[0],
+            "name": row[2],
+            "description": row[3] or "",
+            "price": float(row[4]) if row[4] is not None else None,
+            "currency": row[5] or "AED",
+            "image_url": row[6] or "",
+            "name_en": row[7],
+            "description_en": row[8],
+            "available": bool(row[9]),
+        })
+
+    return categories
+
+
+@app.route("/menu/<partner_id>", methods=["GET"])
+def public_partner_menu(partner_id):
+    """What the chat page shows. Public: it is a menu."""
+    try:
+        partner_id = partner_id.strip()
+        settings = menu_settings(partner_id)
+        return jsonify({
+            "status": "success",
+            "categories": load_partner_menu(partner_id),
+            "orders_enabled": settings["orders_enabled"] and bool(settings["whatsapp_digits"]),
+        })
+    except Exception as error:
+        print(f"MENU LOAD ERROR ❌ {error}", flush=True)
+        return jsonify({"status": "error", "categories": []}), 500
+
+
+@app.route("/menu-image/<int:image_id>", methods=["GET"])
+def menu_image(image_id):
+    try:
+        _, cursor = _menu_cursor()
+        cursor.execute("SELECT mime, data FROM menu_images WHERE id = ?", (image_id,))
+        row = cursor.fetchone()
+        if not row:
+            return "Not found", 404
+        response = app.response_class(bytes(row[1]), mimetype=row[0])
+        response.headers["Cache-Control"] = "public, max-age=31536000, immutable"
+        return response
+    except Exception as error:
+        print(f"MENU IMAGE ERROR ❌ {error}", flush=True)
+        return "Error", 500
+
+
+@app.route("/client-dashboard/menu/upload-image", methods=["POST"])
+def client_dashboard_menu_upload_image():
+    partner_id, problem = resolve_dashboard_caller()
+    if problem:
+        return jsonify({"status": "error", "error": problem}), 403
+
+    uploaded = request.files.get("image")
+    if not uploaded:
+        return jsonify({"status": "error", "error": "no_file"}), 400
+
+    mime = (uploaded.mimetype or "").lower()
+    if mime not in MENU_IMAGE_TYPES:
+        return jsonify({"status": "error", "error": "bad_type"}), 400
+
+    data = uploaded.read(MENU_IMAGE_MAX_BYTES + 1)
+    if len(data) > MENU_IMAGE_MAX_BYTES:
+        return jsonify({"status": "error", "error": "too_big"}), 400
+
+    try:
+        conn, cursor = _menu_cursor()
+        cursor.execute(
+            "INSERT INTO menu_images (partner_id, mime, data) VALUES (?, ?, ?) RETURNING id",
+            (partner_id, mime, data),
+        )
+        image_id = cursor.fetchone()[0]
+        conn.commit()
+        base = (os.environ.get("RENDER_EXTERNAL_URL") or request.host_url).rstrip("/")
+        return jsonify({"status": "success", "url": f"{base}/menu-image/{image_id}"})
+    except Exception as error:
+        print(f"MENU IMAGE UPLOAD ERROR ❌ {error}", flush=True)
+        return jsonify({"status": "error", "error": "save_failed"}), 500
+
+
+def _menu_response(partner_id, cursor=None):
+    return jsonify({
+        "status": "success",
+        "categories": load_partner_menu(partner_id, include_hidden=True),
+        "settings": menu_settings(partner_id, cursor),
+    })
+
+
+@app.route("/client-dashboard/menu", methods=["GET", "POST"])
+def client_dashboard_menu():
+    """The owner's own menu. The partner id comes from whoever is signed in."""
+    partner_id, problem = resolve_dashboard_caller()
+    if problem:
+        return jsonify({"status": "error", "error": problem}), 403
+
+    if request.method == "GET":
+        return _menu_response(partner_id)
+
+    data = request.get_json(silent=True) or {}
+    action = str(data.get("action", "")).strip()
+
+    def text(name, limit):
+        return str(data.get(name, "") or "").strip()[:limit]
+
+    def image(name="image_url"):
+        url = text(name, 500)
+        return url if url.lower().startswith(("http://", "https://")) else ""
+
+    try:
+        conn, cursor = _menu_cursor()
+
+        if action == "add_category":
+            name = text("name", 80)
+            if not name:
+                return jsonify({"status": "error", "error": "name_required"}), 400
+            cursor.execute(
+                "INSERT INTO menu_categories (partner_id, name, name_en, image_url) VALUES (?, ?, ?, ?)",
+                (partner_id, name, text("name_en", 80), image()),
+            )
+
+        elif action == "update_category":
+            name = text("name", 80)
+            if not name:
+                return jsonify({"status": "error", "error": "name_required"}), 400
+            cursor.execute(
+                """
+                UPDATE menu_categories SET name = ?, name_en = ?, image_url = ?
+                WHERE id = ? AND partner_id = ?
+                """,
+                (name, text("name_en", 80), image(), int(data.get("id") or 0), partner_id),
+            )
+
+        elif action == "delete_category":
+            category_id = int(data.get("id") or 0)
+            cursor.execute(
+                "DELETE FROM menu_items WHERE category_id = ? AND partner_id = ?",
+                (category_id, partner_id),
+            )
+            cursor.execute(
+                "DELETE FROM menu_categories WHERE id = ? AND partner_id = ?",
+                (category_id, partner_id),
+            )
+
+        elif action in ("add_item", "update_item"):
+            name = text("name", 120)
+            if not name:
+                return jsonify({"status": "error", "error": "name_required"}), 400
+            try:
+                price = round(float(data.get("price")), 2) if str(data.get("price", "")).strip() else None
+            except (TypeError, ValueError):
+                return jsonify({"status": "error", "error": "bad_price"}), 400
+            values = (name, text("description", 1000), price,
+                      (text("currency", 8) or "AED").upper(), image(),
+                      text("name_en", 120), text("description_en", 1000))
+
+            if action == "add_item":
+                category_id = int(data.get("category_id") or 0)
+                cursor.execute(
+                    "SELECT 1 FROM menu_categories WHERE id = ? AND partner_id = ?",
+                    (category_id, partner_id),
+                )
+                if not cursor.fetchone():
+                    return jsonify({"status": "error", "error": "category_not_found"}), 404
+                cursor.execute(
+                    """
+                    INSERT INTO menu_items
+                        (name, description, price, currency, image_url, name_en,
+                         description_en, partner_id, category_id)
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+                    """,
+                    values + (partner_id, category_id),
+                )
+            else:
+                cursor.execute(
+                    """
+                    UPDATE menu_items SET name = ?, description = ?, price = ?,
+                           currency = ?, image_url = ?, name_en = ?, description_en = ?
+                    WHERE id = ? AND partner_id = ?
+                    """,
+                    values + (int(data.get("id") or 0), partner_id),
+                )
+
+        elif action == "set_available":
+            cursor.execute(
+                "UPDATE menu_items SET available = ? WHERE id = ? AND partner_id = ?",
+                (bool(data.get("available")), int(data.get("id") or 0), partner_id),
+            )
+
+        elif action == "delete_item":
+            cursor.execute(
+                "DELETE FROM menu_items WHERE id = ? AND partner_id = ?",
+                (int(data.get("id") or 0), partner_id),
+            )
+
+        elif action == "save_settings":
+            cursor.execute(
+                """
+                INSERT INTO menu_settings (partner_id, order_whatsapp, orders_enabled)
+                VALUES (?, ?, ?)
+                ON CONFLICT (partner_id) DO UPDATE
+                SET order_whatsapp = EXCLUDED.order_whatsapp,
+                    orders_enabled = EXCLUDED.orders_enabled
+                """,
+                (partner_id, text("order_whatsapp", 30), bool(data.get("orders_enabled", True))),
+            )
+
+        else:
+            return jsonify({"status": "error", "error": "unknown_action"}), 400
+
+        conn.commit()
+        return _menu_response(partner_id, cursor)
+
+    except Exception as error:
+        print(f"MENU SAVE ERROR ❌ {error}", flush=True)
+        return jsonify({"status": "error", "error": "save_failed"}), 500
+
+
+@app.route("/menu/<partner_id>/order", methods=["POST"])
+def place_menu_order(partner_id):
+    """
+    A visitor's basket. Prices are taken from the database, never from the
+    browser, so the total the owner sees is the real one.
+    """
+    partner_id = partner_id.strip()
+    data = request.get_json(silent=True) or {}
+
+    name = str(data.get("name") or "").strip()[:80]
+    phone = str(data.get("phone") or "").strip()[:30]
+    address = str(data.get("address") or "").strip()[:300]
+    notes = str(data.get("notes") or "").strip()[:500]
+
+    if not name or sum(ch.isdigit() for ch in phone) < 7:
+        return jsonify({"status": "error", "error": "name_phone_required"}), 400
+
+    wanted = {}
+    for line in (data.get("items") or [])[:50]:
+        try:
+            item_id, qty = int(line.get("id")), int(line.get("qty"))
+        except (TypeError, ValueError, AttributeError):
+            continue
+        if 0 < qty <= 99:
+            wanted[item_id] = wanted.get(item_id, 0) + qty
+
+    if not wanted:
+        return jsonify({"status": "error", "error": "empty_basket"}), 400
+
+    try:
+        conn, cursor = _menu_cursor()
+        settings = menu_settings(partner_id, cursor)
+        if not settings["orders_enabled"] or not settings["whatsapp_digits"]:
+            return jsonify({"status": "error", "error": "orders_closed"}), 403
+
+        lines, total, currency = [], 0.0, "AED"
+        for item in (dish for cat in load_partner_menu(partner_id) for dish in cat["items"]):
+            qty = wanted.get(item["id"])
+            if not qty:
+                continue
+            price = item["price"] or 0.0
+            currency = item["currency"] or currency
+            total += price * qty
+            lines.append({"id": item["id"], "name": item["name"], "qty": qty, "price": price})
+
+        if not lines:
+            return jsonify({"status": "error", "error": "items_unavailable"}), 400
+
+        total = round(total, 2)
+        cursor.execute(
+            """
+            INSERT INTO menu_orders (partner_id, session_id, customer_name, customer_phone,
+                                     customer_address, notes, items_json, total, currency)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?) RETURNING id
+            """,
+            (partner_id, str(data.get("session_id") or "")[:80], name, phone, address,
+             notes, _menu_json.dumps(lines, ensure_ascii=False), total, currency),
+        )
+        order_id = cursor.fetchone()[0]
+        conn.commit()
+
+        text_lines = [f"طلب جديد #{order_id}"]
+        text_lines += [
+            f"• {line['name']} × {line['qty']} = {line['price'] * line['qty']:.2f} {currency}"
+            for line in lines
+        ]
+        text_lines += [f"الإجمالي: {total:.2f} {currency}", f"الاسم: {name}", f"الجوال: {phone}"]
+        if address:
+            text_lines.append(f"العنوان: {address}")
+        if notes:
+            text_lines.append(f"ملاحظات: {notes}")
+
+        print(f"MENU ORDER ✅ {partner_id} #{order_id} total={total}", flush=True)
+        return jsonify({
+            "status": "success",
+            "order_id": order_id,
+            "total": total,
+            "currency": currency,
+            # The visitor's own WhatsApp opens with the order typed out; one tap
+            # and it reaches the owner. No WhatsApp API account needed.
+            "whatsapp_url": "https://wa.me/" + settings["whatsapp_digits"]
+                            + "?text=" + quote("\n".join(text_lines)),
+        })
+
+    except Exception as error:
+        print(f"MENU ORDER ERROR ❌ {error}", flush=True)
+        return jsonify({"status": "error", "error": "save_failed"}), 500
+
+
+@app.route("/client-dashboard/orders", methods=["GET", "POST"])
+def client_dashboard_orders():
+    partner_id, problem = resolve_dashboard_caller()
+    if problem:
+        return jsonify({"status": "error", "error": problem}), 403
+
+    try:
+        conn, cursor = _menu_cursor()
+
+        if request.method == "POST":
+            data = request.get_json(silent=True) or {}
+            status = str(data.get("status") or "")
+            if status not in MENU_ORDER_STATUSES:
+                return jsonify({"status": "error", "error": "bad_status"}), 400
+            cursor.execute(
+                "UPDATE menu_orders SET status = ? WHERE id = ? AND partner_id = ?",
+                (status, int(data.get("id") or 0), partner_id),
+            )
+            conn.commit()
+
+        cursor.execute(
+            """
+            SELECT id, customer_name, customer_phone, customer_address, notes,
+                   items_json, total, currency, status, created_at
+            FROM menu_orders WHERE partner_id = ?
+            ORDER BY id DESC LIMIT 100
+            """,
+            (partner_id,),
+        )
+        orders = []
+        for row in cursor.fetchall():
+            try:
+                items = _menu_json.loads(row[5] or "[]")
+            except ValueError:
+                items = []
+            orders.append({
+                "id": row[0], "name": row[1], "phone": row[2], "address": row[3],
+                "notes": row[4], "items": items,
+                "total": float(row[6] or 0), "currency": row[7] or "AED",
+                "status": row[8] or "new",
+                "created_at": row[9].strftime("%Y-%m-%d %H:%M") if hasattr(row[9], "strftime") else str(row[9] or ""),
+            })
+        return jsonify({"status": "success", "orders": orders})
+
+    except Exception as error:
+        print(f"MENU ORDERS ERROR ❌ {error}", flush=True)
+        return jsonify({"status": "error", "error": "load_failed"}), 500
+
+# ===== ALSAAB_CLIENT_MENU_V1 END =====
+
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 10000))
     app.run(host="0.0.0.0", port=port, debug=False)

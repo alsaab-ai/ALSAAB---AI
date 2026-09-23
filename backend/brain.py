@@ -546,8 +546,41 @@ def load_client_catalog_into_state(partner_id, current_state):
     if links:
         current_state["client_payment_links"] = links
 
+    # The menu (restaurants and shops) lives in its own tables. Only what is
+    # on sale right now -- a hidden dish must not be offered.
+    menu = []
+    try:
+        from db import get_connection
+
+        cursor = get_connection().cursor()
+        cursor.execute(
+            """
+            SELECT c.name, COALESCE(c.name_en, ''), i.name, COALESCE(i.name_en, ''),
+                   COALESCE(i.description, ''), i.price, COALESCE(i.currency, 'AED'),
+                   COALESCE(i.image_url, '')
+            FROM menu_items i
+            JOIN menu_categories c ON c.id = i.category_id
+            WHERE i.partner_id = ? AND COALESCE(i.available, TRUE)
+            ORDER BY c.sort_order, c.id, i.id
+            """,
+            (partner_id,),
+        )
+        for row in cursor.fetchall():
+            menu.append({
+                "category": row[0], "category_en": row[1],
+                "name": row[2], "name_en": row[3], "description": row[4],
+                "price": float(row[5]) if row[5] is not None else None,
+                "currency": row[6], "image_url": row[7],
+            })
+    except Exception as error:
+        # No menu tables yet on this database is normal, not a failure.
+        print(f"CLIENT MENU LOAD SKIPPED ⚠️ {partner_id} {error}", flush=True)
+
+    if menu:
+        current_state["client_menu"] = menu
+
     print(
-        f"CLIENT CATALOG LOADED ✅ partner_id={partner_id} "
+        f"CLIENT CATALOG LOADED ✅ partner_id={partner_id} menu={len(menu)} "
         f"groups={len(groups)} links={len(links)}",
         flush=True
     )

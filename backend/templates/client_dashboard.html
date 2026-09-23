@@ -503,6 +503,57 @@
     .pick-image.ready .pick-submit{ display:block; }
     /* ===== ALSAAB_CLIENT_MEDIA_V1 END ===== */
 
+
+/* ===== ALSAAB_CLIENT_SIDEBAR_V1 ===== */
+.page{max-width:1480px}
+.shell{display:grid;grid-template-columns:240px minmax(0,1fr);gap:22px;align-items:start}
+.side{position:sticky;top:18px;max-height:calc(100vh - 36px);overflow-y:auto;background:#111;border:1px solid rgba(215,184,90,.25);border-radius:18px;padding:14px 10px 16px}
+.side-group+.side-group{margin-top:14px;padding-top:12px;border-top:1px solid rgba(255,255,255,.07)}
+.side-cap{padding:0 10px 6px;font-size:11px;font-weight:700;color:#8d8a7c}
+.side a{display:block;padding:9px 12px;border-radius:11px;color:#cfc7ad;text-decoration:none;font-size:14px;font-weight:700;border:1px solid transparent}
+.side a:hover{background:rgba(215,184,90,.08);color:#f5f0df}
+.side a.on{background:rgba(215,184,90,.14);border-color:rgba(215,184,90,.45);color:#f0cc68}
+.content{min-width:0}.content [id]{scroll-margin-top:18px}
+.content .grid{grid-template-columns:repeat(auto-fit,minmax(200px,1fr))}.content .big{font-size:24px;word-break:normal;overflow-wrap:normal}
+.menu-add{display:flex;gap:8px;flex-wrap:wrap;margin:14px 0}
+.menu-add input,.menu-form input,.menu-form textarea{background:#0b0b0b;color:#fff;border:1px solid rgba(215,184,90,.45);border-radius:10px;padding:10px 12px;font-family:inherit;font-size:14px;box-sizing:border-box}
+.menu-add input{flex:1 1 220px}
+.menu-cat{border:1px solid rgba(215,184,90,.25);border-radius:14px;padding:12px 14px;margin-top:12px;background:#0f0f0f}
+.menu-cat-head{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap}
+.menu-cat-head b{color:#f0cc68;font-size:17px;display:flex;align-items:center;gap:10px}.menu-cat-head b img{width:44px;height:44px;object-fit:cover;border-radius:10px}
+.menu-item{display:flex;gap:12px;align-items:center;border-top:1px solid rgba(255,255,255,.06);padding:10px 0}
+.menu-item img{width:52px;height:52px;object-fit:cover;border-radius:10px}
+.menu-item{flex-wrap:wrap}.menu-item .mi-txt{flex:1 1 170px;min-width:0}.menu-item .mi-desc{color:#8d8a7c;font-size:12.5px}
+.menu-item .mi-price{color:#7fd39a;font-weight:800;white-space:nowrap}
+.menu-form{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px}
+.menu-form textarea,.menu-form .full{grid-column:1/-1}
+.mbtn{border:1px solid rgba(215,184,90,.55);background:rgba(215,184,90,.08);color:#f0cc68;border-radius:999px;padding:7px 14px;font-weight:800;cursor:pointer;font-family:inherit;font-size:13px}
+.mbtn.del{border-color:rgba(239,131,131,.6);color:#ef8383;background:rgba(239,131,131,.08)}
+.menu-add input:nth-child(2){flex:1 1 200px}
+.menu-item.off{opacity:.55}
+.mi-en{color:#8d8a7c;font-size:12.5px;font-weight:600}
+.mi-off{color:#ef8383;font-size:11.5px;font-weight:800}
+.mi-acts{display:flex;gap:6px;flex-wrap:wrap}
+.menu-img-row{display:flex;align-items:center;gap:10px}
+.menu-prev{width:44px;height:44px;object-fit:cover;border-radius:10px;display:none}
+.menu-settings{display:flex;gap:12px;flex-wrap:wrap;align-items:flex-end;margin:14px 0;padding:12px 14px;border:1px solid rgba(215,184,90,.25);border-radius:14px;background:#0f0f0f}
+.menu-settings label{display:flex;flex-direction:column;gap:6px;color:#cfc7ad;font-size:13px;font-weight:700;flex:1 1 240px}
+.menu-settings input[type=text],.menu-settings input:not([type]){background:#0b0b0b;color:#fff;border:1px solid rgba(215,184,90,.45);border-radius:10px;padding:10px 12px}
+.menu-settings .menu-check{flex-direction:row;align-items:center;flex:0 0 auto}
+.menu-settings .menu-empty{flex-basis:100%;padding:0}
+.order-card{border:1px solid rgba(215,184,90,.25);border-radius:14px;padding:12px 14px;margin-top:10px;background:#0f0f0f}
+.order-head,.order-foot{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap}
+.order-st{border-radius:999px;padding:2px 10px;font-size:11.5px;font-weight:800;border:1px solid currentColor}
+.order-st.warn{color:#e0a83f}.order-st.ok{color:#7fd39a}.order-st.crit{color:#ef8383}
+.order-items{margin:8px 0;padding-inline-start:18px;font-size:14px}
+.order-items span{color:#8d8a7c;margin-inline-start:6px}
+.menu-empty{color:#8d8a7c;padding:10px 0;font-size:13.5px}
+.qr-wrap{display:flex;gap:22px;align-items:center;flex-wrap:wrap;margin-top:14px}
+#clientQr{background:#fff;padding:14px;border-radius:14px;width:228px;height:228px;box-sizing:border-box}
+#clientQr img,#clientQr canvas{width:200px!important;height:200px!important}
+.qr-actions{display:flex;flex-direction:column;gap:10px;flex:1 1 220px}
+.qr-link{direction:ltr;font-family:monospace;font-size:13px;color:#f0cc68;overflow-wrap:anywhere}
+@media (max-width:900px){.shell{grid-template-columns:1fr}.side{top:0;z-index:20;max-height:none;display:flex;gap:6px;overflow-x:auto;padding:8px}.side-group{display:flex;gap:6px}.side-group+.side-group{margin:0;padding:0;border:0}.side-cap{display:none}.side a{white-space:nowrap}}
 </style>
 
 <script>
@@ -637,7 +688,30 @@ document.addEventListener("DOMContentLoaded", function () {
     <div class="status-message">{{ t.saved_success }}</div>
     {% endif %}
 
-    <div class="grid">
+    <div class="shell">
+      <nav class="side" aria-label="أقسام لوحة العميل">
+        <div class="side-group">
+          <div class="side-cap">حسابي</div>
+          <a href="#overview">نظرة عامة</a>
+          <a href="#secQr">QR ورابط الشات</a>
+          <a href="#secMenu">المنيو</a>
+          <a href="#secOrders">الطلبات</a>
+          <a href="#secEmbed">كود الموقع</a>
+          <a href="#secCompany">{{ t.my_company }}</a>
+          <a href="#secProducts">{{ t.my_products }}</a>
+          <a href="#secProjectData">{{ t.project_data }}</a>
+          <a href="#secImageGroups">{{ t.image_groups }}</a>
+        </div>
+        <div class="side-group">
+          <div class="side-cap">أدوات</div>
+          <a href="#secChannels">{{ t.channels }}</a>
+          <a href="#secAdvisory">{{ t.owner_advisory }}</a>
+          <a href="#alsaabClientSmartLinkCancel">واتساب والإلغاء</a>
+        </div>
+      </nav>
+      <div class="content">
+
+    <div class="grid" id="overview">
       <div class="card">
         <h3>{{ t.account_id }}</h3>
         <div class="big">{{ account_id }}</div>
@@ -720,7 +794,61 @@ document.addEventListener("DOMContentLoaded", function () {
          block -- silently deleting every section in between. Styles live in
          the head block, behaviour is inline. -->
 
-    <div class="section alsaab-projects-v1">
+    <div class="section" id="secQr">
+      <h2>QR Code لموظف المبيعات</h2>
+      <div class="sub">اطبعه وحطه على الترابيزة أو المنيو أو واجهة المحل — أي حد يصوّره بالموبايل يفتح الشات مع البوت بتاعك على طول.</div>
+      <div class="qr-wrap">
+        <div id="clientQr"></div>
+        <div class="qr-actions">
+          <div class="qr-link" id="clientQrLink">https://alsaab-ai.onrender.com/c/{{ partner_id }}</div>
+          <button class="primary-btn" type="button" id="qrDownload">تحميل QR (صورة)</button>
+          <button class="primary-btn" type="button" id="qrPrint">طباعة</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="section" id="secEmbed">
+      <h2>ركّب البوت على موقعك</h2>
+      <div class="sub">انسخ الكود ده وحطه في موقعك قبل <code>&lt;/body&gt;</code> — هيظهر زرار «كلّمنا» في ركن الصفحة، يفتح البوت بتاعك بالمنيو وروابط الدفع. شغال مع WordPress وShopify وWix وأي موقع.</div>
+      <textarea id="embedCode" readonly dir="ltr" style="width:100%;box-sizing:border-box;min-height:84px;margin-top:12px;background:#0b0b0b;color:#f0cc68;border:1px solid rgba(215,184,90,.45);border-radius:12px;padding:12px;font-family:monospace;font-size:13px"></textarea>
+      <button class="primary-btn" type="button" onclick="copyClientDashboardText('embedCode');this.textContent='✓ اتنسخ'">نسخ الكود</button>
+      <details style="margin-top:14px;color:#cfc7ad;font-size:13.5px;line-height:1.9">
+        <summary style="cursor:pointer;color:#f0cc68;font-weight:800">فين أحط الكود؟</summary>
+        <b>WordPress:</b> إضافة «WPCode» ← Add Snippet ← Footer ← الصق الكود.<br>
+        <b>Shopify:</b> Online Store ← Themes ← Edit code ← theme.liquid ← الصقه قبل &lt;/body&gt;.<br>
+        <b>Wix:</b> Settings ← Custom Code ← Add Code ← Body - end.<br>
+        <b>موقع عادي:</b> الصقه قبل &lt;/body&gt; في كل صفحة.<br>
+        تقدر تغيّر <code>data-label</code> لكلام الزرار، و <code>data-position="left"</code> عشان يبقى على الشمال.
+      </details>
+    </div>
+
+    <!-- ALSAAB_CLIENT_MENU_UI_V1 -->
+    <div class="section" id="secMenu">
+      <h2>المنيو</h2>
+      <div class="sub">أضف أقسام (مثلاً: مشويات، مشروبات، حلويات) وتحت كل قسم الأصناف بسعرها ووصفها وصورتها. المنيو بيظهر للزباين في الشات بزرار «منيو»، والبوت بيعرفه ويرد عليه، والزبون يقدر يطلب منه.</div>
+      <div class="menu-add">
+        <input id="menuNewCat" placeholder="اسم القسم بالعربي" maxlength="80">
+        <input id="menuNewCatEn" placeholder="Section name (English) — اختياري" maxlength="80" dir="ltr">
+        <button class="primary-btn" type="button" id="menuAddCat" style="margin:0">+ إضافة قسم</button>
+      </div>
+      <div id="menuList"><div class="menu-empty">جاري التحميل...</div></div>
+    </div>
+
+    <div class="section" id="secOrders">
+      <h2>الطلبات <span class="count-badge" id="ordersNewCount" style="display:none"></span></h2>
+      <div class="sub">الطلبات اللي الزباين بيبعتوها من المنيو في الشات. كل طلب بيتحفظ هنا، والزبون بيبعته لك كمان على WhatsApp بضغطة واحدة.</div>
+      <div class="menu-settings">
+        <label>رقم WhatsApp لاستلام الطلبات (بالكود الدولي، مثلاً 9715xxxxxxxx)
+          <input id="menuOrderWa" dir="ltr" placeholder="9715xxxxxxxx" maxlength="30">
+        </label>
+        <label class="menu-check"><input type="checkbox" id="menuOrdersOn"> استقبال الطلبات من الشات</label>
+        <button class="mbtn" type="button" id="menuSaveSettings">حفظ</button>
+        <div class="menu-empty" id="menuWaHint"></div>
+      </div>
+      <div id="ordersList"><div class="menu-empty">جاري التحميل...</div></div>
+    </div>
+
+    <div class="section alsaab-projects-v1" id="secCompany">
       <h2>{{ t.my_company }}</h2>
       <div class="sub">{{ t.my_company_desc }}</div>
 
@@ -996,12 +1124,12 @@ document.addEventListener("DOMContentLoaded", function () {
     </div>
     <!-- ===== ALSAAB_CLIENT_PROJECT_MANAGER_V1 END ===== -->
 
-    <div class="section">
+    <div class="section" id="secChannels">
       <h2>{{ t.channels }}</h2>
       <div class="sub">{{ channels | join(", ") if channels else "-" }}</div>
     </div>
 
-    <div class="section">
+    <div class="section" id="secAdvisory">
       <h2>{{ t.owner_advisory }}</h2>
       <div class="sub">{{ t.owner_advisory_desc }}</div>
       <a class="primary-btn" href="{{ owner_advisory_url }}">{{ t.ask_advisor }}</a>
@@ -1227,7 +1355,6 @@ document.addEventListener("DOMContentLoaded", function () {
     </div>
 
 
-  </div>
 <div class="section" id="alsaabClientSmartLinkCancel" dir="rtl">
   <!-- ALSAAB_CLIENT_MAIN_SMART_LINK_CANCEL_V2 START -->
   <!-- ALSAAB_SMART_LINK_CLIENT_DASHBOARD_UI_V1 START -->
@@ -1261,6 +1388,27 @@ document.addEventListener("DOMContentLoaded", function () {
   <!-- ALSAAB_CANCELLATION_UI_V1 END -->
   <!-- ALSAAB_CLIENT_MAIN_SMART_LINK_CANCEL_V2 END -->
 </div>
+      </div>
+    </div>
+  </div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<script>
+(function(){
+  var box=document.getElementById("clientQr"); if(!box||!window.QRCode) return;
+  var url=document.getElementById("clientQrLink").textContent.trim();
+  new QRCode(box,{text:url,width:400,height:400,correctLevel:QRCode.CorrectLevel.M});
+  function img(){var c=box.querySelector("canvas");return c?c.toDataURL("image/png"):(box.querySelector("img")||{}).src;}
+  document.getElementById("qrDownload").onclick=function(){var a=document.createElement("a");a.href=img();a.download="alsaab-chat-qr.png";a.click();};
+  document.getElementById("qrPrint").onclick=function(){var w=window.open("");w.document.write('<div style="text-align:center;font-family:Arial;margin-top:60px"><img src="'+img()+'" style="width:320px"><h2>امسح الكود وكلّمنا</h2></div>');w.document.close();w.onload=function(){w.print();};setTimeout(function(){w.print();},400);};
+})();
+(function(){
+  var links={};document.querySelectorAll(".side a").forEach(function(l){var h=l.getAttribute("href")||"";if(h[0]==="#")links[h.slice(1)]=l;});
+  if(!("IntersectionObserver" in window))return;var vis={};
+  var ob=new IntersectionObserver(function(es){es.forEach(function(e){vis[e.target.id]=e.isIntersecting;});var cur=null;Object.keys(links).some(function(id){if(vis[id]){cur=id;return true;}return false;});Object.keys(links).forEach(function(id){links[id].classList.toggle("on",id===cur);});},{rootMargin:"-10% 0px -60% 0px"});
+  Object.keys(links).forEach(function(id){var t=document.getElementById(id);if(t)ob.observe(t);});
+})();
+</script>
 
 
   <script>
@@ -1282,5 +1430,194 @@ document.addEventListener("DOMContentLoaded", function () {
       container.appendChild(clone);
     }
   </script>
+<script>
+/* ALSAAB_CLIENT_MENU_UI_V1 */
+(function(){var e=document.getElementById("embedCode");if(e)e.value='<script src="'+location.origin+'/widget.js" data-client-id="{{ partner_id }}" data-lang="ar" data-label="كلّمنا" defer><\/script>';})();
+(function(){
+  var list=document.getElementById("menuList"); if(!list) return;
+  var qs=new URLSearchParams(location.search), auth=new URLSearchParams();
+  ["key","partner_id","sso","token","lang"].forEach(function(k){if(qs.get(k))auth.set(k,qs.get(k));});
+  if(!auth.get("partner_id"))auth.set("partner_id","{{ partner_id }}");
+  if(!auth.get("sso")&&"{{ sso_token or '' }}")auth.set("sso","{{ sso_token or '' }}");
+  var A="?"+auth.toString(), url="/client-dashboard/menu"+A, cats=[];
+
+  function esc(t){var d=document.createElement("div");d.textContent=t==null?"":String(t);return d.innerHTML;}
+  function call(body){
+    list.style.opacity=".5";
+    return fetch(url,body?{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(body),credentials:"same-origin"}:{credentials:"same-origin"})
+      .then(function(r){return r.json();}).then(function(d){
+        list.style.opacity="";
+        if(d.status!=="success"){alert("تعذّر الحفظ");return false;}
+        cats=d.categories; draw(); settings(d.settings); return true;
+      }).catch(function(){list.style.opacity="";alert("تعذّر الاتصال");return false;});
+  }
+
+  /* Phone photos are several MB; shrink to 900px JPEG in the browser first. */
+  function shrink(file){
+    return new Promise(function(ok,fail){
+      var img=new Image(), r=new FileReader();
+      r.onload=function(){img.src=r.result;}; r.onerror=fail;
+      img.onload=function(){
+        var s=Math.min(1,900/Math.max(img.width,img.height)),c=document.createElement("canvas");
+        c.width=Math.round(img.width*s);c.height=Math.round(img.height*s);
+        c.getContext("2d").drawImage(img,0,0,c.width,c.height);
+        c.toBlob(function(b){b?ok(b):fail();},"image/jpeg",0.82);
+      };
+      img.onerror=fail; r.readAsDataURL(file);
+    });
+  }
+  function upload(file,input,preview,btn){
+    var old=btn.textContent; btn.textContent="جاري الرفع..."; btn.disabled=true;
+    shrink(file).then(function(blob){
+      var fd=new FormData(); fd.append("image",blob,"photo.jpg");
+      return fetch("/client-dashboard/menu/upload-image"+A,{method:"POST",body:fd,credentials:"same-origin"}).then(function(r){return r.json();});
+    }).then(function(d){
+      if(d.status!=="success")throw 0;
+      input.value=d.url; preview.src=d.url; preview.style.display="block";
+    }).catch(function(){alert("تعذّر رفع الصورة");})
+      .then(function(){btn.textContent=old;btn.disabled=false;});
+  }
+
+  function itemForm(c){
+    return '<div class="menu-form" id="mf'+c.id+'" style="display:none">'+
+      '<input placeholder="اسم الصنف" data-f="name" maxlength="120">'+
+      '<input placeholder="Item name (English)" data-f="name_en" maxlength="120" dir="ltr">'+
+      '<input placeholder="السعر (درهم)" data-f="price" inputmode="decimal">'+
+      '<div class="menu-img-row"><img class="menu-prev" alt=""><button type="button" class="mbtn" data-pick="'+c.id+'">📷 رفع صورة</button>'+
+      '<input type="file" accept="image/*" data-file="'+c.id+'" hidden></div>'+
+      '<textarea placeholder="الوصف (المكونات، الحجم...)" data-f="description" rows="2"></textarea>'+
+      '<textarea placeholder="Description (English)" data-f="description_en" rows="2" dir="ltr"></textarea>'+
+      '<input class="full" placeholder="أو رابط صورة https://..." data-f="image_url" dir="ltr">'+
+      '<div class="full" style="display:flex;gap:8px"><button class="primary-btn" style="margin:0;flex:1" data-save="'+c.id+'">حفظ الصنف</button>'+
+      '<button class="mbtn" data-cancel="'+c.id+'">إلغاء</button></div></div>';
+  }
+
+  function draw(){
+    if(!cats.length){list.innerHTML='<div class="menu-empty">لسه مفيش أقسام. ابدأ بإضافة قسم فوق.</div>';return;}
+    list.innerHTML=cats.map(function(c){
+      var items=c.items.map(function(i){
+        return '<div class="menu-item'+(i.available?'':' off')+'">'+(i.image_url?'<img src="'+esc(i.image_url)+'" alt="">':'')+
+          '<div class="mi-txt"><b>'+esc(i.name)+'</b>'+(i.name_en?' <span class="mi-en">'+esc(i.name_en)+'</span>':'')+
+          (i.available?'':' <span class="mi-off">مخفي — خلص</span>')+
+          '<div class="mi-desc">'+esc(i.description)+'</div></div>'+
+          (i.price!=null?'<span class="mi-price">'+i.price.toFixed(2)+' '+esc(i.currency)+'</span>':'')+
+          '<span class="mi-acts"><button class="mbtn" data-edit="'+i.id+'" data-cat="'+c.id+'">تعديل</button>'+
+          '<button class="mbtn" data-avail="'+i.id+'" data-to="'+(i.available?0:1)+'">'+(i.available?'إخفاء':'إظهار')+'</button>'+
+          '<button class="mbtn del" data-del-item="'+i.id+'">حذف</button></span></div>';
+      }).join("")||'<div class="menu-empty">مفيش أصناف في القسم ده.</div>';
+      return '<div class="menu-cat"><div class="menu-cat-head"><b>'+(c.image_url?'<img src="'+esc(c.image_url)+'" alt="">':'')+esc(c.name)+
+        (c.name_en?' <span class="mi-en">'+esc(c.name_en)+'</span>':'')+' ('+c.items.length+')</b>'+
+        '<span><button class="mbtn" data-open="'+c.id+'">+ صنف</button> <button class="mbtn" data-cat-edit="'+c.id+'">تعديل القسم</button> '+
+        '<button class="mbtn del" data-del-cat="'+c.id+'">حذف القسم</button></span></div>'+
+        items+itemForm(c)+'</div>';
+    }).join("");
+  }
+
+  function findItem(id){for(var n=0;n<cats.length;n++)for(var k=0;k<cats[n].items.length;k++)if(String(cats[n].items[k].id)===String(id))return cats[n].items[k];}
+  function findCat(id){for(var n=0;n<cats.length;n++)if(String(cats[n].id)===String(id))return cats[n];}
+  function openForm(catId,item){
+    var f=document.getElementById("mf"+catId);
+    f.dataset.edit=item?item.id:"";
+    f.querySelectorAll("[data-f]").forEach(function(el){
+      var v=item?item[el.dataset.f]:"";
+      el.value=v==null?"":(el.dataset.f==="price"&&v!==""?Number(v).toFixed(2):v);
+    });
+    var p=f.querySelector(".menu-prev"); p.src=item&&item.image_url||""; p.style.display=item&&item.image_url?"block":"none";
+    f.querySelector("[data-save]").textContent=item?"حفظ التعديل":"حفظ الصنف";
+    f.style.display="grid"; f.scrollIntoView({block:"nearest",behavior:"smooth"});
+  }
+
+  list.addEventListener("click",function(e){
+    var b=e.target.closest("button"); if(!b) return; e.preventDefault();
+    if(b.dataset.open){var f=document.getElementById("mf"+b.dataset.open);if(f.style.display!=="none"&&!f.dataset.edit)f.style.display="none";else openForm(b.dataset.open,null);}
+    else if(b.dataset.edit){openForm(b.dataset.cat,findItem(b.dataset.edit));}
+    else if(b.dataset.cancel){document.getElementById("mf"+b.dataset.cancel).style.display="none";}
+    else if(b.dataset.pick){document.querySelector('[data-file="'+b.dataset.pick+'"]').click();}
+    else if(b.dataset.avail){call({action:"set_available",id:b.dataset.avail,available:b.dataset.to==="1"});}
+    else if(b.dataset.catEdit){
+      var c=findCat(b.dataset.catEdit);
+      var n=prompt("اسم القسم بالعربي:",c.name); if(n===null||!n.trim())return;
+      var en=prompt("اسم القسم بالإنجليزي (اختياري):",c.name_en||""); if(en===null)return;
+      var im=prompt("رابط صورة القسم (سيبه فاضي لو مش عايز صورة):",c.image_url||""); if(im===null)return;
+      call({action:"update_category",id:c.id,name:n.trim(),name_en:en.trim(),image_url:im.trim()});
+    }
+    else if(b.dataset.delCat){if(confirm("حذف القسم وكل الأصناف اللي فيه؟"))call({action:"delete_category",id:b.dataset.delCat});}
+    else if(b.dataset.delItem){if(confirm("حذف الصنف نهائياً؟ (لو خلص مؤقتاً استخدم «إخفاء»)"))call({action:"delete_item",id:b.dataset.delItem});}
+    else if(b.dataset.save){
+      var f=document.getElementById("mf"+b.dataset.save);
+      var body={action:f.dataset.edit?"update_item":"add_item",id:f.dataset.edit,category_id:b.dataset.save,currency:"AED"};
+      f.querySelectorAll("[data-f]").forEach(function(i){body[i.dataset.f]=i.value.trim();});
+      if(!body.name){alert("اكتب اسم الصنف");return;}
+      call(body);
+    }
+  });
+  list.addEventListener("change",function(e){
+    var i=e.target; if(!i.dataset.file||!i.files[0])return;
+    var f=document.getElementById("mf"+i.dataset.file);
+    upload(i.files[0],f.querySelector('[data-f="image_url"]'),f.querySelector(".menu-prev"),f.querySelector("[data-pick]"));
+    i.value="";
+  });
+
+  document.getElementById("menuAddCat").onclick=function(){
+    var i=document.getElementById("menuNewCat"),en=document.getElementById("menuNewCatEn"),n=i.value.trim(); if(!n){i.focus();return;}
+    call({action:"add_category",name:n,name_en:en.value.trim()}).then(function(ok){if(ok){i.value="";en.value="";}});
+  };
+  document.getElementById("menuNewCat").addEventListener("keydown",function(e){if(e.key==="Enter"){e.preventDefault();document.getElementById("menuAddCat").click();}});
+
+  /* Order settings + orders list */
+  function settings(s){
+    if(!s)return;
+    var wa=document.getElementById("menuOrderWa"),on=document.getElementById("menuOrdersOn"),h=document.getElementById("menuWaHint");
+    if(document.activeElement!==wa)wa.value=s.order_whatsapp||"";
+    on.checked=!!s.orders_enabled;
+    h.textContent=s.order_whatsapp?"":(s.fallback_phone?"لو سبته فاضي، الطلبات هتروح على رقم الحساب: "+s.fallback_phone:"⚠️ لازم تكتب رقم WhatsApp عشان زرار الطلب يظهر للزباين.");
+  }
+  document.getElementById("menuSaveSettings").onclick=function(){
+    var b=this; call({action:"save_settings",order_whatsapp:document.getElementById("menuOrderWa").value.trim(),orders_enabled:document.getElementById("menuOrdersOn").checked})
+      .then(function(ok){if(ok){b.textContent="✓ اتحفظ";setTimeout(function(){b.textContent="حفظ";},1800);}});
+  };
+
+  var ordersBox=document.getElementById("ordersList");
+  var ST={new:["جديد","warn"],confirmed:["مؤكد","ok"],done:["اتسلّم","ok"],cancelled:["ملغي","crit"]};
+  function drawOrders(orders){
+    var fresh=orders.filter(function(o){return o.status==="new";}).length,badge=document.getElementById("ordersNewCount");
+    badge.style.display=fresh?"inline-block":"none"; badge.textContent=fresh+" جديد";
+    if(!orders.length){ordersBox.innerHTML='<div class="menu-empty">لسه مفيش طلبات.</div>';return;}
+    ordersBox.innerHTML=orders.map(function(o){
+      var st=ST[o.status]||[o.status,""];
+      return '<div class="order-card"><div class="order-head"><b>#'+o.id+' — '+esc(o.name)+'</b><span class="order-st '+st[1]+'">'+st[0]+'</span></div>'+
+        '<div class="mi-desc">'+esc(o.created_at)+' · <a href="tel:'+esc(o.phone)+'" dir="ltr">'+esc(o.phone)+'</a>'+(o.address?' · '+esc(o.address):'')+'</div>'+
+        '<ul class="order-items">'+o.items.map(function(l){return '<li>'+esc(l.name)+' × '+l.qty+' <span>'+(l.price*l.qty).toFixed(2)+'</span></li>';}).join("")+'</ul>'+
+        (o.notes?'<div class="mi-desc">ملاحظات: '+esc(o.notes)+'</div>':'')+
+        '<div class="order-foot"><b class="mi-price">'+o.total.toFixed(2)+' '+esc(o.currency)+'</b><span>'+
+        ["confirmed","done","cancelled"].filter(function(s){return s!==o.status;}).map(function(s){return '<button class="mbtn'+(s==="cancelled"?' del':'')+'" data-order="'+o.id+'" data-st="'+s+'">'+ST[s][0]+'</button>';}).join(" ")+
+        '</span></div></div>';
+    }).join("");
+  }
+  function loadOrders(body){
+    return fetch("/client-dashboard/orders"+A,body?{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(body),credentials:"same-origin"}:{credentials:"same-origin"})
+      .then(function(r){return r.json();}).then(function(d){if(d.status==="success")drawOrders(d.orders);}).catch(function(){});
+  }
+  ordersBox.addEventListener("click",function(e){var b=e.target.closest("[data-order]");if(b)loadOrders({id:b.dataset.order,status:b.dataset.st});});
+
+  call(); loadOrders();
+  setInterval(function(){if(!document.hidden)loadOrders();},60000);
+})();
+</script>
+<!-- ALSAAB_PORTAL_SWITCH_LOADING_V1: show progress when jumping between client and partner dashboards -->
+<div id="portalLoading" style="display:none;position:fixed;inset:0;z-index:99999;background:rgba(0,0,0,.72);align-items:center;justify-content:center;flex-direction:column;gap:16px;color:#f0cc68;font-family:Cairo,Arial,sans-serif;font-weight:800;font-size:16px">
+  <div style="width:46px;height:46px;border:4px solid rgba(215,184,90,.25);border-top-color:#f0cc68;border-radius:50%;animation:portalSpin .8s linear infinite"></div>
+  <div>جاري التحميل...</div>
+</div>
+<style>@keyframes portalSpin{to{transform:rotate(360deg)}}</style>
+<script>
+document.querySelectorAll(".portal-card").forEach(function(a){
+  a.addEventListener("click",function(e){
+    if(a.classList.contains("active")||e.ctrlKey||e.metaKey||e.shiftKey)return;
+    document.getElementById("portalLoading").style.display="flex";
+  });
+});
+window.addEventListener("pageshow",function(){var o=document.getElementById("portalLoading");if(o)o.style.display="none";});
+</script>
 </body>
 </html>

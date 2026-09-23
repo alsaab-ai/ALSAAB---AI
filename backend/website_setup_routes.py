@@ -168,110 +168,64 @@ def register_website_setup_routes(app, ADMIN_KEY):
             return jsonify({"status": "error", "message": str(error)}), 500
 
     def alsaab_widget_js():
+        # ALSAAB_WIDGET_IFRAME_V2: the bubble opens the owner's real chat page
+        # (/c/<id>) in a frame, so a website gets exactly what the link gets --
+        # brand, menu, payment links, the ALSAAB switch -- instead of a second,
+        # thinner chat that had to be kept in step by hand.
         js = r'''
 (function(){
+  if(window.__alsaabWidgetLoaded)return; window.__alsaabWidgetLoaded=true;
   var script=document.currentScript||(function(){var s=document.getElementsByTagName("script");return s[s.length-1];})();
   var BASE="https://alsaab-ai.onrender.com";
+  try{ if(script&&script.src){ BASE=new URL(script.src).origin; } }catch(e){}
   var clientId=(script&&(script.getAttribute("data-client-id")||script.getAttribute("data-partner-id")))||"";
   var lang=(script&&script.getAttribute("data-lang"))||"ar";
-  var domain=(script&&script.getAttribute("data-domain"))||window.location.hostname||"";
+  var side=(script&&script.getAttribute("data-position"))==="left"?"left":"right";
+  var label=(script&&script.getAttribute("data-label"))||(lang==="en"?"Chat with us":"كلّمنا");
+  var domain=window.location.hostname||"";
 
   function ping(status){
-    try{
-      fetch(BASE+"/widget-install-ping",{
-        method:"POST",
-        headers:{"Content-Type":"application/json"},
-        body:JSON.stringify({client_id:clientId,partner_id:clientId,domain:domain,setup_status:status||"installed_detected"}),
-        keepalive:true
-      }).catch(function(){});
-    }catch(e){}
+    try{ fetch(BASE+"/widget-install-ping",{method:"POST",headers:{"Content-Type":"application/json"},
+      body:JSON.stringify({client_id:clientId,partner_id:clientId,domain:domain,setup_status:status}),keepalive:true}).catch(function(){}); }catch(e){}
   }
-
+  if(!clientId){ console.warn("ALSAAB widget: missing data-client-id"); return; }
   ping("installed_detected");
 
-  if(!clientId){
-    console.warn("ALSAAB widget missing data-client-id");
-    return;
-  }
+  var css=document.createElement("style");
+  css.textContent=
+    "#alsaabW-btn{position:fixed;"+side+":18px;bottom:18px;z-index:2147483000;display:flex;align-items:center;gap:8px;"+
+    "background:linear-gradient(135deg,#f0cc68,#b8912e);color:#111;border:0;border-radius:999px;padding:13px 20px;"+
+    "font:800 15px Tahoma,Arial,sans-serif;cursor:pointer;box-shadow:0 8px 28px rgba(0,0,0,.35)}"+
+    "#alsaabW-btn svg{width:20px;height:20px}"+
+    "#alsaabW-box{position:fixed;"+side+":18px;bottom:84px;z-index:2147483000;width:390px;height:640px;"+
+    "max-width:calc(100vw - 24px);max-height:calc(100vh - 110px);border-radius:20px;overflow:hidden;"+
+    "box-shadow:0 18px 50px rgba(0,0,0,.45);border:1px solid rgba(215,184,90,.5);background:#0b0b0b;display:none}"+
+    "#alsaabW-box iframe{width:100%;height:100%;border:0;display:block}"+
+    "@media(max-width:560px){#alsaabW-box{left:0;right:0;bottom:0;width:100vw;max-width:100vw;height:100%;max-height:100%;border-radius:0}}";
+  document.head.appendChild(css);
 
-  var style=document.createElement("style");
-  style.innerHTML=`
-    #alsaabWidgetButton{position:fixed;right:18px;bottom:18px;z-index:999999;background:linear-gradient(135deg,#d7b85a,#a88425);color:#0b0b0b;border:none;border-radius:999px;padding:13px 18px;font-weight:900;cursor:pointer;box-shadow:0 0 24px rgba(0,0,0,.3);font-family:Arial,sans-serif}
-    #alsaabWidgetPanel{position:fixed;right:18px;bottom:76px;width:360px;max-width:calc(100vw - 36px);height:520px;max-height:calc(100vh - 120px);z-index:999999;background:#0b0b0b;color:#fff;border:1px solid rgba(215,184,90,.55);border-radius:20px;display:none;flex-direction:column;overflow:hidden;box-shadow:0 0 35px rgba(0,0,0,.45);font-family:Arial,sans-serif;direction:rtl}
-    #alsaabWidgetHeader{padding:14px 16px;background:#111;color:#d7b85a;font-weight:900;border-bottom:1px solid rgba(215,184,90,.25)}
-    #alsaabWidgetMessages{flex:1;overflow-y:auto;padding:14px;font-size:14px;line-height:1.7}
-    .alsaabMsg{margin:8px 0;padding:10px 12px;border-radius:14px;white-space:pre-wrap}
-    .alsaabUser{background:#d7b85a;color:#0b0b0b;margin-left:35px}
-    .alsaabBot{background:#151515;color:#f5f0df;border:1px solid rgba(215,184,90,.18);margin-right:35px}
-    #alsaabWidgetInputRow{display:flex;gap:8px;padding:10px;border-top:1px solid rgba(215,184,90,.25);background:#111}
-    #alsaabWidgetInput{flex:1;background:#0b0b0b;color:#fff;border:1px solid rgba(215,184,90,.35);border-radius:999px;padding:10px 12px;outline:none}
-    #alsaabWidgetSend{background:#d7b85a;color:#0b0b0b;border:none;border-radius:999px;padding:10px 13px;font-weight:900;cursor:pointer}
-  `;
-  document.head.appendChild(style);
+  var btn=document.createElement("button");
+  btn.id="alsaabW-btn"; btn.type="button";
+  btn.innerHTML='<svg viewBox="0 0 24 24" fill="currentColor"><path d="M4 4h16a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H8l-4 4V6a2 2 0 0 1 2-2z"/></svg><span></span>';
+  btn.querySelector("span").textContent=label;
+  var box=document.createElement("div"); box.id="alsaabW-box";
+  document.body.appendChild(box); document.body.appendChild(btn);
 
-  var button=document.createElement("button");
-  button.id="alsaabWidgetButton";
-  button.textContent=lang==="en"?"Smart Sales Assistant":"موظف المبيعات الذكي";
-  document.body.appendChild(button);
-
-  var panel=document.createElement("div");
-  panel.id="alsaabWidgetPanel";
-  panel.innerHTML='<div id="alsaabWidgetHeader">'+(lang==="en"?"Smart Sales Assistant":"موظف المبيعات الذكي")+'</div><div id="alsaabWidgetMessages"></div><div id="alsaabWidgetInputRow"><input id="alsaabWidgetInput" placeholder="'+(lang==="en"?"Write your message...":"اكتب رسالتك...")+'"><button id="alsaabWidgetSend">'+(lang==="en"?"Send":"إرسال")+'</button></div>';
-  document.body.appendChild(panel);
-
-  var messages=document.getElementById("alsaabWidgetMessages");
-  var input=document.getElementById("alsaabWidgetInput");
-  var send=document.getElementById("alsaabWidgetSend");
-  var sessionId="web_"+clientId+"_"+Math.random().toString(36).slice(2);
-
-  function addMessage(text,cls){
-    var div=document.createElement("div");
-    div.className="alsaabMsg "+cls;
-    div.textContent=text;
-    messages.appendChild(div);
-    messages.scrollTop=messages.scrollHeight;
-  }
-
-  button.addEventListener("click",function(){
-    panel.style.display=panel.style.display==="flex"?"none":"flex";
-    if(!messages.dataset.started){
-      messages.dataset.started="yes";
-      addMessage(lang==="en"?"Hello, how can I help you?":"هلا، كيف أقدر أساعدك؟","alsaabBot");
+  var loaded=false;
+  function toggle(open){
+    if(open&&!loaded){
+      var f=document.createElement("iframe");
+      f.src=BASE+"/c/"+encodeURIComponent(clientId)+"?embed=1&lang="+encodeURIComponent(lang)+"&site="+encodeURIComponent(domain);
+      f.title=label; f.allow="clipboard-write";
+      box.appendChild(f); loaded=true; ping("live");
     }
-  });
-
-  function sendMessage(){
-    var text=(input.value||"").trim();
-    if(!text)return;
-    input.value="";
-    addMessage(text,"alsaabUser");
-    ping("live");
-
-    fetch(BASE+"/chat",{
-      method:"POST",
-      headers:{"Content-Type":"application/json"},
-      body:JSON.stringify({
-        message:text,
-        session_id:sessionId,
-        client_id:clientId,
-        partner_id:clientId,
-        channel:"website",
-        source:"client_widget",
-        page_url:window.location.href,
-        domain:domain
-      })
-    })
-    .then(function(res){return res.json();})
-    .then(function(data){
-      addMessage(data.reply||data.response||data.message||"تم استلام رسالتك.","alsaabBot");
-    })
-    .catch(function(){
-      addMessage(lang==="en"?"Connection error. Please try again.":"صار خطأ في الاتصال، جرّب مرة ثانية.","alsaabBot");
-    });
+    box.style.display=open?"block":"none";
+    btn.style.display=(open&&window.innerWidth<=560)?"none":"flex";
   }
-
-  send.addEventListener("click",sendMessage);
-  input.addEventListener("keydown",function(e){if(e.key==="Enter")sendMessage();});
+  btn.addEventListener("click",function(){ toggle(box.style.display!=="block"); });
+  window.addEventListener("message",function(e){
+    if(e.origin===BASE&&e.data&&e.data.type==="ALSAAB_CLOSE_CHAT"){ toggle(false); }
+  });
 })();
 '''
         return Response(js, mimetype="application/javascript")
