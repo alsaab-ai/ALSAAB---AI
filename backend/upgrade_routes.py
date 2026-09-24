@@ -64,6 +64,18 @@ def _db():
         return database
 
 
+
+def _admin_ok(key):
+    """True when the caller is the owner: signed in by email, or holding the
+    shared key while it is still enabled. Never true for an empty key."""
+    try:
+        import main as _app
+    except ImportError:
+        from backend import main as _app
+
+    return bool(_app.admin_access_granted((key or "").strip()))
+
+
 def register_upgrade_routes(app, ADMIN_KEY):
     if getattr(app, "alsaab_upgrade_routes_registered", False):
         return
@@ -163,7 +175,7 @@ a{display:inline-block;margin-top:15px;color:#f0cc68;text-decoration:none;border
     def admin_upgrade_requests():
         key = request.args.get("key", "").strip()
 
-        if key != ADMIN_KEY:
+        if not _admin_ok(key):
             return "Unauthorized", 401
 
         status_filter = request.args.get("status", "all").strip() or "all"
@@ -330,7 +342,7 @@ textarea{min-height:60px}
     def admin_update_upgrade_request():
         key = request.form.get("key", "").strip()
 
-        if key != ADMIN_KEY:
+        if not _admin_ok(key):
             return "Unauthorized", 401
 
         request_id = request.form.get("request_id", "").strip()
@@ -382,7 +394,7 @@ textarea{min-height:60px}
     def admin_schedule_upgrade_at_period_end():
         key = request.form.get("key", "").strip()
 
-        if key != ADMIN_KEY:
+        if not _admin_ok(key):
             return "Unauthorized", 401
 
         request_id = request.form.get("request_id", "").strip()

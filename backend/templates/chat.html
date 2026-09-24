@@ -1626,6 +1626,8 @@ window.addEventListener("load", function() {
 .mp-qty button{background:none;border:0;color:#f0cc68;font-size:18px;font-weight:900;cursor:pointer;width:24px}
 .mp-bar{display:none;justify-content:space-between;align-items:center;gap:10px;padding:12px 16px;border-top:1px solid rgba(215,184,90,.3);background:#0e0e0e}
 .mp-bar button{background:linear-gradient(135deg,#f0cc68,#b8912e);color:#111;border:0;border-radius:999px;padding:10px 20px;font-weight:900;cursor:pointer;font-family:inherit}
+.mp-bar-acts{display:flex;flex-direction:column;align-items:stretch;gap:5px}
+.mp-bar button.mp-bar-alt{background:none;color:#8d8a7c;font-weight:700;font-size:12px;padding:0;text-decoration:underline}
 .mp-form label{display:block;color:#cfc7ad;font-size:13px;font-weight:700;margin-top:10px}
 .mp-form input,.mp-form textarea{width:100%;box-sizing:border-box;margin-top:5px;background:#0b0b0b;color:#fff;border:1px solid rgba(215,184,90,.45);border-radius:10px;padding:10px 12px;font-family:inherit;font-size:14px}
 .mp-sum li{display:flex;justify-content:space-between;padding:4px 0;border-bottom:1px dashed rgba(255,255,255,.08)}
@@ -1637,7 +1639,7 @@ window.addEventListener("load", function() {
   <div class="mp-box">
     <div class="mp-head" id="menuHead"></div>
     <div id="menuBody"></div>
-    <div class="mp-bar" id="menuBar"><span id="menuBarTxt"></span><button type="button" onclick="menuCheckout()"></button></div>
+    <div class="mp-bar" id="menuBar"><span id="menuBarTxt"></span><span class="mp-bar-acts"><button type="button" onclick="menuOrderDirect()"></button><button type="button" class="mp-bar-alt" onclick="menuCheckout()"></button></span></div>
   </div>
 </div>
 <script>
@@ -1645,10 +1647,10 @@ window.addEventListener("load", function() {
   var OWNER="{{ bot_partner_id or '' }}", menu=[], ordersOn=false, basket={}, view="cats", curCat=0;
   var en=(new URLSearchParams(location.search).get("lang")||"")==="en";
   var T={
-    ar:{menu:"المنيو",items:" صنف",ask:"💬 اسأل عن الصنف ده",add:"+ أضف",basket:"السلة",checkout:"إتمام الطلب",empty:"مفيش أصناف في القسم ده.",
+    ar:{menu:"المنيو",items:" صنف",ask:"💬 اسأل عن الصنف ده",add:"+ أضف",basket:"السلة",checkout:"اطلب على واتساب",withDetails:"أو اكتب بياناتك للتوصيل",opening:"جاري الفتح...",empty:"مفيش أصناف في القسم ده.",
         name:"الاسم",phone:"رقم الجوال",addr:"العنوان (للتوصيل)",notes:"ملاحظات",send:"تأكيد الطلب",total:"الإجمالي",back:"رجوع للمنيو",
         need:"اكتب اسمك ورقم جوالك",sent:"تم استلام طلبك ✅",wa:"ابعت الطلب على WhatsApp",waNote:"اضغط الزرار عشان يوصل الطلب لصاحب المحل فوراً.",fail:"تعذّر إرسال الطلب، جرّب تاني"},
-    en:{menu:"Menu",items:" items",ask:"💬 Ask about this",add:"+ Add",basket:"Basket",checkout:"Checkout",empty:"No items in this section.",
+    en:{menu:"Menu",items:" items",ask:"💬 Ask about this",add:"+ Add",basket:"Basket",checkout:"Order on WhatsApp",withDetails:"or enter your delivery details",opening:"Opening...",empty:"No items in this section.",
         name:"Name",phone:"Phone number",addr:"Address (for delivery)",notes:"Notes",send:"Place order",total:"Total",back:"Back to menu",
         need:"Please enter your name and phone",sent:"Order received ✅",wa:"Send order on WhatsApp",waNote:"Tap to send the order to the shop right away.",fail:"Could not send the order, try again"}
   };
@@ -1669,7 +1671,8 @@ window.addEventListener("load", function() {
     if(!ordersOn||!n||view==="form"||view==="done"){bar.style.display="none";return;}
     var tt=total(); bar.style.display="flex";
     document.getElementById("menuBarTxt").textContent=t("basket")+" ("+n+") — "+tt[0].toFixed(2)+" "+tt[1];
-    bar.querySelector("button").textContent=t("checkout");
+    bar.querySelector("button").textContent="🟢 "+t("checkout");
+    bar.querySelector(".mp-bar-alt").textContent=t("withDetails");
   }
   function setHead(title,back){
     head.innerHTML='<span>'+(back?'<button class="mp-x" onclick="menuShowCats()">'+(en?"←":"→")+'</button> ':'')+'<b>'+esc(title)+'</b></span>'+
@@ -1715,6 +1718,28 @@ window.addEventListener("load", function() {
       '<button class="mp-add" style="width:100%;padding:12px;margin-top:14px;font-size:15px" id="moSend" onclick="menuSend()">'+esc(t("send"))+'</button></div>';
     paintBar();
   };
+  window.menuOrderDirect=function(){
+    var btn=bar.querySelector("button"),label=btn.textContent;
+    btn.disabled=true; btn.textContent=t("opening");
+    var wa=window.open("","_blank");
+    fetch("/menu/"+encodeURIComponent(OWNER)+"/order",{method:"POST",headers:{"Content-Type":"application/json"},
+      body:JSON.stringify({direct:true,items:Object.keys(basket).map(function(id){return {id:+id,qty:basket[id]};}),
+        session_id:(function(){try{return localStorage.getItem("session_id")||"";}catch(e){return "";}})()})})
+      .then(function(r){return r.json();}).then(function(d){
+        if(d.status!=="success")throw 0;
+        if(wa){wa.location.href=d.whatsapp_url;}else{window.location.href=d.whatsapp_url;}
+        basket={}; view="done"; setHead(t("sent"));
+        body.innerHTML='<div class="mp-done"><div style="font-size:40px">✅</div><b>'+esc(t("sent"))+' #'+d.order_id+'</b>'+
+          '<div class="d" style="color:#a8a290;margin-top:6px">'+esc(t("total"))+': '+d.total.toFixed(2)+' '+esc(d.currency)+'</div>'+
+          '<a href="'+esc(d.whatsapp_url)+'" target="_blank" rel="noopener">'+esc(t("wa"))+'</a>'+
+          '<div class="d" style="color:#a8a290;margin-top:8px">'+esc(t("waNote"))+'</div></div>';
+        btn.disabled=false; btn.textContent=label; paintBar();
+      }).catch(function(){
+        if(wa)wa.close();
+        btn.disabled=false; btn.textContent=label; alert(t("fail"));
+      });
+  };
+
   window.menuSend=function(){
     var name=document.getElementById("moName").value.trim(),phone=document.getElementById("moPhone").value.trim();
     if(!name||phone.replace(/\D/g,"").length<7){alert(t("need"));return;}

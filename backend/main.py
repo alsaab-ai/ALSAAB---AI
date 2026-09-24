@@ -61,7 +61,17 @@ app.secret_key = os.environ.get(
 
 init_db()
 
-ADMIN_KEY = "alsaab123"
+# The owner's key used to be this literal, in the source, in every admin URL
+# and therefore in browser history and screenshots. It now comes from the
+# environment, and switches itself off entirely once signing in by email is
+# possible -- but only then. Turning it off on a server with no ADMIN_EMAILS
+# set would lock the owner out of their own dashboard, so the fallback stays
+# until the safer door is known to be open.
+ADMIN_KEY = (os.getenv("ADMIN_KEY") or "").strip()
+
+if not ADMIN_KEY and not (os.getenv("ADMIN_EMAILS") or "").strip():
+    ADMIN_KEY = "alsaab123"
+    print("ADMIN KEY FALLBACK ⚠️ set ADMIN_EMAILS to disable the shared key", flush=True)
 SAFE_STRIPE_REFERENCE_SEPARATOR = "__"
 
 TRAINING_COMMANDS = [
@@ -1701,6 +1711,12 @@ def stripe_webhook():
             f"رابط الدفع الآن: {hosted_invoice_url or 'غير متاح'}"
             "\n"
             f"الفاتورة: <code>{invoice_id}</code>"
+        )
+
+        notify_payment_failed(
+            existing_subscription.get("client_id") or session_id,
+            plan_name, attempt, grace_days, next_attempt,
+            hosted_invoice_url, invoice_id,
         )
 
         return jsonify({
@@ -10181,7 +10197,15 @@ def place_menu_order(partner_id):
     address = str(data.get("address") or "").strip()[:300]
     notes = str(data.get("notes") or "").strip()[:500]
 
-    if not name or sum(ch.isdigit() for ch in phone) < 7:
+    # The quick path hands the basket straight to WhatsApp. The shop learns who
+    # the customer is from the WhatsApp message itself, so asking for a name and
+    # an address first only costs orders. The slow path still collects them,
+    # which a delivery-only shop wants.
+    straight_to_whatsapp = bool(data.get("direct"))
+
+    if straight_to_whatsapp:
+        name = name or "زبون من الشات"
+    elif not name or sum(ch.isdigit() for ch in phone) < 7:
         return jsonify({"status": "error", "error": "name_phone_required"}), 400
 
     wanted = {}
@@ -10305,6 +10329,111 @@ def client_dashboard_orders():
         return jsonify({"status": "error", "error": "load_failed"}), 500
 
 # ===== ALSAAB_CLIENT_MENU_V1 END =====
+
+# ===== ALSAAB_PAYMENT_FAILED_EMAIL_V1 START =====
+# A failed renewal was only ever a line in the log and a Telegram message.
+# The customer -- whose card is the thing that needs fixing -- heard nothing
+# at all, and the owner heard nothing unless Telegram happened to be set up.
+
+
+def _email_for_partner(partner_id):
+    if not partner_id:
+        return ""
+    try:
+        from db import get_connection
+
+        cursor = get_connection().cursor()
+        cursor.execute("SELECT email FROM partners WHERE partner_id = ?", (partner_id,))
+        row = cursor.fetchone()
+        return (row[0] or "").strip() if row else ""
+    except Exception as error:
+        print(f"PARTNER EMAIL LOOKUP ERROR ⚠️ {error}", flush=True)
+        return ""
+
+
+def _mail_page(title, colour, lines, button=None):
+    body = "".join(f"<p style='margin:0 0 10px'>{line}</p>" for line in lines)
+    cta = ""
+    if button:
+        cta = (
+            f"<p style='margin:22px 0 0'><a href='{button[1]}' "
+            "style='background:#d7b85a;color:#111;padding:12px 26px;border-radius:999px;"
+            f"text-decoration:none;font-weight:800'>{button[0]}</a></p>"
+        )
+    return (
+        "<div style=\"font-family:Tahoma,Arial,sans-serif;direction:rtl;text-align:right;"
+        "background:#0b0b0b;color:#f5f0df;padding:28px;border-radius:16px;max-width:560px\">"
+        f"<h2 style='color:{colour};margin:0 0 16px'>{title}</h2>"
+        f"<div style='line-height:1.9;color:#cfc7ad'>{body}</div>{cta}"
+        "<p style='margin:26px 0 0;color:#8d8a7c;font-size:12px'>ALSAAB AI</p></div>"
+    )
+
+
+def notify_payment_failed(client_id, plan_name, attempt, grace_days,
+                          next_attempt, pay_now_url, invoice_id):
+    """Tell the customer their card failed, and tell the owner it happened."""
+    try:
+        import mailer
+    except ImportError:
+        from backend import mailer
+
+    if mailer.transport() == "none":
+        print("PAYMENT FAILED MAIL SKIPPED ⚠️ no mail transport configured", flush=True)
+        return
+
+    customer_email = _email_for_partner(client_id)
+
+    if customer_email:
+        try:
+            mailer.send(
+                customer_email,
+                "لم ينجح تجديد اشتراكك في ALSAAB AI",
+                _mail_page(
+                    "تعذّر خصم قيمة الاشتراك",
+                    "#e0a83f",
+                    [
+                        f"حاولنا تجديد باقة <b>{plan_name}</b> ولم تنجح العملية (المحاولة {attempt}).",
+                        "الغالب أن الرصيد غير كافٍ أو البطاقة انتهت.",
+                        f"خدمتك تعمل بالكامل لمدة {grace_days} يوماً، "
+                        + (f"وسنعيد المحاولة تلقائياً يوم {next_attempt}." if next_attempt else "وسنعيد المحاولة تلقائياً."),
+                        "يمكنك الدفع الآن أو تحديث البطاقة من الزر بالأسفل.",
+                    ],
+                    ("ادفع الآن أو حدّث البطاقة", pay_now_url) if pay_now_url else None,
+                ),
+                f"تعذّر خصم اشتراك {plan_name}. الخدمة مستمرة {grace_days} يوماً."
+                + (f" رابط الدفع: {pay_now_url}" if pay_now_url else ""),
+            )
+            print(f"PAYMENT FAILED MAIL SENT ✅ customer={client_id}", flush=True)
+        except Exception as error:
+            print(f"PAYMENT FAILED MAIL ERROR ⚠️ customer {type(error).__name__}: {error}", flush=True)
+    else:
+        print(f"PAYMENT FAILED MAIL SKIPPED ⚠️ no email for {client_id}", flush=True)
+
+    for address in ADMIN_EMAILS:
+        try:
+            mailer.send(
+                address,
+                f"فشل تجديد اشتراك: {client_id}",
+                _mail_page(
+                    "فشل تجديد اشتراك",
+                    "#ef8383",
+                    [
+                        f"العميل: <b>{client_id}</b>",
+                        f"الباقة: {plan_name}",
+                        f"المحاولة رقم {attempt}، وفترة السماح {grace_days} يوماً.",
+                        f"محاولة Stripe القادمة: {next_attempt or 'غير محددة'}",
+                        f"الفاتورة: {invoice_id}",
+                        ("تم إبلاغ العميل على " + customer_email) if customer_email
+                        else "لا يوجد بريد مسجل للعميل، فلم يصله إشعار.",
+                    ],
+                ),
+                f"فشل تجديد اشتراك {client_id} - باقة {plan_name} - محاولة {attempt}.",
+            )
+        except Exception as error:
+            print(f"PAYMENT FAILED MAIL ERROR ⚠️ admin {type(error).__name__}: {error}", flush=True)
+
+# ===== ALSAAB_PAYMENT_FAILED_EMAIL_V1 END =====
+
 
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 10000))
